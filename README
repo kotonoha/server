@@ -1,6 +1,3 @@
-This is a simple image hosting.
+Kotonoha is a yet another flashcard software for learning japanese words.
 
-Made for getting used to Scala Lift framework.
-
-
-To build use sbt 0.10+
+Unlike anki, it is specialized only for japanese and has focus on quick new word addition.
