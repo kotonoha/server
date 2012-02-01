@@ -1,9 +1,9 @@
 package org.eiennohito.kotonoha.records
 
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
-import net.liftweb.record.field.{IntField, DoubleField}
-import net.liftweb.mongodb.record.field.{LongRefField, DateField, LongPk}
+import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
+import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
+import net.liftweb.record.field.{DateTimeField, IntField, DoubleField}
 
 /*
  * Copyright 2012 eiennohito
@@ -26,12 +26,14 @@ import net.liftweb.mongodb.record.field.{LongRefField, DateField, LongPk}
  * @since 29.01.12
  */
 
+import com.foursquare.rogue.Rogue._
 
-class ItemLearningDataRecord private() extends MongoRecord[ItemLearningDataRecord] with LongPk[ItemLearningDataRecord] {
+
+class ItemLearningDataRecord private() extends BsonRecord[ItemLearningDataRecord] {
   def meta = ItemLearningDataRecord
 
-  object intervalStart extends DateField(this)
-  object intervalEnd extends DateField(this)
+  object intervalStart extends DateTimeField(this)
+  object intervalEnd extends DateTimeField(this)
   object intervalLength extends DoubleField(this)
 
   object difficulty extends DoubleField(this)
@@ -39,15 +41,42 @@ class ItemLearningDataRecord private() extends MongoRecord[ItemLearningDataRecor
   object repetition extends IntField(this)
 }
 
-object ItemLearningDataRecord extends ItemLearningDataRecord with MongoMetaRecord[ItemLearningDataRecord] with NamedDatabase
+object ItemLearningDataRecord extends ItemLearningDataRecord with BsonMetaRecord[ItemLearningDataRecord]
 
 class OFMatrixRecord private() extends MongoRecord[OFMatrixRecord] with LongPk[OFMatrixRecord] {
   def meta = OFMatrixRecord
 
-  object refUser extends LongRefField(this, UserRecord)
+  object user extends LongRefField(this, UserRecord)
+  
+  def value(n: Int, ef: Double) = {
+    val q = OFElementRecord where (_.id eqs id.is) and (_.n eqs n) and (_.ef eqs ef)
+    q.get() getOrElse {
+      val elem = OFElementRecord
+        .createRecord
+        .matrix(id.is)
+        .n(n)
+        .ef(ef)
+        .value(ef)
+      elem.save
+      elem
+    }
+  }
 }
 
-object OFMatrixRecord extends OFMatrixRecord with MongoMetaRecord[OFMatrixRecord] with NamedDatabase
+object OFMatrixRecord extends OFMatrixRecord with MongoMetaRecord[OFMatrixRecord] with NamedDatabase {
+  def forUser(userId: Long) =  {
+    val m = OFMatrixRecord where (_.user eqs userId) get()
+    m match {
+      case Some(mat) => mat
+      case None => {
+        val mat = OFMatrixRecord.createRecord
+        mat.user(userId)
+        mat.save
+        mat
+      }        
+    }
+  }
+}
 
 class OFElementRecord private() extends MongoRecord[OFElementRecord] with LongPk[OFElementRecord] {
   def meta = OFElementRecord
@@ -55,6 +84,9 @@ class OFElementRecord private() extends MongoRecord[OFElementRecord] with LongPk
   object n extends IntField(this)
   object ef extends DoubleField(this)
   object value extends DoubleField(this)
+  
+  object matrix extends LongRefField(this, OFMatrixRecord)
 }
 
-object OFElementRecord extends OFElementRecord with MongoMetaRecord[OFElementRecord] with NamedDatabase
+object OFElementRecord extends OFElementRecord with MongoMetaRecord[OFElementRecord] with NamedDatabase {  
+}

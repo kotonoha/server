@@ -13,7 +13,8 @@ import common._
 import http._
 import sitemap._
 import Loc._
-import mapper._
+import org.eiennohito.kotonoha.actors.AkkaStartup
+import org.eiennohito.kotonoha.web.rest.SimpleRest
 
 
 /**
@@ -58,6 +59,8 @@ class Boot {
     // each page, just comment this line out.
     //LiftRules.setSiteMapFunc(() => sitemapMutators(sitemap))
 
+    LiftRules.statelessDispatchTable.append(new SimpleRest)
+
     // Use jQuery 1.4
     LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
 
@@ -81,5 +84,7 @@ class Boot {
 
     // Make a transaction span the whole HTTP request
     //S.addAround(DB.buildLoanWrapper)
+
+    LiftRules.unloadHooks.append({ () => AkkaStartup.shutdown() })
   }
 }

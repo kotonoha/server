@@ -1,6 +1,6 @@
-package org.eiennohito.kotonoha.model
+package org.eiennohito.kotonoha.actors
 
-import java.util.Date
+import akka.actor.ActorSystem
 
 /*
  * Copyright 2012 eiennohito
@@ -20,17 +20,13 @@ import java.util.Date
 
 /**
  * @author eiennohito
- * @since 29.01.12
+ * @since 01.02.12
  */
 
-class WordCard (
-                 val writing: String,
-                 val reading: String,
-                 val meaning: String,
-                 val examples: Array[WordExample],
-                 val addedOn: Date = new Date,
-                 val learningBase: Option[RepetitionCard] = None) {
+object AkkaStartup {
+  val system = ActorSystem("kotonoha_system")
 
+  def shutdown() {
+    system.shutdown()
+  }
 }
-
-class WordExample(val example: String, val translation: String)

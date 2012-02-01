@@ -1,4 +1,4 @@
-package org.eiennohito.kotonoha.model
+package org.eiennohito.kotonoha.math
 
 /*
  * Copyright 2012 eiennohito
@@ -18,9 +18,27 @@ package org.eiennohito.kotonoha.model
 
 /**
  * @author eiennohito
- * @since 29.01.12
+ * @since 30.01.12
  */
 
-class RepetitionCard {
-
+object MathUtil {
+  def round(d: Double, radix: Int) = {
+    val x = math.pow(10, radix)
+    math.round(d * x) / x
+  }
+  
+  def ofrandom = {
+    val a = 0.047
+    val b = 0.092
+    val p = math.random - 0.5
+    val m = -1 / b * math.log (1 - b / a * p.abs)
+    val mend = m * p.signum
+    (100 + mend) / 100
+  }
+  
+  def dayToMillis(days: Double) = {
+    val hours = days * 24
+    val mins = hours * 60
+    (mins * 60 * 1000).round
+  }
 }

@@ -1,6 +1,10 @@
-import java.util.Date
-import org.eiennohito.kotonoha.mongodb.MongoDbInit
-import org.eiennohito.kotonoha.records.ItemLearningDataRecord
+package org.eiennohito.kotonoha.utls
+
+import org.joda.time.DateTime
+import java.util.Calendar
+
+import org.joda.time.{Duration => JodaDuration}
+import akka.util.FiniteDuration
 
 /*
  * Copyright 2012 eiennohito
@@ -20,14 +24,12 @@ import org.eiennohito.kotonoha.records.ItemLearningDataRecord
 
 /**
  * @author eiennohito
- * @since 29.01.12 
+ * @since 01.02.12
  */
 
-class SimpleTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
-  test("whatever") {
-    MongoDbInit.init()
-    val rec: ItemLearningDataRecord = ItemLearningDataRecord.createRecord
-    rec.difficulty(1.2).intervalStart(new Date)
-    print(rec.asJSON.toJsCmd)
-  }
+object DateTimeUtils {
+  implicit def dateTime2Calendar(dt: DateTime) : Calendar = dt.toCalendar(null)
+  implicit def akkaToJodaDurations(dur: FiniteDuration): JodaDuration = new JodaDuration(dur.toMillis)
+  implicit def calendar2DateTime(c: Calendar) = new DateTime(c.getTimeInMillis)
+  def now = new DateTime()
 }

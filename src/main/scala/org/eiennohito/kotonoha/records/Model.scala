@@ -1,9 +1,9 @@
 package org.eiennohito.kotonoha.records
 
-import net.liftweb.mongodb.record.field.{LongRefListField, LongRefField, LongPk}
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.record.field.StringField
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
+import net.liftweb.mongodb.record.field._
+import net.liftweb.record.field.{OptionalDateTimeField, IntField, StringField}
 
 /*
 * Copyright 2012 eiennohito
@@ -43,9 +43,19 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
   object meaning extends StringField(this, 1000)
 
   object examples extends LongRefListField(this, ExampleRecord)
-  object learning extends LongRefField(this, ItemLearningDataRecord)
-  object refUser extends LongRefField(this, UserRecord)
-
+  object user extends LongRefField(this, UserRecord)
 }
 
 object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with NamedDatabase
+
+class WordCardRecord private() extends MongoRecord[WordCardRecord] with LongPk[WordCardRecord] {
+  def meta = WordCardRecord
+
+  object cardMode extends IntField(this)
+  object word extends LongRefField(this, WordRecord)
+  object learning extends BsonRecordField(this, ItemLearningDataRecord)
+  object user extends LongRefField(this, UserRecord)
+  object notBefore extends OptionalDateTimeField(this, None)
+}
+
+object WordCardRecord extends WordCardRecord with MongoMetaRecord[WordCardRecord] with NamedDatabase
