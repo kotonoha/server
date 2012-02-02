@@ -1,9 +1,9 @@
 package org.eiennohito.kotonoha.records
 
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field._
 import net.liftweb.record.field.{OptionalDateTimeField, IntField, StringField}
+import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
 
 /*
 * Copyright 2012 eiennohito
@@ -26,14 +26,14 @@ import net.liftweb.record.field.{OptionalDateTimeField, IntField, StringField}
  * @since 30.01.12
  */
 
-class ExampleRecord private() extends MongoRecord[ExampleRecord] with LongPk[ExampleRecord] {
+class ExampleRecord private() extends BsonRecord[ExampleRecord] {
   def meta = ExampleRecord
 
   object example extends StringField(this, 250)
   object translation extends StringField(this, 500)
 }
 
-object ExampleRecord extends ExampleRecord with MongoMetaRecord[ExampleRecord] with NamedDatabase
+object ExampleRecord extends ExampleRecord with BsonMetaRecord[ExampleRecord]
 
 class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecord] {
   def meta = WordRecord
@@ -42,7 +42,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
   object reading extends StringField(this, 150)
   object meaning extends StringField(this, 1000)
 
-  object examples extends LongRefListField(this, ExampleRecord)
+  object examples extends BsonRecordListField(this, ExampleRecord)
   object user extends LongRefField(this, UserRecord)
 }
 

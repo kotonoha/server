@@ -41,8 +41,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   test("saving word for user") {
     val word = WordRecord.createRecord
     val ex1 = ExampleRecord.createRecord.example("this is an example").translation("this is a translation of an example")
-    ex1.save
-    word.writing("example").reading("example").examples(List(ex1.id.is)).user(user.id.is)
+    word.writing("example").reading("example").examples(List(ex1)).user(user.id.is)
     word.save
     word.id.valueBox.isEmpty should be (false)
   }
