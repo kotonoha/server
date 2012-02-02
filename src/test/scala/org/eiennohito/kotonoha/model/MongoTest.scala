@@ -33,6 +33,8 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     if (all.length == 0) {
       user = UserRecord.createRecord
       user.save
+    } else {
+      user = all.head
     }
   }
 
