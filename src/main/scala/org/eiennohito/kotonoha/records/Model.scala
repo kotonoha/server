@@ -2,11 +2,10 @@ package org.eiennohito.kotonoha.records
 
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field._
-import net.liftweb.record.field.{OptionalDateTimeField, IntField, StringField}
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
-import net.liftweb.util.SettableField
-import net.liftweb.record.BaseField
 import net.liftweb.common.Empty
+import net.liftweb.record.field.{DateTimeField, OptionalDateTimeField, IntField, StringField}
+import org.eiennohito.kotonoha.utls.DateTimeUtils
 
 /*
 * Copyright 2012 eiennohito
@@ -29,10 +28,6 @@ import net.liftweb.common.Empty
  * @since 30.01.12
  */
 
-trait Optional { this: BaseField =>
-  override def optional_? = true
-}
-
 class ExampleRecord private() extends BsonRecord[ExampleRecord] {
   def meta = ExampleRecord
 
@@ -48,6 +43,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
   object writing extends StringField(this, 100)
   object reading extends StringField(this, 150)
   object meaning extends StringField(this, 1000)
+  object createdOn extends DateTimeField(this)
 
   object examples extends BsonRecordListField(this, ExampleRecord)
   object user extends LongRefField(this, UserRecord)
@@ -64,6 +60,7 @@ class WordCardRecord private() extends MongoRecord[WordCardRecord] with LongPk[W
     override def required_? = false
   }
   object user extends LongRefField(this, UserRecord)
+  object createdOn extends DateTimeField(this)
   object notBefore extends OptionalDateTimeField(this, Empty)
 }
 

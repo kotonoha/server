@@ -1,3 +1,5 @@
+package org.eiennohito.kotonoha.actors.learning
+
 /*
  * Copyright 2012 eiennohito
  *
@@ -14,21 +16,19 @@
  * limitations under the License.
  */
 
-package org.eiennohito.kotonoha.learning
-
-import org.eiennohito.kotonoha.records.WordCardRecord
 import com.foursquare.rogue.Rogue
 import org.joda.time.DateTime
 import util.Random
 import org.eiennohito.kotonoha.model.CardMode
 import org.eiennohito.kotonoha.utls.DateTimeUtils
-import akka.actor.{Props, Actor}
 import akka.dispatch.Await
 import Rogue._
 import akka.pattern._
 import akka.util.duration._
 import DateTimeUtils._
 import akka.util.Timeout
+import akka.actor.{ActorLogging, Props, Actor}
+import org.eiennohito.kotonoha.records.{WordRecord, WordCardRecord}
 
 /**
  * @author eiennohito
@@ -39,24 +39,27 @@ class WordSelector extends Actor {
   def calculateMax(maxInt: Int, firstPerc: Double, overMax: Double) = {
     def ceil(x: Double): Int = math.round(math.ceil(x)).asInstanceOf[Int]
     val max = maxInt * (1 + overMax)
-    (ceil (max * firstPerc), ceil( 2 * max * (1 - firstPerc)))
+    (ceil(max * firstPerc), ceil(2 * max * (1 - firstPerc)))
   }
 
   def selectCards(cardList: List[WordCardRecord], max: Int) = {
     val rnd = new Random
     val cards = new scala.collection.mutable.ArrayBuffer[WordCardRecord]()
     val col = new scala.collection.mutable.ListBuffer[WordCardRecord]
-    var count = 0    
-    while (count < max || cards.length == 0) {
+    cards ++= cardList
+    var count = 0
+    while (count < max && cards.length != 0) {
       val idx = rnd.nextInt(cards.length)
       val item = cards.remove(idx)
       val wordId = item.word.is
       col += item
       if (item.notBefore.is.isEmpty) {
-        val otherIdx = cards.zipWithIndex.filter({case (w, i) => w.word.is == wordId}).map(_._2)
-        otherIdx.foreach(cards.remove(_))
         scheduler ! SchedulePaired(item.word.is, item.cardMode.is)
-      }      
+        val otherIdx = cards.zipWithIndex.filter({
+          case (w, i) => w.word.is == wordId
+        }).map(_._2)
+        otherIdx.foreach(cards.remove(_))
+      }
       count += 1
     }
     col.toList
@@ -76,12 +79,12 @@ class WordSelector extends Actor {
 
     val sched = loaderSched ? LoadScheduled(userId, schedMax)
     val newCards = loaderNew ? LoadNewCards(userId, newMax)
-    
+
     val listF = for {
       s <- sched.mapTo[List[WordCardRecord]]
       n <- newCards.mapTo[List[WordCardRecord]]
     } yield s ++ n
-    
+
     val list = Await.result(listF, 1.second)
 
     selectCards(list, max)
@@ -89,44 +92,63 @@ class WordSelector extends Actor {
 
   def forUser(userId: Long, max: Int) = {
     val now = new DateTime()
-    val valid = WordCardRecord where (_.user eqs userId) and 
-      (_.learning.subfield(_.intervalEnd) before now) and (_.notBefore before now) fetch(max)
+    val valid = WordCardRecord where (_.user eqs userId) and
+      (_.learning.subfield(_.intervalEnd) before now) and (_.notBefore before now) orderAsc
+      (_.learning.subfield(_.intervalEnd)) fetch (max)
     val len = valid.length
-    valid ++ loadNewCards(userId, max - len, now) 
+    valid ++ loadNewCards(userId, max - len, now)
   }
 
   protected def receive = {
     case LoadCards(user, max) => sender ! forUser(user, max)
+    case LoadWords(user, max) => {
+      val f = ask(self, LoadCards(user, max))(50 milli).mapTo[List[WordCardRecord]]
+      val dest = sender
+      f map {
+        cards =>
+          val wIds = cards map (_.word.is)
+          val words = WordRecord where (_.id in wIds) fetch()
+          dest ! WordsAndCards(words, cards)
+      }
+    }
   }
 }
 
 case class LoadScheduled(userId: Long, maxSched: Int)
+
 case class LoadNewCards(userId: Long, maxNew: Int)
+
 case class LoadCards(userId: Long, max: Int)
+
 case class SchedulePaired(wordId: Long, cardType: Int)
+
+case class LoadWords(userId: Long, max: Int)
+
+case class WordsAndCards(words: List[WordRecord], cards: List[WordCardRecord])
 
 class CardLoader extends Actor {
   protected def receive = {
     case LoadScheduled(user, max) => {
       val scheduled = WordCardRecord where (_.user eqs user) and (_.learning exists false) and
-            (_.notBefore before now) fetch (max)
+        (_.notBefore before now) fetch (max)
       sender ! scheduled
     }
     case LoadNewCards(user, max) => {
       val newCards = WordCardRecord where (_.user eqs user) and (_.learning exists false) and
-            (_.notBefore exists false) fetch (max)
+        (_.notBefore exists false) orderAsc (_.createdOn) fetch (max)
       sender ! newCards
     }
   }
 }
 
-class CardScheduler extends Actor {
+class CardScheduler extends Actor with ActorLogging {
   protected def receive = {
     case SchedulePaired(word, cardMode) => {
       val cardType = if (cardMode == CardMode.READING) CardMode.WRITING else CardMode.READING
       val date = now plus (1.5 days)
       val q = WordCardRecord where (_.cardMode eqs cardType) and
-        (_.word eqs word) findAndModify (_.notBefore setTo date)
+        (_.word eqs word) modify (_.notBefore setTo date)
+      log.debug(q.toString)
       q.updateOne()
     }
   }

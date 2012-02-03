@@ -6,6 +6,7 @@ import akka.actor.{ActorLogging, Props, Actor}
 import org.eiennohito.kotonoha.utls.DateTimeUtils._
 import org.eiennohito.kotonoha.supermemo.{SM6, ItemUpdate}
 import net.liftweb.common.{Failure, Empty, Full}
+import org.eiennohito.kotonoha.actors.learning.{SchedulePaired, CardScheduler}
 
 /*
  * Copyright 2012 eiennohito

@@ -39,6 +39,7 @@ libraryDependencies ++= {
   val akkaVer = "2.0-M3"
   Seq(
     "com.typesafe.akka" % "akka-actor" % akkaVer,
+    "com.typesafe.akka" % "akka-slf4j" % akkaVer,
     "com.typesafe.akka" % "akka-testkit" % akkaVer % "test"
   )
 }
