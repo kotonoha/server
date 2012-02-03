@@ -35,7 +35,7 @@ import org.eiennohito.kotonoha.records.{WordRecord, WordCardRecord}
  * @since 31.01.12
  */
 
-class WordSelector extends Actor {
+class WordSelector extends Actor with ActorLogging {
   def calculateMax(maxInt: Int, firstPerc: Double, overMax: Double) = {
     def ceil(x: Double): Int = math.round(math.ceil(x)).asInstanceOf[Int]
     val max = maxInt * (1 + overMax)
@@ -84,10 +84,8 @@ class WordSelector extends Actor {
       s <- sched.mapTo[List[WordCardRecord]]
       n <- newCards.mapTo[List[WordCardRecord]]
     } yield s ++ n
-
-    val list = Await.result(listF, 1.second)
-
-    selectCards(list, max)
+    
+    listF map {ls => selectCards(ls, max)}
   }
 
   def forUser(userId: Long, max: Int) = {
@@ -96,19 +94,26 @@ class WordSelector extends Actor {
       (_.learning.subfield(_.intervalEnd) before now) and (_.notBefore before now) orderAsc
       (_.learning.subfield(_.intervalEnd)) fetch (max)
     val len = valid.length
-    valid ++ loadNewCards(userId, max - len, now)
+
+    loadNewCards(userId, max - len, now) map (valid ++ _)
   }
 
   protected def receive = {
-    case LoadCards(user, max) => sender ! forUser(user, max)
-    case LoadWords(user, max) => {
-      val f = ask(self, LoadCards(user, max))(50 milli).mapTo[List[WordCardRecord]]
+    case LoadCards(user, max) => {
       val dest = sender
-      f map {
-        cards =>
+      forUser(user, max) map (dest ! _)
+    }
+    case LoadWords(user, max) => {
+      val f = ask(self, LoadCards(user, max))(1 second).mapTo[List[WordCardRecord]]
+      val dest = sender
+      f onComplete {
+        case Right(cards) =>
           val wIds = cards map (_.word.is)
           val words = WordRecord where (_.id in wIds) fetch()
           dest ! WordsAndCards(words, cards)
+        case Left(thr) =>
+          log.error(thr, "Error in sending stuff")
+          dest ! thr
       }
     }
   }

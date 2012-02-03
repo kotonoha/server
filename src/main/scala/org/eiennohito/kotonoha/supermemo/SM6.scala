@@ -59,7 +59,7 @@ object SM6 {
   def updateLearningItem(item: ItemUpdate, mat: OFMatrixRecord) {
     val  q = item.q
     val data = item.data
-    val raw = if (q > 3.5) {
+    val raw = if (q < 3.5) {
       data.lapse(data.lapse.is + 1)
       data.repetition(1)
       mat.value(1, data.difficulty.is).value.is
@@ -81,7 +81,7 @@ object SM6 {
     data.intervalEnd(end)
   }
 
-  def update(item: ItemUpdate) {
+  def update(item: ItemUpdate) : ItemLearningDataRecord = {
     val matrix = OFMatrixRecord.forUser(item.userId)
     val q = item.q
     val data = item.data
@@ -89,17 +89,20 @@ object SM6 {
     val ef = 1.3 max (oldEf + 0.1 - (5 - q)*(0.08 + (5 - q)*0.02))
 
     if (data.repetition.is == 0) {
-      data.repetition(0)
+      data.repetition(1)
+      data.lapse(1)
       data.intervalLength(4)
       updateMatrix(matrix, item, oldEf, 1, 1)
       data.intervalLength(matrix.value(1, ef).value.is * MathUtil.ofrandom)
       updateDates(item)
-      return
+      return data
     }
 
+    data.difficulty(ef)
     val n = data.repetition.is
     updateMatrix(matrix, item, oldEf, n, if (n <= 1) 1 else n - 1)
     updateLearningItem(item, matrix)
     updateDates(item)
+    data
   }
 }

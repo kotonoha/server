@@ -1,12 +1,12 @@
 package org.eiennohito.kotonoha.learning
 
-import org.eiennohito.kotonoha.records.MarkEventRecord
-import org.eiennohito.kotonoha.actors.{SaveRecord, MongoDBActor}
 import akka.actor.{ActorLogging, Props, Actor}
 import org.eiennohito.kotonoha.utls.DateTimeUtils._
 import org.eiennohito.kotonoha.supermemo.{SM6, ItemUpdate}
 import net.liftweb.common.{Failure, Empty, Full}
 import org.eiennohito.kotonoha.actors.learning.{SchedulePaired, CardScheduler}
+import org.eiennohito.kotonoha.actors.{UpdateRecord, SaveRecord, MongoDBActor}
+import org.eiennohito.kotonoha.records.{ItemLearningDataRecord, MarkEventRecord}
 
 /*
  * Copyright 2012 eiennohito
@@ -45,7 +45,9 @@ class MarkEventProcessor extends Actor with ActorLogging {
         case Full(card) => {
           sched ! SchedulePaired(card.word.is, card.cardMode.is)
           val it = ItemUpdate(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is)
-          SM6.update(it)
+          card.learning(SM6.update(it))
+          //mongo ! UpdateRecord(card)
+          card.update
         }
         case Failure(msg, e, c) => log.error(e.openTheBox, msg)
       }

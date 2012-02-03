@@ -13,6 +13,8 @@ import akka.dispatch.{Future, Await}
 import akka.testkit.TestActorRef
 import org.eiennohito.kotonoha.actors.learning._
 import java.util.Calendar
+import util.Random
+import org.eiennohito.kotonoha.learning.{ProcessMarkEvent, MarkEventProcessor, ProcessMarkEvents}
 
 /*
  * Copyright 2012 eiennohito
@@ -46,6 +48,9 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
 
   override def beforeAll {
     user = UserRecord.createRecord.save
+    val l = Random.nextLong()
+    WordCardRecord.createRecord
+    WordRecord.createRecord
   }
 
   override def afterAll {
@@ -156,5 +161,69 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     val wicF = ask(Akka.wordSelector, LoadWords(userId, 6)).mapTo[WordsAndCards]
     val wic = Await.result(wicF, 50 milli)
     wic.cards.length should be <= (5)
+  }
+
+  test("full work cycle") {
+    implicit val system = Akka.system
+    implicit val timeout = Timeout(1 day)
+    val fs = Future.sequence(1 to 5 map { x => saveWordAsync })
+    Await.ready(fs, 150 milli)
+
+    val wicF = ask(Akka.wordSelector, LoadWords(userId, 5)).mapTo[WordsAndCards]
+    val wic = Await.result(wicF, 1 day)
+
+    val card = wic.cards.head
+    val event = MarkEventRecord.createRecord
+    event.card(card.id.is).mark(5.0).mode(card.cardMode.is)
+
+    val proc = TestActorRef[MarkEventProcessor]
+    proc.receive(ProcessMarkEvent(event))
+    val updatedCard = WordCardRecord.find(card.id.is).get
+    updatedCard.learning.valueBox.isEmpty should be (false)
+  }
+  
+  test("Multiple marks for word") {
+    implicit val system = Akka.system
+    implicit val timeout = Timeout(1 day)
+    val fs = Future.sequence(1 to 2 map { x => saveWordAsync })
+    Await.ready(fs, 150 milli)
+
+    val wicF = ask(Akka.wordSelector, LoadWords(userId, 5)).mapTo[WordsAndCards]
+    val wic = Await.result(wicF, 1 day)
+
+    val card = wic.cards.head
+    val event = MarkEventRecord.createRecord
+    event.card(card.id.is).mark(5.0).mode(card.cardMode.is)
+
+    val ev2 = MarkEventRecord.createRecord
+    ev2.card(card.id.is).mark(5.0).mode(card.cardMode.is)
+
+    val ev3 = MarkEventRecord.createRecord
+    ev3.card(card.id.is).mark(5.0).mode(card.cardMode.is)
+
+    val ev4 = MarkEventRecord.createRecord
+    ev4.card(card.id.is).mark(1.0).mode(card.cardMode.is)
+
+
+    val proc = TestActorRef[MarkEventProcessor]
+    proc.receive(ProcessMarkEvent(event))
+    proc.receive(ProcessMarkEvent(ev2))
+    proc.receive(ProcessMarkEvent(ev3))
+    proc.receive(ProcessMarkEvent(ev4))
+
+    val updatedCard = WordCardRecord.find(card.id.is).get
+    updatedCard.learning.valueBox.isEmpty should be (false)
+    updatedCard.learning.value.lapse.is should be (2)
+  }
+  
+  test("of matrix test") {
+    val mat = OFMatrixRecord.forUser(userId)
+    val v = mat.value(1, 2.5)
+    val v2 = mat.value(1, 2.5)    
+    v.id.is should equal (v2.id.is)
+    v.value.is should equal (v2.value.is)
+    v.value(5).update
+    val v3 = mat.value(1, 2.5)
+    v.value.is should equal (v3.value.is)
   }
 }

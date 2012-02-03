@@ -4,6 +4,7 @@ import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
 import net.liftweb.record.field.{DateTimeField, IntField, DoubleField}
+import org.eiennohito.kotonoha.math.MathUtil
 
 /*
  * Copyright 2012 eiennohito
@@ -36,7 +37,7 @@ class ItemLearningDataRecord private() extends BsonRecord[ItemLearningDataRecord
   object intervalEnd extends DateTimeField(this)
   object intervalLength extends DoubleField(this)
 
-  object difficulty extends DoubleField(this)
+  object difficulty extends DoubleField(this, 2.5)
   object lapse extends IntField(this)
   object repetition extends IntField(this)
 }
@@ -48,8 +49,9 @@ class OFMatrixRecord private() extends MongoRecord[OFMatrixRecord] with LongPk[O
 
   object user extends LongRefField(this, UserRecord)
   
-  def value(n: Int, ef: Double) = {
-    val q = OFElementRecord where (_.id eqs id.is) and (_.n eqs n) and (_.ef eqs ef)
+  def value(n: Int, rawEf: Double) = {
+    val ef = MathUtil.round(rawEf, 1)
+    val q = OFElementRecord where (_.matrix eqs id.is) and (_.n eqs n) and (_.ef eqs ef)
     q.get() getOrElse {
       val elem = OFElementRecord
         .createRecord
