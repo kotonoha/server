@@ -1,6 +1,9 @@
 package org.eiennohito.kotonoha.actors
 
-import akka.actor.ActorSystem
+import akka.actor.{Props, ActorSystem}
+import org.eiennohito.kotonoha.learning.{MarkEventProcessor, WordSelector}
+import akka.dispatch.ExecutionContext
+
 
 /*
  * Copyright 2012 eiennohito
@@ -23,8 +26,14 @@ import akka.actor.ActorSystem
  * @since 01.02.12
  */
 
-object AkkaStartup {
-  val system = ActorSystem("kotonoha_system")
+object Akka {
+  private val system = ActorSystem("kotonoha_system")
+
+  val wordRegistry = system.actorOf(Props[WordRegistry])
+  val wordSelector = system.actorOf(Props[WordSelector])
+  val markProcessor = system.actorOf(Props[MarkEventProcessor])
+
+  def context = ExecutionContext.defaultExecutionContext(system)
 
   def shutdown() {
     system.shutdown()

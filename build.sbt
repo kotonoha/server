@@ -24,7 +24,7 @@ libraryDependencies += "com.github.scala-incubator.io" %% "scala-io-core" % "0.2
 libraryDependencies +=  "com.github.scala-incubator.io" %% "scala-io-file" % "0.2.0"
 
 libraryDependencies ++= {
-  val liftVersion = "2.4-M5" // Put the current/latest lift version here
+  val liftVersion = "2.4-RC1" // Put the current/latest lift version here
   Seq(
     "net.liftweb" %% "lift-webkit" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",

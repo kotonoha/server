@@ -2,7 +2,7 @@ package org.eiennohito.kotonoha.web.rest
 
 import net.liftweb.http.rest.{RestContinuation, RestHelper}
 import akka.dispatch.{ExecutionContext, Future}
-import org.eiennohito.kotonoha.actors.AkkaStartup
+import org.eiennohito.kotonoha.actors.Akka
 
 
 /*
@@ -27,7 +27,7 @@ import org.eiennohito.kotonoha.actors.AkkaStartup
  */
 
 class SimpleRest extends RestHelper {
-  implicit val executor = ExecutionContext.defaultExecutionContext(AkkaStartup.system)
+  implicit val executor = Akka.context
 
   serve("api" / "cards" prefix {
     case "get" :: number :: Nil JsonGet _ => {

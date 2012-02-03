@@ -13,7 +13,7 @@ import common._
 import http._
 import sitemap._
 import Loc._
-import org.eiennohito.kotonoha.actors.AkkaStartup
+import org.eiennohito.kotonoha.actors.Akka
 import org.eiennohito.kotonoha.web.rest.SimpleRest
 
 
@@ -85,6 +85,6 @@ class Boot {
     // Make a transaction span the whole HTTP request
     //S.addAround(DB.buildLoanWrapper)
 
-    LiftRules.unloadHooks.append({ () => AkkaStartup.shutdown() })
+    LiftRules.unloadHooks.append({ () => Akka.shutdown() })
   }
 }

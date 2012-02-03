@@ -4,6 +4,9 @@ import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field._
 import net.liftweb.record.field.{OptionalDateTimeField, IntField, StringField}
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
+import net.liftweb.util.SettableField
+import net.liftweb.record.BaseField
+import net.liftweb.common.Empty
 
 /*
 * Copyright 2012 eiennohito
@@ -25,6 +28,10 @@ import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, Mong
  * @author eiennohito
  * @since 30.01.12
  */
+
+trait Optional { this: BaseField =>
+  override def optional_? = true
+}
 
 class ExampleRecord private() extends BsonRecord[ExampleRecord] {
   def meta = ExampleRecord
@@ -53,9 +60,11 @@ class WordCardRecord private() extends MongoRecord[WordCardRecord] with LongPk[W
 
   object cardMode extends IntField(this)
   object word extends LongRefField(this, WordRecord)
-  object learning extends BsonRecordField(this, ItemLearningDataRecord)
+  object learning extends BsonRecordField(this, ItemLearningDataRecord, Empty) {
+    override def required_? = false
+  }
   object user extends LongRefField(this, UserRecord)
-  object notBefore extends OptionalDateTimeField(this, None)
+  object notBefore extends OptionalDateTimeField(this, Empty)
 }
 
 object WordCardRecord extends WordCardRecord with MongoMetaRecord[WordCardRecord] with NamedDatabase
