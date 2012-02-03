@@ -28,7 +28,7 @@ import akka.dispatch.ExecutionContext
  */
 
 object Akka {
-  private val system = ActorSystem("kotonoha_system")
+  val system = ActorSystem("kotonoha_system")
 
   val wordRegistry = system.actorOf(Props[WordRegistry])
   val wordSelector = system.actorOf(Props[WordSelector])

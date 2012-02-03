@@ -10,7 +10,9 @@ import akka.pattern._
 import akka.util.duration._
 import akka.util.Timeout
 import akka.dispatch.{Future, Await}
-import org.eiennohito.kotonoha.actors.learning.{WordsAndCards, LoadWords, LoadCards}
+import akka.testkit.TestActorRef
+import org.eiennohito.kotonoha.actors.learning._
+import java.util.Calendar
 
 /*
  * Copyright 2012 eiennohito
@@ -117,7 +119,20 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   }
 
   test ("paired card is being postproned") {
+    implicit val system = Akka.system
+    val id = saveWord    
+    val sched = TestActorRef[CardScheduler]
+
+    val cards = WordCardRecord where (_.word eqs id) fetch()
+    cards should have length (2)
+    val card = cards.head
+
+    sched.receive(SchedulePaired(id, card.cardMode.is))
+    val cid = cards.last.id.is
     
+    val anotherCard = WordCardRecord.find(cid).get
+    anotherCard.notBefore.value should not be (None)
+    anotherCard.notBefore.value.get should be >= (Calendar.getInstance)
   }
   
   test("getting new cards and words") {
