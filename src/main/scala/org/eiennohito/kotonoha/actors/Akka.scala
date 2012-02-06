@@ -4,6 +4,7 @@ import akka.actor.{Props, ActorSystem}
 import learning.WordSelector
 import org.eiennohito.kotonoha.learning.{MarkEventProcessor}
 import akka.dispatch.ExecutionContext
+import akka.util.Duration
 
 
 /*
@@ -35,6 +36,15 @@ object Akka {
   val markProcessor = system.actorOf(Props[MarkEventProcessor])
 
   def context = ExecutionContext.defaultExecutionContext(system)
+  
+  def schedule(f: () => Unit, delay: Duration) = {
+    val runnable = new Runnable {
+      def run() {
+        f()
+      }
+    }
+    system.scheduler.scheduleOnce(delay, runnable)
+  }
 
   def shutdown() {
     system.shutdown()

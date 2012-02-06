@@ -1,11 +1,7 @@
 package org.eiennohito.kotonoha.utls
 
-import org.joda.time.DateTime
-import java.util.Calendar
-
-import org.joda.time.{Duration => JodaDuration}
-import akka.util.FiniteDuration
-import net.liftweb.util.TimeHelpers.TimeSpan
+import net.liftweb.http.Req
+import net.liftweb.common.Full
 
 /*
  * Copyright 2012 eiennohito
@@ -22,17 +18,13 @@ import net.liftweb.util.TimeHelpers.TimeSpan
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
  * @author eiennohito
- * @since 01.02.12
+ * @since 04.02.12
  */
 
-object DateTimeUtils {
-  implicit def dateTime2Calendar(dt: DateTime) : Calendar = dt.toCalendar(null)
-  implicit def akkaToJodaDurations(dur: FiniteDuration): JodaDuration = new JodaDuration(dur.toMillis)
-  implicit def calendar2DateTime(c: Calendar) = new DateTime(c.getTimeInMillis)
-  implicit def akkaDurationToLiftTimeSpan(dur: FiniteDuration) : TimeSpan = TimeSpan(dur.toMillis)
+object UserUtil {
 
-  def now = new DateTime()
+  def extractUser(req: Req) = Full(1L)
+
 }

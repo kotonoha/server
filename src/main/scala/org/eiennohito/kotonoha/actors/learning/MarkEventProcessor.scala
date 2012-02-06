@@ -46,7 +46,7 @@ class MarkEventProcessor extends Actor with ActorLogging {
           sched ! SchedulePaired(card.word.is, card.cardMode.is)
           val it = ItemUpdate(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is)
           card.learning(SM6.update(it))
-          //mongo ! UpdateRecord(card)
+          mongo ! UpdateRecord(card)
           card.update
         }
         case Failure(msg, e, c) => log.error(e.openTheBox, msg)
