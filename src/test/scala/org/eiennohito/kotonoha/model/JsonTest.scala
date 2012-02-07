@@ -1,13 +1,14 @@
 package org.eiennohito.kotonoha.model
 
 import converters.DateTimeTypeConverter
-import learning.Word
+import learning.{Container, WordCard, Word}
 import org.eiennohito.kotonoha.records.{WordCardRecord, ExampleRecord, WordRecord}
 import org.eiennohito.kotonoha.utls.ResponseUtil
 import net.liftweb.json.{Printer, JsonAST}
 import com.google.gson.{GsonBuilder, Gson}
 import org.joda.time.DateTime
 import net.liftweb.json.JsonAST.JObject
+import org.eiennohito.kotonoha.actors.learning.WordsAndCards
 
 
 /*
@@ -32,6 +33,22 @@ import net.liftweb.json.JsonAST.JObject
  */
 
 class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
+  
+  val gson = {
+    val gb = new GsonBuilder
+    gb.registerTypeAdapter(classOf[DateTime], new DateTimeTypeConverter)    
+    gb.create()
+  }
+  
+  def card = WordCardRecord.createRecord.word(5).cardMode(CardMode.READING)
+  
+  def word = {
+    val ex1 = ExampleRecord.createRecord.example("ex").translation("tr")
+    val rec = WordRecord.createRecord
+    rec.writing("wr").reading("re").meaning("me").examples(List(ex1)).id(5)
+    rec
+  }
+  
   test("word record becomes nice json") {
     val rec = WordRecord.createRecord
     rec.writing("hey").reading("guys")
@@ -44,20 +61,30 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
   }
   
   test("word record translates to java model") {
-    val ex1 = ExampleRecord.createRecord.example("ex").translation("tr")
-    val rec = WordRecord.createRecord
-    rec.writing("wr").reading("re").meaning("me").examples(List(ex1)).id(5)
-
-    val jv: JObject = rec.asJValue
+    val jv: JObject = word.asJValue
     val str = Printer.pretty(JsonAST.render(ResponseUtil.deuser(jv)))
 
-    println(str)
-
-    val gb = new GsonBuilder
-    gb.registerTypeAdapter(classOf[DateTime], new DateTimeTypeConverter)
-
-    val gson = gb.create()
     val obj = gson.fromJson(str, classOf[Word])
     obj.getMeaning should equal ("me")
+  }
+  
+  test("word card saves all right") {
+    val jv = card.asJValue
+    val str = Printer.compact(JsonAST.render(ResponseUtil.deuser(jv)))
+
+    val obj = gson.fromJson(str, classOf[WordCard])
+    obj.getCardMode should equal (CardMode.READING)
+    obj.getWord should equal (5)
+  }
+  
+  test("container is being parsed") {
+    val words = List(word, word)
+    val cards = List(card, card)
+
+    val jv = ResponseUtil.jsonResponse(WordsAndCards(words, cards))
+    val str = Printer.compact(JsonAST.render(ResponseUtil.deuser(jv)))
+    val obj = gson.fromJson(str, classOf[Container])
+    obj.getWords.size() should be (2)
+    obj.getCards.size() should be (2)
   }
 }

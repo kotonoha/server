@@ -33,8 +33,8 @@ import com.foursquare.rogue.Rogue._
 class ItemLearningDataRecord private() extends BsonRecord[ItemLearningDataRecord] {
   def meta = ItemLearningDataRecord
 
-  object intervalStart extends DateTimeField(this)
-  object intervalEnd extends DateTimeField(this)
+  object intervalStart extends DateTimeField(this) with DateJsonFormat
+  object intervalEnd extends DateTimeField(this) with DateJsonFormat
   object intervalLength extends DoubleField(this)
 
   object difficulty extends DoubleField(this, 2.5)

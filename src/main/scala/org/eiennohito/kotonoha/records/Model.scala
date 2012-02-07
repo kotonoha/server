@@ -43,7 +43,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
   object writing extends StringField(this, 100)
   object reading extends StringField(this, 150)
   object meaning extends StringField(this, 1000)
-  object createdOn extends DateTimeField(this)
+  object createdOn extends DateTimeField(this) with DateJsonFormat
 
   object examples extends BsonRecordListField(this, ExampleRecord)
   object user extends LongRefField(this, UserRecord)
@@ -60,8 +60,8 @@ class WordCardRecord private() extends MongoRecord[WordCardRecord] with LongPk[W
     override def required_? = false
   }
   object user extends LongRefField(this, UserRecord)
-  object createdOn extends DateTimeField(this)
-  object notBefore extends OptionalDateTimeField(this, Empty)
+  object createdOn extends DateTimeField(this) with DateJsonFormat
+  object notBefore extends OptionalDateTimeField(this, Empty) with DateJsonFormat
 }
 
 object WordCardRecord extends WordCardRecord with MongoMetaRecord[WordCardRecord] with NamedDatabase
