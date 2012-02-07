@@ -13,36 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.eiennohito.kotonoha.model.learning;
+package org.eiennohito.kotonoha.model;
 
+import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.table.DatabaseTable;
 
 /**
  * @author eiennohito
- * @since 06.02.12
+ * @since 07.02.12
  */
-@DatabaseTable
-public class Example {
-  @DatabaseField
-  private String example;
-  @DatabaseField
-  private String translation;
+public class Identifiable {
+  @SerializedName("_id")
+  @DatabaseField(id = true)
+  private long id;
 
-
-  public String getExample() {
-    return example;
+  public long getId() {
+    return id;
   }
 
-  public void setExample(String example) {
-    this.example = example;
-  }
-
-  public String getTranslation() {
-    return translation;
-  }
-
-  public void setTranslation(String translation) {
-    this.translation = translation;
+  public void setId(long id) {
+    this.id = id;
   }
 }

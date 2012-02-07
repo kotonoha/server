@@ -13,36 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.eiennohito.kotonoha.model.learning;
+package org.eiennohito.kotonoha.model.events;
 
 import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.table.DatabaseTable;
+import org.eiennohito.kotonoha.model.Identifiable;
+import org.eiennohito.kotonoha.model.ormlite.DateTimePersister;
+import org.joda.time.DateTime;
 
 /**
  * @author eiennohito
- * @since 06.02.12
+ * @since 07.02.12
  */
-@DatabaseTable
-public class Example {
+public abstract class Event extends Identifiable {
+  @DatabaseField(persisterClass = DateTimePersister.class)
+  private DateTime datetime;
+
   @DatabaseField
-  private String example;
+  private int eventType = myType();
+  
+  protected abstract int myType();
+
   @DatabaseField
-  private String translation;
+  private transient int operation = 0;
 
-
-  public String getExample() {
-    return example;
+  public DateTime getDatetime() {
+    return datetime;
   }
 
-  public void setExample(String example) {
-    this.example = example;
+  public void setDatetime(DateTime datetime) {
+    this.datetime = datetime;
   }
 
-  public String getTranslation() {
-    return translation;
-  }
-
-  public void setTranslation(String translation) {
-    this.translation = translation;
+  public int getEventType() {
+    return eventType;
   }
 }

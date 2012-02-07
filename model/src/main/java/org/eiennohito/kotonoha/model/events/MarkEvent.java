@@ -13,36 +13,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.eiennohito.kotonoha.model.learning;
+package org.eiennohito.kotonoha.model.events;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import org.eiennohito.kotonoha.model.EventTypes;
 
 /**
  * @author eiennohito
- * @since 06.02.12
+ * @since 07.02.12
  */
 @DatabaseTable
-public class Example {
+public class MarkEvent extends Event {
+
   @DatabaseField
-  private String example;
+  private long card;
   @DatabaseField
-  private String translation;
-
-
-  public String getExample() {
-    return example;
+  private int mode;
+  @DatabaseField
+  private double mark;
+  @DatabaseField
+  private double time;
+  
+  @Override
+  protected int myType() {
+    return EventTypes.MARK;
   }
 
-  public void setExample(String example) {
-    this.example = example;
+  public long getCard() {
+    return card;
   }
 
-  public String getTranslation() {
-    return translation;
+  public void setCard(long card) {
+    this.card = card;
   }
 
-  public void setTranslation(String translation) {
-    this.translation = translation;
+  public int getMode() {
+    return mode;
+  }
+
+  public void setMode(int mode) {
+    this.mode = mode;
+  }
+
+  public double getMark() {
+    return mark;
+  }
+
+  public void setMark(double mark) {
+    this.mark = mark;
+  }
+
+  public double getTime() {
+    return time;
+  }
+
+  public void setTime(double time) {
+    this.time = time;
   }
 }

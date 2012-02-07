@@ -15,7 +15,9 @@
  */
 package org.eiennohito.kotonoha.model.learning;
 
-import com.google.gson.annotations.SerializedName;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+import org.eiennohito.kotonoha.model.Identifiable;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -25,25 +27,18 @@ import java.util.Collection;
  * @author eiennohito
  * @since 06.02.12
  */
-public class Word {
-  @SerializedName("_id")
-  private long id;
-
+@DatabaseTable
+public class Word extends Identifiable {
+  @DatabaseField
   private String writing;
+  @DatabaseField
   private String reading;
+  @DatabaseField
   private String meaning;
-  
+  @DatabaseField
   private DateTime createdOn;
-  
+  @DatabaseField
   private Collection<Example> examples = new ArrayList<Example>();
-
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
 
   public String getWriting() {
     return writing;

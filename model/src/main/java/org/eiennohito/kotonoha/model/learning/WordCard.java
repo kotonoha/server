@@ -15,30 +15,29 @@
  */
 package org.eiennohito.kotonoha.model.learning;
 
-import com.google.gson.annotations.SerializedName;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+import org.eiennohito.kotonoha.model.Identifiable;
 import org.joda.time.DateTime;
 
 /**
  * @author eiennohito
  * @since 07.02.12
  */
-public class WordCard {
-  @SerializedName("_id")
-  private long id;
+@DatabaseTable
+public class WordCard extends Identifiable {
+  @DatabaseField
   private int cardMode;
+  @DatabaseField
   private DateTime createdOn;
+  @DatabaseField
   private DateTime notBefore;
+  @DatabaseField
   private long word;
-
+  @DatabaseField
   private ItemLearning learning;
-
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
+  @DatabaseField
+  private transient int status = 0;
 
   public int getCardMode() {
     return cardMode;

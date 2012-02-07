@@ -15,18 +15,28 @@
  */
 package org.eiennohito.kotonoha.model.learning;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+import org.eiennohito.kotonoha.model.ormlite.DateTimePersister;
 import org.joda.time.DateTime;
 
 /**
  * @author eiennohito
  * @since 07.02.12
  */
+@DatabaseTable
 public class ItemLearning {
+  @DatabaseField(persisterClass = DateTimePersister.class)
   private DateTime intervalStart;
+  @DatabaseField(persisterClass = DateTimePersister.class, index = true)
   private DateTime intervalEnd;
-  private DateTime intervalLength;
+  @DatabaseField
+  private double intervalLength;
+  @DatabaseField
   private double difficulty;
+  @DatabaseField
   private int lapse;
+  @DatabaseField
   private int repetition;
 
   public DateTime getIntervalStart() {
@@ -45,11 +55,11 @@ public class ItemLearning {
     this.intervalEnd = intervalEnd;
   }
 
-  public DateTime getIntervalLength() {
+  public double getIntervalLength() {
     return intervalLength;
   }
 
-  public void setIntervalLength(DateTime intervalLength) {
+  public void setIntervalLength(double intervalLength) {
     this.intervalLength = intervalLength;
   }
 
