@@ -28,7 +28,7 @@ case class UpdateRecord[T <: MongoRecord[T]](rec: MongoRecord[T])
 
 class MongoDBActor extends Actor {
   protected def receive = {
-    case SaveRecord(rec) => rec.save
-    case UpdateRecord(rec) => rec.update
+    case SaveRecord(rec) => rec.save; sender ! "OK"
+    case UpdateRecord(rec) => rec.update; sender ! "OK"
   }
 }

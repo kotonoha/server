@@ -11,6 +11,9 @@ import com.weiglewilczek.slf4s.Logging
 import net.liftweb.util.{TimeHelpers, Schedule}
 import net.liftweb.util.TimeHelpers.TimeSpan
 import akka.util.{Timeout, Helpers, duration}
+import org.eiennohito.kotonoha.records.MarkEventRecord
+import org.eiennohito.kotonoha.learning.ProcessMarkEvents
+import net.liftweb.json.JsonAST.JString
 
 
 /*
@@ -36,6 +39,8 @@ import akka.util.{Timeout, Helpers, duration}
 
 object Learning extends RestHelper with Logging {
   import duration._
+  import ResponseUtil._
+  import akka.pattern.ask
   implicit val scheduler = Akka.context
   implicit val timeout = Timeout(500 milli)
 
@@ -56,9 +61,21 @@ object Learning extends RestHelper with Logging {
       val userId = UserUtil.extractUser(req) ?~ "user is not valid" ~> 403
       if (max > 50) ForbiddenResponse("number is too big")
       else async(userId) { (id, req) =>
-        val f = akka.pattern.ask(Akka.wordSelector, LoadWords(id, max)).mapTo[WordsAndCards]
-        f foreach { wc => req (ResponseUtil.jsonResponse(wc)) }
+        val f = ask(Akka.wordSelector, LoadWords(id, max)).mapTo[WordsAndCards]
+        f foreach { wc => req (deuser(jsonResponse(wc))) }
       }
+    }
+  })
+  
+  serve ( "api" / "events" prefix {
+    case "mark" :: Nil JsonPut reqV => {
+      val (json, req) = reqV
+      val userId = UserUtil.extractUser(req) ?~ "user is not valid" ~> 403
+      async(userId) { (id, resp) =>
+        val marks = json.children map (MarkEventRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox)
+        val count = Akka.markProcessor ? (ProcessMarkEvents(marks))
+        count.mapTo[Int] foreach {c => resp(JString(c.toString))}
+      }      
     }
   })
 

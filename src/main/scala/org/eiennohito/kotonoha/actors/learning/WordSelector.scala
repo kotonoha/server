@@ -155,6 +155,7 @@ class CardScheduler extends Actor with ActorLogging {
         (_.word eqs word) modify (_.notBefore setTo date)
       log.debug(q.toString)
       q.updateOne()
+      sender ! "OK"
     }
   }
 }

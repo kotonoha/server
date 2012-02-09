@@ -101,14 +101,14 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   }
   
   def saveWordAsync = {
-    implicit val timeout = Timeout(50 millis)
+    implicit val timeout = Timeout(500 millis)
     val fut = Akka.wordRegistry ? RegisterWord(createWord)
     fut.mapTo[Long]
   }
   
   def saveWord = {
     val fut = saveWordAsync
-    Await.result(fut, 50 milli)
+    Await.result(fut, 500 milli)
   }
 
   test("word is being saved all right") {
@@ -129,7 +129,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     val sched = TestActorRef[CardScheduler]
 
     val cards = WordCardRecord where (_.word eqs id) fetch()
-    cards should have length (2)
+    cards.length should equal (2)
     val card = cards.head
 
     sched.receive(SchedulePaired(id, card.cardMode.is))

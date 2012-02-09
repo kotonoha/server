@@ -1,14 +1,15 @@
 package org.eiennohito.kotonoha.model
 
 import converters.DateTimeTypeConverter
+import events.MarkEvent
 import learning.{Container, WordCard, Word}
-import org.eiennohito.kotonoha.records.{WordCardRecord, ExampleRecord, WordRecord}
-import org.eiennohito.kotonoha.utls.ResponseUtil
 import net.liftweb.json.{Printer, JsonAST}
-import com.google.gson.{GsonBuilder, Gson}
+import com.google.gson.GsonBuilder
 import org.joda.time.DateTime
 import net.liftweb.json.JsonAST.JObject
 import org.eiennohito.kotonoha.actors.learning.WordsAndCards
+import org.eiennohito.kotonoha.utls.{DateTimeUtils, ResponseUtil}
+import org.eiennohito.kotonoha.records.{MarkEventRecord, WordCardRecord, ExampleRecord, WordRecord}
 
 
 /*
@@ -86,5 +87,20 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     val obj = gson.fromJson(str, classOf[Container])
     obj.getWords.size() should be (2)
     obj.getCards.size() should be (2)
+  }
+  
+  test("word mark event goes from java to scala world") {
+    val event = new MarkEvent()
+    event.setCard(5); event.setMark(5.0); event.setMode(CardMode.READING);
+    event.setTime(1.0); event.setDatetime(DateTimeUtils.now)
+    
+    val str = gson.toJson(event)
+    val jv = net.liftweb.json.parse(str)
+    val rec = MarkEventRecord.createRecord
+    rec.setFieldsFromJValue(jv)
+    
+    rec.card.is should equal (5)
+    rec.mark.is should equal (5.0)
+    rec.mode.is should equal (CardMode.READING)
   }
 }
