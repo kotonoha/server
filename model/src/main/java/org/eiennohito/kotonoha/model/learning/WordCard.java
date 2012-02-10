@@ -79,4 +79,12 @@ public class WordCard extends Identifiable {
   public void setWord(long word) {
     this.word = word;
   }
+
+  public int getStatus() {
+    return status;
+  }
+
+  public void setStatus(int status) {
+    this.status = status;
+  }
 }
