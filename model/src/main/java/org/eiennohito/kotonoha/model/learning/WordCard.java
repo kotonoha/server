@@ -18,6 +18,7 @@ package org.eiennohito.kotonoha.model.learning;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import org.eiennohito.kotonoha.model.Identifiable;
+import org.eiennohito.kotonoha.model.ormlite.DateTimePersister;
 import org.joda.time.DateTime;
 
 /**
@@ -28,13 +29,13 @@ import org.joda.time.DateTime;
 public class WordCard extends Identifiable {
   @DatabaseField
   private int cardMode;
-  @DatabaseField
+  @DatabaseField(persisterClass = DateTimePersister.class)
   private DateTime createdOn;
-  @DatabaseField
+  @DatabaseField(persisterClass = DateTimePersister.class)
   private DateTime notBefore;
   @DatabaseField
   private long word;
-  @DatabaseField
+  @DatabaseField(foreign = true)
   private ItemLearning learning;
   @DatabaseField
   private transient int status = 0;

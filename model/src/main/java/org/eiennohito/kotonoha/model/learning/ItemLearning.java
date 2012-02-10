@@ -26,6 +26,8 @@ import org.joda.time.DateTime;
  */
 @DatabaseTable
 public class ItemLearning {
+  @DatabaseField(generatedId = true)
+  private transient long id;
   @DatabaseField(persisterClass = DateTimePersister.class)
   private DateTime intervalStart;
   @DatabaseField(persisterClass = DateTimePersister.class, index = true)

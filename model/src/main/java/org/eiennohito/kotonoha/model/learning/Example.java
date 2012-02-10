@@ -24,6 +24,9 @@ import com.j256.ormlite.table.DatabaseTable;
  */
 @DatabaseTable
 public class Example {
+
+  @DatabaseField(foreign = true)
+  private transient Word word;
   @DatabaseField
   private String example;
   @DatabaseField

@@ -16,8 +16,10 @@
 package org.eiennohito.kotonoha.model.learning;
 
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 import org.eiennohito.kotonoha.model.Identifiable;
+import org.eiennohito.kotonoha.model.ormlite.DateTimePersister;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -35,9 +37,9 @@ public class Word extends Identifiable {
   private String reading;
   @DatabaseField
   private String meaning;
-  @DatabaseField
+  @DatabaseField(persisterClass = DateTimePersister.class)
   private DateTime createdOn;
-  @DatabaseField
+  @ForeignCollectionField
   private Collection<Example> examples = new ArrayList<Example>();
 
   public String getWriting() {

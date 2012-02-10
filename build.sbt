@@ -56,3 +56,7 @@ libraryDependencies += "com.j256.ormlite" % "ormlite-jdbc" % "4.33" % "test"
 resolvers += "some weird japanese repo" at "http://dev.mwsoft.jp/repo/"
 
 libraryDependencies += "net.java.sen" % "lucene-gosen" % "1.1.1"
+
+libraryDependencies += "com.h2database" % "h2" % "1.3.163" % "test"
+
+publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
