@@ -1,19 +1,18 @@
 package org.eiennohito.kotonoha.web.rest
 
-import org.eiennohito.kotonoha.actors.Akka
 import org.eiennohito.kotonoha.actors.learning.{WordsAndCards, LoadWords}
-import org.eiennohito.kotonoha.utls.{ResponseUtil, UserUtil, DateTimeUtils}
 import net.liftweb.common._
 import net.liftweb.util.BasicTypesHelpers.AsInt
 import net.liftweb.http._
 import net.liftweb.http.rest._
 import com.weiglewilczek.slf4s.Logging
-import net.liftweb.util.{TimeHelpers, Schedule}
-import net.liftweb.util.TimeHelpers.TimeSpan
-import akka.util.{Timeout, Helpers, duration}
-import org.eiennohito.kotonoha.records.MarkEventRecord
+import akka.util.{Timeout, duration}
 import org.eiennohito.kotonoha.learning.ProcessMarkEvents
 import net.liftweb.json.JsonAST.JString
+import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
+import org.eiennohito.kotonoha.records.MarkEventRecord
+import org.eiennohito.kotonoha.utls.{ResponseUtil, UserUtil}
+import akka.dispatch.Future
 
 
 /*
@@ -37,32 +36,72 @@ import net.liftweb.json.JsonAST.JString
  */
 
 
-object Learning extends RestHelper with Logging {
+trait LearningRest extends RestHelper with Logging with Akka {
   import duration._
   import ResponseUtil._
   import akka.pattern.ask
-  implicit val scheduler = Akka.context
-  implicit val timeout = Timeout(500 milli)
+  lazy implicit val scheduler = akkaServ.context
+  lazy implicit val timeout = Timeout(5 seconds)
 
-  def async[Obj](box: Box[Obj])(f : (Obj, ( => LiftResponse) => Unit) => Unit) = {
-     RestContinuation.async { req =>       
-       Akka.schedule(() => req(PlainTextResponse("Sevice timeouted", 500)), 1 second)
-       
-       box match {
-         case Full(o) => f(o, req)
-         case smt : EmptyBox => emptyToResp(smt) map { req(_) }
-         case x @ _ => logger.debug("found this shit in async response: %s".format(x))
-       }
-     }
-   }
+//  def async[Obj](box: Box[Obj])(f : (Obj, ( => LiftResponse) => Unit) => Unit) = {
+//     RestContinuation.async { req =>      
+//       Schedule.schedule(() => req(PlainTextResponse("Sevice timeouted", 500)), ts(10 seconds))
+//       
+//       box match {
+//         case Full(o) => f(o, req)
+//         case smt : EmptyBox => emptyToResp(smt) map { req(_) }
+//         case x @ _ => logger.debug("found this shit in async response: %s".format(x))
+//       }
+//     }
+//   }
+  
+  def async[Obj](param: Future[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
+      RestContinuation.async({resp =>
+        param onComplete {
+          case Left(ex) => {
+            logger.error("Error in getting parameter", ex)
+            resp(PlainTextResponse("Internal server error", 500))
+          }
+          case Right(v) => {
+            val fut = f(v)          
+            val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 10 seconds)
+            
+            fut onSuccess {
+              case Full(r) => resp(r); tCancel.cancel()
+              case x @ _ => logger.debug("found something: " + x)
+            }          
+          }
+        }
+      })
+    }
+  
+  def async[Obj](param: Box[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
+        RestContinuation.async({resp =>
+          param match {
+            case Empty => resp(PlainTextResponse("No response", 500))
+            case b: EmptyBox => {
+              emptyToResp(b) map (resp(_))
+            }
+            case Full(v) => {
+              val fut = f(v)          
+              val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 10 seconds)
+              
+              fut onSuccess {
+                case Full(r) => resp(r); tCancel.cancel()
+                case x @ _ => logger.debug("found something: " + x)
+              }          
+            }
+          }
+        })
+      }
   
   serve ( "api" / "words" prefix {
     case "scheduled" :: AsInt(max) :: Nil JsonGet req => {
       val userId = UserUtil.extractUser(req) ?~ "user is not valid" ~> 403
       if (max > 50) ForbiddenResponse("number is too big")
-      else async(userId) { (id, req) =>
-        val f = ask(Akka.wordSelector, LoadWords(id, max)).mapTo[WordsAndCards]
-        f foreach { wc => req (deuser(jsonResponse(wc))) }
+      else async(userId) { id =>
+        val f = ask(akkaServ.wordSelector, LoadWords(id, max)).mapTo[WordsAndCards]
+        f map { wc => Full(JsonResponse(deuser(jsonResponse(wc)))) }
       }
     }
   })
@@ -71,12 +110,13 @@ object Learning extends RestHelper with Logging {
     case "mark" :: Nil JsonPut reqV => {
       val (json, req) = reqV
       val userId = UserUtil.extractUser(req) ?~ "user is not valid" ~> 403
-      async(userId) { (id, resp) =>
+      async(userId) { id =>
         val marks = json.children map (MarkEventRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox)
-        val count = Akka.markProcessor ? (ProcessMarkEvents(marks))
-        count.mapTo[Int] foreach {c => resp(JString(c.toString))}
+        val count = akkaServ.markProcessor ? (ProcessMarkEvents(marks))
+        count.mapTo[Int] map {c => Full(JsonResponse(JString(c.toString))) }
       }      
     }
   })
-
 }
+
+object Learning extends LearningRest with ReleaseAkka

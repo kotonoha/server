@@ -1,8 +1,6 @@
-package org.eiennohito.kotonoha.web.rest
+package org.eiennohito.kotonoha.actors.ioc
 
-import net.liftweb.http.rest.{RestContinuation, RestHelper}
-import akka.dispatch.{ExecutionContext, Future}
-import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
+import org.eiennohito.kotonoha.actors.{ReleaseAkkaMain, AkkaMain}
 
 
 /*
@@ -20,26 +18,15 @@ import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
  * @author eiennohito
- * @since 01.02.12
+ * @since 09.02.12
  */
 
-class SimpleRest extends RestHelper {
-  implicit val executor = ReleaseAkkaMain.context
+trait Akka {
+  val akkaServ: AkkaMain
+}
 
-  serve("api" / "cards" prefix {
-    case "get" :: number :: Nil JsonGet _ => {
-
-      RestContinuation.async({ r =>
-        val f = Future {
-          2
-        }
-        f.onSuccess {
-          case i => r(<i>{number}: {i}</i>)
-        }
-      })
-    }
-  })
+trait ReleaseAkka { self: Akka =>
+  override val akkaServ = ReleaseAkkaMain
 }

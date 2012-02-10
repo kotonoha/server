@@ -1,9 +1,9 @@
-package org.eiennohito.kotonoha.web.rest
+package org.eiennohito.kotonoha.gosen
 
-import net.liftweb.http.rest.{RestContinuation, RestHelper}
-import akka.dispatch.{ExecutionContext, Future}
-import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
-
+import net.java.sen.SenFactory
+import java.util.List
+import net.java.sen.dictionary.Token
+import scala.collection.JavaConversions._
 
 /*
  * Copyright 2012 eiennohito
@@ -21,25 +21,15 @@ import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
  * limitations under the License.
  */
 
-/**
- * @author eiennohito
- * @since 01.02.12
- */
 
-class SimpleRest extends RestHelper {
-  implicit val executor = ReleaseAkkaMain.context
-
-  serve("api" / "cards" prefix {
-    case "get" :: number :: Nil JsonGet _ => {
-
-      RestContinuation.async({ r =>
-        val f = Future {
-          2
-        }
-        f.onSuccess {
-          case i => r(<i>{number}: {i}</i>)
-        }
-      })
+class TestWorks extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
+  
+  test("it works?") {
+    val fact = SenFactory.getStringTagger
+    val tok: List[Token] = fact.analyze("この世は甘くありませんだろう！")
+    tok.foreach { t =>
+      val m = t.getMorpheme
+      println (t.getSurface)
     }
-  })
+  }
 }

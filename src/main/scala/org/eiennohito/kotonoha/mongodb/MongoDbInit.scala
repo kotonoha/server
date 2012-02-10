@@ -38,7 +38,7 @@ object MongoDbInit {
 }
 
 object DbId extends MongoIdentifier {
-  val dbName = Props.get("db.name", "kotonoha_db")
+  val dbName = Props.get("db.name", "kotonoha")
   def jndiName = dbName
 }
 

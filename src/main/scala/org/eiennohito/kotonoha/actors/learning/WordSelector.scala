@@ -65,9 +65,9 @@ class WordSelector extends Actor with ActorLogging {
     col.toList
   }
 
-  val loaderSched = context.actorOf(Props[CardLoader], "loaderSched")
-  val loaderNew = context.actorOf(Props[CardLoader], "loaderNew")
-  val scheduler = context.actorOf(Props[CardScheduler], "scheduler")
+  val loaderSched = context.actorOf(Props[CardLoader])
+  val loaderNew = context.actorOf(Props[CardLoader])
+  val scheduler = context.actorOf(Props[CardScheduler])
 
   def loadNewCards(userId: Long, max: Int, now: DateTime) = {
     if (max == 0) {

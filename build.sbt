@@ -8,7 +8,7 @@ name := "kotonoha-server"
 
 version := "0.1-SNAPSHOT"
 
-moduleName := "plast_calc"
+moduleName := "kotonoha"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "1.6.1" % "test"
 
@@ -28,6 +28,7 @@ libraryDependencies ++= {
     "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-mongodb-record" % liftVersion,
     "net.liftweb" %% "lift-json-scalaz" % liftVersion,
+    "net.liftweb" %% "lift-testkit" % liftVersion % "test",
 	  "javax.servlet" % "servlet-api" % "2.5" % "provided->default")
 }
 
@@ -49,3 +50,9 @@ libraryDependencies += "com.foursquare" %% "rogue" % "1.1.1" intransitive()
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "0.9.28" % "runtime"
 
 libraryDependencies += "com.weiglewilczek.slf4s" %% "slf4s" % "1.0.7"
+
+libraryDependencies += "com.j256.ormlite" % "ormlite-jdbc" % "4.33" % "test"
+
+resolvers += "some weird japanese repo" at "http://dev.mwsoft.jp/repo/"
+
+libraryDependencies += "net.java.sen" % "lucene-gosen" % "1.1.1"

@@ -1,6 +1,6 @@
 package org.eiennohito.kotonoha
 
-import actors.Akka
+import actors.ReleaseAkkaMain
 
 /*
  * Copyright 2012 eiennohito
@@ -23,5 +23,5 @@ import actors.Akka
  */
 
 object Main extends App {
-  Akka.context
+  ReleaseAkkaMain.context
 }

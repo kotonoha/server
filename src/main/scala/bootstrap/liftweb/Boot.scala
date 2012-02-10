@@ -13,8 +13,9 @@ import common._
 import http._
 import sitemap._
 import Loc._
-import org.eiennohito.kotonoha.actors.Akka
-import org.eiennohito.kotonoha.web.rest.SimpleRest
+import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
+import org.eiennohito.kotonoha.web.rest.{Learning, SimpleRest}
+import org.eiennohito.kotonoha.mongodb.MongoDbInit
 
 
 /**
@@ -40,6 +41,8 @@ class Boot {
     // any ORM you want
     //Schemifier.schemify(true, Schemifier.infoF _, User)
 
+    MongoDbInit.init()
+
     // where to search snippet
     LiftRules.addToPackages("org.eiennohito.kotonoha.web.snippets")
 
@@ -59,7 +62,7 @@ class Boot {
     // each page, just comment this line out.
     //LiftRules.setSiteMapFunc(() => sitemapMutators(sitemap))
 
-    LiftRules.statelessDispatchTable.append(new SimpleRest)
+    LiftRules.statelessDispatchTable.append(Learning)
 
     // Use jQuery 1.4
     LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
@@ -85,6 +88,6 @@ class Boot {
     // Make a transaction span the whole HTTP request
     //S.addAround(DB.buildLoanWrapper)
 
-    LiftRules.unloadHooks.append({ () => Akka.shutdown() })
+    LiftRules.unloadHooks.append({ () => ReleaseAkkaMain.shutdown() })
   }
 }

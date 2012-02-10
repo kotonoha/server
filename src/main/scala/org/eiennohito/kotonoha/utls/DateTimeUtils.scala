@@ -5,7 +5,7 @@ import java.util.Calendar
 
 import org.joda.time.{Duration => JodaDuration}
 import akka.util.FiniteDuration
-import net.liftweb.util.TimeHelpers.TimeSpan
+import net.liftweb.util.Helpers.TimeSpan
 import org.joda.time.format.{ISODateTimeFormat, DateTimeFormatterBuilder, DateTimePrinter, DateTimeFormatter}
 
 /*
@@ -35,6 +35,8 @@ object DateTimeUtils {
   implicit def akkaToJodaDurations(dur: FiniteDuration): JodaDuration = new JodaDuration(dur.toMillis)
   implicit def calendar2DateTime(c: Calendar) = new DateTime(c.getTimeInMillis)
   implicit def akkaDurationToLiftTimeSpan(dur: FiniteDuration) : TimeSpan = TimeSpan(dur.toMillis)
+
+  def ts(dur: FiniteDuration) = akkaDurationToLiftTimeSpan(dur)
 
   def now = new DateTime()
 }

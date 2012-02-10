@@ -3,7 +3,7 @@ package org.eiennohito.kotonoha.model
 import org.eiennohito.kotonoha.mongodb.MongoDbInit
 import com.foursquare.rogue.Rogue
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfter}
-import org.eiennohito.kotonoha.actors.{RegisterWord, Akka}
+import org.eiennohito.kotonoha.actors.{RegisterWord, ReleaseAkkaMain}
 import net.liftweb.common.Empty
 import org.eiennohito.kotonoha.records._
 import akka.pattern._
@@ -44,7 +44,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   
   def userId = user.id.is
 
-  implicit val executor = Akka.context
+  implicit val executor = ReleaseAkkaMain.context
 
   override def beforeAll {
     user = UserRecord.createRecord.save
@@ -55,7 +55,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
 
   override def afterAll {
     user.delete_!
-    Akka.shutdown()
+    ReleaseAkkaMain.shutdown()
   }
 
   after {
@@ -102,7 +102,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   
   def saveWordAsync = {
     implicit val timeout = Timeout(500 millis)
-    val fut = Akka.wordRegistry ? RegisterWord(createWord)
+    val fut = ReleaseAkkaMain.wordRegistry ? RegisterWord(createWord)
     fut.mapTo[Long]
   }
   
@@ -124,7 +124,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   }
 
   test ("paired card is being postproned") {
-    implicit val system = Akka.system
+    implicit val system = ReleaseAkkaMain.system
     val id = saveWord    
     val sched = TestActorRef[CardScheduler]
 
@@ -150,7 +150,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     val clen = WordCardRecord where (_.user eqs userId) count()
     clen should equal (10)
     
-    val sel = ask(Akka.wordSelector, LoadCards(userId, 6)).mapTo[List[WordCardRecord]]
+    val sel = ask(ReleaseAkkaMain.wordSelector, LoadCards(userId, 6)).mapTo[List[WordCardRecord]]
     val words = Await.result(sel, 1 second)
     words.length should be <= (5)
     val groups = words groupBy { w => w.word.is }
@@ -158,18 +158,18 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
       gr should have length (1)
     }
 
-    val wicF = ask(Akka.wordSelector, LoadWords(userId, 6)).mapTo[WordsAndCards]
+    val wicF = ask(ReleaseAkkaMain.wordSelector, LoadWords(userId, 6)).mapTo[WordsAndCards]
     val wic = Await.result(wicF, 50 milli)
     wic.cards.length should be <= (5)
   }
 
   test("full work cycle") {
-    implicit val system = Akka.system
+    implicit val system = ReleaseAkkaMain.system
     implicit val timeout = Timeout(1 day)
     val fs = Future.sequence(1 to 5 map { x => saveWordAsync })
     Await.ready(fs, 150 milli)
 
-    val wicF = ask(Akka.wordSelector, LoadWords(userId, 5)).mapTo[WordsAndCards]
+    val wicF = ask(ReleaseAkkaMain.wordSelector, LoadWords(userId, 5)).mapTo[WordsAndCards]
     val wic = Await.result(wicF, 1 day)
 
     val card = wic.cards.head
@@ -183,12 +183,12 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   }
   
   test("Multiple marks for word") {
-    implicit val system = Akka.system
+    implicit val system = ReleaseAkkaMain.system
     implicit val timeout = Timeout(1 day)
     val fs = Future.sequence(1 to 2 map { x => saveWordAsync })
     Await.ready(fs, 150 milli)
 
-    val wicF = ask(Akka.wordSelector, LoadWords(userId, 5)).mapTo[WordsAndCards]
+    val wicF = ask(ReleaseAkkaMain.wordSelector, LoadWords(userId, 5)).mapTo[WordsAndCards]
     val wic = Await.result(wicF, 1 day)
 
     val card = wic.cards.head
