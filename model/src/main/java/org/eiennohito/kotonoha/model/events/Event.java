@@ -47,4 +47,12 @@ public abstract class Event extends Identifiable {
   public int getEventType() {
     return eventType;
   }
+
+  public int getOperation() {
+    return operation;
+  }
+
+  public void setOperation(int operation) {
+    this.operation = operation;
+  }
 }
