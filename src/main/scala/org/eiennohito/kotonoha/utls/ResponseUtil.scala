@@ -3,6 +3,7 @@ package org.eiennohito.kotonoha.utls
 import org.eiennohito.kotonoha.actors.learning.WordsAndCards
 import net.liftweb.json.JsonAST._
 import net.liftweb.mongodb.record.MongoRecord
+import net.liftweb.json.JsonDSL
 
 /*
  * Copyright 2012 eiennohito
@@ -29,6 +30,7 @@ object ResponseUtil {
   
   object Tr {
     def apply[T <: MongoRecord[T]](lst: List[T]) : JArray = list2JList(lst)
+    def apply[A <% JValue](lst: List[A]): JArray = JsonDSL.seq2jvalue(lst)
   }
   
   def deuser(x : JValue) = {

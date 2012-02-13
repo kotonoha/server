@@ -92,7 +92,9 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
   test("word mark event goes from java to scala world") {
     val event = new MarkEvent()
     event.setCard(5); event.setMark(5.0); event.setMode(CardMode.READING);
-    event.setTime(1.0); event.setDatetime(DateTimeUtils.now)
+    event.setTime(1.0);
+    val dt = DateTimeUtils.now
+    event.setDatetime(dt)
     
     val str = gson.toJson(event)
     val jv = net.liftweb.json.parse(str)
@@ -102,5 +104,6 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     rec.card.is should equal (5)
     rec.mark.is should equal (5.0)
     rec.mode.is should equal (CardMode.READING)
+    rec.datetime.is should equal (dt)
   }
 }

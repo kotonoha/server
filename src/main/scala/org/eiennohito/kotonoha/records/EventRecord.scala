@@ -30,7 +30,7 @@ import net.liftweb.record.field.{DateTimeField, DoubleField, IntField}
 trait EventRecord[OwnerType <: MongoRecord[OwnerType]] extends LongPk[OwnerType] { self : OwnerType =>
   protected def myType: Int
   object eventType extends IntField(this.asInstanceOf[OwnerType], myType)
-  object datetime extends DateTimeField(this.asInstanceOf[OwnerType])
+  object datetime extends DateTimeField(this.asInstanceOf[OwnerType]) with DateJsonFormat
 }
 
 class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with LongPk[MarkEventRecord] with EventRecord[MarkEventRecord] {

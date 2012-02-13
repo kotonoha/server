@@ -16,7 +16,6 @@
 package org.eiennohito.kotonoha.model.events;
 
 import com.j256.ormlite.field.DatabaseField;
-import org.eiennohito.kotonoha.model.Identifiable;
 import org.eiennohito.kotonoha.model.ormlite.DateTimePersister;
 import org.joda.time.DateTime;
 
@@ -24,7 +23,18 @@ import org.joda.time.DateTime;
  * @author eiennohito
  * @since 07.02.12
  */
-public abstract class Event extends Identifiable {
+public abstract class Event {
+
+  @DatabaseField(generatedId = true, columnDefinition = "INTEGER PRIMARY KEY AUTOINCREMENT")
+  private transient long id;
+
+  public long getId() {
+    return id;
+  }
+
+  public void setId(long id) {
+    this.id = id;
+  }
   @DatabaseField(persisterClass = DateTimePersister.class)
   private DateTime datetime;
 

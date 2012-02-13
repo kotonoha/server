@@ -1,7 +1,7 @@
 package org.eiennohito.kotonoha.actors
 
-import akka.actor.Actor
 import net.liftweb.mongodb.record.MongoRecord
+import akka.actor.{ActorRef, Actor}
 
 /*
  * Copyright 2012 eiennohito
@@ -25,6 +25,7 @@ import net.liftweb.mongodb.record.MongoRecord
 
 case class SaveRecord[T <: MongoRecord[T]](rec: MongoRecord[T])
 case class UpdateRecord[T <: MongoRecord[T]](rec: MongoRecord[T])
+case class RegisterMongo(mongo: ActorRef)
 
 class MongoDBActor extends Actor {
   protected def receive = {

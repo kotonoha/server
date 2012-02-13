@@ -1,11 +1,11 @@
 package org.eiennohito.kotonoha.supermemo
 
-import java.util.Date
-import org.eiennohito.kotonoha.records.{OFMatrixRecord, UserRecord, ItemLearningDataRecord}
+import org.eiennohito.kotonoha.records.{OFMatrixRecord, ItemLearningDataRecord}
 import org.eiennohito.kotonoha.math.MathUtil
-import net.liftweb.json.ext.JodaTimeSerializers
 import org.joda.time.DateTime
 import org.eiennohito.kotonoha.utls.DateTimeUtils
+import akka.actor.{ActorRef, Actor}
+import org.eiennohito.kotonoha.actors.{UpdateRecord, RegisterMongo}
 
 /*
  * Copyright 2012 eiennohito
@@ -30,7 +30,7 @@ import org.eiennohito.kotonoha.utls.DateTimeUtils
 
 case class ItemUpdate(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long)
 
-object SM6 {
+class SM6 extends Actor {
 
   def updateMatrix(matrix: OFMatrixRecord, item: ItemUpdate, oldEf: Double, n: Int, oldN : Int) {    
     val il = item.data.intervalLength.is
@@ -52,7 +52,7 @@ object SM6 {
     val change = (q > 4 && newof > oldOfval) || (q < 4 && newof < oldOfval) 
     if (change) {
       of.value(1.2 max (oldOfval*0.9 + newof * 0.1))
-      of.update
+      myMongo ! UpdateRecord(of)
     }
   }
   
@@ -92,7 +92,7 @@ object SM6 {
       data.repetition(1)
       data.lapse(1)
       data.intervalLength(4)
-      updateMatrix(matrix, item, oldEf, 1, 1)
+      //updateMatrix(matrix, item, oldEf, 1, 1)
       data.intervalLength(matrix.value(1, ef).value.is * MathUtil.ofrandom)
       updateDates(item)
       return data
@@ -104,5 +104,12 @@ object SM6 {
     updateLearningItem(item, matrix)
     updateDates(item)
     data
+  }
+
+  var myMongo : ActorRef = _
+
+  protected def receive = {
+    case i: ItemUpdate => sender ! update(i)
+    case RegisterMongo(mongo) => myMongo = mongo
   }
 }

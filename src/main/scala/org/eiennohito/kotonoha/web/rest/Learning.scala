@@ -8,11 +8,11 @@ import net.liftweb.http.rest._
 import com.weiglewilczek.slf4s.Logging
 import akka.util.{Timeout, duration}
 import org.eiennohito.kotonoha.learning.ProcessMarkEvents
-import net.liftweb.json.JsonAST.JString
 import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
 import org.eiennohito.kotonoha.records.MarkEventRecord
-import org.eiennohito.kotonoha.utls.{ResponseUtil, UserUtil}
 import akka.dispatch.Future
+import net.liftweb.json.JsonAST.{JField, JObject, JString}
+import org.eiennohito.kotonoha.utls.{DateTimeUtils, ResponseUtil, UserUtil}
 
 
 /*
@@ -35,6 +35,16 @@ import akka.dispatch.Future
  * @since 04.02.12
  */
 
+
+class Timer extends Logging {
+  val init = System.nanoTime()
+  
+  def print() {
+    val epl = System.nanoTime() - init
+    val milli = epl / 1e6
+    logger.debug("Current timer: timed for %.3f".format(milli))
+  }
+}
 
 trait LearningRest extends RestHelper with Logging with Akka {
   import duration._
@@ -97,26 +107,34 @@ trait LearningRest extends RestHelper with Logging with Akka {
   
   serve ( "api" / "words" prefix {
     case "scheduled" :: AsInt(max) :: Nil JsonGet req => {
+      val t = new Timer
       val userId = UserUtil.extractUser(req) ?~ "user is not valid" ~> 403
       if (max > 50) ForbiddenResponse("number is too big")
       else async(userId) { id =>
         val f = ask(akkaServ.wordSelector, LoadWords(id, max)).mapTo[WordsAndCards]
-        f map { wc => Full(JsonResponse(deuser(jsonResponse(wc)))) }
+        f map { wc => t.print(); Full(JsonResponse(deuser(jsonResponse(wc)))) }
       }
     }
   })
   
+  import net.liftweb.mongodb.BsonDSL._
+  import org.eiennohito.kotonoha.utls.ResponseUtil.Tr
+  
   serve ( "api" / "events" prefix {
-    case "mark" :: Nil JsonPut reqV => {
+    case "mark" :: Nil JsonPost reqV => {
+      val t = new Timer()
       val (json, req) = reqV
       val userId = UserUtil.extractUser(req) ?~ "user is not valid" ~> 403
       async(userId) { id =>
         val marks = json.children map (MarkEventRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox)
+        logger.info("posing %d marks for user %d".format(marks.length, id))
         val count = akkaServ.markProcessor ? (ProcessMarkEvents(marks))
-        count.mapTo[Int] map {c => Full(JsonResponse(JString(c.toString))) }
+        count.mapTo[List[Int]] map {c => t.print(); Full(JsonResponse("values" -> Tr(c))) }
       }      
     }
   })
+
+  override protected def jsonResponse_?(in: Req) = true
 }
 
 object Learning extends LearningRest with ReleaseAkka

@@ -8,6 +8,8 @@ import net.liftweb.http.js.JE.{JsNull, Str}
 import org.eiennohito.kotonoha.utls.DateTimeUtils
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime}
+import net.liftweb.json.JsonAST.{JString, JValue}
+import net.liftweb.common.{Empty, Box}
 
 
 /*
@@ -43,4 +45,22 @@ trait DateJsonFormat { this: TypedField[Calendar] =>
   } openOr JsNull
   
   override def asJValue = asJString(v => format(v))
+
+  def parse(s: String): Box[Calendar] = {
+    val fb = ISODateTimeFormat.basicDateTime()
+    tryo {
+      val dt = fb.parseDateTime(s)
+      val c = Calendar.getInstance()
+      c.setTimeInMillis(dt.getMillis)
+      c
+    }
+  }
+
+  override def setFromJValue(jvalue: JValue): Box[MyType] = {
+    jvalue match {
+      case JString(s) => setBox(parse(s))
+      case _ => setBox(Empty)
+    }
+  }
+  
 }

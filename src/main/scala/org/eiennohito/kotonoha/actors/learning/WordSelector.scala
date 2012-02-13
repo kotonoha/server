@@ -150,7 +150,7 @@ class CardScheduler extends Actor with ActorLogging {
   protected def receive = {
     case SchedulePaired(word, cardMode) => {
       val cardType = if (cardMode == CardMode.READING) CardMode.WRITING else CardMode.READING
-      val date = now plus (1.5 days)
+      val date = now plus (3.2 days)
       val q = WordCardRecord where (_.cardMode eqs cardType) and
         (_.word eqs word) modify (_.notBefore setTo date)
       log.debug(q.toString)
