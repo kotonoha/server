@@ -48,4 +48,12 @@ public class Example {
   public void setTranslation(String translation) {
     this.translation = translation;
   }
+
+  public Word getWord() {
+    return word;
+  }
+
+  public void setWord(Word word) {
+    this.word = word;
+  }
 }

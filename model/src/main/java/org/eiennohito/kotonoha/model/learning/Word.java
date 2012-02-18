@@ -39,7 +39,7 @@ public class Word extends Identifiable {
   private String meaning;
   @DatabaseField(persisterClass = DateTimePersister.class)
   private DateTime createdOn;
-  @ForeignCollectionField(eager = true)
+  @ForeignCollectionField(eager = true, orderColumnName = "example")
   private Collection<Example> examples = new ArrayList<Example>();
 
   public String getWriting() {
