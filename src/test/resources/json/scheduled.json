@@ -1,0 +1,469 @@
+{
+  "cards":[{
+    "createdOn":"20090331T114617.000Z",
+    "cardMode":2,
+    "_id":237,
+    "notBefore":"20120214T054542.139Z",
+    "word":229498,
+    "learning":{
+      "intervalEnd":"20120221T064751.915Z",
+      "intervalStart":"20120218T130002.725Z",
+      "difficulty":2.5,
+      "intervalLength":2.741541548918105,
+      "repetition":1,
+      "lapse":1
+    }
+  },{
+    "createdOn":"20090331T115541.000Z",
+    "cardMode":2,
+    "_id":759,
+    "notBefore":"20120218T130645.188Z",
+    "word":229763,
+    "learning":{
+      "intervalEnd":"20120221T065545.563Z",
+      "intervalStart":"20120219T092027.626Z",
+      "difficulty":1.96,
+      "intervalLength":1.8995131619048409,
+      "repetition":1,
+      "lapse":2
+    }
+  },{
+    "createdOn":"20090331T114543.000Z",
+    "cardMode":2,
+    "_id":137,
+    "notBefore":"20120214T054342.628Z",
+    "word":229446,
+    "learning":{
+      "intervalEnd":"20120221T071248.840Z",
+      "intervalStart":"20120218T113647.763Z",
+      "difficulty":2.5,
+      "intervalLength":2.816679135168895,
+      "repetition":1,
+      "lapse":1
+    }
+  },{
+    "createdOn":"20090331T114605.000Z",
+    "cardMode":2,
+    "_id":213,
+    "notBefore":"20120214T054522.970Z",
+    "word":229486,
+    "learning":{
+      "intervalEnd":"20120221T072530.875Z",
+      "intervalStart":"20120218T113754.439Z",
+      "difficulty":2.5,
+      "intervalLength":2.8247272701893236,
+      "repetition":1,
+      "lapse":1
+    }
+  },{
+    "createdOn":"20090331T114544.000Z",
+    "cardMode":2,
+    "_id":145,
+    "notBefore":"20120214T054350.313Z",
+    "word":229450,
+    "learning":{
+      "intervalEnd":"20120221T074952.952Z",
+      "intervalStart":"20120218T113655.983Z",
+      "difficulty":2.5,
+      "intervalLength":2.8423260301659314,
+      "repetition":1,
+      "lapse":1
+    }
+  },{
+    "createdOn":"20090331T114607.000Z",
+    "cardMode":2,
+    "_id":217,
+    "notBefore":"20120214T054531.038Z",
+    "word":229488,
+    "learning":{
+      "intervalEnd":"20120221T075457.742Z",
+      "intervalStart":"20120218T125954.210Z",
+      "difficulty":2.5,
+      "intervalLength":2.7882353211639166,
+      "repetition":1,
+      "lapse":1
+    }
+  },{
+    "createdOn":"20090331T115309.000Z",
+    "cardMode":1,
+    "_id":644,
+    "notBefore":"20120218T130645.188Z",
+    "word":229706,
+    "learning":{
+      "intervalEnd":"20120221T075817.311Z",
+      "intervalStart":"20120218T131422.015Z",
+      "difficulty":2.3600000000000003,
+      "intervalLength":2.7805011161125446,
+      "repetition":1,
+      "lapse":2
+    }
+  },{
+    "createdOn":"20090424T145525.000Z",
+    "cardMode":1,
+    "_id":1800,
+    "notBefore":"20120218T130645.188Z",
+    "word":2195464,
+    "learning":{
+      "intervalEnd":"20120221T080851.099Z",
+      "intervalStart":"20120218T113759.078Z",
+      "difficulty":2.5,
+      "intervalLength":2.8547687617505697,
+      "repetition":1,
+      "lapse":1
+    }
+  },{
+    "createdOn":"20090527T144700.000Z",
+    "cardMode":2,
+    "_id":2141,
+    "notBefore":"20120218T130645.188Z",
+    "word":3899401
+  },{
+    "createdOn":"20090527T144218.000Z",
+    "cardMode":2,
+    "_id":2135,
+    "notBefore":"20120218T130645.188Z",
+    "word":3899398
+  },{
+    "createdOn":"20090527T144936.000Z",
+    "cardMode":2,
+    "_id":2143,
+    "notBefore":"20120218T130645.188Z",
+    "word":3899402
+  },{
+    "createdOn":"20090527T144045.000Z",
+    "cardMode":2,
+    "_id":2131,
+    "notBefore":"20120218T130645.188Z",
+    "word":3899396
+  },{
+    "createdOn":"20090527T145947.000Z",
+    "cardMode":2,
+    "_id":2151,
+    "notBefore":"20120218T130645.188Z",
+    "word":3899406
+  },{
+    "createdOn":"20090527T150716.000Z",
+    "cardMode":2,
+    "_id":2153,
+    "notBefore":"20120218T130645.188Z",
+    "word":3899407
+  },{
+    "createdOn":"20090527T144456.000Z",
+    "cardMode":2,
+    "_id":2137,
+    "notBefore":"20120218T130645.188Z",
+    "word":3899399
+  },{
+    "createdOn":"20090527T144110.000Z",
+    "cardMode":2,
+    "_id":2133,
+    "notBefore":"20120218T130645.188Z",
+    "word":3899397
+  },{
+    "createdOn":"20090530T131130.000Z",
+    "cardMode":1,
+    "_id":2158,
+    "notBefore":"20120218T130645.188Z",
+    "word":3997698
+  },{
+    "createdOn":"20090527T145915.000Z",
+    "cardMode":2,
+    "_id":2149,
+    "notBefore":"20120218T130645.188Z",
+    "word":3899405
+  },{
+    "createdOn":"20090527T145138.000Z",
+    "cardMode":2,
+    "_id":2145,
+    "notBefore":"20120218T130645.188Z",
+    "word":3899403
+  },{
+    "createdOn":"20090530T113331.000Z",
+    "cardMode":2,
+    "_id":2157,
+    "notBefore":"20120218T130645.188Z",
+    "word":3997697
+  }],
+  "words":[{
+    "writing":"ぎっしり",
+    "createdOn":"20090331T114543.000Z",
+    "examples":[],
+    "reading":"ぎっしり",
+    "_id":229446,
+    "meaning":"tightly, fully"
+  },{
+    "writing":"すっかり",
+    "createdOn":"20090331T114544.000Z",
+    "examples":[],
+    "reading":"すっかり",
+    "_id":229450,
+    "meaning":"all, completely, thoroughly"
+  },{
+    "writing":"近々",
+    "createdOn":"20090331T114605.000Z",
+    "examples":[{
+      "example":"近々お会いできるのを楽しみにしています。",
+      "translation":"I hope to see you soon."
+    },{
+      "example":"近々またお会いできるのを楽しみに待ってます。",
+      "translation":"I'm looking forward to seeing you again before long."
+    },{
+      "example":"政府は近々、消費税を引き上げるつもりなのかしら。 [F]",
+      "translation":"Will the government raise the consumption tax soon?"
+    },{
+      "example":"内緒の話だが僕は近々仕事を辞める予定だ。 [M]",
+      "translation":"Between you and me, I'm going to quit my present job soon."
+    },{
+      "example":"彼の秘密は近々ばれるだろう。",
+      "translation":"His secret will be disclosed soon."
+    }],
+    "reading":"ちかぢか",
+    "_id":229486,
+    "meaning":"nearness, before long"
+  },{
+    "writing":"各",
+    "createdOn":"20090331T114607.000Z",
+    "examples":[{
+      "example":"この病院では、各看護婦は５人の患者の看護を受け持っている。",
+      "translation":"In this hospital each nurse attends five patients."
+    },{
+      "example":"そして各チームはゴールを蹴ってこの穴に通そうとして互いに競いあったのです。",
+      "translation":"And the teams competed with each other to try to kick the ball through this hole."
+    },{
+      "example":"その老医師は各患者を一人一人個人的に診察した。",
+      "translation":"The old doctor gave individual attention to each patient."
+    },{
+      "example":"ようやく各店舗に監視カメラが設置されることになった。",
+      "translation":"Eventually it was decided that the stores be equipped with surveillance cameras."
+    },{
+      "example":"各ロボットには通話機が取り付けられています。",
+      "translation":"Each robot is equipped with a talking machine."
+    }],
+    "reading":"おのおの",
+    "_id":229488,
+    "meaning":"each, every, either, respectively, severally"
+  },{
+    "writing":"一度",
+    "createdOn":"20090331T114617.000Z",
+    "examples":[{
+      "example":"「近頃どうも調子が悪くてね」「一度診てもらった方がいいよ」",
+      "translation":"\"I haven't been feeling too good lately.\" \"You had better go to a doctor.\""
+    },{
+      "example":"１週間に一度ここで集まりましょう。",
+      "translation":"Let's get together here once a week."
+    },{
+      "example":"１度だけチャンスが残っている。",
+      "translation":"There is but one chance left."
+    },{
+      "example":"１度に２つの事をしようと思うな。",
+      "translation":"Don't try to do two things at a time."
+    },{
+      "example":"１度や２度の失敗はだれにでもある。",
+      "translation":"Everybody fails once or twice."
+    },{
+      "example":"赤道における経度1度当たりの長さ。",
+      "translation":"Distance per degree of longitude at equator."
+    }],
+    "reading":"いちど",
+    "_id":229498,
+    "meaning":"once, one time, on one occasion"
+  },{
+    "writing":"嫋か",
+    "createdOn":"20090331T115309.000Z",
+    "examples":[{
+      "example":"その子供の手のしなやかさ。",
+      "translation":"The delicacy of the child's hands."
+    }],
+    "reading":"しなやか",
+    "_id":229706,
+    "meaning":"supple, flexible, elastic"
+  },{
+    "writing":"鼓",
+    "createdOn":"20090331T115541.000Z",
+    "examples":[],
+    "reading":"つづみ",
+    "_id":229763,
+    "meaning":"hand drum"
+  },{
+    "writing":"遠巻き",
+    "createdOn":"20090424T145525.000Z",
+    "examples":[],
+    "reading":"とおまき",
+    "_id":2195464,
+    "meaning":"surrounding at a distance"
+  },{
+    "writing":"見解",
+    "createdOn":"20090527T144045.000Z",
+    "examples":[{
+      "example":"そのような事件の場合、証拠をどのように保存するかについては一致した見解はないようである。",
+      "translation":"There seems to be little agreement as to how to preserve the evidence in such cases."
+    },{
+      "example":"その件についての我々の見解は一致している。",
+      "translation":"Our views on the matter are in accord."
+    },{
+      "example":"なぜ我々が彼の見解を支持できないかという理由を以下に述べよう。",
+      "translation":"The reason why we cannot support his view will be given below."
+    },{
+      "example":"パリが１７８９年の革命以前ですら頻繁な暴動の拠点であったという見解には十分な根拠がある。",
+      "translation":"There are good grounds for the view that Paris was the scene of frequent riots even before the revolution of 1789."
+    },{
+      "example":"議長は自らの見解を非公式に述べるだけだろう。",
+      "translation":"The chairman would only make her comments off the record."
+    }],
+    "reading":"けんかい",
+    "_id":3899396,
+    "meaning":"opinion, point of view"
+  },{
+    "writing":"食いつく",
+    "createdOn":"20090527T144110.000Z",
+    "examples":[{
+      "example":"今日は魚の食いつきがいい。",
+      "translation":"The fish are striking well today."
+    },{
+      "example":"今日は魚の食いつきがいい。",
+      "translation":"The fish are striking well today."
+    }],
+    "reading":"くいつく, くらいつく",
+    "_id":3899397,
+    "meaning":"to bite at, to snap at, to nibble\nto get one's teeth into (metaphorically), to get to grips with, to really get into"
+  },{
+    "writing":"妄想",
+    "createdOn":"20090527T144218.000Z",
+    "examples":[{
+      "example":"あの少女は自分が王女様だという妄想にとらわれている。",
+      "translation":"That girl is under the delusion that she is a princess."
+    }],
+    "reading":"もうそう, ぼうそう",
+    "_id":3899398,
+    "meaning":"wild idea, delusion"
+  },{
+    "writing":"成就",
+    "createdOn":"20090527T144456.000Z",
+    "examples":[{
+      "example":"滑り出しが好調なら事は半ば成就したのに等しい。",
+      "translation":"Well begun is half done. [Proverb]"
+    }],
+    "reading":"じょうじゅ",
+    "_id":3899399,
+    "meaning":"fulfillment, fulfilment, realization, realisation, completion"
+  },{
+    "writing":"民衆",
+    "createdOn":"20090527T144700.000Z",
+    "examples":[{
+      "example":"ウーマン・リブは底辺は広いが、非公式な民衆の運動である。",
+      "translation":"Women's Liberation is a broad-based but informal popular movement."
+    },{
+      "example":"演説者は民衆をそそのかして反乱を起こさせようとした。",
+      "translation":"The speaker tried to incite the people to rebellion."
+    },{
+      "example":"彼は常に民衆の味方であった。",
+      "translation":"He was always on the people's side."
+    },{
+      "example":"彼は民衆の支持を得ようと努めていた。",
+      "translation":"He was bidding for popular support."
+    },{
+      "example":"民衆はまるで羊のように独裁者の後に従った。",
+      "translation":"The people followed the dictator like so many sheep."
+    }],
+    "reading":"みんしゅう",
+    "_id":3899401,
+    "meaning":"people, populace, masses"
+  },{
+    "writing":"短冊",
+    "createdOn":"20090527T144936.000Z",
+    "examples":[],
+    "reading":"たんざく, たんじゃく",
+    "_id":3899402,
+    "meaning":"long, narrow card on which Japanese poems are written (vertically)"
+  },{
+    "writing":"開港",
+    "createdOn":"20090527T145138.000Z",
+    "examples":[{
+      "example":"新東京国際空港が成田に開港した。",
+      "translation":"The New Tokyo International Airport was opened in Narita."
+    }],
+    "reading":"かいこう",
+    "_id":3899403,
+    "meaning":"open port, opening a port"
+  },{
+    "writing":"凌辱",
+    "createdOn":"20090527T145915.000Z",
+    "examples":[],
+    "reading":"りょうじょく",
+    "_id":3899405,
+    "meaning":"insult, affront, disgrace, indignity\nsexual assault, rape"
+  },{
+    "writing":"徹底",
+    "createdOn":"20090527T145947.000Z",
+    "examples":[{
+      "example":"あなたは徹底した人間嫌いですね。",
+      "translation":"You are a thoroughgoing misanthrope."
+    },{
+      "example":"ためらうことなく、その陰謀にたいする徹底した対抗処置をとった。",
+      "translation":"Without a moment's hesitation, they took drastic action against the conspiracy."
+    },{
+      "example":"厳格な父親は、徹底したしつけによって子供たちに決まりごとを守らせる。",
+      "translation":"A strict father makes his children toe the line by thorough training."
+    },{
+      "example":"彼は徹底した利己主義者だ。",
+      "translation":"He is a thorough-going egoist."
+    },{
+      "example":"生産性はオートメーションの徹底によって向上する。",
+      "translation":"Production improves by becoming more automatic."
+    }],
+    "reading":"てってい",
+    "_id":3899406,
+    "meaning":"thoroughness, completeness"
+  },{
+    "writing":"無闇に",
+    "createdOn":"20090527T150716.000Z",
+    "examples":[],
+    "reading":"むやみに",
+    "_id":3899407,
+    "meaning":"unreasonably, absurdly, recklessly, indiscreetly, at random"
+  },{
+    "writing":"満足",
+    "createdOn":"20090530T113331.000Z",
+    "examples":[{
+      "example":"１５年間は満足しうる取り決めであった。",
+      "translation":"It was a satisfactory arrangement for fifteen years."
+    },{
+      "example":"あなたが言われたことについては全く満足に感じています。",
+      "translation":"I am feeling quite pleased about what you've said."
+    },{
+      "example":"あなたの仕事はまったく満足できるというわけではない。",
+      "translation":"Your work is not altogether satisfactory."
+    },{
+      "example":"あなたは、あなたの仕事に満足していますか。",
+      "translation":"Are you satisfied with your job?"
+    },{
+      "example":"あなたはその結果に満足していますか。",
+      "translation":"Are you satisfied with the result?"
+    }],
+    "reading":"まんぞく",
+    "_id":3997697,
+    "meaning":"satisfaction\nsufficiency"
+  },{
+    "writing":"意地",
+    "createdOn":"20090530T131130.000Z",
+    "examples":[{
+      "example":"意地の悪い魔女が男にとんでもない魔法をかけて、虫に変えてしまった。",
+      "translation":"The wicked witch cast an evil spell on the man and turned him into an insect."
+    },{
+      "example":"昔、イングランドにたいへん意地の悪い王様が住んでいた。",
+      "translation":"Once there lived a very wicked king in England."
+    },{
+      "example":"彼の兄は私に意地が悪かった。",
+      "translation":"His brother was nasty to me."
+    },{
+      "example":"みかけはそうではないのに本当は意地が悪い。",
+      "translation":"He doesn't look that way, but he's really a nasty piece of work."
+    },{
+      "example":"彼の意地の悪い発言で、講義が一層激しくなった。",
+      "translation":"His nasty comments fueled the argument."
+    }],
+    "reading":"いじ",
+    "_id":3997698,
+    "meaning":"disposition, spirit, willpower, obstinacy, backbone, appetite"
+  }]
+}

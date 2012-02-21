@@ -10,6 +10,9 @@ import net.liftweb.json.JsonAST.JObject
 import org.eiennohito.kotonoha.actors.learning.WordsAndCards
 import org.eiennohito.kotonoha.utls.{DateTimeUtils, ResponseUtil}
 import org.eiennohito.kotonoha.records.{MarkEventRecord, WordCardRecord, ExampleRecord, WordRecord}
+import java.io.{InputStreamReader, BufferedReader}
+import java.nio.charset.Charset
+import org.apache.commons.io.IOUtils
 
 
 /*
@@ -105,5 +108,17 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     rec.mark.is should equal (5.0)
     rec.mode.is should equal (CardMode.READING)
     rec.datetime.is should equal (dt)
+  }
+
+  import scala.collection.JavaConversions._
+  test("loading json from file") {
+    val str = getClass.getClassLoader.getResourceAsStream("json/scheduled.json")
+    val src = new InputStreamReader(str, Charset.forName("UTF-8"))
+    val obj = gson.fromJson(src, classOf[Container])
+    val l2 = obj.getCards.map(_.getWord).toList.distinct.length
+    val l3 = obj.getCards.map(_.getId).toList.distinct.length
+    val l1 = obj.getCards.size()
+    val i = 0;
+
   }
 }

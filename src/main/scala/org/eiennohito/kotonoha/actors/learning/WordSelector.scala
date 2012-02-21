@@ -43,26 +43,21 @@ class WordSelector extends Actor with ActorLogging {
   }
 
   def selectCards(cardList: List[WordCardRecord], max: Int) = {
-    val rnd = new Random
-    val cards = new scala.collection.mutable.ArrayBuffer[WordCardRecord]()
-    val col = new scala.collection.mutable.ListBuffer[WordCardRecord]
-    cards ++= cardList
-    var count = 0
-    while (count < max && cards.length != 0) {
-      val idx = rnd.nextInt(cards.length)
-      val item = cards.remove(idx)
-      val wordId = item.word.is
-      col += item
-      if (item.notBefore.is.isEmpty) {
-        scheduler ! SchedulePaired(item.word.is, item.cardMode.is)
-        val otherIdx = cards.zipWithIndex.filter({
-          case (w, i) => w.word.is == wordId
-        }).map(_._2)
-        otherIdx.foreach(cards.remove(_))
+
+    val grps = cardList.groupBy(_.word.is)
+    val col = new scala.collection.mutable.ArrayBuffer[WordCardRecord]
+    grps.foreach {x =>
+      x._2 match {
+        case v :: Nil => col += v
+        case v :: vs =>  {
+          col += v 
+          vs.foreach {c => scheduler ! SchedulePaired(c.word.is, c.cardMode.is)}
+        }
+        case _ =>
       }
-      count += 1
     }
-    col.toList
+    val res = Random.shuffle(col).take(max)
+    res.toList
   }
 
   val loaderSched = context.actorOf(Props[CardLoader])
@@ -93,6 +88,11 @@ class WordSelector extends Actor with ActorLogging {
     val valid = WordCardRecord where (_.user eqs userId) and
       (_.learning.subfield(_.intervalEnd) before now) and (_.notBefore before now) orderAsc
       (_.learning.subfield(_.intervalEnd)) fetch (max)
+
+    for (v <- valid) {
+      scheduler ! SchedulePaired(v.word.is, v.cardMode.is)
+    }
+
     val len = valid.length
 
     loadNewCards(userId, max - len, now) map (valid ++ _)

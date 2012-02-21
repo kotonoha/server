@@ -2,10 +2,10 @@ package org.eiennohito.kotonoha.supermemo
 
 import org.eiennohito.kotonoha.records.{OFMatrixRecord, ItemLearningDataRecord}
 import org.eiennohito.kotonoha.math.MathUtil
-import org.joda.time.DateTime
 import org.eiennohito.kotonoha.utls.DateTimeUtils
 import akka.actor.{ActorRef, Actor}
 import org.eiennohito.kotonoha.actors.{UpdateRecord, RegisterMongo}
+import org.joda.time.{Period, Duration, DateTime}
 
 /*
  * Copyright 2012 eiennohito
@@ -31,6 +31,7 @@ import org.eiennohito.kotonoha.actors.{UpdateRecord, RegisterMongo}
 case class ItemUpdate(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long)
 
 class SM6 extends Actor {
+  import DateTimeUtils._
 
   def updateMatrix(matrix: OFMatrixRecord, item: ItemUpdate, oldEf: Double, n: Int, oldN : Int) {    
     val il = item.data.intervalLength.is
@@ -55,7 +56,14 @@ class SM6 extends Actor {
       myMongo ! UpdateRecord(of)
     }
   }
-  
+
+  def calculateMod(time: DateTime, start: DateTime, end: DateTime) = {
+    val p1 = new Period(start, time)
+    val p2 = new Period(start, end)
+    val ratio = p1.getMillis.asInstanceOf[Double] / p2.getMillis
+    1.0 min ratio
+  }
+
   def updateLearningItem(item: ItemUpdate, mat: OFMatrixRecord) {
     val  q = item.q
     val data = item.data
@@ -65,13 +73,15 @@ class SM6 extends Actor {
       mat.value(1, data.difficulty.is).value.is
     } else {
       data.repetition(data.repetition.is + 1)
-      data.intervalLength.is * mat.value(data.repetition.is, data.difficulty.is).value.is
+      val mod = calculateMod(item.time, data.intervalStart.is, data.intervalEnd.is)
+      val oldI = data.intervalLength.is
+      val newI = data.intervalLength.is * mat.value(data.repetition.is, data.difficulty.is).value.is
+      oldI + (newI - oldI) * mod
     }
     data.intervalLength(raw * MathUtil.ofrandom)
   }
 
   def updateDates(item: ItemUpdate) {
-    import DateTimeUtils._
     val data = item.data
     val dur = MathUtil.dayToMillis (data.intervalLength.is)
     val begin = item.time
