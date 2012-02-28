@@ -32,7 +32,7 @@ case class RegisterCard(wordId: Future[Long], userId: Long, cardMode: Int)
 
 class WordRegistry extends Actor {
   implicit def system = context.system
-  protected def receive = LoggingReceive(this) {
+  protected def receive = LoggingReceive {
     case RegisterWord(word) => {
       val userId = word.user.is
       val f = Future {
@@ -46,6 +46,7 @@ class WordRegistry extends Actor {
         toReply ! _
       )
     }
+
     case RegisterCard(wordF, user, mode) => {
       val card = WordCardRecord.createRecord
       card.user(user).cardMode(mode).learning(Empty)

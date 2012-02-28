@@ -3,6 +3,8 @@ package org.eiennohito.kotonoha.records
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field.LongPk
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
+import net.liftweb.record.field.{EnumField, StringField}
+import net.liftweb.common.Full
 
 /*
  * Copyright 2012 eiennohito
@@ -25,8 +27,29 @@ import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
  * @since 30.01.12
  */
 
-class UserRecord private() extends MongoRecord[UserRecord] with LongPk[UserRecord] {
-  def meta = UserRecord
+object UserStatus extends Enumeration {
+  type UserStatus = Value
+
+  val Active, Banned = Value
 }
 
-object UserRecord extends UserRecord with MongoMetaRecord[UserRecord] with NamedDatabase
+class UserRecord private() extends MegaProtoUser[UserRecord] {
+  def meta = UserRecord
+
+  object username extends StringField(this, 50) {
+    override def uniqueFieldId = Full("username")
+  }
+  object apiPublicKey extends StringField(this, 32)
+  object apiPrivateKey extends StringField(this, 32)
+  object status extends EnumField(this, UserStatus, UserStatus.Active)
+}
+
+object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with NamedDatabase {
+
+  override def signupFields = username :: super.signupFields
+
+  override def screenWrap = Full(<lift:surround with="default" at="content">
+			       <lift:bind /></lift:surround>)
+
+  override def skipEmailValidation = true
+}

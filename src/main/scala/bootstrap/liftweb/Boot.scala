@@ -16,6 +16,7 @@ import Loc._
 import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
 import org.eiennohito.kotonoha.web.rest.{Learning, SimpleRest}
 import org.eiennohito.kotonoha.mongodb.MongoDbInit
+import org.eiennohito.kotonoha.records.UserRecord
 
 
 /**
@@ -24,23 +25,6 @@ import org.eiennohito.kotonoha.mongodb.MongoDbInit
  */
 class Boot {
   def boot {
-//    if (!DB.jndiJdbcConnAvailable_?) {
-//      val vendor =
-//	new StandardDBVendor(Props.get("db.driver") openOr "org.h2.Driver",
-//			     Props.get("db.url") openOr
-//			     "jdbc:h2:lift_proto.db;AUTO_SERVER=TRUE",
-//			     Props.get("db.user"), Props.get("db.password"))
-//
-//      LiftRules.unloadHooks.append(vendor.closeAllConnections_! _)
-//
-//      DB.defineConnectionManager(DefaultConnectionIdentifier, vendor)
-//    }
-
-    // Use Lift's Mapper ORM to populate the database
-    // you don't need to use Mapper to use Lift... use
-    // any ORM you want
-    //Schemifier.schemify(true, Schemifier.infoF _, User)
-
     MongoDbInit.init()
 
     // where to search snippet
@@ -48,7 +32,8 @@ class Boot {
 
     // Build SiteMap
     def sitemap = SiteMap(
-      Menu.i("Home") / "index"
+      Menu.i("Home") / "index",
+      Menu.i("User") / "user" >> UserRecord.AddUserMenusAfter
     )
 
       // more complex because this menu allows anything in the
@@ -56,11 +41,11 @@ class Boot {
       //Menu(Loc("Static", Link(List("static"), true, "/static/index"),
 //	       "Static Content")))
 
-    //def sitemapMutators = User.sitemapMutator
+    def sitemapMutators = UserRecord.sitemapMutator
 
     // set the sitemap.  Note if you don't want access control for
     // each page, just comment this line out.
-    //LiftRules.setSiteMapFunc(() => sitemapMutators(sitemap))
+    LiftRules.setSiteMapFunc(() => sitemapMutators(sitemap))
 
     LiftRules.statelessDispatchTable.append(Learning)
 

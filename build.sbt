@@ -22,12 +22,13 @@ libraryDependencies += "com.github.scala-incubator.io" %% "scala-io-core" % "0.2
 libraryDependencies +=  "com.github.scala-incubator.io" %% "scala-io-file" % "0.2.0"
 
 libraryDependencies ++= {
-  val liftVersion = "2.4-RC1" // Put the current/latest lift version here
+  val liftVersion = "2.4" // Put the current/latest lift version here
   Seq(
     "net.liftweb" %% "lift-webkit" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-mongodb-record" % liftVersion,
     "net.liftweb" %% "lift-json-scalaz" % liftVersion,
+    "net.liftweb" %% "lift-oauth" % liftVersion,
     "net.liftweb" %% "lift-testkit" % liftVersion % "test",
 	  "javax.servlet" % "servlet-api" % "2.5" % "provided->default")
 }
@@ -35,7 +36,7 @@ libraryDependencies ++= {
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= {
-  val akkaVer = "2.0-M3"
+  val akkaVer = "2.0-RC2"
   Seq(
     "com.typesafe.akka" % "akka-actor" % akkaVer,
     "com.typesafe.akka" % "akka-slf4j" % akkaVer,
@@ -58,5 +59,7 @@ resolvers += "some weird japanese repo" at "http://dev.mwsoft.jp/repo/"
 libraryDependencies += "net.java.sen" % "lucene-gosen" % "1.1.1"
 
 libraryDependencies += "com.h2database" % "h2" % "1.3.163" % "test"
+
+libraryDependencies += "com.google.zxing" % "javase" % "2.0"
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
