@@ -1,12 +1,10 @@
 package org.eiennohito.kotonoha.utls
 
-import org.joda.time.DateTime
 import java.util.Calendar
 
-import org.joda.time.{Duration => JodaDuration}
 import akka.util.FiniteDuration
 import net.liftweb.util.Helpers.TimeSpan
-import org.joda.time.format.{ISODateTimeFormat, DateTimeFormatterBuilder, DateTimePrinter, DateTimeFormatter}
+import org.joda.time.{ReadableInstant, DateTimeZone, DateTime, Duration => JodaDuration}
 
 /*
  * Copyright 2012 eiennohito
@@ -29,6 +27,10 @@ import org.joda.time.format.{ISODateTimeFormat, DateTimeFormatterBuilder, DateTi
  * @since 01.02.12
  */
 
+class MultipliableDuration(val dur: JodaDuration) {
+  def * (times: Int) = new JodaDuration(dur.getMillis * times)
+}
+
 object DateTimeUtils {
 
   implicit def dateTime2Calendar(dt: DateTime) : Calendar = dt.toCalendar(null)
@@ -36,7 +38,23 @@ object DateTimeUtils {
   implicit def calendar2DateTime(c: Calendar) = new DateTime(c.getTimeInMillis)
   implicit def akkaDurationToLiftTimeSpan(dur: FiniteDuration) : TimeSpan = TimeSpan(dur.toMillis)
 
+  implicit def dur2Multipliable(dur: JodaDuration) = new MultipliableDuration(dur)
+
+  val UTC = DateTimeZone.forID("UTC")
+
   def ts(dur: FiniteDuration) = akkaDurationToLiftTimeSpan(dur)
 
-  def now = new DateTime()
+  def now = new DateTime(UTC)
+
+  def d(date: DateTime) = date.toDate
+
+  def tonight = {
+    val dt = now
+    dt.toDateMidnight
+  }
+
+  def intervals(begin: ReadableInstant, dur: JodaDuration, times: Int): List[DateTime] = {
+    val beg = new DateTime(begin.getMillis)
+    (0 until times).map{i => beg.withDurationAdded(dur, i)}.toList
+  }
 }
