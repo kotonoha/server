@@ -62,4 +62,6 @@ libraryDependencies += "com.h2database" % "h2" % "1.3.163" % "test"
 
 libraryDependencies += "com.google.zxing" % "javase" % "2.0"
 
+javacOptions ++= Seq("-encoding", "utf8")
+
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
