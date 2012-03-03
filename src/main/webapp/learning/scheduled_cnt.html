@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:test="my-test">
+
+  <body class="lift:content_id=main">
+    <div id="main" class="lift:surround?with=default;at=content">
+        <head_merge>
+            <script type="text/javascript" src="/static/jquery.jqplot.js"></script>
+            <script type="text/javascript" src="/static/plugins/jqplot.canvasTextRenderer.js"></script>
+            <script type="text/javascript" src="/static/plugins/jqplot.canvasAxisLabelRenderer.js"></script>
+        </head_merge>
+        <div class="lift:ScheduledCount.script" ></div>
+        <script language="JavaScript">
+            function process(objs) {
+                var arr = [];
+                objs.forEach(function(o) {
+                    arr.push([o.idx, o.count]);
+                });
+                return arr;
+            }
+
+            function datesCallback(dates) {
+                var plot2 = $.jqplot('chart2', [process(dates)])
+            }
+
+            $(document).ready(function () {
+                loadDates("datesCallback")
+            })
+        </script>
+
+      <h2>This is yet another whatever!</h2>
+        <div id="chart2"></div>
+    </div>
+
+  </body>
+</html>
+

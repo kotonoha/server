@@ -28,12 +28,13 @@ class Boot {
     MongoDbInit.init()
 
     // where to search snippet
-    LiftRules.addToPackages("org.eiennohito.kotonoha.web.snippets")
+    LiftRules.addToPackages("org.eiennohito.kotonoha.web")
 
     // Build SiteMap
     def sitemap = SiteMap(
       Menu.i("Home") / "index",
-      Menu.i("User") / "user" >> UserRecord.AddUserMenusAfter
+      Menu.i("User") / "user" >> UserRecord.AddUserMenusAfter,
+      Menu.i("Learning") / "learning" / "scheduled_cnt"
     )
 
       // more complex because this menu allows anything in the
