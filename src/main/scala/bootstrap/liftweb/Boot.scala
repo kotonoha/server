@@ -34,7 +34,10 @@ class Boot {
     def sitemap = SiteMap(
       Menu.i("Home") / "index",
       Menu.i("User") / "user" >> UserRecord.AddUserMenusAfter,
-      Menu.i("Learning") / "learning" / "scheduled_cnt"
+      Menu.i("Learning") / "learning" / "index" >> If(UserRecord.loggedIn_? _, "Nobody is logged in") submenus (
+        Menu.i("Scheduled words") / "learning" / "scheduled_cnt",
+        Menu.i("OF Matrix") / "learning" / "ofmatrix"
+        )
     )
 
       // more complex because this menu allows anything in the

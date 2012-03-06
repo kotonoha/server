@@ -52,4 +52,6 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
 			       <lift:bind /></lift:surround>)
 
   override def skipEmailValidation = true
+
+  def currentId = currentUserId map {_.toLong}
 }

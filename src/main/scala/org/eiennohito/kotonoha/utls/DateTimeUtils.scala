@@ -5,6 +5,8 @@ import java.util.Calendar
 import akka.util.FiniteDuration
 import net.liftweb.util.Helpers.TimeSpan
 import org.joda.time.{ReadableInstant, DateTimeZone, DateTime, Duration => JodaDuration}
+import org.eiennohito.kotonoha.records.UserRecord
+import net.liftweb.record.field.TimeZoneField
 
 /*
  * Copyright 2012 eiennohito
@@ -45,6 +47,16 @@ object DateTimeUtils {
   def ts(dur: FiniteDuration) = akkaDurationToLiftTimeSpan(dur)
 
   def now = new DateTime(UTC)
+
+  def userNow(uid: Option[Long]) = uid match {
+    case Some(id) => {
+      val u = UserRecord.find(id)
+      val tz = u map {_.timezone.isAsTimeZone.getOffset(System.currentTimeMillis)}
+      val dtz = tz map {DateTimeZone.forOffsetMillis(_)} openOr DateTimeZone.forID("UTC")
+      new DateTime(dtz)
+    }
+    case None => now
+  }
 
   def d(date: DateTime) = date.toDate
 

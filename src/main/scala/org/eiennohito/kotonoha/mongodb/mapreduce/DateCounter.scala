@@ -58,7 +58,7 @@ class DateCounter {
   }"""
 
   def dateList(): java.util.List[Long] =
-    intervals(tonight, 1 day, 10) map { _.getMillis }
+    intervals(now, 1 day, 10) map { _.getMillis }
 
   val scope : java.util.Map[String, AnyRef] = {
     val map = new java.util.HashMap[String, AnyRef]()
@@ -67,11 +67,13 @@ class DateCounter {
     map
   }
 
-  def command(db: DBCollection) = {
+  def command(db: DBCollection, uid: Option[Long] = None) = {
     implicit val formats = DefaultFormats
-    import net.liftweb.mongodb.BsonDSL._
+    import org.eiennohito.kotonoha.utls.KBsonDSL._
     val date = d(now.plus(10 days))
-    val q = ("notBefore" -> ("$lt" -> date)) ~ ("learning.intervalEnd" -> ("$lt" -> date))
+    val userq = uid map ("user" -> _)
+    val q = ("notBefore" -> ("$lt" -> date)) ~ ("learning.intervalEnd" -> ("$lt" -> date)) ~ userq
+
     val cmd = new MapReduceCommand(db, map, reduce, null, OutputType.INLINE, JObjectParser.parse(q))
     cmd.setScope(scope)
     //cmd.addExtraOption("jsMode", true)

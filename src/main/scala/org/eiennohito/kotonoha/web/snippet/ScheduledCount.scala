@@ -2,19 +2,13 @@ package org.eiennohito.kotonoha.web.snippet
 
 import net.liftweb._
 import http._
-import json.DefaultFormats
-import json.JsonAST.JField._
-import json.JsonAST.JInt._
-import json.JsonAST.{JInt, JDouble, JField}
-import mongodb.JObjectParser
-import sitemap.Loc.Snippet
-import util._
 import js._
 import JsCmds._
-import JE._
 import xml.NodeSeq
-import org.eiennohito.kotonoha.mongodb.mapreduce.DateCounter
-import org.eiennohito.kotonoha.records.WordCardRecord
+import org.eiennohito.kotonoha.records.{UserRecord, WordCardRecord}
+import org.eiennohito.kotonoha.utls.DateTimeUtils
+import org.eiennohito.kotonoha.utls.Snippets._
+import org.eiennohito.kotonoha.web.ajax.AllJsonHandler
 
 /*
  * Copyright 2012 eiennohito
@@ -36,62 +30,27 @@ import org.eiennohito.kotonoha.records.WordCardRecord
  * @since 03.03.12
  */
 
-object XString {
-  def unapply(in: Any): Option[String] = in match {
-    case s: String => Some(s)
-    case _ => None
-  }
-}
-
-object XArrayNum {
-  def unapply(in: Any): Option[List[Number]] =
-  in match {
-    case lst: List[_] => Some(lst.flatMap{case n: Number => Some(n) case _ => None})
-    case _ => None
-  }
-}
-
-object AllJsonHandler extends SessionVar[JsonHandler](
-  new JsonHandler {
-    import scala.collection.JavaConversions.iterableAsScalaIterable
-
-    def loadDates: JsExp = {
-      val res = WordCardRecord.useColl { col =>
-          val cnt = new DateCounter()
-          val cmd = cnt.command(col)
-          val out = col.mapReduce(cmd)
-          val v =  out.results().map (JObjectParser.serialize(_)(DefaultFormats)) reduce (_++_)
-
-          v.transform {
-            case JField("value", x) => JField("count", x \ "count")
-            case JField("_id", y : JDouble) => JField("idx", JInt(y.values.toInt))
-        }
-      }
-      res
-    }
-
-    def apply(in: Any): JsCmd = in match {
-      case JsonCmd("loadDates", resp, _, _) =>
-        Call(resp, loadDates)
-
-      case JsonCmd("oneString", resp, XString(s), _) =>
-        Call(resp, s)
-
-      case JsonCmd("addOne", resp, XArrayNum(an), _) =>
-        Call(resp, JsArray(an.map(n => Num(n.doubleValue + 1.0)) :_*))
-
-      case _ => Noop
-    }
-  }
-)
 
 object ScheduledCount {
+
+  val callbackName = "loadDates"
+
   def script(in: NodeSeq): NodeSeq =
-    Script(AllJsonHandler.is.jsCmd &
-             Function("loadDates", List("callback"),
-                      AllJsonHandler.is.call("loadDates",
-                                             JsVar("callback"),
-                                             JsObj())))
+    Script(AllJsonHandler.is.jsCmd & callbackFn(callbackName))
 
+  def cntScheduled(in: NodeSeq) : NodeSeq = {
+    import com.foursquare.rogue.Rogue._
+    val uid = UserRecord.currentId
+    val now = DateTimeUtils.now
 
+    val q = WordCardRecord where(_.user eqs uid.open_!) and (_.notBefore before now) and
+      (_.learning.subfield(_.intervalEnd) before now)
+
+    val cnt = q.count()
+    if (cnt == 1) {
+      <em>one card</em>
+    } else {
+      <em>{cnt} cards</em>
+    }
+  }
 }

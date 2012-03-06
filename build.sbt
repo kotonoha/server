@@ -64,4 +64,6 @@ libraryDependencies += "com.google.zxing" % "javase" % "2.0"
 
 javacOptions ++= Seq("-encoding", "utf8")
 
+scalacOptions ++= Seq("-unchecked")
+
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
