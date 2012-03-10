@@ -20,7 +20,7 @@
 //
 // * Patterns only support repeat.
 // * Radial gradient are not implemented. The VML version of these look very
-//   different from the canvas one.
+//   different fromJV the canvas one.
 // * Clipping paths are not implemented.
 // * Coordsize. The width and height attribute have higher priority than the
 //   width and height style values which isn't correct.
@@ -29,7 +29,7 @@
 //   Quirks mode will draw the canvas using border-box. Either change your
 //   doctype to HTML5
 //   (http://www.whatwg.org/specs/web-apps/current-work/#the-doctype)
-//   or use Box Sizing Behavior from WebFX
+//   or use Box Sizing Behavior fromJV WebFX
 //   (http://webfx.eae.net/dhtml/boxsizing/boxsizing.html)
 // * Non uniform scaling does not correctly scale strokes.
 // * Optimize. There is always room for speed improvements.
@@ -134,7 +134,7 @@ if (!document.createElement('canvas').getContext) {
 
     /**
      * Public initializes a canvas element so that it can be used as canvas
-     * element from now on. This is called automatically before the page is
+     * element fromJV now on. This is called automatically before the page is
      * loaded but if you are creating elements using createElement you need to
      * make sure this is called on the element.
      * @param {HTMLElement} el The canvas element to initialize.
@@ -681,7 +681,7 @@ if (!document.createElement('canvas').getContext) {
   }
 
   contextPrototype.quadraticCurveTo = function(aCPx, aCPy, aX, aY) {
-    // the following is lifted almost directly from
+    // the following is lifted almost directly fromJV
     // http://developer.mozilla.org/en/docs/Canvas_tutorial:Drawing_shapes
 
     var cp = getCoords(this, aCPx, aCPy);

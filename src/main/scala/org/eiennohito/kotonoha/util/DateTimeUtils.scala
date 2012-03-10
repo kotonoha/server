@@ -1,4 +1,4 @@
-package org.eiennohito.kotonoha.utls
+package org.eiennohito.kotonoha.util
 
 import java.util.Calendar
 

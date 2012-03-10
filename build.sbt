@@ -36,7 +36,7 @@ libraryDependencies ++= {
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= {
-  val akkaVer = "2.0-RC2"
+  val akkaVer = "2.0"
   Seq(
     "com.typesafe.akka" % "akka-actor" % akkaVer,
     "com.typesafe.akka" % "akka-slf4j" % akkaVer,
@@ -48,7 +48,7 @@ libraryDependencies +=  "org.eclipse.jetty" % "jetty-webapp" % "8.0.4.v20111024"
 
 libraryDependencies += "com.foursquare" %% "rogue" % "1.1.1" intransitive()
 
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "0.9.28" % "runtime"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.0" % "compile"
 
 libraryDependencies += "com.weiglewilczek.slf4s" %% "slf4s" % "1.0.7"
 
@@ -56,7 +56,7 @@ libraryDependencies += "com.j256.ormlite" % "ormlite-jdbc" % "4.33" % "test"
 
 resolvers += "some weird japanese repo" at "http://dev.mwsoft.jp/repo/"
 
-libraryDependencies += "net.java.sen" % "lucene-gosen" % "1.1.1"
+libraryDependencies += "net.java.sen" % "lucene-gosen" % "1.1.1" exclude ("org.slf4j", "slf4j-jdk14")
 
 libraryDependencies += "com.h2database" % "h2" % "1.3.163" % "test"
 
@@ -65,5 +65,7 @@ libraryDependencies += "com.google.zxing" % "javase" % "2.0"
 javacOptions ++= Seq("-encoding", "utf8")
 
 scalacOptions ++= Seq("-unchecked")
+
+seq(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))

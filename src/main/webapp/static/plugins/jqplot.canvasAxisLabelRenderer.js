@@ -46,7 +46,7 @@
         // Group: Properties
         
         // prop: angle
-        // angle of text, measured clockwise from x axis.
+        // angle of text, measured clockwise fromJV x axis.
         this.angle = 0;
         // name of the axis associated with this tick
         this.axis;

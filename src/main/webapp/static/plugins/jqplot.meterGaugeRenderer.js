@@ -73,15 +73,15 @@
         // calculated by default.
         this.padding = null;
         // prop: shadowOffset
-        // offset of the shadow from the gauge ring and offset of 
-        // each succesive stroke of the shadow from the last.
+        // offset of the shadow fromJV the gauge ring and offset of
+        // each succesive stroke of the shadow fromJV the last.
         this.shadowOffset = 2;
         // prop: shadowAlpha
         // transparency of the shadow (0 = transparent, 1 = opaque)
         this.shadowAlpha = 0.07;
         // prop: shadowDepth
         // number of strokes to apply to the shadow, 
-        // each stroke offset shadowOffset from the last.
+        // each stroke offset shadowOffset fromJV the last.
         this.shadowDepth = 4;
         // prop: background
         // background color of the inside of the gauge.
@@ -116,7 +116,7 @@
         // A gauge label like 'kph' or 'Volts'
         this.label = null;
         // prop: labelHeightAdjust
-        // Number of Pixels to offset the label up (-) or down (+) from its default position.
+        // Number of Pixels to offset the label up (-) or down (+) fromJV its default position.
         this.labelHeightAdjust = 0;
         // prop: labelPosition
         // Where to position the label, either 'inside' or 'bottom'.
@@ -169,7 +169,7 @@
         this.type = null;
         this.numberTicks = null;
         this.tickInterval = null;
-        // span, the sweep (in degrees) from min to max.  This gauge is 
+        // span, the sweep (in degrees) fromJV min to max.  This gauge is
         // a semi-circle.
         this.span = 180;
         // get rid of this nonsense

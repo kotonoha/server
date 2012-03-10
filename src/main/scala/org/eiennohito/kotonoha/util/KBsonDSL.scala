@@ -1,16 +1,15 @@
-package org.eiennohito.kotonoha.utls
+package org.eiennohito.kotonoha.util
 
 import org.bson.types.ObjectId
 import java.util.regex.Pattern
 import util.matching.Regex
 import java.util.{Date, UUID}
 import net.liftweb.json._
+import ext.JodaTimeSerializers
 import net.liftweb.mongodb.BsonDSL
 import org.joda.time.DateTime
-import net.liftweb.json.JsonDSL.{JsonListAssoc, JsonAssoc}
 import net.liftweb.record.TypedField
-import net.liftweb.common.{Full, Empty}
-import org.eiennohito.kotonoha.utls.KBsonDSL.{JsonListOptionAssoc, JsonOptionAssoc}
+import net.liftweb.common.{Full}
 
 /*
  * Copyright 2012 eiennohito
@@ -33,6 +32,9 @@ import org.eiennohito.kotonoha.utls.KBsonDSL.{JsonListOptionAssoc, JsonOptionAss
  */
 
 trait KBsonDSL extends JsonDSL {
+
+  val formats = DefaultFormats ++ JodaTimeSerializers.all
+
   implicit def objectid2jvalue(oid: ObjectId): JValue = BsonDSL.objectid2jvalue(oid)
   implicit def pattern2jvalue(p: Pattern): JValue = BsonDSL.pattern2jvalue(p)
   implicit def regex2jvalue(r: Regex): JValue = BsonDSL.regex2jvalue(r)

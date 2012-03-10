@@ -2,7 +2,7 @@ package org.eiennohito.kotonoha.kanji
 
 import java.io.InputStreamReader
 import collection.mutable.HashMap
-import org.eiennohito.kotonoha.utls.UnicodeUtil
+import org.eiennohito.kotonoha.util.UnicodeUtil
 
 
 /*

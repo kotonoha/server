@@ -24,7 +24,7 @@ import net.liftweb.json.JsonAST._
 import net.liftweb.util.JsonCmd
 
 
-import org.eiennohito.kotonoha.utls.Snippets._
+import org.eiennohito.kotonoha.util.Snippets._
 import net.liftweb.http.js.JE._
 import net.liftweb.http.js._
 
@@ -55,7 +55,7 @@ object AllJsonHandler extends SessionVar[JsonHandler](
 
     def loadOFMatrix: JsExp = {
       import com.foursquare.rogue.Rogue._
-      import org.eiennohito.kotonoha.utls.KBsonDSL._
+      import org.eiennohito.kotonoha.util.KBsonDSL._
       val matId = OFMatrixRecord.forUser(UserRecord.currentId.open_!).id.is
       val items = OFElementRecord where (_.matrix eqs matId) fetch()
       val data = items map { i => ("ef" -> i.ef) ~ ("n" -> i.n) ~ ("val" -> i.value) }

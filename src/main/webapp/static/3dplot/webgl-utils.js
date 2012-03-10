@@ -96,7 +96,7 @@ var OTHER_PROBLEM = '' +
  * change the contents of the container of the <canvas>
  * tag to an error message with the correct links for WebGL.
  * @param {Element} canvas. The canvas element to create a
- *     context from.
+ *     context fromJV.
  * @param {WebGLContextCreationAttirbutes} opt_attribs Any
  *     creation attributes you want to pass in.
  * @param {function:(msg)} opt_onError An function to call
@@ -136,7 +136,7 @@ var setupWebGL = function(canvas, opt_attribs, opt_onError) {
 /**
  * Creates a webgl context.
  * @param {!Canvas} canvas The canvas tag to get context
- *     from. If one is not passed in one will be created.
+ *     fromJV. If one is not passed in one will be created.
  * @return {!WebGLContext} The created context.
  */
 var create3DContext = function(canvas, opt_attribs) {

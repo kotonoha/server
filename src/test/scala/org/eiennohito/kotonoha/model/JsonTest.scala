@@ -8,7 +8,7 @@ import com.google.gson.GsonBuilder
 import org.joda.time.DateTime
 import net.liftweb.json.JsonAST.JObject
 import org.eiennohito.kotonoha.actors.learning.WordsAndCards
-import org.eiennohito.kotonoha.utls.{DateTimeUtils, ResponseUtil}
+import org.eiennohito.kotonoha.util.{DateTimeUtils, ResponseUtil}
 import org.eiennohito.kotonoha.records.{MarkEventRecord, WordCardRecord, ExampleRecord, WordRecord}
 import java.io.InputStreamReader
 import java.nio.charset.Charset

@@ -2,10 +2,10 @@ package org.eiennohito.kotonoha.supermemo
 
 import org.eiennohito.kotonoha.records.{OFMatrixRecord, ItemLearningDataRecord}
 import org.eiennohito.kotonoha.math.MathUtil
-import org.eiennohito.kotonoha.utls.DateTimeUtils
-import akka.actor.{ActorRef, Actor}
+import org.eiennohito.kotonoha.util.DateTimeUtils
 import org.eiennohito.kotonoha.actors.{UpdateRecord, RegisterMongo}
 import org.joda.time.{Period, Duration, DateTime}
+import akka.actor.{ActorLogging, ActorRef, Actor}
 
 /*
  * Copyright 2012 eiennohito
@@ -30,7 +30,7 @@ import org.joda.time.{Period, Duration, DateTime}
 
 case class ItemUpdate(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long)
 
-class SM6 extends Actor {
+class SM6 extends Actor with ActorLogging {
   import DateTimeUtils._
 
   def updateMatrix(matrix: OFMatrixRecord, item: ItemUpdate, oldEf: Double, n: Int, oldN : Int) {    
@@ -76,6 +76,7 @@ class SM6 extends Actor {
       val mod = calculateMod(item.time, data.intervalStart.is, data.intervalEnd.is)
       val oldI = data.intervalLength.is
       val newI = data.intervalLength.is * mat.value(data.repetition.is, data.difficulty.is).value.is
+      log.debug("updating item from {} to {} with mod {}", oldI, newI, mod)
       oldI + (newI - oldI) * mod
     }
     data.intervalLength(raw * MathUtil.ofrandom)

@@ -43,12 +43,12 @@
         $.jqplot.LinearAxisRenderer.call(this);
         // prop: sortMergedLabels
         // True to sort tick labels when labels are created by merging
-        // x axis values from multiple series.  That is, say you have
+        // x axis values fromJV multiple series.  That is, say you have
         // two series like:
         // > line1 = [[2006, 4],            [2008, 9], [2009, 16]];
         // > line2 = [[2006, 3], [2007, 7], [2008, 6]];
         // If no label array is specified, tick labels will be collected
-        // from the x values of the series.  With sortMergedLabels
+        // fromJV the x values of the series.  With sortMergedLabels
         // set to true, tick labels will be:
         // > [2006, 2007, 2008, 2009]
         // With sortMergedLabels set to false, tick labels will be:
@@ -436,7 +436,7 @@
         }
         
         this._offsets = offsets;
-        // pixellength will be + for x axes and - for y axes becasue pixels always measured from top left.
+        // pixellength will be + for x axes and - for y axes becasue pixels always measured fromJV top left.
         var pixellength = offmax - offmin;
         var unitlength = max - min;
         

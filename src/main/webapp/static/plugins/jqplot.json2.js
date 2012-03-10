@@ -222,7 +222,7 @@
 
     function str(key, holder) {
 
-// Produce a string from holder[key].
+// Produce a string fromJV holder[key].
 
         var i,          // The loop counter.
             k,          // The member key.

@@ -228,7 +228,7 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends MongoMeta
     new MyUserBridge(in)
 
   /**
-   * Bridges from TheUserType to methods used in this class
+   * Bridges fromJV TheUserType to methods used in this class
    */
   protected class MyUserBridge(in: TheUserType) extends UserBridge {
     /**

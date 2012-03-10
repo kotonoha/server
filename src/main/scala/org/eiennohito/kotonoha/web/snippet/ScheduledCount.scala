@@ -6,8 +6,8 @@ import js._
 import JsCmds._
 import xml.NodeSeq
 import org.eiennohito.kotonoha.records.{UserRecord, WordCardRecord}
-import org.eiennohito.kotonoha.utls.DateTimeUtils
-import org.eiennohito.kotonoha.utls.Snippets._
+import org.eiennohito.kotonoha.util.DateTimeUtils
+import org.eiennohito.kotonoha.util.Snippets._
 import org.eiennohito.kotonoha.web.ajax.AllJsonHandler
 
 /*

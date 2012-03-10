@@ -31,7 +31,7 @@
     // class: $.jqplot.MekkoAxisRenderer
     // An axis renderer for a Mekko chart.
     // Should be used with a Mekko chart where the mekkoRenderer is used on the series.
-    // Displays the Y axis as a range from 0 to 1 (0 to 100%) and the x axis with a tick
+    // Displays the Y axis as a range fromJV 0 to 1 (0 to 100%) and the x axis with a tick
     // for each series scaled to the sum of all the y values.
     $.jqplot.MekkoAxisRenderer = function() {
     };
@@ -62,12 +62,12 @@
         }
         var db = this._dataBounds;
         db.min = 0;
-        // for y axes, scale always go from 0 to 1 (0 to 100%)
+        // for y axes, scale always go fromJV 0 to 1 (0 to 100%)
         if (this.name == 'yaxis' || this.name == 'y2axis') {
             db.max = 100;
             this.tickMode = 'even';
         }
-        // For x axes, scale goes from 0 to sum of all y values.
+        // For x axes, scale goes fromJV 0 to sum of all y values.
         else if (this.name == 'xaxis'){
             this.tickMode = (this.tickMode == null) ? 'bar' : this.tickMode;
             for (var i=0; i<this._series.length; i++) {
@@ -297,7 +297,7 @@
             var temp, prev, curr;
             var ynumticks = [3,5,6,11,21];
             
-            // yaxis divide ticks in nice intervals from 0 to 1.
+            // yaxis divide ticks in nice intervals fromJV 0 to 1.
             if (this.name == 'yaxis' || this.name == 'y2axis') { 
                 this.min = 0;
                 this.max = 100; 
@@ -449,7 +449,7 @@
         }
         
         this._offsets = offsets;
-        // pixellength will be + for x axes and - for y axes becasue pixels always measured from top left.
+        // pixellength will be + for x axes and - for y axes becasue pixels always measured fromJV top left.
         var pixellength = offmax - offmin;
         var unitlength = max - min;
         

@@ -16,33 +16,92 @@
 
 package org.eiennohito.kotonoha
 
-import net.liftweb.util.Html5
-import xml.{Elem, NodeSeq, Node}
-import java.io.{PrintWriter, FileInputStream}
+import org.joda.time.DateTime
+import util.DateTimeUtils
+import java.util.Date
+import org.joda.time.format.ISODateTimeFormat
+import net.liftweb.json.JsonAST.JValue
+import net.liftweb.json._
 
 /**
  * @author eiennohito
  * @since 02.03.12
  */
 
+object MyFormat extends Formats {
+  val dateFormat = new DateFormat {
+    def format(d: Date) = null
+
+    def parse(s: String) = None
+  }
+}
+
+abstract class PFSerializer[A: Manifest] extends Serializer[A] {
+
+  val Class = implicitly[Manifest[A]].erasure
+
+  def fromJV(f: Formats): PartialFunction[JValue, A]
+
+  def toJV(f: Formats): PartialFunction[Any, JValue]
+
+  def deserialize(implicit format: Formats) = {
+    case (TypeInfo(Class, _), json) => {
+      val ser = fromJV(format)
+      if (ser.isDefinedAt(json)) ser(json)
+      else throw new MappingException("Can't convert " + json + " to " + Class)
+    }
+
+  }
+
+  def serialize(implicit format: Formats) = {
+    val ser = toJV(format)
+    ser
+  }
+}
+
+object -> {
+  import JsonAST._
+  def unapply(v: JValue): Option[(String, JValue)] = {
+    v match {
+      case obj: JObject => obj.children.head match {
+        case JField(name, jv) => Some(name, jv)
+        case _ => None
+      }
+      case _ => None
+    }
+  }
+}
+
+
+object DateTimeConverter extends PFSerializer[DateTime] {
+  import JsonAST._
+  def fromJV(f: Formats) = {
+    case "$dt" -> JString(s) => ISODateTimeFormat.basicDateTime().parseDateTime(s)
+  }
+
+  def toJV(f: Formats) = {
+    case d: DateTime => {
+      import org.eiennohito.kotonoha.util.KBsonDSL._
+      val s = ISODateTimeFormat.basicDateTime().print(d)
+      ("$dt" -> s)
+    }
+  }
+}
+
+object MyEx {
+  def extract() = {
+
+  }
+}
+
+case class TestClass(d: DateTime)
+
 
 class SomeTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
   test("someTest") {
-    val is = new FileInputStream("""e:\Temp\kanji\joyou_wiki.htm""")
-    val el = Html5.parse(is)
-    val e = el.openTheBox
-    val nodes = e \\ "tbody" \ "tr"
-    val kanji = nodes.collect {
-      case x : Elem => (x \\ "td")(1).text
-    }
-    is.close()
-
-    val out = new PrintWriter("""e:/temp/kanji/java.txt""", "utf-8")
-
-    kanji.foreach { k =>
-      val s = "\"%s\",".format(k)
-      out.println(s)
-    }
-    out.close()
+    val d1 = TestClass(DateTimeUtils.now)
+    val o = Extraction.decompose(d1)(MyFormat + DateTimeConverter)
+    val d2 = Extraction.extract[TestClass](o)(MyFormat + DateTimeConverter, Manifest.classType(classOf[TestClass]))
+    val c = 1
   }
 }

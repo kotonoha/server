@@ -1,4 +1,4 @@
-package org.eiennohito.kotonoha.utls
+package org.eiennohito.kotonoha.util
 
 import org.eiennohito.kotonoha.actors.learning.WordsAndCards
 import net.liftweb.json.JsonAST._

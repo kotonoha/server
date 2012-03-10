@@ -161,7 +161,7 @@
         // this.labelRenderer = $.jqplot.AxisLabelRenderer;
         this.tickOptions.formatter = $.jqplot.DateTickFormatter;
         // prop: tickInset
-        // Controls the amount to inset the first and last ticks from 
+        // Controls the amount to inset the first and last ticks fromJV
         // the edges of the grid, in multiples of the tick interval.
         // 0 is no inset, 0.5 is one half a tick interval, 1 is a full
         // tick interval, etc.
@@ -613,7 +613,7 @@
                 if (Number(this.tickInterval)) {
                     this.daTickInterval = [Number(this.tickInterval), 'seconds'];
                 }
-                // else, parse out something we can build from.
+                // else, parse out something we can build fromJV.
                 else if (typeof this.tickInterval == "string") {
                     var parts = this.tickInterval.split(' ');
                     if (parts.length == 1) {

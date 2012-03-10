@@ -5,7 +5,7 @@ import java.util.Calendar
 import net.liftweb.record.field.DateTimeTypedField
 import net.liftweb.record.TypedField
 import net.liftweb.http.js.JE.{JsNull, Str}
-import org.eiennohito.kotonoha.utls.DateTimeUtils
+import org.eiennohito.kotonoha.util.DateTimeUtils
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime}
 import net.liftweb.json.JsonAST.{JString, JValue}

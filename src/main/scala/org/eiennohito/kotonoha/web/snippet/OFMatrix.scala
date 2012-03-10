@@ -18,7 +18,7 @@ package org.eiennohito.kotonoha.web.snippet
 import xml.NodeSeq
 import net.liftweb.http.js.JsCmds.Script
 import org.eiennohito.kotonoha.web.ajax.AllJsonHandler
-import org.eiennohito.kotonoha.utls.Snippets._
+import org.eiennohito.kotonoha.util.Snippets._
 
 /**
  * @author eiennohito

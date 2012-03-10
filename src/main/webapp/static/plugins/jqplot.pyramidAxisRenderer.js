@@ -523,7 +523,7 @@
     };
     
     $.jqplot.PyramidAxisRenderer.prototype.pack = function(pos, offsets) { 
-        // Add defaults for repacking from resetTickValues function.
+        // Add defaults for repacking fromJV resetTickValues function.
         pos = pos || {};
         offsets = offsets || this._offsets;
         
@@ -539,7 +539,7 @@
         }
         
         this._offsets = offsets;
-        // pixellength will be + for x axes and - for y axes becasue pixels always measured from top left.
+        // pixellength will be + for x axes and - for y axes becasue pixels always measured fromJV top left.
         var pixellength = offmax - offmin;
         var unitlength = max - min;
         var sl = this._splitLength;

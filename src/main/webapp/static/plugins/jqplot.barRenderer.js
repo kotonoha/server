@@ -57,12 +57,12 @@
         // Width of the bar in pixels (auto by devaul).  null = calculated automatically.
         this.barWidth = null;
         // prop: shadowOffset
-        // offset of the shadow from the slice and offset of 
-        // each succesive stroke of the shadow from the last.
+        // offset of the shadow fromJV the slice and offset of
+        // each succesive stroke of the shadow fromJV the last.
         this.shadowOffset = 2;
         // prop: shadowDepth
         // number of strokes to apply to the shadow, 
-        // each stroke offset shadowOffset from the last.
+        // each stroke offset shadowOffset fromJV the last.
         this.shadowDepth = 5;
         // prop: shadowAlpha
         // transparency of the shadow (0 = transparent, 1 = opaque)

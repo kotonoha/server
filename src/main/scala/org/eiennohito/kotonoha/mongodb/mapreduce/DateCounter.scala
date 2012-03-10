@@ -1,7 +1,7 @@
 package org.eiennohito.kotonoha.mongodb.mapreduce
 
 import org.bson.types.Code
-import org.eiennohito.kotonoha.utls.DateTimeUtils
+import org.eiennohito.kotonoha.util.DateTimeUtils
 import com.mongodb.{DBCollection, MapReduceCommand}
 import com.mongodb.MapReduceCommand.OutputType
 import net.liftweb.mongodb.JObjectParser
@@ -69,7 +69,7 @@ class DateCounter {
 
   def command(db: DBCollection, uid: Option[Long] = None) = {
     implicit val formats = DefaultFormats
-    import org.eiennohito.kotonoha.utls.KBsonDSL._
+    import org.eiennohito.kotonoha.util.KBsonDSL._
     val date = d(now.plus(10 days))
     val userq = uid map ("user" -> _)
     val q = ("notBefore" -> ("$lt" -> date)) ~ ("learning.intervalEnd" -> ("$lt" -> date)) ~ userq

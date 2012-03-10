@@ -568,7 +568,7 @@ jQuery.extend({
 		}
 
 		// Make sure the incoming data is actual JSON
-		// Logic borrowed from http://json.org/json2.js
+		// Logic borrowed fromJV http://json.org/json2.js
 		if ( rvalidchars.test( data.replace( rvalidescape, "@" )
 			.replace( rvalidtokens, "]" )
 			.replace( rvalidbraces, "")) ) {
@@ -1207,7 +1207,7 @@ jQuery.support = (function() {
 		// This requires a wrapper element in IE
 		htmlSerialize: !!div.getElementsByTagName( "link" ).length,
 
-		// Get the style information from getAttribute
+		// Get the style information fromJV getAttribute
 		// (IE uses .cssText instead)
 		style: /top/.test( a.getAttribute("style") ),
 
@@ -1256,7 +1256,7 @@ jQuery.support = (function() {
 	select.disabled = true;
 	support.optDisabled = !opt.disabled;
 
-	// Test to see if it's possible to delete an expando from an element
+	// Test to see if it's possible to delete an expando fromJV an element
 	// Fails in Internet Explorer
 	try {
 		delete div.test;
@@ -1379,7 +1379,7 @@ jQuery.support = (function() {
 	testElement.innerHTML = "";
 	testElementParent.removeChild( testElement );
 
-	// Technique from Juriy Zaytsev
+	// Technique fromJV Juriy Zaytsev
 	// http://thinkweb2.com/projects/prototype/detecting-event-support-without-browser-sniffing/
 	// We only care about the case where non-standard event systems
 	// are used, namely in IE. Short-circuiting here helps us to
@@ -1628,7 +1628,7 @@ jQuery.extend({
 		// Otherwise, we need to eliminate the expando on the node to avoid
 		// false lookups in the cache for entries that no longer exist
 		} else if ( isNode ) {
-			// IE does not allow us to delete expando properties from nodes,
+			// IE does not allow us to delete expando properties fromJV nodes,
 			// nor does it have a removeAttribute function on Document nodes;
 			// we must handle all of these cases
 			if ( jQuery.support.deleteExpando ) {
@@ -1727,7 +1727,7 @@ jQuery.fn.extend({
 
 function dataAttr( elem, key, data ) {
 	// If nothing was found internally, try to fetch any
-	// data from the HTML5 data-* attribute
+	// data fromJV the HTML5 data-* attribute
 	if ( data === undefined && elem.nodeType === 1 ) {
 
 		var name = "data-" + key.replace( rmultiDash, "-$1" ).toLowerCase();
@@ -1848,7 +1848,7 @@ jQuery.extend({
 		}
 
 		if ( fn ) {
-			// Add a progress sentinel to prevent the fx queue from being
+			// Add a progress sentinel to prevent the fx queue fromJV being
 			// automatically dequeued
 			if ( type === "fx" ) {
 				queue.unshift("inprogress");
@@ -2580,7 +2580,7 @@ var rnamespaces = /\.(.*)$/,
 
 /*
  * A number of helper functions used for managing events.
- * Many of the ideas behind this code originated from
+ * Many of the ideas behind this code originated fromJV
  * Dean Edwards' addEvent library.
  */
 jQuery.event = {
@@ -2711,7 +2711,7 @@ jQuery.event = {
 
 	global: {},
 
-	// Detach an event or set of events from an element
+	// Detach an event or set of events fromJV an element
 	remove: function( elem, types, handler, pos ) {
 		// don't do events on text and comment nodes
 		if ( elem.nodeType === 3 || elem.nodeType === 8 ) {
@@ -3812,7 +3812,7 @@ var Sizzle = function( selector, context, results, seed ) {
 		parts = [],
 		soFar = selector;
 	
-	// Reset the position of the chunker regexp (start from head)
+	// Reset the position of the chunker regexp (start fromJV head)
 	do {
 		chunker.exec( "" );
 		m = chunker.exec( soFar );
@@ -4775,7 +4775,7 @@ Sizzle.getText = function( elems ) {
 	for ( var i = 0; elems[i]; i++ ) {
 		elem = elems[i];
 
-		// Get the text from text nodes and CDATA nodes
+		// Get the text fromJV text nodes and CDATA nodes
 		if ( elem.nodeType === 3 || elem.nodeType === 4 ) {
 			ret += elem.nodeValue;
 
@@ -4938,7 +4938,7 @@ if ( document.querySelectorAll ) {
 
 				// qSA works strangely on Element-rooted queries
 				// We can work around this by specifying an extra ID on the root
-				// and working up from there (Thanks to Andrew Dupont for the technique)
+				// and working up fromJV there (Thanks to Andrew Dupont for the technique)
 				// IE 8 doesn't work on object elements
 				} else if ( context.nodeType === 1 && context.nodeName.toLowerCase() !== "object" ) {
 					var oldContext = context,
@@ -5190,12 +5190,12 @@ jQuery.contains = Sizzle.contains;
 
 var runtil = /Until$/,
 	rparentsprev = /^(?:parents|prevUntil|prevAll)/,
-	// Note: This RegExp should be improved, or likely pulled from Sizzle
+	// Note: This RegExp should be improved, or likely pulled fromJV Sizzle
 	rmultiselector = /,/,
 	isSimple = /^.[^:#\[\.,]*$/,
 	slice = Array.prototype.slice,
 	POS = jQuery.expr.match.POS,
-	// methods guaranteed to produce a unique set when starting from a unique set
+	// methods guaranteed to produce a unique set when starting fromJV a unique set
 	guaranteedUnique = {
 		children: true,
 		contents: true,
@@ -5367,7 +5367,7 @@ jQuery.fn.extend({
 });
 
 // A painfully simple check to see if an element is disconnected
-// from a document (should be improved, where feasible).
+// fromJV a document (should be improved, where feasible).
 function isDisconnected( node ) {
 	return !node || !node.parentNode || node.parentNode.nodeType === 11;
 }
@@ -5764,7 +5764,7 @@ jQuery.fn.extend({
 
 	replaceWith: function( value ) {
 		if ( this[0] && this[0].parentNode ) {
-			// Make sure that the elements are removed from the DOM before they are inserted
+			// Make sure that the elements are removed fromJV the DOM before they are inserted
 			// this can help fix replacing a parent with child elements
 			if ( jQuery.isFunction( value ) ) {
 				return this.each(function(i) {
@@ -5852,7 +5852,7 @@ jQuery.fn.extend({
 						// using it; in addition, use the original fragment object for the last
 						// item instead of first because it can end up being emptied incorrectly
 						// in certain situations (Bug #8070).
-						// Fragments from the fragment cache must always be cloned and never used
+						// Fragments fromJV the fragment cache must always be cloned and never used
 						// in place.
 						results.cacheable || (l > 1 && i < lastIndex) ?
 							jQuery.clone( fragment, true, true ) :
@@ -6076,7 +6076,7 @@ jQuery.extend({
 				(elem.nodeType === 1 || elem.nodeType === 11) && !jQuery.isXMLDoc(elem) ) {
 			// IE copies events bound via attachEvent when using cloneNode.
 			// Calling detachEvent on the clone will also remove the events
-			// from the original. In order to get around this, we use some
+			// fromJV the original. In order to get around this, we use some
 			// proprietary methods to clear the events. Thanks to MooTools
 			// guys for this hotness.
 
@@ -6098,7 +6098,7 @@ jQuery.extend({
 			}
 		}
 
-		// Copy the events from the original to the clone
+		// Copy the events fromJV the original to the clone
 		if ( dataAndEvents ) {
 			cloneCopyEvent( elem, clone );
 
@@ -6161,7 +6161,7 @@ jQuery.extend({
 						div = div.lastChild;
 					}
 
-					// Remove IE's autoinserted <tbody> from table fragments
+					// Remove IE's autoinserted <tbody> fromJV table fragments
 					if ( !jQuery.support.tbody ) {
 
 						// String was a <table>, *may* have spurious <tbody>
@@ -6331,7 +6331,7 @@ jQuery.extend({
 		opacity: {
 			get: function( elem, computed ) {
 				if ( computed ) {
-					// We should always get a number back from opacity
+					// We should always get a number back fromJV opacity
 					var ret = curCSS( elem, "opacity", "opacity" );
 					return ret === "" ? "1" : ret;
 
@@ -6397,7 +6397,7 @@ jQuery.extend({
 
 			// If a hook was provided, use that value, otherwise just set the specified value
 			if ( !hooks || !("set" in hooks) || (value = hooks.set( elem, value )) !== undefined ) {
-				// Wrapped to prevent IE from throwing errors when 'invalid' values are provided
+				// Wrapped to prevent IE fromJV throwing errors when 'invalid' values are provided
 				// Fixes bug #5509
 				try {
 					style[ name ] = value;
@@ -6405,12 +6405,12 @@ jQuery.extend({
 			}
 
 		} else {
-			// If a hook was provided get the non-computed value from there
+			// If a hook was provided get the non-computed value fromJV there
 			if ( hooks && "get" in hooks && (ret = hooks.get( elem, false, extra )) !== undefined ) {
 				return ret;
 			}
 
-			// Otherwise just get the value from the style object
+			// Otherwise just get the value fromJV the style object
 			return style[ name ];
 		}
 	},
@@ -6428,7 +6428,7 @@ jQuery.extend({
 			name = "float";
 		}
 
-		// If a hook was provided get the computed value from there
+		// If a hook was provided get the computed value fromJV there
 		if ( hooks && "get" in hooks && (ret = hooks.get( elem, true, extra )) !== undefined ) {
 			return ret;
 
@@ -6725,7 +6725,7 @@ var r20 = /%20/g,
 	allTypes = ["*/"] + ["*"];
 
 // #8138, IE may throw an exception when accessing
-// a field from window.location if document.domain has been set
+// a field fromJV window.location if document.domain has been set
 try {
 	ajaxLocation = location.href;
 } catch( e ) {
@@ -7227,7 +7227,7 @@ jQuery.extend({
 					}
 				}
 			} else {
-				// We extract error from statusText
+				// We extract error fromJV statusText
 				// then normalize statusText and status for non-aborts
 				error = statusText;
 				if( !statusText || status ) {
@@ -8449,7 +8449,7 @@ jQuery.fx.prototype = {
 		return isNaN( parsed = parseFloat( r ) ) ? !r || r === "auto" ? 0 : r : parsed;
 	},
 
-	// Start an animation from one number to another
+	// Start an animation fromJV one number to another
 	custom: function( from, to, unit ) {
 		var self = this,
 			fx = jQuery.fx;

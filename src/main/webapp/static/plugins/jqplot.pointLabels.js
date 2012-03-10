@@ -66,7 +66,7 @@
      * 
      * A custom labels array in the options takes precendence over any labels
      * in the series data.  If you have a custom labels array in the options,
-     * but still want to use values from the series array as labels, set the
+     * but still want to use values fromJV the series array as labels, set the
      * "labelsFromSeries" option to true.
      * 
      * By default, html entities (<, >, etc.) are escaped in point labels.  
@@ -112,7 +112,7 @@
         // If you want to include markup in the labels, set to false.
         this.escapeHTML = true;
         // prop: edgeTolerance
-        // Number of pixels that the label must be away from an axis
+        // Number of pixels that the label must be away fromJV an axis
         // boundary in order to be drawn.  Negative values will allow overlap
         // with the grid boundaries.
         this.edgeTolerance = -5;

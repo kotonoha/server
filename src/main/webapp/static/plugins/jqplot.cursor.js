@@ -50,7 +50,7 @@
         // prop: followMouse
         // Tooltip follows the mouse, it is not at a fixed location.
         // Tooltip will show on the grid at the location given by
-        // tooltipLocation, offset from the grid edge by tooltipOffset.
+        // tooltipLocation, offset fromJV the grid edge by tooltipOffset.
         this.followMouse = false;
         // prop: tooltipLocation
         // Where to position tooltip.  If followMouse is true, this is
@@ -58,7 +58,7 @@
         // One of 'n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'
         this.tooltipLocation = 'se';
         // prop: tooltipOffset
-        // Pixel offset of tooltip from the grid boudaries or cursor center.
+        // Pixel offset of tooltip fromJV the grid boudaries or cursor center.
         this.tooltipOffset = 6;
         // prop: showTooltipGridPosition
         // show the grid pixel coordinates of the mouse.
@@ -123,7 +123,7 @@
         this.zoomCanvas;
         this.cursorCanvas;
         // prop: intersectionThreshold
-        // pixel distance from data point or marker to consider cursor lines intersecting with point.
+        // pixel distance fromJV data point or marker to consider cursor lines intersecting with point.
         // If data point markers are not shown, this should be >= 1 or will often miss point intersections.
         this.intersectionThreshold = 2;
         // prop: showCursorLegend
@@ -389,7 +389,7 @@
 
                             _numberTicks = null;
 
-                            // if aligning this axis, use number of ticks from previous axis.
+                            // if aligning this axis, use number of ticks fromJV previous axis.
                             // Do I need to reset somehow if alignTicks is changed and then graph is replotted??
                             if (curax.alignTicks) {
                                 if (curax.name === 'x2axis' && plot.axes.xaxis.show) {

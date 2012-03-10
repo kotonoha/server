@@ -103,15 +103,15 @@
         // true or false, wether to fil the slices.
         this.fill = true;
         // prop: shadowOffset
-        // offset of the shadow from the slice and offset of 
-        // each succesive stroke of the shadow from the last.
+        // offset of the shadow fromJV the slice and offset of
+        // each succesive stroke of the shadow fromJV the last.
         this.shadowOffset = 2;
         // prop: shadowAlpha
         // transparency of the shadow (0 = transparent, 1 = opaque)
         this.shadowAlpha = 0.07;
         // prop: shadowDepth
         // number of strokes to apply to the shadow, 
-        // each stroke offset shadowOffset from the last.
+        // each stroke offset shadowOffset fromJV the last.
         this.shadowDepth = 5;
         // prop: highlightMouseOver
         // True to highlight slice when moused over.
@@ -143,7 +143,7 @@
         // Increasing will slide label toward edge of pie, decreasing will slide label toward center of pie.
         this.dataLabelPositionFactor = 0.4;
         // prop: dataLabelNudge
-        // Number of pixels to slide the label away from (+) or toward (-) the center of the pie.
+        // Number of pixels to slide the label away fromJV (+) or toward (-) the center of the pie.
         this.dataLabelNudge = 0;
         // prop: startAngle
         // Angle to start drawing donut in degrees.  

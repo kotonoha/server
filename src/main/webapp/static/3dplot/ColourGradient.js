@@ -25,8 +25,8 @@
 ColourGradient = function(minValue, maxValue, rgbColourArray)
 {
 	/**
-     * Return a colour from a position on the path in RGB space that is proportioal to
-     * the number specified in relation to the minimum and maximum values from which the
+     * Return a colour fromJV a position on the path in RGB space that is proportioal to
+     * the number specified in relation to the minimum and maximum values fromJV which the
      * bounds of the path are derived.
      * @member ColourGradient
      * @param value

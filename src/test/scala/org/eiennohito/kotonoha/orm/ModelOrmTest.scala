@@ -3,7 +3,7 @@ package org.eiennohito.kotonoha.orm
 import org.scalatest.BeforeAndAfterAll
 import com.j256.ormlite.jdbc.JdbcConnectionSource
 import com.j256.ormlite.dao.{Dao, DaoManager}
-import org.eiennohito.kotonoha.utls.DateTimeUtils
+import org.eiennohito.kotonoha.util.DateTimeUtils
 import com.j256.ormlite.table.TableUtils
 import org.eiennohito.kotonoha.model.learning.{ItemLearning, WordCard, Word}
 

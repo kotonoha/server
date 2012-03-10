@@ -1,7 +1,4 @@
-package org.eiennohito.kotonoha.utls
-
-import net.liftweb.http.Req
-import net.liftweb.common.Full
+package org.eiennohito.kotonoha.util
 
 /*
  * Copyright 2012 eiennohito
@@ -20,11 +17,18 @@ import net.liftweb.common.Full
  */
 /**
  * @author eiennohito
- * @since 04.02.12
+ * @since 02.03.12
  */
 
-object UserUtil {
+object UnicodeUtil {
+  val ranges = Array(0x4e00 -> 0x9fff,
+                     0x3400 -> 0x4dbf,
+                     0x20000 -> 0x2a6df,
+                     0x2a700 -> 0x2b73f,
+                     0x2b840 -> 0x2b81f)
 
-  def extractUser(req: Req) = Full(1L)
+  def isKanji(c: Int) = ranges.foldLeft(false) {
+    case (p, (begin, end)) => if (p) p else begin <= c && c <= end
+  }
 
 }

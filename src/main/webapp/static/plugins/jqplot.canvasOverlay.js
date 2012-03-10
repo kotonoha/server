@@ -112,10 +112,10 @@
             // Shadow angle in degrees
             shadowAngle: 45,
             // prop: shadowOffset
-            // Shadow offset from line in pixels
+            // Shadow offset fromJV line in pixels
             shadowOffset: 1,
             // prop: shadowDepth
-            // Number of times shadow is stroked, each stroke offset shadowOffset from the last.
+            // Number of times shadow is stroked, each stroke offset shadowOffset fromJV the last.
             shadowDepth: 3,
             // prop: shadowAlpha
             // Alpha channel transparency of shadow.  0 = transparent.
@@ -131,7 +131,7 @@
             showTooltip: false,
             // prop: showTooltipPrecision
             // Controls how close to line cursor must be to show tooltip.
-            // Higher number = closer to line, lower number = farther from line.
+            // Higher number = closer to line, lower number = farther fromJV line.
             // 1.0 = cursor must be over line.
             showTooltipPrecision: 0.6,
             // prop: tooltipLocation
@@ -144,7 +144,7 @@
             // 'slow', 'def', 'fast', or number of milliseconds.
             tooltipFadeSpeed: "fast",
             // prop: tooltipOffset
-            // Pixel offset of tooltip from the highlight.
+            // Pixel offset of tooltip fromJV the highlight.
             tooltipOffset: 4,
             // prop: tooltipFormatString
             // Format string passed the x and y values of the cursor on the line.

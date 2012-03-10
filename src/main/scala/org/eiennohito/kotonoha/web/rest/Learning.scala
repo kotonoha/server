@@ -12,7 +12,7 @@ import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
 import org.eiennohito.kotonoha.records.MarkEventRecord
 import akka.dispatch.Future
 import net.liftweb.json.JsonAST.{JField, JObject, JString}
-import org.eiennohito.kotonoha.utls.{DateTimeUtils, ResponseUtil, UserUtil}
+import org.eiennohito.kotonoha.util.{DateTimeUtils, ResponseUtil, UserUtil}
 
 
 /*
@@ -118,7 +118,7 @@ trait LearningRest extends RestHelper with Logging with Akka {
   })
   
   import net.liftweb.mongodb.BsonDSL._
-  import org.eiennohito.kotonoha.utls.ResponseUtil.Tr
+  import org.eiennohito.kotonoha.util.ResponseUtil.Tr
   
   serve ( "api" / "events" prefix {
     case "mark" :: Nil JsonPost reqV => {

@@ -20,7 +20,7 @@ import com.foursquare.rogue.Rogue
 import org.joda.time.DateTime
 import util.Random
 import org.eiennohito.kotonoha.model.CardMode
-import org.eiennohito.kotonoha.utls.DateTimeUtils
+import org.eiennohito.kotonoha.util.DateTimeUtils
 import akka.dispatch.Await
 import Rogue._
 import akka.pattern._
@@ -153,7 +153,6 @@ class CardScheduler extends Actor with ActorLogging {
       val date = now plus (3.2 days)
       val q = WordCardRecord where (_.cardMode eqs cardType) and
         (_.word eqs word) modify (_.notBefore setTo date)
-      log.debug(q.toString)
       q.updateOne()
       sender ! "OK"
     }

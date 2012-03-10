@@ -5,7 +5,7 @@ import net.liftweb.mongodb.record.field._
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
 import net.liftweb.common.Empty
 import net.liftweb.record.field.{DateTimeField, OptionalDateTimeField, IntField, StringField}
-import org.eiennohito.kotonoha.utls.DateTimeUtils
+import org.eiennohito.kotonoha.util.DateTimeUtils
 
 /*
 * Copyright 2012 eiennohito

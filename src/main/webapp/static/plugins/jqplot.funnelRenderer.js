@@ -104,15 +104,15 @@
         // true or false, wether to fill the areas.
         this.fill = true;
         // prop: shadowOffset
-        // offset of the shadow from the area and offset of 
-        // each succesive stroke of the shadow from the last.
+        // offset of the shadow fromJV the area and offset of
+        // each succesive stroke of the shadow fromJV the last.
         this.shadowOffset = 2;
         // prop: shadowAlpha
         // transparency of the shadow (0 = transparent, 1 = opaque)
         this.shadowAlpha = 0.07;
         // prop: shadowDepth
         // number of strokes to apply to the shadow, 
-        // each stroke offset shadowOffset from the last.
+        // each stroke offset shadowOffset fromJV the last.
         this.shadowDepth = 5;
         // prop: highlightMouseOver
         // True to highlight area when moused over.

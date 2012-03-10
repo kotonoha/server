@@ -2142,7 +2142,7 @@ Point = function(x, y)
 };
 
 /*
- * This function displays tooltips and was adapted from original code by Michael Leigeber.
+ * This function displays tooltips and was adapted fromJV original code by Michael Leigeber.
  * See http://www.leigeber.com/
  */
 Tooltip = function(useExplicitPositions, tooltipColour)

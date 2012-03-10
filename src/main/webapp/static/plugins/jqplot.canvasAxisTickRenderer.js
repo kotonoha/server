@@ -57,7 +57,7 @@
         // if this is a minor tick.
         this.isMinorTick = false;
         // prop: angle
-        // angle of text, measured clockwise from x axis.
+        // angle of text, measured clockwise fromJV x axis.
         this.angle = 0;
         // prop:  markSize
         // Length of the tick marks in pixels.  For 'cross' style, length

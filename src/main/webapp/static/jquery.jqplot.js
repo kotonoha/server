@@ -313,7 +313,7 @@
     
     $.jqplot.enablePlugins = $.jqplot.config.enablePlugins;
     
-    // canvas related tests taken from modernizer:
+    // canvas related tests taken fromJV modernizer:
     // Copyright (c) 2009 - 2010 Faruk Ates.
     // http://www.modernizr.com
     
@@ -454,7 +454,7 @@
      * Class: Axis
      * An individual axis object.  Cannot be instantiated directly, but created
      * by the Plot oject.  Axis properties can be set or overriden by the 
-     * options passed in from the user.
+     * options passed in fromJV the user.
      * 
      */
     function Axis(name) {
@@ -578,7 +578,7 @@
         // statistics (min, max, mean) as well as actual data intervals for each series attached to axis.
         // holds collection of {intervals:[], min:, max:, mean: } objects for each series on axis.
         this._intervalStats = [];
-        // pixel position from the top left of the min value and max value on the axis.
+        // pixel position fromJV the top left of the min value and max value on the axis.
         this._offsets = {min:null, max:null};
         this._ticks=[];
         this._label = null;
@@ -786,7 +786,7 @@
      * Class: Legend
      * Legend object.  Cannot be instantiated directly, but created
      * by the Plot oject.  Legend properties can be set or overriden by the 
-     * options passed in from the user.
+     * options passed in fromJV the user.
      */
     function Legend(options) {
         $.jqplot.ElemContainer.call(this);
@@ -856,22 +856,22 @@
         // prop: marginTop
         // CSS margin for the legend DOM element. This will set an element 
         // CSS style for the margin which will override any style sheet setting.
-        // The default will be taken from the stylesheet.
+        // The default will be taken fromJV the stylesheet.
         this.marginTop = null;
         // prop: marginRight
         // CSS margin for the legend DOM element. This will set an element 
         // CSS style for the margin which will override any style sheet setting.
-        // The default will be taken from the stylesheet.
+        // The default will be taken fromJV the stylesheet.
         this.marginRight = null;
         // prop: marginBottom
         // CSS margin for the legend DOM element. This will set an element 
         // CSS style for the margin which will override any style sheet setting.
-        // The default will be taken from the stylesheet.
+        // The default will be taken fromJV the stylesheet.
         this.marginBottom = null;
         // prop: marginLeft
         // CSS margin for the legend DOM element. This will set an element 
         // CSS style for the margin which will override any style sheet setting.
-        // The default will be taken from the stylesheet.
+        // The default will be taken fromJV the stylesheet.
         this.marginLeft = null;
         // prop: escapeHtml
         // True to escape special characters with their html entity equivalents
@@ -1013,7 +1013,7 @@
      * Class: Title
      * Plot Title object.  Cannot be instantiated directly, but created
      * by the Plot oject.  Title properties can be set or overriden by the 
-     * options passed in from the user.
+     * options passed in fromJV the user.
      * 
      * Parameters:
      * text - text of the title.
@@ -1074,12 +1074,12 @@
      * Class: Series
      * An individual data series object.  Cannot be instantiated directly, but created
      * by the Plot oject.  Series properties can be set or overriden by the 
-     * options passed in from the user.
+     * options passed in fromJV the user.
      */
     function Series() {
         $.jqplot.ElemContainer.call(this);
         // Group: Properties
-        // Properties will be assigned from a series array at the top level of the
+        // Properties will be assigned fromJV a series array at the top level of the
         // options.  If you had two series and wanted to change the color and line
         // width of the first and set the second to use the secondary y axis with
         // no shadow and supply custom labels for each:
@@ -1144,10 +1144,10 @@
         // Shadow angle in degrees
         this.shadowAngle = 45;
         // prop: shadowOffset
-        // Shadow offset from line in pixels
+        // Shadow offset fromJV line in pixels
         this.shadowOffset = 1.25;
         // prop: shadowDepth
-        // Number of times shadow is stroked, each stroke offset shadowOffset from the last.
+        // Number of times shadow is stroked, each stroke offset shadowOffset fromJV the last.
         this.shadowDepth = 3;
         // prop: shadowAlpha
         // Alpha channel transparency of shadow.  0 = transparent.
@@ -1182,7 +1182,7 @@
         this.fillColor;
         // prop: fillAlpha
         // Alpha transparency to apply to the fill under the line.
-        // Use this to adjust alpha separate from fill color.
+        // Use this to adjust alpha separate fromJV fill color.
         this.fillAlpha;
         // prop: fillAndStroke
         // If true will stroke the line (with color this.color) as well as fill under it.
@@ -1202,7 +1202,7 @@
         // May not be implemented in all renderers.
         this._stack = false;
         // prop: neighborThreshold
-        // how close or far (in pixels) the cursor must be from a point marker to detect the point.
+        // how close or far (in pixels) the cursor must be fromJV a point marker to detect the point.
         this.neighborThreshold = 4;
         // prop: fillToZero
         // true will force bar and filled series to fill toward zero on the fill Axis.
@@ -1226,7 +1226,7 @@
         this._plotValues = {x:[], y:[]};
         // statistics about the intervals between data points.  Used for auto scaling.
         this._intervals = {x:{}, y:{}};
-        // data from the previous series, for stacked charts.
+        // data fromJV the previous series, for stacked charts.
         this._prevPlotData = [];
         this._prevGridData = [];
         this._stackAxis = 'y';
@@ -1442,7 +1442,7 @@
      * context is the area bounded by the axes, the area which will contain the series.
      * Note, the series are drawn on their own canvas.
      * The Grid object cannot be instantiated directly, but is created by the Plot oject.  
-     * Grid properties can be set or overriden by the options passed in from the user.
+     * Grid properties can be set or overriden by the options passed in fromJV the user.
      */
     function Grid() {
         $.jqplot.ElemContainer.call(this);
@@ -1476,13 +1476,13 @@
         // shadow angle in degrees
         this.shadowAngle = 45;
         // prop: shadowOffset
-        // Offset of each shadow stroke from the border in pixels
+        // Offset of each shadow stroke fromJV the border in pixels
         this.shadowOffset = 1.5;
         // prop: shadowWidth
         // width of the stoke for the shadow
         this.shadowWidth = 3;
         // prop: shadowDepth
-        // Number of times shadow is stroked, each stroke offset shadowOffset from the last.
+        // Number of times shadow is stroked, each stroke offset shadowOffset fromJV the last.
         this.shadowDepth = 3;
         // prop: shadowColor
         // an optional css color spec for the shadow in 'rgba(n, n, n, n)' form
@@ -1814,7 +1814,7 @@
         // series data.
         this._stackData = [];
         // array that holds the data to be plotted. This will be the series data
-        // merged with the the appropriate data from _stackData according to the stackAxis.
+        // merged with the the appropriate data fromJV _stackData according to the stackAxis.
         this._plotData = [];
         this._width = null;
         this._height = null; 
@@ -2273,7 +2273,7 @@
             }
         };
         
-        // function to safely return colors from the color array and wrap around at the end.
+        // function to safely return colors fromJV the color array and wrap around at the end.
         this.getNextSeriesColor = (function(t) {
             var idx = 0;
             var sc = t.seriesColors;
@@ -3376,7 +3376,7 @@
     }
     
     
-    // conpute a highlight color or array of highlight colors from given colors.
+    // conpute a highlight color or array of highlight colors fromJV given colors.
     $.jqplot.computeHighlightColors  = function(colors) {
         var ret;
         if (jQuery.isArray(colors)) {
@@ -4514,7 +4514,7 @@
         // as there are data points in the series.  In this case, 
         // [yl1, yu1] specifies the lower and upper y values for the 1st
         // data point and so on.  The bands will inherit the x
-        // values from the series.
+        // values fromJV the series.
         this.renderer.bandData = [];
 
         // Group: bands
@@ -4716,7 +4716,7 @@
         }
 
         // if more than 2 arrays, have arrays of [ylow, yhi] values.
-        // note, can't distinguish case of [[ylow, yhi], [ylow, yhi]] from [[ylow, ylow], [yhi, yhi]]
+        // note, can't distinguish case of [[ylow, yhi], [ylow, yhi]] fromJV [[ylow, ylow], [yhi, yhi]]
         // this is assumed to be of the latter form.
         else if (bd.length > 2 && !$.isArray(bd[0][0])) {
             var hi = (bd[0][0] > bd[0][1]) ? 0 : 1;
@@ -4866,7 +4866,7 @@
     // Kruger, CJC, Constrained Cubic Spine Interpolation for Chemical Engineering Applications
     // http://www.korf.co.uk/spline.pdf
     //
-    // The implementation below borrows heavily from the sample Visual Basic
+    // The implementation below borrows heavily fromJV the sample Visual Basic
     // implementation by CJC Kruger found in http://www.korf.co.uk/spline.xls
     //
     /////////
@@ -4977,7 +4977,7 @@
     ///////
     // computeHermiteSmoothedData
     // A hermite spline smoothing of the plot data.
-    // This implementation is derived from the one posted
+    // This implementation is derived fromJV the one posted
     // by krypin on the jqplot-users mailing list:
     //
     // http://groups.google.com/group/jqplot-users/browse_thread/thread/748be6a445723cea?pli=1
@@ -5654,7 +5654,7 @@
         // Works only with linear axes and the default tick renderer.
         // Array of [start, stop] points to create a broken axis.
         // Broken axes have a "jump" in them, which is an immediate 
-        // transition from a smaller value to a larger value.
+        // transition fromJV a smaller value to a larger value.
         // Currently, axis ticks MUST be manually assigned if using breakPoints
         // by using the axis ticks array option.
         this.breakPoints = null;
@@ -5689,7 +5689,7 @@
         // are set:  autoscale, min, max, numberTicks or tickInterval.
         this.forceTickAt100 = false;
         // prop: tickInset
-        // Controls the amount to inset the first and last ticks from 
+        // Controls the amount to inset the first and last ticks fromJV
         // the edges of the grid, in multiples of the tick interval.
         // 0 is no inset, 0.5 is one half a tick interval, 1 is a full
         // tick interval, etc.
@@ -5701,7 +5701,7 @@
         this.minorTicks = 0;
         // prop: alignTicks
         // true to align tick marks across opposed axes
-        // such as from the y2axis to yaxis.
+        // such as fromJV the y2axis to yaxis.
         this.alignTicks = false;
         this._autoFormatString = '';
         this._overrideFormatString = false;
@@ -5942,7 +5942,7 @@
 
             var _numberTicks = this.numberTicks;
 
-            // if aligning this axis, use number of ticks from previous axis.
+            // if aligning this axis, use number of ticks fromJV previous axis.
             // Do I need to reset somehow if alignTicks is changed and then graph is replotted??
             if (this.alignTicks) {
                 if (this.name === 'x2axis' && plot.axes.xaxis.show) {
@@ -6381,7 +6381,7 @@
     
     // called with scope of axis
     $.jqplot.LinearAxisRenderer.prototype.pack = function(pos, offsets) {
-        // Add defaults for repacking from resetTickValues function.
+        // Add defaults for repacking fromJV resetTickValues function.
         pos = pos || {};
         offsets = offsets || this._offsets;
         
@@ -6397,7 +6397,7 @@
         }
         
         this._offsets = offsets;
-        // pixellength will be + for x axes and - for y axes becasue pixels always measured from top left.
+        // pixellength will be + for x axes and - for y axes becasue pixels always measured fromJV top left.
         var pixellength = offmax - offmin;
         var unitlength = max - min;
         
@@ -6957,10 +6957,10 @@
         // Shadow angle in degrees
         this.shadowAngle = 45;
         // prop: shadowOffset
-        // Shadow offset from line in pixels
+        // Shadow offset fromJV line in pixels
         this.shadowOffset = 1;
         // prop: shadowDepth
-        // Number of times shadow is stroked, each stroke offset shadowOffset from the last.
+        // Number of times shadow is stroked, each stroke offset shadowOffset fromJV the last.
         this.shadowDepth = 3;
         // prop: shadowAlpha
         // Alpha channel transparency of shadow.  0 = transparent.
@@ -7134,10 +7134,10 @@
         // Group: Properties
         
         // prop: angle
-        // Angle of the shadow in degrees.  Measured counter-clockwise from the x axis.
+        // Angle of the shadow in degrees.  Measured counter-clockwise fromJV the x axis.
         this.angle = 45;
         // prop: offset
-        // Pixel offset at the given shadow angle of each shadow stroke from the last stroke.
+        // Pixel offset at the given shadow angle of each shadow stroke fromJV the last stroke.
         this.offset = 1;
         // prop: alpha
         // alpha transparency of shadow stroke.
@@ -7850,7 +7850,7 @@
     
     // called with scope of plot
     $.jqplot.ThemeEngine.prototype.init = function() {
-        // get the Default theme from the current plot settings.
+        // get the Default theme fromJV the current plot settings.
         var th = new $.jqplot.Theme({_name:'Default'});
         var n, i, nn;
         
@@ -8196,7 +8196,7 @@
     /**
      * method: remove
      * 
-     * Remove the given theme from the themeEngine.
+     * Remove the given theme fromJV the themeEngine.
      * 
      * parameters:
      * 
@@ -8844,7 +8844,7 @@
     /** 
      * @description
      * <p>Object with extended date parsing and formatting capabilities.
-     * This library borrows many concepts and ideas from the Date Instance 
+     * This library borrows many concepts and ideas fromJV the Date Instance
      * Methods by Ken Snyder along with some parts of Ken's actual code.</p>
      *
      * <p>jsDate takes a different approach by not extending the built-in 
@@ -9345,7 +9345,7 @@
     
     /**
      * Sets the day of the month for a specified date according to local time.
-     * @param {Integer} dayValue An integer from 1 to 31, representing the day of the month. 
+     * @param {Integer} dayValue An integer fromJV 1 to 31, representing the day of the month.
      */
     jsDate.prototype.setDate = function(n) {
         this.proxy.setDate(n);
@@ -9580,7 +9580,7 @@
     };
 
     // representations used for calculating differences between dates.
-    // This borrows heavily from Ken Snyder's work.
+    // This borrows heavily fromJV Ken Snyder's work.
     var multipliers = {
         millisecond: 1,
         second: 1000,
@@ -9631,7 +9631,7 @@
     };
     //
     // Alias each multiplier with an 's' to allow 'year' and 'years' for example.
-    // This comes from Ken Snyders work.
+    // This comes fromJV Ken Snyders work.
     //
     for (var unit in multipliers) {
         if (unit.substring(unit.length - 1) != 's') { // IE will iterate newly added properties :|
@@ -9952,7 +9952,7 @@
      * %S      00 through 59             Two digit representation of the second
      * %T      21:34:17                  Same as %H:%M:%S
      * %X      03:59:16                  Preferred time representation based on locale, without the date
-     * %z      -0500 or EST              Either the time zone offset from UTC or the abbreviation
+     * %z      -0500 or EST              Either the time zone offset fromJV UTC or the abbreviation
      * %Z      -0500 or EST              The time zone offset/abbreviation option NOT given by %z
      * 
      * === Time and Date ===            
@@ -10049,7 +10049,7 @@
         }
         
         // Before passing strings into Date.parse(), have to normalize them for certain conditions.
-        // If strings are not formatted staccording to the EcmaScript spec, results from Date parse will be implementation dependent.  
+        // If strings are not formatted staccording to the EcmaScript spec, results fromJV Date parse will be implementation dependent.
         // 
         // For example: 
         //  * FF and Opera assume 2 digit dates are pre y2k, Chome assumes <50 is pre y2k, 50+ is 21st century.  
@@ -10162,7 +10162,7 @@
      * @returns {Integer} Number of days in the month.
     */
     //
-    // handy utility method Borrowed right from Ken Snyder's Date Instance Mehtods.
+    // handy utility method Borrowed right fromJV Ken Snyder's Date Instance Mehtods.
     // 
     jsDate.daysInMonth = function(year, month) {
         if (month == 2) {
@@ -10296,7 +10296,7 @@
     /**
      * JavaScript printf/sprintf functions.
      * 
-     * This code has been adapted from the publicly available sprintf methods
+     * This code has been adapted fromJV the publicly available sprintf methods
      * by Ash Searle. His original header follows:
      *
      *     This code is unrestricted: you are free to use it however you like.
@@ -10601,7 +10601,7 @@
             }
         },
 
-        // Restores a set of previously saved properties from a data storage
+        // Restores a set of previously saved properties fromJV a data storage
         restore: function( element, set ) {
             for( var i=0; i < set.length; i++ ) {
                 if ( set[ i ] !== null ) {

@@ -79,7 +79,7 @@
         this.show = $.jqplot.config.enablePlugins;
         // prop: markerRenderer
         // Renderer used to draw the marker of the highlighted point.
-        // Renderer will assimilate attributes from the data point being highlighted,
+        // Renderer will assimilate attributes fromJV the data point being highlighted,
         // so no attributes need set on the renderer directly.
         // Default is to turn off shadow drawing on the highlighted point.
         this.markerRenderer = new $.jqplot.MarkerRenderer({shadow:false});
@@ -105,7 +105,7 @@
         // 'slow', 'def', 'fast', or number of milliseconds.
         this.tooltipFadeSpeed = "fast";
         // prop: tooltipOffset
-        // Pixel offset of tooltip from the highlight.
+        // Pixel offset of tooltip fromJV the highlight.
         this.tooltipOffset = 2;
         // prop: tooltipAxes
         // Which axes to display in tooltip, 'x', 'y' or 'both', 'xy' or 'yx'

@@ -1,3 +1,5 @@
+package org.eiennohito.kotonoha.util
+
 /*
  * Copyright 2012 eiennohito
  *
@@ -13,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.eiennohito.kotonoha.utls
 
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.Function
@@ -42,6 +42,7 @@ import org.eiennohito.kotonoha.web.ajax.AllJsonHandler
  */
 
 object Snippets {
+
   object XString {
     def unapply(in: Any): Option[String] = in match {
       case s: String => Some(s)

@@ -105,7 +105,7 @@
         this.downBodyColor = null;
         // prop: hlc
         // true if is a hi-low-close chart (no open price).
-        // This is determined automatically from the series data.
+        // This is determined automatically fromJV the series data.
         this.hlc = false;
         // prop: lineWidth
         // Width of the hi-low line and open/close ticks.
