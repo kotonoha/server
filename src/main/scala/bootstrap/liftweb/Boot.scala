@@ -37,6 +37,11 @@ class Boot {
       Menu.i("Learning") / "learning" / "index" >> If(UserRecord.loggedIn_? _, "Nobody is logged in") submenus (
         Menu.i("Scheduled words") / "learning" / "scheduled_cnt",
         Menu.i("OF Matrix") / "learning" / "ofmatrix"
+        ),
+      Menu.i("Words") / "words" / "index" >> If(UserRecord.loggedIn_? _, "Nobody is logged in") submenus (
+          Menu.i("Add") / "words" / "add",
+          Menu.i("Detail") / "words" / "detail"
+
         )
     )
 

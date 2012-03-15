@@ -49,7 +49,12 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
   object user extends LongRefField(this, UserRecord)
 }
 
-object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with NamedDatabase
+object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with NamedDatabase {
+  def myWords = {
+    import com.foursquare.rogue.Rogue._
+    WordRecord where (_.user eqs UserRecord.currentId.openTheBox)
+  }
+}
 
 class WordCardRecord private() extends MongoRecord[WordCardRecord] with LongPk[WordCardRecord] {
   def meta = WordCardRecord

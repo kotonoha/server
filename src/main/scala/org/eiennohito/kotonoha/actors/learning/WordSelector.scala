@@ -29,6 +29,7 @@ import DateTimeUtils._
 import akka.util.Timeout
 import akka.actor.{ActorLogging, Props, Actor}
 import org.eiennohito.kotonoha.records.{WordRecord, WordCardRecord}
+import org.eiennohito.kotonoha.math.MathUtil
 
 /**
  * @author eiennohito
@@ -150,7 +151,7 @@ class CardScheduler extends Actor with ActorLogging {
   protected def receive = {
     case SchedulePaired(word, cardMode) => {
       val cardType = if (cardMode == CardMode.READING) CardMode.WRITING else CardMode.READING
-      val date = now plus (3.2 days)
+      val date = now plus ((3.2 * MathUtil.ofrandom) days)
       val q = WordCardRecord where (_.cardMode eqs cardType) and
         (_.word eqs word) modify (_.notBefore setTo date)
       q.updateOne()

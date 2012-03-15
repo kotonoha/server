@@ -54,4 +54,6 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
   override def skipEmailValidation = true
 
   def currentId = currentUserId map {_.toLong}
+
+  override protected def userFromStringId(id: String) = currentId.flatMap(find(_))
 }
