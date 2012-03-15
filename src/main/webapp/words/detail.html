@@ -17,8 +17,72 @@
 
 <html>
 <body class="lift:content_id=main">
-<div id="main" class="lift:surround?with=default;at=content">
+<div id="main" class="lift:surround?with=default;at=content" xmlns:word="word">
+  <head_merge>
+    <style>
+      td.area textarea {
+        height: 100px;
+      }
 
+      td.kanji input, td.kanji textarea {
+        font-family: Meiryo;
+        font-size: larger;
+      }
+    </style>
+  </head_merge>
+  <div style="border: 1px solid black">
+    <div style="margin: 5px">
+      Word information
+    </div>
+    <div id="status"></div>
+    <table class="lift:WordSnippet.renderForm">
+      <tbody>
+      <tr>
+        <td>Added Date</td>
+        <td>
+          <word:createdOn></word:createdOn>
+        </td>
+      </tr>
+      <tr>
+        <td>Writing</td>
+        <td class="kanji">
+          <word:writing></word:writing>
+        </td>
+      </tr>
+      <tr>
+        <td>Reading</td>
+        <td class="kanji">
+          <word:reading></word:reading>
+        </td>
+      </tr>
+      <tr>
+        <td>Meaning</td>
+        <td class="area kanji">
+          <word:meaning></word:meaning>
+        </td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <word:submit></word:submit>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <div style="margin: 5px">Examples</div>
+    <table class="lift:WordSnippet.exampleAjaxForm">
+      <thead>
+      <tr>
+        <td>Example</td>
+        <td>Translation</td>
+      </tr>
+      </thead>
+      <tbody id="extable" class="lift:WordSnippet.renderExamples">
+      </tbody>
+    </table>
+  </div>
 </div>
 </body>
 </html>

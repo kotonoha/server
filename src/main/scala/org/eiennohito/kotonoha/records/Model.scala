@@ -3,9 +3,11 @@ package org.eiennohito.kotonoha.records
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field._
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
-import net.liftweb.common.Empty
-import net.liftweb.record.field.{DateTimeField, OptionalDateTimeField, IntField, StringField}
-import org.eiennohito.kotonoha.util.DateTimeUtils
+import net.liftweb.http.S
+import xml.NodeSeq
+import net.liftweb.common.{Full, Box, Empty}
+import net.liftweb.http.S.SFuncHolder
+import net.liftweb.record.field._
 
 /*
 * Copyright 2012 eiennohito
@@ -37,12 +39,33 @@ class ExampleRecord private() extends BsonRecord[ExampleRecord] {
 
 object ExampleRecord extends ExampleRecord with BsonMetaRecord[ExampleRecord]
 
+trait TextAreaHtml {
+  self: StringTypedField =>
+
+  import net.liftweb.util.Helpers._
+
+  def elem(rows: Int = 5) = S.fmapFunc(SFuncHolder(this.setFromAny(_))) {
+    funcName =>
+      <textarea type="text" maxlength={maxLength.toString}
+                name={funcName}
+                rows={rows.toString}
+                tabindex={tabIndex.toString}>{valueBox openOr ""}</textarea>
+  }
+
+  override def toForm: Box[NodeSeq] =
+    uniqueFieldId match {
+      case Full(id) => Full(elem() % ("id" -> id))
+      case _ => Full(elem())
+    }
+
+}
+
 class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecord] {
   def meta = WordRecord
 
   object writing extends StringField(this, 100)
   object reading extends StringField(this, 150)
-  object meaning extends StringField(this, 1000)
+  object meaning extends StringField(this, 1000) with TextAreaHtml
   object createdOn extends DateTimeField(this) with DateJsonFormat
 
   object examples extends BsonRecordListField(this, ExampleRecord)

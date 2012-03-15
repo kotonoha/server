@@ -16,14 +16,17 @@
 
 package org.eiennohito.kotonoha.web.snippet
 
-import org.eiennohito.kotonoha.records.{UserRecord, WordRecord}
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.mongodb.{Limit, Skip}
-import org.eiennohito.kotonoha.util.{Fomatting, Strings}
-import net.liftweb.http.{SHtml, SortedPaginatorSnippet, S}
+import org.eiennohito.kotonoha.util.{Formatting, Strings}
 import net.liftweb.util.{Helpers, BindHelpers}
 import util.matching.Regex
 import xml.{Elem, Text, NodeSeq}
+import net.liftweb.common.{Full, Box}
+import net.liftweb.http.{RequestVar, SHtml, SortedPaginatorSnippet, S}
+import net.liftweb.http.js.JsCmd
+import net.liftweb.http.js.JsCmds.SetHtml
+import org.eiennohito.kotonoha.records.{ExampleRecord, UserRecord, WordRecord}
 
 /**
  * @author eiennohito
@@ -31,10 +34,83 @@ import xml.{Elem, Text, NodeSeq}
  */
 
 object WordSnippet {
-  def listWords(c: NodeSeq):NodeSeq = {
-    val words = WordRecord.myWords.fetch(50)
-    //BindHelpers.bind("user")
-    c
+
+  def wordId: Box[Long] = {
+    S.param("w") map (java.lang.Long.parseLong(_, 16))
+  }
+
+  object word extends RequestVar[Box[WordRecord]](wordId flatMap {WordRecord.find(_)})
+
+  def save(rec: WordRecord) : JsCmd = {
+    rec.save
+    SetHtml("status", <b>Saved!</b>)
+  }
+
+  def renderForm(in: NodeSeq): NodeSeq = {
+    import Helpers._
+    import org.eiennohito.kotonoha.util.DateTimeUtils._
+     word.is match {
+      case Full(w) => {
+        bind("word", SHtml.ajaxForm(in),
+          "createdon" -> Formatting.format(w.createdOn.is),
+          "writing" -> w.writing.toForm,
+          "reading" -> w.reading.toForm,
+          "meaning" -> w.meaning.toForm,
+          "submit" -> SHtml.ajaxSubmit("Save", () => save(w)))
+      }
+      case _ => S.error("Invalid word"); <em>Invalid word</em>
+    }
+  }
+
+  def addExample(record: WordRecord) : JsCmd = {
+    val exs = record.examples.is
+    val w = record.examples(exs ++ List(ExampleRecord.createRecord))
+    word(Full(w))
+    SetHtml("extable", renderExamples)
+  }
+
+  def renderExamples: NodeSeq = {
+    import Helpers._
+    val templ = <tr xmlns:ex="example">
+        <td class="kanji" width="50%">
+          <ex:example></ex:example>
+        </td>
+        <td width="50%">
+          <ex:translation></ex:translation>
+        </td>
+      </tr>
+    val inner = word.is match {
+      case Full(w) => {
+        w.examples.is.flatMap {
+          ex =>
+            bind("ex", templ,
+              "example" -> ex.example.toForm,
+              "translation" -> ex.translation.toForm)
+        } ++
+        <tr>
+          <td></td>
+          <td>{SHtml.ajaxSubmit("Add new example", () => addExample(w))}</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>{SHtml.ajaxSubmit("Save", () => save(w))}</td>
+        </tr>
+      }
+      case _ => <b>No word, no examples</b>
+    }
+    inner
+  }
+
+  def renderExamples(in: NodeSeq): NodeSeq = {
+    val inner = renderExamples
+    in.head.flatMap {
+      case e: Elem => Elem(e.prefix, e.label, e.attributes, e.scope, e.child ++ inner : _*)
+      case _ => in
+    }
+  }
+
+  def exampleAjaxForm(in: NodeSeq): NodeSeq = {
+    SHtml.ajaxForm(in)
   }
 
 }
@@ -99,7 +175,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] {
     page.flatMap {i =>
       bind("word", in,
         v(i.id.is),
-        "addeddate" -> Fomatting.format(i.createdOn.is),
+        "addeddate" -> Formatting.format(i.createdOn.is),
         "reading" -> i.reading.is,
         "writing" -> i.writing.is,
         "meaning" -> Strings.substr(i.meaning.is, 50)

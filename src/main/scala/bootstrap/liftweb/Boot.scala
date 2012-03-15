@@ -40,8 +40,7 @@ class Boot {
         ),
       Menu.i("Words") / "words" / "index" >> If(UserRecord.loggedIn_? _, "Nobody is logged in") submenus (
           Menu.i("Add") / "words" / "add",
-          Menu.i("Detail") / "words" / "detail"
-
+          Menu.i("Detail") / "words" / "detail" >> Hidden
         )
     )
 
