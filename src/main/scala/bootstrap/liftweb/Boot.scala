@@ -41,7 +41,10 @@ class Boot {
       Menu.i("Words") / "words" / "index" >> If(UserRecord.loggedIn_? _, "Nobody is logged in") submenus (
           Menu.i("Add") / "words" / "add",
           Menu.i("Detail") / "words" / "detail" >> Hidden
-        )
+        ),
+      Menu.i("Tools") / "tools" / "index" submenus (
+        Menu.i("Test parser") / "tools" / "parser"
+      )
     )
 
       // more complex because this menu allows anything in the

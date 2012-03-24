@@ -30,7 +30,7 @@ case class CreateQr(user: Long, data: String) extends QrMessage
 
 class QrCreator extends Actor {
   import akka.util.duration._
-  val root = context.actorFor("root")
+  lazy val root = context.actorFor("root")
 
   def createQr(user: Long, s: String) {
     val rend = new QrRenderer(s)

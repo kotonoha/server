@@ -67,7 +67,7 @@ object ClientStatus extends Enumeration {
 class ClientRecord private() extends MongoRecord[ClientRecord] with LongPk[ClientRecord] {
   def meta = ClientRecord
 
-  object
+  //object
 }
 
 object ClientRecord extends ClientRecord with MongoMetaRecord[ClientRecord] with NamedDatabase

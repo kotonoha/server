@@ -29,7 +29,7 @@ import net.liftweb.record.field.{LongField, TextareaField, BinaryField}
  */
 
 trait Lifetime { self : MongoRecord[_] =>
-  def record = self
+  def record[T <: MongoRecord[T]] = self.asInstanceOf[MongoRecord[T]]
   def recid = self.id.asInstanceOf[LongField[_]].is
   def lifetimeObj: LifetimeObjects.LiftetimeObjects
 }

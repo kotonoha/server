@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright 2012 eiennohito
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html>
+<body class="lift:content_id=main">
+<div id="main" class="lift:surround?with=default;at=content">
+  <form method="get">
+    <label title="Sentence">
+      Sentence <input class="lift:Parser.data" type="text" name="sentence" style="width: 100%">
+    </label><br>
+    <input type="submit">
+  </form>
+  <table>
+    <thead></thead>
+    <tbody>
+      <tr class="lift:Parser.parse" xmlns:jw="japanese-word">
+        <td><jw:surf></jw:surf></td>
+        <td><jw:pos></jw:pos></td>
+        <td><jw:basic></jw:basic></td>
+        <td><jw:conj></jw:conj></td>
+        <td><jw:read></jw:read></td>
+        <td><jw:writ></jw:writ></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>
+

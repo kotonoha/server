@@ -92,7 +92,7 @@ class RestartActor extends Actor {
 }
 
 trait RootActor { this: Actor =>
-  val root = context.actorFor("root")
+  lazy val root = context.actorFor("root")
 }
 
 

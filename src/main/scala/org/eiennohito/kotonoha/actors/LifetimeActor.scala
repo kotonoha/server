@@ -44,7 +44,7 @@ class LifetimeActor extends Actor {
       val finder = LifetimeObjects.finderFor(i)
       finder(o.obj.is)
     }
-    objs.map(_.record).map {case o =>  mongo ! DeleteRecord(o) }
+    objs.map(_.record).map {case o =>  o.delete_! }
     stale.foreach(mongo ! DeleteRecord(_))
   }
 
