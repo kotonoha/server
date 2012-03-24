@@ -45,6 +45,9 @@ object Parser {
   def parse(in: NodeSeq): NodeSeq = {
     S.param("sentence") match {
       case Full(s) => {
+        if (s.length() > 500) {
+          return <b>Too long to be good, make it shorter than 500 chars</b>
+        }
         val jlist = new JList[Token]()
         val result = fact.analyze(s, jlist)
         val xml = result.map( w =>
