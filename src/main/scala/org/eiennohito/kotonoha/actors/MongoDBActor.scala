@@ -23,13 +23,15 @@ import akka.actor.{ActorRef, Actor}
  * @since 01.02.12
  */
 
-case class SaveRecord[T <: MongoRecord[T]](rec: MongoRecord[T])
-case class UpdateRecord[T <: MongoRecord[T]](rec: MongoRecord[T])
+case class SaveRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMessage
+case class UpdateRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMessage
+case class DeleteRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMessage
 case class RegisterMongo(mongo: ActorRef)
 
 class MongoDBActor extends Actor {
   protected def receive = {
-    case SaveRecord(rec) => rec.save; sender ! "OK"
-    case UpdateRecord(rec) => rec.update; sender ! "OK"
+    case SaveRecord(rec) => rec.save; sender ! true
+    case UpdateRecord(rec) => rec.update; sender ! true
+    case DeleteRecord(rec) => sender ! rec.delete_!
   }
 }

@@ -44,11 +44,10 @@ class ItemLearningDataRecord private() extends BsonRecord[ItemLearningDataRecord
 
 object ItemLearningDataRecord extends ItemLearningDataRecord with BsonMetaRecord[ItemLearningDataRecord]
 
-class OFMatrixRecord private() extends MongoRecord[OFMatrixRecord] with LongPk[OFMatrixRecord] {
+class OFMatrixRecord private() extends MongoRecord[OFMatrixRecord] with LongPk[OFMatrixRecord] with UserRef {
   def meta = OFMatrixRecord
-
   object user extends LongRefField(this, UserRecord)
-  
+
   def value(n: Int, rawEf: Double) = {
     val ef = MathUtil.round(rawEf, 1)
     val q = OFElementRecord where (_.matrix eqs id.is) and (_.n eqs n) and (_.ef eqs ef)

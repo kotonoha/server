@@ -155,7 +155,7 @@ class CardScheduler extends Actor with ActorLogging {
       val q = WordCardRecord where (_.cardMode eqs cardType) and
         (_.word eqs word) modify (_.notBefore setTo date)
       q.updateOne()
-      sender ! "OK"
+      sender ! true
     }
   }
 }

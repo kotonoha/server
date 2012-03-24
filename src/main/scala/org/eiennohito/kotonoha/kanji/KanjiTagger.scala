@@ -35,24 +35,8 @@ class KanjiTagResult(val oldKanji: List[KanjiEntry],
 }
 
 class KanjiTagger {
-  def stream(r: InputStreamReader) = {
-    def rec(r : InputStreamReader) : Stream[Int] = {
-      val read = r.read()
-      if (read == -1) {
-        return Stream.Empty
-      }
-      val c = read.toChar
-      if (Character.isHighSurrogate(c)) {
-        Stream.cons(Character.toCodePoint(c, r.read().toChar), rec(r))
-      } else {
-        Stream.cons(read, rec(r))
-      }
-    }
-    rec(r)
-  }
-
   def tag(r: InputStreamReader) = {
-    val kanji = stream(r).filter(UnicodeUtil.isKanji(_)).foldLeft(new HashMap[String, Int]()) {
+    val kanji = UnicodeUtil.stream(r).filter(UnicodeUtil.isKanji(_)).foldLeft(new HashMap[String, Int]()) {
       case (map, el) => {
         val c = new String(Character.toChars(el))
         map.get(c) match {

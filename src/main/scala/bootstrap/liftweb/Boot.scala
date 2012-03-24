@@ -14,9 +14,9 @@ import http._
 import sitemap._
 import Loc._
 import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
-import org.eiennohito.kotonoha.web.rest.{Learning, SimpleRest}
 import org.eiennohito.kotonoha.mongodb.MongoDbInit
 import org.eiennohito.kotonoha.records.UserRecord
+import org.eiennohito.kotonoha.web.rest.{QrRest, Learning, SimpleRest}
 
 
 /**
@@ -56,6 +56,7 @@ class Boot {
     LiftRules.setSiteMapFunc(() => sitemapMutators(sitemap))
 
     LiftRules.statelessDispatchTable.append(Learning)
+    LiftRules.statelessDispatchTable.append(QrRest)
 
     // Use jQuery 1.4
     LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts

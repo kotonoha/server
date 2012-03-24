@@ -46,12 +46,56 @@ class Timer extends Logging {
   }
 }
 
-trait LearningRest extends RestHelper with Logging with Akka {
+trait KotonohaRest extends RestHelper with Logging with Akka {
   import duration._
-  import ResponseUtil._
-  import akka.pattern.ask
   lazy implicit val scheduler = akkaServ.context
   lazy implicit val timeout = Timeout(5 seconds)
+
+  def async[Obj](param: Future[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
+      RestContinuation.async({resp =>
+        param onComplete {
+          case Left(ex) => {
+            logger.error("Error in getting parameter", ex)
+            resp(PlainTextResponse("Internal server error", 500))
+          }
+          case Right(v) => {
+            val fut = f(v)
+            val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 10 seconds)
+
+            fut onSuccess {
+              case Full(r) => resp(r); tCancel.cancel()
+              case x @ _ => logger.debug("found something: " + x)
+            }
+          }
+        }
+      })
+    }
+
+  def async[Obj](param: Box[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
+        RestContinuation.async({resp =>
+          param match {
+            case Empty => resp(PlainTextResponse("No response", 500))
+            case b: EmptyBox => {
+              emptyToResp(b) map (resp(_))
+            }
+            case Full(v) => {
+              val fut = f(v)
+              val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 10 seconds)
+
+              fut onSuccess {
+                case Full(r) => resp(r); tCancel.cancel()
+                case x @ _ => logger.debug("found something: " + x)
+              }
+            }
+          }
+        })
+      }
+}
+
+trait LearningRest extends KotonohaRest {
+
+  import ResponseUtil._
+  import akka.pattern.ask
 
 //  def async[Obj](box: Box[Obj])(f : (Obj, ( => LiftResponse) => Unit) => Unit) = {
 //     RestContinuation.async { req =>      
@@ -64,46 +108,7 @@ trait LearningRest extends RestHelper with Logging with Akka {
 //       }
 //     }
 //   }
-  
-  def async[Obj](param: Future[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
-      RestContinuation.async({resp =>
-        param onComplete {
-          case Left(ex) => {
-            logger.error("Error in getting parameter", ex)
-            resp(PlainTextResponse("Internal server error", 500))
-          }
-          case Right(v) => {
-            val fut = f(v)          
-            val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 10 seconds)
-            
-            fut onSuccess {
-              case Full(r) => resp(r); tCancel.cancel()
-              case x @ _ => logger.debug("found something: " + x)
-            }          
-          }
-        }
-      })
-    }
-  
-  def async[Obj](param: Box[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
-        RestContinuation.async({resp =>
-          param match {
-            case Empty => resp(PlainTextResponse("No response", 500))
-            case b: EmptyBox => {
-              emptyToResp(b) map (resp(_))
-            }
-            case Full(v) => {
-              val fut = f(v)          
-              val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 10 seconds)
-              
-              fut onSuccess {
-                case Full(r) => resp(r); tCancel.cancel()
-                case x @ _ => logger.debug("found something: " + x)
-              }          
-            }
-          }
-        })
-      }
+
   
   serve ( "api" / "words" prefix {
     case "scheduled" :: AsInt(max) :: Nil JsonGet req => {

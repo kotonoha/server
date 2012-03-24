@@ -7,6 +7,7 @@ import akka.util.Duration
 import akka.actor._
 import akka.pattern.ask
 import akka.dispatch.{Await, ExecutionContext}
+import akka.routing.RoundRobinRouter
 
 
 /*
@@ -54,8 +55,11 @@ trait AkkaMain {
 }
 
 
-case object TopLevelActors
+trait KotonohaMessage
+trait DbMessage extends KotonohaMessage
+trait LifetimeMessage extends KotonohaMessage
 
+case object TopLevelActors
 
 class RestartActor extends Actor {
   import SupervisorStrategy._
@@ -63,14 +67,25 @@ class RestartActor extends Actor {
     case _: Exception => Restart
   }
   
+  val mongo = context.actorOf(Props[MongoDBActor], "mongo")
   val wordRegistry = context.actorOf(Props[WordRegistry])
   val wordSelector = context.actorOf(Props[WordSelector])
   val markProcessor = context.actorOf(Props[MarkEventProcessor])
+  val lifetime = context.actorOf(Props[LifetimeActor])
+
+  def dispatch(msg: KotonohaMessage) {
+    msg match {
+      case m: DbMessage => mongo.forward(msg)
+      case m: LifetimeMessage => lifetime.forward(msg)
+    }
+  }
 
   protected def receive = {
     case TopLevelActors => {
       sender ! (wordRegistry, wordSelector, markProcessor)
     }
+
+    case msg : KotonohaMessage => dispatch(msg)
   }
 }
 

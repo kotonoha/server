@@ -98,7 +98,7 @@
         var toDraw = [];
         for (var i = 0; i < data.length; ++i) {
           var o = data[i];
-          var mod = {x:o.ef - 1.2, y:o.n, z:o.val};
+          var mod = {x:o.ef - 1.2, y:o.val, z:o.n};
           toDraw.push(mod);
         }
         toDraw.sort(sortNumByZ);
