@@ -75,7 +75,7 @@ class ChildProcessor extends Actor with ActorLogging {
 
 class MarkEventProcessor extends Actor with ActorLogging {
   val sched = context.actorOf(Props[CardScheduler], "scheduler")
-  val mongo = context.actorOf(Props[MongoDBActor], "mongoActor")
+  val mongo = context.actorFor("/root/mongo")
   val children = context.actorOf(Props[ChildProcessor].withRouter(RoundRobinRouter(nrOfInstances = 4)))
 
 

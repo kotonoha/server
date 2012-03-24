@@ -72,11 +72,13 @@ class RestartActor extends Actor {
   val wordSelector = context.actorOf(Props[WordSelector])
   val markProcessor = context.actorOf(Props[MarkEventProcessor])
   val lifetime = context.actorOf(Props[LifetimeActor])
+  val qractor = context.actorOf(Props[QrCreator])
 
   def dispatch(msg: KotonohaMessage) {
     msg match {
       case m: DbMessage => mongo.forward(msg)
       case m: LifetimeMessage => lifetime.forward(msg)
+      case m: QrMessage => qractor.forward(msg)
     }
   }
 
@@ -87,6 +89,10 @@ class RestartActor extends Actor {
 
     case msg : KotonohaMessage => dispatch(msg)
   }
+}
+
+trait RootActor { this: Actor =>
+  val root = context.actorFor("root")
 }
 
 

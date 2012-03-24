@@ -57,3 +57,17 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
 
   override protected def userFromStringId(id: String) = currentId.flatMap(find(_))
 }
+
+object ClientStatus extends Enumeration {
+  type ClientStatus = Value
+
+  val Active = Value
+}
+
+class ClientRecord private() extends MongoRecord[ClientRecord] with LongPk[ClientRecord] {
+  def meta = ClientRecord
+
+  object
+}
+
+object ClientRecord extends ClientRecord with MongoMetaRecord[ClientRecord] with NamedDatabase
