@@ -34,6 +34,8 @@ import akka.routing.RoundRobinRouter
 trait AkkaMain {
   val system: ActorSystem
 
+  val root: ActorRef
+
   val wordRegistry: ActorRef
   val wordSelector: ActorRef
   val markProcessor: ActorRef
