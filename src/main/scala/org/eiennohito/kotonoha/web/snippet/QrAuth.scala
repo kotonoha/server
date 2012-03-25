@@ -34,7 +34,7 @@ object QrAuth extends Akka with ReleaseAkka {
   def qrcode(in: NodeSeq): NodeSeq = {
     import Helpers._
 
-    val msg = CreateQrWithLifetime()
+    //val msg = CreateQrWithLifetime()
 
     //val obj = ask(akkaServ.root, CreateQr()
     //bind("qr", in, "code")
