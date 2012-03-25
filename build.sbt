@@ -21,6 +21,10 @@ libraryDependencies += "com.github.scala-incubator.io" %% "scala-io-core" % "0.2
 
 libraryDependencies +=  "com.github.scala-incubator.io" %% "scala-io-file" % "0.2.0"
 
+resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/"
+
+libraryDependencies += "fuku.eb4j" % "eb4j-tools" % "1.0.5"
+
 libraryDependencies ++= {
   val liftVersion = "2.4" // Put the current/latest lift version here
   Seq(
@@ -28,7 +32,7 @@ libraryDependencies ++= {
     "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-mongodb-record" % liftVersion,
     "net.liftweb" %% "lift-json-scalaz" % liftVersion,
-    "net.liftweb" %% "lift-oauth" % liftVersion,
+    "net.liftweb" %% "lift-oauth" % (liftVersion + "-kotonoha"),
     "net.liftweb" %% "lift-testkit" % liftVersion % "test",
 	  "javax.servlet" % "servlet-api" % "2.5" % "provided->default")
 }

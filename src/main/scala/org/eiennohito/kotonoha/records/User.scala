@@ -1,10 +1,10 @@
 package org.eiennohito.kotonoha.records
 
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.field.LongPk
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import net.liftweb.record.field.{EnumField, StringField}
 import net.liftweb.common.Full
+import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
 
 /*
  * Copyright 2012 eiennohito
@@ -67,7 +67,20 @@ object ClientStatus extends Enumeration {
 class ClientRecord private() extends MongoRecord[ClientRecord] with LongPk[ClientRecord] {
   def meta = ClientRecord
 
-  //object
+  object name extends StringField(this, 50)
+  object apiPublic extends StringField(this, 32)
+  object apiPrivate extends StringField(this, 32)
 }
 
 object ClientRecord extends ClientRecord with MongoMetaRecord[ClientRecord] with NamedDatabase
+
+class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with LongPk[UserTokenRecord] {
+  def meta = UserTokenRecord
+
+  object user extends LongRefField(this, UserRecord)
+  object label extends StringField(this, 100)
+  object tokenPublic extends StringField(this, 32)
+  object tokenSecret extends StringField(this, 32)
+}
+
+object UserTokenRecord extends UserTokenRecord with MongoMetaRecord[UserTokenRecord] with NamedDatabase

@@ -17,7 +17,7 @@
 package org.eiennohito.kotonoha.web.snippet
 
 import net.liftweb.http.S
-import net.liftweb.common.{Full, Empty}
+import net.liftweb.common.Full
 import net.java.sen.SenFactory
 
 import java.util.{ArrayList => JList}

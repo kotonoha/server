@@ -18,26 +18,28 @@ package org.eiennohito.kotonoha.web.snippet
 
 import xml.NodeSeq
 import net.liftweb.util.Helpers
+import net.liftweb.http.SHtml
+import org.eiennohito.kotonoha.records.ClientRecord
 import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
-import org.eiennohito.kotonoha.actors.{CreateQrWithLifetime, CreateQr}
 
 /**
  * @author eiennohito
- * @since 24.03.12
+ * @since 25.03.12
  */
 
-object QrAuth extends Akka with ReleaseAkka {
-  import akka.util.duration._
-  import akka.pattern.ask
-
-  val duration = 1 second
-  def qrcode(in: NodeSeq): NodeSeq = {
+trait Clients extends Akka {
+  def form(in: NodeSeq): NodeSeq = {
     import Helpers._
+    val obj = ClientRecord.createRecord
 
-    val msg = CreateQrWithLifetime()
+    def onSave() = {
+      obj.save
+    }
 
-    //val obj = ask(akkaServ.root, CreateQr()
-    //bind("qr", in, "code")
-    in
+    bind("cf", in,
+      "title" -> obj.name.toForm,
+      "submit" -> SHtml.submit ("Save", onSave))
   }
 }
+
+object Clients extends Clients with ReleaseAkka

@@ -19,6 +19,7 @@ package org.eiennohito.kotonoha.actors
 import org.eiennohito.kotonoha.qr.QrRenderer
 import akka.actor.{ActorRef, Actor}
 import org.eiennohito.kotonoha.records.QrEntry
+import akka.util.FiniteDuration
 
 /**
  * @author eiennohito
@@ -27,23 +28,35 @@ import org.eiennohito.kotonoha.records.QrEntry
 trait QrMessage extends KotonohaMessage
 
 case class CreateQr(user: Long, data: String) extends QrMessage
+case class CreateQrWithLifetime(user: Long, data: String, lifetime: FiniteDuration) extends QrMessage
+
 
 class QrCreator extends Actor {
-  import akka.util.duration._
   lazy val root = context.actorFor("root")
 
-  def createQr(user: Long, s: String) {
+  def registerObj(s: String, user: Long): QrEntry = {
     val rend = new QrRenderer(s)
     val data = rend.toStream.toByteArray
     val obj = QrEntry.createRecord.user(user).content(s).binary(data)
     root ! SaveRecord(obj)
-    root ! RegisterLifetime(obj, 1 day)
+    obj
+  }
+
+  def createQr(user: Long, s: String) {
+    val obj: QrEntry = registerObj(s, user)
     sender ! obj
   }
+
+  def createQr(user: Long, s: String, period: FiniteDuration) {
+      val obj = registerObj(s, user)
+      root ! RegisterLifetime(obj, period)
+      sender ! obj
+    }
 
   var mongo : ActorRef = _
 
   protected def receive = {
     case CreateQr(user, data) => createQr(user, data)
+    case CreateQrWithLifetime(user, data, period) => createQr(user, data, period)
   }
 }

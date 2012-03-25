@@ -58,6 +58,7 @@ trait AkkaMain {
 trait KotonohaMessage
 trait DbMessage extends KotonohaMessage
 trait LifetimeMessage extends KotonohaMessage
+trait ClientMessage extends KotonohaMessage
 
 case object TopLevelActors
 
@@ -68,11 +69,11 @@ class RestartActor extends Actor {
   }
   
   val mongo = context.actorOf(Props[MongoDBActor], "mongo")
-  val wordRegistry = context.actorOf(Props[WordRegistry])
-  val wordSelector = context.actorOf(Props[WordSelector])
-  val markProcessor = context.actorOf(Props[MarkEventProcessor])
-  val lifetime = context.actorOf(Props[LifetimeActor])
-  val qractor = context.actorOf(Props[QrCreator])
+  lazy val wordRegistry = context.actorOf(Props[WordRegistry])
+  lazy val wordSelector = context.actorOf(Props[WordSelector])
+  lazy val markProcessor = context.actorOf(Props[MarkEventProcessor])
+  lazy val lifetime = context.actorOf(Props[LifetimeActor])
+  lazy val qractor = context.actorOf(Props[QrCreator])
 
   def dispatch(msg: KotonohaMessage) {
     msg match {
