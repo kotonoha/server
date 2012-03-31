@@ -49,7 +49,8 @@ class ChildProcessor extends Actor with ActorLogging {
   protected def receive = {
     case ProcessMarkEvent(ev) => {
       mongo ! SaveRecord(ev)
-      ev.card.obj match {
+      val obj = ev.card.obj
+      obj match {
         case Empty =>  {
           log.debug("invalid mark event: {}", ev)
           sender ! 0
@@ -60,7 +61,10 @@ class ChildProcessor extends Actor with ActorLogging {
           val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord].map(card.learning(_))
           val ur = cardF.flatMap {c => mongo ? UpdateRecord(c)}
           val se = sender
-          sc.zip(ur) foreach {x => se ! 1}
+          sc.zip(ur) foreach {
+            log.debug("processed event for cardid={}", card.id.is)
+            x => se ! 1
+          }
         }
         case Failure(msg, e, c) => log.error(e.openTheBox, msg); sender ! 0
       }
@@ -79,19 +83,18 @@ trait MongoActor { this: Actor =>
 
 class MarkEventProcessor extends Actor with ActorLogging with MongoActor {
   val sched = context.actorOf(Props[CardScheduler], "scheduler")
-  val children = context.actorOf(Props[ChildProcessor].withRouter(RoundRobinRouter(nrOfInstances = 4)))
+  val children = context.actorOf(Props[ChildProcessor])
 
   override def preStart() {
-    children ! Broadcast(RegisterServices(mongo, sched))
+    children ! RegisterServices(mongo, sched)
   }
 
   protected def receive = {
+    case p : ProcessMarkEvent => children.forward(p)
     case ProcessMarkEvents(evs) =>  {
       implicit val dispatcher = context.dispatcher
       val futs = evs.map { ev => ask(children, ProcessMarkEvent(ev))(1 second).mapTo[Int]}
-      val res = Future.sequence(futs)
-      val se = sender
-      res foreach (se ! _)
+      Future.sequence(futs) pipeTo sender
     }
   }
 }

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2012 eiennohito
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.eiennohito.kotonoha.model
 
 import org.eiennohito.kotonoha.mongodb.MongoDbInit
@@ -15,22 +30,8 @@ import org.eiennohito.kotonoha.actors.learning._
 import java.util.Calendar
 import util.Random
 import org.eiennohito.kotonoha.learning.{ProcessMarkEvent, MarkEventProcessor, ProcessMarkEvents}
+import org.eiennohito.kotonoha.util.DateTimeUtils
 
-/*
- * Copyright 2012 eiennohito
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 trait MongoDb {
   MongoDbInit.init()
@@ -46,14 +47,14 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
 
   implicit val executor = ReleaseAkkaMain.context
 
-  override def beforeAll {
+  override def beforeAll() {
     user = UserRecord.createRecord.save
     val l = Random.nextLong()
     WordCardRecord.createRecord
     WordRecord.createRecord
   }
 
-  override def afterAll {
+  override def afterAll() {
     user.delete_!
     ReleaseAkkaMain.shutdown()
   }
@@ -70,6 +71,8 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     word.user(userId)
     word.save
     word.id.valueBox.isEmpty should be (false)
+
+    WordRecord.find(word.id.is).isEmpty should be (false)
   }
 
   test("card saved with empty learning loads with such") {
@@ -112,11 +115,12 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   }
 
   test("word is being saved all right") {
-    saveWord
+    val saved = saveWord
     
     val wOpt = WordRecord where (_.writing eqs "例") and (_.user eqs userId) get()
     wOpt should not be (None)
     val id = wOpt.get.id.is
+    saved should equal (id)
     val cards = WordCardRecord where (_.word eqs id) fetch(50)
     cards should have length (2)
     val card = cards.head
@@ -143,7 +147,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   test("getting new cards and words") {
     implicit val timeout = Timeout(1 second)
     val fs = Future.sequence(1 to 5 map { x => saveWordAsync })
-    Await.ready(fs, 50 milli)
+    Await.ready(fs, 5 seconds)
 
     val wlen = WordRecord where (_.user eqs userId) count()
     wlen should equal (5)
@@ -159,32 +163,32 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     }
 
     val wicF = ask(ReleaseAkkaMain.wordSelector, LoadWords(userId, 6)).mapTo[WordsAndCards]
-    val wic = Await.result(wicF, 50 milli)
+    val wic = Await.result(wicF, 2 seconds)
     wic.cards.length should be <= (5)
   }
 
   test("full work cycle") {
-    implicit val system = ReleaseAkkaMain.system
-    implicit val timeout = Timeout(1 day)
+    implicit val timeout : Timeout = 1 minute
     val fs = Future.sequence(1 to 5 map { x => saveWordAsync })
     Await.ready(fs, 150 milli)
 
     val wicF = ask(ReleaseAkkaMain.wordSelector, LoadWords(userId, 5)).mapTo[WordsAndCards]
-    val wic = Await.result(wicF, 1 day)
+    val wic = Await.result(wicF, 5 seconds)
 
     val card = wic.cards.head
     val event = MarkEventRecord.createRecord
-    event.card(card.id.is).mark(5.0).mode(card.cardMode.is)
+    event.card(card.id.is).mark(5.0).mode(card.cardMode.is).time(2.3142)
 
-    val proc = TestActorRef[MarkEventProcessor]
-    proc.receive(ProcessMarkEvent(event))
+    val proc = ReleaseAkkaMain.markProcessor
+    Await.result(ask(proc, ProcessMarkEvents(List(event))), 5 seconds)
     val updatedCard = WordCardRecord.find(card.id.is).get
     updatedCard.learning.valueBox.isEmpty should be (false)
   }
   
   test("Multiple marks for word") {
+    import DateTimeUtils._
     implicit val system = ReleaseAkkaMain.system
-    implicit val timeout = Timeout(1 day)
+    implicit val timeout = Timeout(2 seconds)
     val fs = Future.sequence(1 to 2 map { x => saveWordAsync })
     Await.ready(fs, 150 milli)
 
@@ -193,25 +197,26 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
 
     val card = wic.cards.head
     val event = MarkEventRecord.createRecord
-    event.card(card.id.is).mark(5.0).mode(card.cardMode.is)
+    val cid = card.id.is
+    event.card(cid).mark(5.0).mode(card.cardMode.is).datetime(now.withDurationAdded(1 day, 1))
 
     val ev2 = MarkEventRecord.createRecord
-    ev2.card(card.id.is).mark(5.0).mode(card.cardMode.is)
+    ev2.card(cid).mark(5.0).mode(card.cardMode.is).datetime(now.withDurationAdded(1 day, 2))
 
     val ev3 = MarkEventRecord.createRecord
-    ev3.card(card.id.is).mark(5.0).mode(card.cardMode.is)
+    ev3.card(cid).mark(5.0).mode(card.cardMode.is).datetime(now.withDurationAdded(1 day, 9))
 
     val ev4 = MarkEventRecord.createRecord
-    ev4.card(card.id.is).mark(1.0).mode(card.cardMode.is)
+    ev4.card(cid).mark(1.0).mode(card.cardMode.is).datetime(now.withDurationAdded(1 day, 14))
 
 
-    val proc = TestActorRef[MarkEventProcessor]
-    proc.receive(ProcessMarkEvent(event))
-    proc.receive(ProcessMarkEvent(ev2))
-    proc.receive(ProcessMarkEvent(ev3))
-    proc.receive(ProcessMarkEvent(ev4))
+    val proc = ReleaseAkkaMain.markProcessor
+    Await.ready(ask(proc, ProcessMarkEvent(event)), 1 second)
+    Await.ready(ask(proc, ProcessMarkEvent(ev2)), 1 second)
+    Await.ready(ask(proc, ProcessMarkEvent(ev3)), 1 second)
+    Await.ready(ask(proc, ProcessMarkEvent(ev4)), 1 second)
 
-    val updatedCard = WordCardRecord.find(card.id.is).get
+    val updatedCard = WordCardRecord.find(cid).get
     updatedCard.learning.valueBox.isEmpty should be (false)
     updatedCard.learning.value.lapse.is should be (2)
   }

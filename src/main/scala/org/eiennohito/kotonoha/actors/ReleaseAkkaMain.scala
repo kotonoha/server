@@ -77,6 +77,7 @@ class RestartActor extends Actor {
   lazy val lifetime = context.actorOf(Props[LifetimeActor])
   lazy val qractor = context.actorOf(Props[QrCreator])
 
+
   def dispatch(msg: KotonohaMessage) {
     msg match {
       case m: DbMessage => mongo.forward(msg)

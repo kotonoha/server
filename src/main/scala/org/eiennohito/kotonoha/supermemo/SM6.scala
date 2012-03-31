@@ -58,14 +58,15 @@ class SM6 extends Actor with ActorLogging {
   }
 
   def calculateMod(time: DateTime, start: DateTime, end: DateTime) = {
-    val p1 = new Period(start, time).toStandardDuration
-    val p2 = new Period(start, end).toStandardDuration
-    val ratio = p1.getMillis.asInstanceOf[Double] / p2.getMillis
+    val p1 = new Duration(start, time).getMillis
+    val p2 = new Duration(start, end).getMillis
+    val ratio = p1.toDouble / p2
+    log.debug("should have scheduled for {}, waited for {}, ratio = {}", p1, p2, ratio)
     1.0 min ratio
   }
 
   def updateLearningItem(item: ItemUpdate, mat: OFMatrixRecord) {
-    val  q = item.q
+    val q = item.q
     val data = item.data
     val raw = if (q < 3.5) {
       data.lapse(data.lapse.is + 1)
@@ -119,8 +120,16 @@ class SM6 extends Actor with ActorLogging {
 
   var myMongo : ActorRef = _
 
+  def printE[T](f : => T): T = {
+    try {
+      f
+    } catch {
+      case x: Throwable => log.error(x, "Caught an exception in sm6"); throw x
+    }
+  }
+
   protected def receive = {
-    case i: ItemUpdate => sender ! update(i)
+    case i: ItemUpdate => sender ! printE { update(i) }
     case RegisterMongo(mongo) => myMongo = mongo
   }
 }

@@ -1,11 +1,12 @@
 package org.eiennohito.kotonoha.actors
 
-import akka.actor.Actor
 import org.eiennohito.kotonoha.model.CardMode
 import org.eiennohito.kotonoha.records.{WordCardRecord, WordRecord}
 import akka.dispatch.Future
 import net.liftweb.common.Empty
-import akka.event.LoggingReceive
+import akka.actor.{ActorLogging, Actor}
+import akka.util.Timeout
+import org.eiennohito.kotonoha.util.DateTimeUtils
 
 /*
  * Copyright 2012 eiennohito
@@ -28,29 +29,44 @@ import akka.event.LoggingReceive
  */
 
 case class RegisterWord(word: WordRecord)
-case class RegisterCard(wordId: Future[Long], userId: Long, cardMode: Int)
+case class RegisterCard(word: Long, userId: Long, cardMode: Int)
 
-class WordRegistry extends Actor {
+class WordRegistry extends Actor with RootActor with ActorLogging {
+  import akka.pattern.{ask, pipe}
+  import akka.util.duration._
+
+  implicit val timeout: Timeout = 1 second
   implicit def system = context.system
-  protected def receive = LoggingReceive {
+
+  def checkReadingWriting(word: WordRecord) = {
+    val read = word.reading.is
+    val writ = word.writing.is
+    !read.equalsIgnoreCase(writ)
+  }
+
+  protected def receive = {
     case RegisterWord(word) => {
       val userId = word.user.is
-      val f = Future {
-        word.save
-        word.id.is
-      } (context.dispatcher)
-      self ! RegisterCard(f, userId, CardMode.READING)
-      self ! RegisterCard(f, userId, CardMode.WRITING)
+      val wordid = word.id.is
+      var fl = List(ask(root, SaveRecord(word)))
+      if (checkReadingWriting(word)) {
+        fl ::= self ? RegisterCard(wordid, userId, CardMode.READING)
+      }
+      fl ::= self ? RegisterCard(wordid, userId, CardMode.WRITING)
+
       val toReply = sender
-      f foreach (
-        toReply ! _
-      )
+      val s = Future.sequence(fl.map(_.mapTo[Boolean]))
+      s foreach { list =>
+        toReply ! word.id.is
+      }
     }
 
-    case RegisterCard(wordF, user, mode) => {
+    case RegisterCard(word, user, mode) => {
+      import DateTimeUtils._
       val card = WordCardRecord.createRecord
-      card.user(user).cardMode(mode).learning(Empty)
-      wordF.onSuccess { case w => card.word(w).save }
+      card.user(user).word(word).cardMode(mode).learning(Empty).notBefore(now)
+      val s = sender
+      ask(root, SaveRecord(card)) pipeTo (s)
     }
   }
 }

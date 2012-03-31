@@ -1,7 +1,7 @@
 package org.eiennohito.kotonoha.actors
 
 import net.liftweb.mongodb.record.MongoRecord
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{ActorLogging, ActorRef, Actor}
 
 /*
  * Copyright 2012 eiennohito
@@ -28,9 +28,9 @@ case class UpdateRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMess
 case class DeleteRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMessage
 case class RegisterMongo(mongo: ActorRef)
 
-class MongoDBActor extends Actor {
+class MongoDBActor extends Actor with ActorLogging {
   protected def receive = {
-    case SaveRecord(rec) => rec.save; sender ! true
+    case SaveRecord(rec) => rec.save; log.debug("saving object {}", rec); sender ! true
     case UpdateRecord(rec) => rec.update; sender ! true
     case DeleteRecord(rec) => sender ! rec.delete_!
   }

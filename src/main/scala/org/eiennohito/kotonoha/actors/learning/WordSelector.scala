@@ -121,15 +121,10 @@ class WordSelector extends Actor with ActorLogging {
 }
 
 case class LoadScheduled(userId: Long, maxSched: Int)
-
 case class LoadNewCards(userId: Long, maxNew: Int)
-
 case class LoadCards(userId: Long, max: Int)
-
 case class SchedulePaired(wordId: Long, cardType: Int)
-
 case class LoadWords(userId: Long, max: Int)
-
 case class WordsAndCards(words: List[WordRecord], cards: List[WordCardRecord])
 
 class CardLoader extends Actor {
