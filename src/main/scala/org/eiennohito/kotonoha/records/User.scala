@@ -2,10 +2,12 @@ package org.eiennohito.kotonoha.records
 
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.record.field.{EnumField, StringField}
 import net.liftweb.common.Full
 import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
 import net.liftweb.util.FieldError
+import net.liftweb.oauth.OAuthConsumer
+import net.liftweb.record.field.{DateTimeField, EnumField, StringField}
+import org.eiennohito.kotonoha.util.DateTimeUtils
 
 /*
  * Copyright 2012 eiennohito
@@ -89,12 +91,32 @@ object ClientStatus extends Enumeration {
   val Active = Value
 }
 
-class ClientRecord private() extends MongoRecord[ClientRecord] with LongPk[ClientRecord] {
+class ClientRecord private() extends MongoRecord[ClientRecord] with LongPk[ClientRecord] with OAuthConsumer {
+  import DateTimeUtils._
   def meta = ClientRecord
 
   object name extends StringField(this, 50)
   object apiPublic extends StringField(this, 32)
   object apiPrivate extends StringField(this, 32)
+  object registeredDate extends DateTimeField(this)
+
+  def reset {}
+
+  def enabled = 0
+
+  def user = null
+
+  def consumerKey = apiPublic.is
+
+  def consumerSecret = apiPrivate.is
+
+  def title = name.is
+
+  def applicationUri = null
+
+  def callbackUri = null
+
+  def xdatetime = registeredDate.is.toDate
 }
 
 object ClientRecord extends ClientRecord with MongoMetaRecord[ClientRecord] with NamedDatabase

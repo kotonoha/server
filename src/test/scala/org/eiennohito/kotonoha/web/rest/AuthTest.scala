@@ -2,14 +2,16 @@ package org.eiennohito.kotonoha.web.rest
 
 import net.liftweb.http.rest.RestHelper
 import net.liftweb.mockweb.MockWeb
-import net.liftweb.http.{S, LiftRules, PlainTextResponse, InMemoryResponse}
 import org.scribe.builder.ServiceBuilder
 import org.eiennohito.kotonoha.model.KotonohaApi
 import org.scribe.model.{Token, Verb, OAuthRequest}
 import net.liftweb.mocks.MockHttpServletRequest
 import net.liftweb.oauth._
-import net.liftweb.common.{Empty, Full}
 import org.scribe.services.TimestampServiceImpl
+import net.liftweb.http._
+import net.liftweb.common.{Box, Empty, Full}
+import net.liftweb.oauth.OAuthUtil.Parameter
+import org.eiennohito.kotonoha.records.{NonceRecord, UserTokenRecord, ClientRecord}
 
 /*
  * Copyright 2012 eiennohito
@@ -26,6 +28,50 @@ import org.scribe.services.TimestampServiceImpl
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+trait OauthRestHelper extends RestHelper {
+  import com.foursquare.rogue.Rogue._
+
+  object restUser extends TransientRequestVar[Box[UserTokenRecord]](Empty)
+  object restClient extends TransientRequestVar[Box[ClientRecord]](Empty)
+
+  private val validator = new OAuthValidator {
+    protected def oauthNonceMeta = NonceRecord
+  }
+
+  def process(key: Box[Parameter], token: Box[Parameter]): Boolean = {
+
+    val user = token flatMap { t =>
+      UserTokenRecord where (_.tokenPublic eqs t.value) get()
+    }
+    val client = key flatMap { t =>
+      ClientRecord where (_.apiPublic eqs t.value) get()
+    }
+
+    restUser(user)
+    restClient(client)
+
+    !restUser.isEmpty && !restClient.isEmpty
+  }
+
+  def check(msg: OAuthMessage): Boolean = {
+    val user = restUser.get.openTheBox
+    val client = restClient.get.openTheBox
+    val assessor = new OAuthAccessor(client, Full(user.tokenSecret.is), Empty)
+    !validator.validateMessage(msg, assessor).isEmpty
+  }
+
+  override def apply(in: Req) = {
+    val msg = new HttpRequestMessage(in)
+    val key = msg.getConsumerKey
+    val tok = msg.getToken
+
+    if (!process(key, tok) && !check(msg))  {
+      Full(ForbiddenResponse("Invalid OAuth"))
+    }
+    super.apply(in)
+  }
+}
 
 class SimpleService extends RestHelper {
   serve {
