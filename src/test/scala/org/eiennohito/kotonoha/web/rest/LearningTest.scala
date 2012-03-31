@@ -1,16 +1,3 @@
-package org.eiennohito.kotonoha.web.rest
-
-import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
-import org.eiennohito.kotonoha.actors.ioc.Akka
-import org.eiennohito.kotonoha.actors.AkkaMain
-import akka.testkit.TestActorRef
-import akka.actor.{Actor, ActorSystem}
-import net.liftweb.http.rest.ContinuationException
-import net.liftweb.http.Req
-import net.liftweb.mockweb.MockWeb
-import net.liftweb.util.LiftFlowOfControlException
-
 /*
  * Copyright 2012 eiennohito
  *
@@ -26,6 +13,17 @@ import net.liftweb.util.LiftFlowOfControlException
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.eiennohito.kotonoha.web.rest
+
+import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
+import org.eiennohito.kotonoha.actors.AkkaMain
+import akka.testkit.TestActorRef
+import akka.actor.{Actor, ActorSystem}
+import net.liftweb.mockweb.MockWeb
+import net.liftweb.util.LiftFlowOfControlException
+
+
 /**
  * @author eiennohito
  * @since 09.02.12
@@ -49,6 +47,12 @@ object MockAkka extends AkkaMain {
   })
 
   val markProcessor = TestActorRef(new Actor {
+    protected def receive = {
+      case _ =>
+    }
+  })
+
+  val root = TestActorRef(new Actor {
     protected def receive = {
       case _ =>
     }
