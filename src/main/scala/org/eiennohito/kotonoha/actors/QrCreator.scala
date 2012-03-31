@@ -31,9 +31,7 @@ case class CreateQr(user: Long, data: String) extends QrMessage
 case class CreateQrWithLifetime(user: Long, data: String, lifetime: FiniteDuration) extends QrMessage
 
 
-class QrCreator extends Actor {
-  lazy val root = context.actorFor("root")
-
+class QrCreator extends Actor with RootActor {
   def registerObj(s: String, user: Long): QrEntry = {
     val rend = new QrRenderer(s)
     val data = rend.toStream.toByteArray

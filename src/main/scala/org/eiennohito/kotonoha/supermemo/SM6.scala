@@ -58,11 +58,9 @@ class SM6 extends Actor with ActorLogging {
   }
 
   def calculateMod(time: DateTime, start: DateTime, end: DateTime) = {
-    val p1 = new Period(start, time)
-    val p2 = new Period(start, end)
+    val p1 = new Period(start, time).toStandardDuration
+    val p2 = new Period(start, end).toStandardDuration
     val ratio = p1.getMillis.asInstanceOf[Double] / p2.getMillis
-    log.debug("item was scheduled on {}, learning date was {} and was learned on {}", start, end, time)
-    log.debug("passed {} ms of {}", p1, p2)
     1.0 min ratio
   }
 

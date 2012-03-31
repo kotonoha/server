@@ -95,7 +95,7 @@ class RestartActor extends Actor {
 }
 
 trait RootActor { this: Actor =>
-  lazy val root = context.actorFor("root")
+  lazy val root = context.actorFor("/user/root")
 }
 
 

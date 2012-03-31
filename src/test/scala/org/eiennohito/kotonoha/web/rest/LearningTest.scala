@@ -17,11 +17,11 @@ package org.eiennohito.kotonoha.web.rest
 
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
-import org.eiennohito.kotonoha.actors.AkkaMain
 import akka.testkit.TestActorRef
 import akka.actor.{Actor, ActorSystem}
 import net.liftweb.mockweb.MockWeb
 import net.liftweb.util.LiftFlowOfControlException
+import org.eiennohito.kotonoha.actors.{RestartActor, AkkaMain}
 
 
 /**
@@ -52,11 +52,7 @@ object MockAkka extends AkkaMain {
     }
   })
 
-  val root = TestActorRef(new Actor {
-    protected def receive = {
-      case _ =>
-    }
-  })
+  val root = TestActorRef(new RestartActor)
 }
 
 class LearningTest extends FunSuite with ShouldMatchers {

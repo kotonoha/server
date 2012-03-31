@@ -73,11 +73,13 @@ class ChildProcessor extends Actor with ActorLogging {
   }
 }
 
-class MarkEventProcessor extends Actor with ActorLogging {
-  val sched = context.actorOf(Props[CardScheduler], "scheduler")
-  lazy val mongo = context.actorFor("/root/mongo")
-  val children = context.actorOf(Props[ChildProcessor].withRouter(RoundRobinRouter(nrOfInstances = 4)))
+trait MongoActor { this: Actor =>
+  lazy val mongo = context.actorFor("/user/root/mongo")
+}
 
+class MarkEventProcessor extends Actor with ActorLogging with MongoActor {
+  val sched = context.actorOf(Props[CardScheduler], "scheduler")
+  val children = context.actorOf(Props[ChildProcessor].withRouter(RoundRobinRouter(nrOfInstances = 4)))
 
   override def preStart() {
     children ! Broadcast(RegisterServices(mongo, sched))
