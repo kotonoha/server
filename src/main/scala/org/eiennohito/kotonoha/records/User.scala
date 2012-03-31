@@ -5,6 +5,7 @@ import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import net.liftweb.record.field.{EnumField, StringField}
 import net.liftweb.common.Full
 import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
+import net.liftweb.util.FieldError
 
 /*
  * Copyright 2012 eiennohito
@@ -33,7 +34,9 @@ object UserStatus extends Enumeration {
   val Active, Banned = Value
 }
 
+
 class UserRecord private() extends MegaProtoUser[UserRecord] {
+  import org.eiennohito.kotonoha.util.KBsonDSL._
   def meta = UserRecord
 
   object username extends StringField(this, 50) {
@@ -41,10 +44,32 @@ class UserRecord private() extends MegaProtoUser[UserRecord] {
   }
   object apiPublicKey extends StringField(this, 32)
   object apiPrivateKey extends StringField(this, 32)
+  object invite extends StringField(this, 32) {
+    override def validate : List[FieldError] = {
+      if (!AppConfig().inviteOnly.is) {
+        return Nil
+      }
+      val v = is
+      InviteRecord.find("key" -> v) match {
+        case Full(_) => Nil
+        case _ => List(FieldError(this, "Can't register user without invitation"))
+      }
+    }
+  }
   object status extends EnumField(this, UserStatus, UserStatus.Active)
+
+  override def save = {
+    val r = super.save
+    InviteRecord.delete("key" -> invite.is)
+    r
+  }
 }
 
 object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with NamedDatabase {
+  def isAdmin = currentUser match {
+    case Full(u) => u.superUser_?
+    case _ => false
+  }
 
   override def signupFields = username :: super.signupFields
 
