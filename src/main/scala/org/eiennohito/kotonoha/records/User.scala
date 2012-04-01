@@ -128,6 +128,8 @@ class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with LongPk
   object label extends StringField(this, 100)
   object tokenPublic extends StringField(this, 32)
   object tokenSecret extends StringField(this, 32)
+
+  def auth = AuthCode(AppConfig().baseUri.is, tokenPublic.is, tokenSecret.is)
 }
 
 object UserTokenRecord extends UserTokenRecord with MongoMetaRecord[UserTokenRecord] with NamedDatabase

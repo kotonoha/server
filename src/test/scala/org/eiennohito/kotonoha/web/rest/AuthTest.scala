@@ -1,20 +1,19 @@
 package org.eiennohito.kotonoha.web.rest
 
-import net.liftweb.http.rest.RestHelper
 import net.liftweb.mockweb.MockWeb
 import org.scribe.builder.ServiceBuilder
 import org.scribe.model.{Token, Verb, OAuthRequest}
 import net.liftweb.mocks.MockHttpServletRequest
-import net.liftweb.oauth._
 import org.scribe.services.TimestampServiceImpl
 import net.liftweb.http._
-import net.liftweb.common.{Box, Empty, Full}
-import net.liftweb.oauth.OAuthUtil.Parameter
-import org.eiennohito.kotonoha.records.{NonceRecord, UserTokenRecord, ClientRecord}
+import net.liftweb.common.Full
 import org.scalatest.BeforeAndAfterAll
-import org.eiennohito.kotonoha.model.{MongoDb, KotonohaApi}
-import net.liftweb.util.ThreadGlobal
+import org.eiennohito.kotonoha.model.MongoDb
 import org.apache.commons.httpclient.util.EncodingUtil
+import org.eiennohito.kotonoha.records.{AuthCode, UserTokenRecord, ClientRecord}
+import com.google.gson.Gson
+import org.eiennohito.kotonoha.rest.{AuthObject, KotonohaApi}
+import net.liftweb.json.{DefaultFormats, Printer, JsonAST, Extraction}
 
 /*
  * Copyright 2012 eiennohito
@@ -99,6 +98,21 @@ class AuthTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
       }
       case x @ _ => fail("Got responce we didn't waited for:\n" + x)
     }
+  }
+
+  test("auth object serializes to java") {
+    implicit val formats = DefaultFormats
+    val uri = "uri"
+    val pub = "private"
+    val priv = "public"
+    val sc = AuthCode(uri, pub, priv)
+    val str = Printer.pretty(JsonAST.render(Extraction.decompose(sc)))
+
+    val gs = new Gson()
+    val ao = gs.fromJson(str, classOf[AuthObject])
+    ao.getBaseUri should equal (uri)
+    ao.getTokenPublic should equal (pub)
+    ao.getTokenSecret should equal (priv)
   }
 
   def createClient() = {

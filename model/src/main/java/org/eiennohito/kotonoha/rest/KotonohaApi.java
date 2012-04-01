@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.eiennohito.kotonoha.model;
+package org.eiennohito.kotonoha.rest;
 
 import org.scribe.builder.api.DefaultApi10a;
 import org.scribe.model.Token;
