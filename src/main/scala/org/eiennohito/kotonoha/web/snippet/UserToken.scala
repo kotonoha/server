@@ -55,7 +55,7 @@ trait UserToken extends Akka {
       }
       val qr = Await.result(qrFut, 5 seconds)
       val code =  qr.id.is.toHexString
-      val uri = S.contextPath + "/iqr/" + code
+      val uri = "/iqr/" + code
       SetHtml("qrcode",
         <span>
           Scan this QR Code to login <br />

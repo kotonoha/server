@@ -41,6 +41,13 @@ import org.eiennohito.kotonoha.web.ajax.AllJsonHandler
  * @since 06.03.12
  */
 
+object ParseUtil {
+  def hexLong(s: String) : Long = {
+    val number = BigInt(s, 16)
+    number.longValue()
+  }
+}
+
 object Snippets {
 
   object XString {

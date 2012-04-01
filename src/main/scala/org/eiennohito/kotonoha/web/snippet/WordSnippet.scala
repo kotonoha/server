@@ -18,7 +18,6 @@ package org.eiennohito.kotonoha.web.snippet
 
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.mongodb.{Limit, Skip}
-import org.eiennohito.kotonoha.util.{Formatting, Strings}
 import net.liftweb.util.{Helpers, BindHelpers}
 import util.matching.Regex
 import xml.{Elem, Text, NodeSeq}
@@ -27,6 +26,7 @@ import net.liftweb.http.{RequestVar, SHtml, SortedPaginatorSnippet, S}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.SetHtml
 import org.eiennohito.kotonoha.records.{ExampleRecord, UserRecord, WordRecord}
+import org.eiennohito.kotonoha.util.{ParseUtil, Formatting, Strings}
 
 /**
  * @author eiennohito
@@ -36,7 +36,7 @@ import org.eiennohito.kotonoha.records.{ExampleRecord, UserRecord, WordRecord}
 object WordSnippet {
 
   def wordId: Box[Long] = {
-    S.param("w") map (java.lang.Long.parseLong(_, 16))
+    S.param("w") map (ParseUtil.hexLong(_))
   }
 
   object word extends RequestVar[Box[WordRecord]](wordId flatMap {WordRecord.find(_)})

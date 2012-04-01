@@ -23,6 +23,7 @@ import java.io.{File, FileInputStream, InputStream}
 import org.apache.commons.io.IOUtils
 import net.liftweb.http.{LiftRules, InMemoryResponse, StreamingResponse, OutputStreamResponse}
 import org.eiennohito.kotonoha.records.QrEntry
+import org.eiennohito.kotonoha.util.ParseUtil
 
 
 /**
@@ -34,8 +35,7 @@ object HexLong {
   import net.liftweb.util.ControlHelpers.tryo
   def unapply(s: String): Option[Long] = {
     tryo {
-      val number = BigInt(s, 16)
-      number.longValue()
+      ParseUtil.hexLong(s)
     }
   }
 }
