@@ -29,8 +29,9 @@ trait OauthRestHelper extends RestHelper {
   import com.foursquare.rogue.Rogue._
 
   object restUser extends ThreadGlobal[Box[UserTokenRecord]]
-
   object restClient extends ThreadGlobal[Box[ClientRecord]]
+
+  def userId = restUser.value map (_.user.is)
 
   private val validator = new OAuthValidator {
     protected def oauthNonceMeta = NonceRecord
