@@ -24,17 +24,15 @@ import org.eiennohito.kotonoha.records.{LifetimeObj, QrEntry, Lifetime}
 case class RegisterLifetime[T <: Lifetime](obj: T, duration: FiniteDuration) extends LifetimeMessage
 case object FindStaleLifetimeObjs extends LifetimeMessage
 
-class LifetimeActor extends Actor {
+class LifetimeActor extends Actor with RootActor {
   import akka.util.duration._
   import com.foursquare.rogue.Rogue._
   import org.eiennohito.kotonoha.util.DateTimeUtils._
 
-  var mongo: ActorRef = _
-
   def registerLifetime(value: Lifetime, duration: FiniteDuration) = {
     val rec = LifetimeObj.createRecord
     rec.obj(value.recid).objtype(value.lifetimeObj).deadline(now.plus(duration))
-    mongo ! SaveRecord(rec)
+    root ! SaveRecord(rec)
   }
 
   def findStale = {
@@ -45,7 +43,7 @@ class LifetimeActor extends Actor {
       finder(o.obj.is)
     }
     objs.map(_.record).map {case o =>  o.delete_! }
-    stale.foreach(mongo ! DeleteRecord(_))
+    stale.foreach(root ! DeleteRecord(_))
   }
 
 
@@ -54,7 +52,6 @@ class LifetimeActor extends Actor {
   }
 
   protected def receive = {
-    case RegisterMongo(m) => mongo = m
     case RegisterLifetime(obj, lifetime) => registerLifetime(obj, lifetime)
     case FindStaleLifetimeObjs => findStale
   }
