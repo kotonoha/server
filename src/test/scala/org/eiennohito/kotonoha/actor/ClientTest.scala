@@ -14,31 +14,23 @@
  * limitations under the License.
  */
 
-package org.eiennohito.kotonoha.actors.auth
+package org.eiennohito.kotonoha.actor
 
-import akka.actor.Actor
+import org.eiennohito.kotonoha.model.MongoDb
+import org.eiennohito.kotonoha.actors.ioc.{Akka, ReleaseAkka}
 import org.eiennohito.kotonoha.records.ClientRecord
-import akka.pattern.{ask}
+import org.eiennohito.kotonoha.actors.auth.AddClient
+import akka.dispatch.Await
 import akka.util.duration._
-import org.eiennohito.kotonoha.actors.{ClientMessage, SaveRecord, RootActor}
 
-/**
- * @author eiennohito
- * @since 24.03.12
- */
+class ClientTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers with MongoDb with Akka with ReleaseAkka {
 
-case class AddClient(name: ClientRecord) extends ClientMessage
-
-class ClientRegistry extends Actor with RootActor {
-  import org.eiennohito.kotonoha.util.SecurityUtil._
-
-  def addClient(rec: ClientRecord) = {
-    val r1 = rec.apiPrivate(randomHex()).apiPublic(randomHex())
-    val s = sender
-    ask(root, SaveRecord(r1))(1 second) foreach {x => s ! r1}
+  test("clients creates and deletes") {
+    val client = ClientRecord.name("test")
+    Await.result(akkaServ ? AddClient(client), 2 seconds)
+    val fromdb = ClientRecord.find(client.id.is)
+    fromdb.isEmpty should be (false)
+    client.delete_!
   }
 
-  protected def receive = {
-    case AddClient(cl) => addClient(cl)
-  }
 }

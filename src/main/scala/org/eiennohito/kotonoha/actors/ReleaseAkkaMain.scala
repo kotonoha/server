@@ -1,13 +1,13 @@
 package org.eiennohito.kotonoha.actors
 
+import auth.ClientRegistry
 import learning.WordSelector
-import org.eiennohito.kotonoha.learning.{MarkEventProcessor}
+import org.eiennohito.kotonoha.learning.MarkEventProcessor
 import akka.util.duration._
-import akka.util.Duration
 import akka.actor._
 import akka.pattern.ask
 import akka.dispatch.{Await, ExecutionContext}
-import akka.routing.RoundRobinRouter
+import akka.util.{Timeout, Duration}
 
 
 /*
@@ -32,6 +32,9 @@ import akka.routing.RoundRobinRouter
  */
 
 trait AkkaMain {
+  def ! (x : AnyRef) = root ! x
+  def ? (x: AnyRef) = ask(root, x)(5 seconds)
+
   val system: ActorSystem
 
   val root: ActorRef
@@ -64,10 +67,10 @@ trait ClientMessage extends KotonohaMessage
 
 case object TopLevelActors
 
-class RestartActor extends Actor {
+class RestartActor extends Actor with ActorLogging {
   import SupervisorStrategy._
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 1500, withinTimeRange = 1 day) {
-    case _: Exception => Restart
+    case e: Exception => log.error(e, "Caught an exception in root actor"); Restart
   }
   
   val mongo = context.actorOf(Props[MongoDBActor], "mongo")
@@ -76,6 +79,8 @@ class RestartActor extends Actor {
   lazy val markProcessor = context.actorOf(Props[MarkEventProcessor])
   lazy val lifetime = context.actorOf(Props[LifetimeActor])
   lazy val qractor = context.actorOf(Props[QrCreator])
+  lazy val clientActor = context.actorOf(Props[ClientRegistry])
+  lazy val userToken = context.actorOf(Props[UserTokenActor])
 
 
   def dispatch(msg: KotonohaMessage) {
@@ -83,6 +88,7 @@ class RestartActor extends Actor {
       case m: DbMessage => mongo.forward(msg)
       case m: LifetimeMessage => lifetime.forward(msg)
       case m: QrMessage => qractor.forward(msg)
+      case m: ClientMessage => clientActor.forward(msg)
     }
   }
 

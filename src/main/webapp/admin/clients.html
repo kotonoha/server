@@ -19,7 +19,8 @@
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
   <div>
-    <form method="POST">
+    <h3>Add new client</h3>
+    <form method="POST" class="lift:Clients.form">
       <table xmlns:cf="client-form">
         <tr>
           <td>Name for client</td>
@@ -33,7 +34,25 @@
     </form>
   </div>
   <div>
-
+    <h3>Client list</h3>
+    <table>
+      <thead>
+        <tr>
+          <td>Title</td>
+          <td>Private key</td>
+          <td>Public key</td>
+          <td></td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="lift:Clients.list" xmlns:cl="client-list">
+          <td><cl:title></cl:title></td>
+          <td><cl:private></cl:private></td>
+          <td><cl:public></cl:public></td>
+          <td><cl:delete></cl:delete></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
 </body>

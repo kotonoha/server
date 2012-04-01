@@ -6,7 +6,7 @@ import akka.util.FiniteDuration
 import net.liftweb.util.Helpers.TimeSpan
 import org.joda.time.{ReadableInstant, DateTimeZone, DateTime, Duration => JodaDuration}
 import org.eiennohito.kotonoha.records.UserRecord
-import net.liftweb.record.field.TimeZoneField
+import java.util.concurrent.TimeUnit
 
 /*
  * Copyright 2012 eiennohito
@@ -39,6 +39,7 @@ object DateTimeUtils {
   implicit def akkaToJodaDurations(dur: FiniteDuration): JodaDuration = new JodaDuration(dur.toMillis)
   implicit def calendar2DateTime(c: Calendar) = new DateTime(c.getTimeInMillis)
   implicit def akkaDurationToLiftTimeSpan(dur: FiniteDuration) : TimeSpan = TimeSpan(dur.toMillis)
+  implicit def liftTimeSpanToAkkaDuration(ts: TimeSpan): FiniteDuration = new FiniteDuration(ts.toMillis, TimeUnit.MILLISECONDS)
 
   implicit def dur2Multipliable(dur: JodaDuration) = new MultipliableDuration(dur)
 

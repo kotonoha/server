@@ -3,6 +3,7 @@ package org.eiennohito.kotonoha.mongodb
 import net.liftweb.util.Props
 import net.liftweb.mongodb.{MongoDB, MongoIdentifier, MongoMeta}
 import com.mongodb.{ServerAddress, Mongo}
+import com.weiglewilczek.slf4s.Logging
 
 /*
  * Copyright 2012 eiennohito
@@ -25,13 +26,18 @@ import com.mongodb.{ServerAddress, Mongo}
  * @since 29.01.12
  */
 
-object MongoDbInit {
+object MongoDbInit extends Logging {
   var inited = false
 
     def init() {
       if (!inited) {
-        val sa = new ServerAddress(Props.get("db.server").get, Props.getInt("db.port", ServerAddress.defaultPort()))
-        MongoDB.defineDb(DbId, new Mongo(sa), Props.get("db.name").get)
+        val server = Props.get("db.server").get
+        val dbname = Props.get("db.name").get
+
+        logger.info("using on server %s database %s".format(server, dbname))
+
+        val sa = new ServerAddress(server, Props.getInt("db.port", ServerAddress.defaultPort()))
+        MongoDB.defineDb(DbId, new Mongo(sa), dbname)
         inited = true;
       }
     }

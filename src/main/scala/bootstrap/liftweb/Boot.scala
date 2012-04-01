@@ -39,7 +39,8 @@ class Boot {
         Menu.i("OF Matrix") / "learning" / "ofmatrix"
         ),
       Menu.i("Admin") / "admin" / "index" >> If(() => UserRecord.isAdmin, "Only administrators allowed here") submenus (
-
+          Menu.i("Client List") / "admin" / "clients",
+          Menu.i("Configuration") / "admin" / "config"
         ),
       Menu.i("Words") / "words" / "index" >> If(UserRecord.loggedIn_? _, "Nobody is logged in") submenus (
           Menu.i("Add") / "words" / "add",
