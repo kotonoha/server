@@ -4,7 +4,10 @@ version := "0.1-SNAPSHOT"
 
 crossPaths := false
 
-libraryDependencies := Seq("joda-time" % "joda-time" % "1.6.2" % "compile")
+libraryDependencies := Seq(
+  "joda-time" % "joda-time" % "2.1",
+  "org.joda" % "joda-convert" % "1.2"
+)
 
 libraryDependencies += "com.google.code.gson" % "gson" % "2.1" % "compile"
 

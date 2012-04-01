@@ -22,7 +22,7 @@ import org.eiennohito.kotonoha.records.{NonceRecord, ClientRecord, UserTokenReco
 import net.liftweb.oauth.OAuthUtil.Parameter
 import net.liftweb.common.{Empty, Full, Box}
 import net.liftweb.oauth.{HttpRequestMessage, OAuthAccessor, OAuthMessage, OAuthValidator}
-import net.liftweb.http.{ForbiddenResponse, Req}
+import net.liftweb.http.{LiftResponse, ForbiddenResponse, Req}
 
 trait OauthRestHelper extends RestHelper {
 
@@ -61,14 +61,14 @@ trait OauthRestHelper extends RestHelper {
     !validated.isEmpty
   }
 
-  override def apply(in: Req) = {
+  override def apply(in: Req) : () => Box[LiftResponse] = {
     val msg = new HttpRequestMessage(in)
     val key = msg.getConsumerKey
     val tok = msg.getToken
 
     try {
       if (!process(key, tok) || !check(msg)) {
-        Full(ForbiddenResponse("Invalid OAuth"))
+        () => Full(ForbiddenResponse("Invalid OAuth"))
       } else {
         super.apply(in)
       }

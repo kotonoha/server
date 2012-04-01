@@ -28,6 +28,8 @@ libraryDependencies += "fuku.eb4j" % "eb4j-tools" % "1.0.5"
 libraryDependencies ++= {
   val liftVersion = "2.4" // Put the current/latest lift version here
   Seq(
+    "net.liftweb" %% "lift-util" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),
+    "net.liftweb" %% "lift-json-ext" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),
     "net.liftweb" %% "lift-webkit" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-mongodb-record" % liftVersion,
