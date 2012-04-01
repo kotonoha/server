@@ -61,7 +61,8 @@ object NonceRecord extends NonceRecord with MongoMetaRecord[NonceRecord] with Na
 
   def find(key: String, token: String, timestamp: Long, nonce: String) = {
 
-    val q = this where (_.consumerKey eqs key) and (_.token eqs token) and (_.timestamp eqs new DateTime(timestamp, UTC)) and
+    val d = new DateTime(timestamp, UTC)
+    val q = this where (_.consumerKey eqs key) and (_.token eqs token) and (_.timestamp between (d.minusSeconds(5), d.plusSeconds(5))) and
       (_.nonce eqs nonce)
     q.get() map {_.value}
   }

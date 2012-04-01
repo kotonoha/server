@@ -18,28 +18,20 @@ package org.eiennohito.kotonoha.actors
 
 import akka.actor.Actor
 import org.eiennohito.kotonoha.records.UserTokenRecord
-import java.security.SecureRandom
-import org.apache.commons.io.IOUtils
-import org.apache.commons.codec.binary.Hex
+import org.eiennohito.kotonoha.util.SecurityUtil
 
 /**
  * @author eiennohito
  * @since 25.03.12
  */
 
-case class RegisterClient(user: Long, label: String)
+case class CreateTokenForUser(user: Long, label: String)
 
 class UserTokenActor extends Actor with RootActor {
 
-  val rng = new SecureRandom()
+  def randomHex(bytes: Int = 16) = SecurityUtil.randomHex(bytes)
 
-  def randomHex(bytes: Int = 16) = {
-    val array = new Array[Byte](bytes)
-    rng.nextBytes(array)
-    Hex.encodeHexString(array)
-  }
-
-  def registerClient(user: Long, label: String) {
+  def createToken(user: Long, label: String) {
     val token = UserTokenRecord.createRecord.
         user(user).label(label)
     val tokenPrivate = randomHex(16)
@@ -50,6 +42,6 @@ class UserTokenActor extends Actor with RootActor {
   }
 
   protected def receive = {
-    case RegisterClient(user, label) => registerClient(user, label)
+    case CreateTokenForUser(user, label) => createToken(user, label)
   }
 }

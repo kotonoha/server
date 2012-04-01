@@ -3,7 +3,6 @@ package org.eiennohito.kotonoha.web.rest
 import net.liftweb.http.rest.RestHelper
 import net.liftweb.mockweb.MockWeb
 import org.scribe.builder.ServiceBuilder
-import org.eiennohito.kotonoha.model.KotonohaApi
 import org.scribe.model.{Token, Verb, OAuthRequest}
 import net.liftweb.mocks.MockHttpServletRequest
 import net.liftweb.oauth._
@@ -12,6 +11,10 @@ import net.liftweb.http._
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.oauth.OAuthUtil.Parameter
 import org.eiennohito.kotonoha.records.{NonceRecord, UserTokenRecord, ClientRecord}
+import org.scalatest.BeforeAndAfterAll
+import org.eiennohito.kotonoha.model.{MongoDb, KotonohaApi}
+import net.liftweb.util.ThreadGlobal
+import org.apache.commons.httpclient.util.EncodingUtil
 
 /*
  * Copyright 2012 eiennohito
@@ -29,72 +32,18 @@ import org.eiennohito.kotonoha.records.{NonceRecord, UserTokenRecord, ClientReco
  * limitations under the License.
  */
 
-trait OauthRestHelper extends RestHelper {
-  import com.foursquare.rogue.Rogue._
 
-  object restUser extends TransientRequestVar[Box[UserTokenRecord]](Empty)
-  object restClient extends TransientRequestVar[Box[ClientRecord]](Empty)
 
-  private val validator = new OAuthValidator {
-    protected def oauthNonceMeta = NonceRecord
-  }
-
-  def process(key: Box[Parameter], token: Box[Parameter]): Boolean = {
-
-    val user = token flatMap { t =>
-      UserTokenRecord where (_.tokenPublic eqs t.value) get()
-    }
-    val client = key flatMap { t =>
-      ClientRecord where (_.apiPublic eqs t.value) get()
-    }
-
-    restUser(user)
-    restClient(client)
-
-    !restUser.isEmpty && !restClient.isEmpty
-  }
-
-  def check(msg: OAuthMessage): Boolean = {
-    val user = restUser.get.openTheBox
-    val client = restClient.get.openTheBox
-    val assessor = new OAuthAccessor(client, Full(user.tokenSecret.is), Empty)
-    !validator.validateMessage(msg, assessor).isEmpty
-  }
-
-  override def apply(in: Req) = {
-    val msg = new HttpRequestMessage(in)
-    val key = msg.getConsumerKey
-    val tok = msg.getToken
-
-    if (!process(key, tok) && !check(msg))  {
-      Full(ForbiddenResponse("Invalid OAuth"))
-    }
-    super.apply(in)
-  }
-}
-
-class SimpleService extends RestHelper {
+object OAuthBasedService extends OauthRestHelper {
   serve {
-    case "cool" :: "service" :: Nil Get req => {
+    case List("api", "my", "service") Get req => {
       Full(PlainTextResponse("Ok"))
     }
+    case List("api", "my", "post") Post req => {
+      val v = req.body
+      Full(InMemoryResponse(v.get, Nil, Nil, 200))
+    }
   }
-}
-
-class DummyConsumer(val consumerKey: String, val consumerSecret: String) extends OAuthConsumer {
-  def reset {}
-
-  def enabled = 0
-
-  def user = null
-
-  def title = null
-
-  def applicationUri = null
-
-  def callbackUri = null
-
-  def xdatetime = null
 }
 
 object OAuthRequestMock {
@@ -109,52 +58,76 @@ object OAuthRequestMock {
 }
 
 
-class AuthTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
-  test("plain service works") {
-    val s = new SimpleService
-    val r = MockWeb.testReq("/cool/service") { req =>
-      s(req)
+class AuthTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers with BeforeAndAfterAll with MongoDb {
+  import org.eiennohito.kotonoha.util.SecurityUtil._
+
+  test("oauth get service works") {
+    val client = createClient()
+    val req = new OAuthRequest(Verb.GET, "http://weabpp.net:8085/k/api/my/service")
+    val tok = new Token(token.tokenPublic.is, token.tokenSecret.is)
+    client.signRequest(tok, req)
+
+    val mock = OAuthRequestMock(req, "/k")
+    val resp = MockWeb.testReq(mock) (OAuthBasedService(_))
+    val r = resp()
+    r.isEmpty should be (false)
+    r match {
+      case Full(PlainTextResponse(text, _, code)) => {
+        text should equal ("Ok")
+        code should equal (200)
+      }
+      case x @ _ => fail("Got responce we didn't waited for:\n" + x)
     }
-    r().isEmpty should be (false)
   }
 
-  object NonceMeta extends OAuthNonceMeta {
-    def create(consumerKey: String, token: String, timestamp: Long, nonce: String) {}
+  test("oauth post with body service works") {
+    val client = createClient()
+    val req = new OAuthRequest(Verb.POST, "http://weabpp.net:8085/k/api/my/post")
+    req.addPayload("Hello, world!")
+    val tok = new Token(token.tokenPublic.is, token.tokenSecret.is)
+    client.signRequest(tok, req)
 
-    def find(consumerKey1: String, token1: String, timestamp1: Long, nonce1: String) = {
-      Empty
+    val mock = OAuthRequestMock(req, "/k")
+    val resp = MockWeb.testReq(mock) (OAuthBasedService(_))
+    val r = resp()
+    r.isEmpty should be (false)
+    r match {
+      case Full(InMemoryResponse(bytes, _, _, code)) => {
+        val text = EncodingUtil.getString(bytes, "UTF-8")
+        text should equal ("Hello, world!")
+        code should equal (200)
+      }
+      case x @ _ => fail("Got responce we didn't waited for:\n" + x)
     }
-
-    def bulkDelete_!!(minTimestamp: Long) {}
   }
 
-  test("nothing") {
-    val apiKey = "dpf43f3p2l4k3l03"
-    val apiSecret = "kd94hf93k423kf44"
-    val tokenStr = "nnch734d00sl2jdk"
-    val tokenSec = "pfkkdhi9sl3r4s00"
+  def createClient() = {
     val api = new KotonohaApi("http://localhost:8080/k/") {
       override def getTimestampService = new TimestampServiceImpl {
       }
     }
     val bldr = new ServiceBuilder().
-      provider(api).apiKey(apiKey).apiSecret(apiSecret);
-    val serv = bldr.build();
-    val req = new OAuthRequest(Verb.GET, "http://localhost:8080/k/api/words/scheduled/10");
-    val token = new Token(tokenStr, tokenSec);
-    serv.signRequest(token, req);
+      provider(api).apiKey(client.apiPublic.is).apiSecret(client.apiPrivate.is);
+    bldr.build();
+  }
 
-    val mock = OAuthRequestMock(req, "/k")
-    MockWeb.testReq(mock) { r =>
-      val oar = new HttpRequestMessage(r)
-      val validator = new OAuthValidator {
-        protected def oauthNonceMeta = NonceMeta
-      }
-      val box = validator.validateMessage(oar, new OAuthAccessor(new DummyConsumer(apiKey, apiSecret), Full(tokenSec), Empty))
-      val i = 0;
-    }
+  val client = {
+    val clnt = ClientRecord.createRecord
+    clnt.name("Test client").apiPrivate(randomHex()).apiPublic(randomHex())
+  }
 
+  val token = {
+    val tok = UserTokenRecord.createRecord
+    tok.label("Test token").user(50L).tokenPublic(randomHex()).tokenSecret(randomHex())
+  }
 
+  override protected def beforeAll() {
+    client.save
+    token.save
+  }
 
+  override protected def afterAll() {
+    client.delete_!
+    token.delete_!
   }
 }

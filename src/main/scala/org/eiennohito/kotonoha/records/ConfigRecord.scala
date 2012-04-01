@@ -19,7 +19,7 @@ package org.eiennohito.kotonoha.records
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field.LongPk
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.record.field.BooleanField
+import net.liftweb.record.field.{StringField, BooleanField}
 
 /**
  * @author eiennohito
@@ -31,12 +31,13 @@ class ConfigRecord private() extends MongoRecord[ConfigRecord] with LongPk[Confi
   override def defaultIdValue = 0L
 
   object inviteOnly extends BooleanField(this, false)
+  object baseUri extends StringField(this, 250)
 
   def meta = ConfigRecord
 }
 
 object ConfigRecord extends ConfigRecord with MongoMetaRecord[ConfigRecord] with NamedDatabase {
-  private lazy val instance = find(0L) openOr (createRecord)
+  private lazy val instance = synchronized { find(0L) openOr (createRecord) }
   def apply = instance
 }
 
