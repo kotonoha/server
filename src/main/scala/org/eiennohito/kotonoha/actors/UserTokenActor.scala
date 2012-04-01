@@ -25,7 +25,7 @@ import org.eiennohito.kotonoha.util.SecurityUtil
  * @since 25.03.12
  */
 
-case class CreateTokenForUser(user: Long, label: String)
+case class CreateTokenForUser(user: Long, label: String) extends TokenMessage
 
 class UserTokenActor extends Actor with RootActor {
 

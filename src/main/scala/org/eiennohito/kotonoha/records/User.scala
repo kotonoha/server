@@ -8,6 +8,7 @@ import net.liftweb.util.FieldError
 import net.liftweb.oauth.OAuthConsumer
 import net.liftweb.record.field.{DateTimeField, EnumField, StringField}
 import org.eiennohito.kotonoha.util.DateTimeUtils
+import java.util.Calendar
 
 /*
  * Copyright 2012 eiennohito
@@ -123,11 +124,13 @@ object ClientRecord extends ClientRecord with MongoMetaRecord[ClientRecord] with
 
 class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with LongPk[UserTokenRecord] {
   def meta = UserTokenRecord
+  import DateTimeUtils._
 
   object user extends LongRefField(this, UserRecord)
   object label extends StringField(this, 100)
   object tokenPublic extends StringField(this, 32)
   object tokenSecret extends StringField(this, 32)
+  object createdOn extends DateTimeField(this, now)
 
   def auth = AuthCode(AppConfig().baseUri.is, tokenPublic.is, tokenSecret.is)
 }

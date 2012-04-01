@@ -30,11 +30,12 @@ class Boot {
     // where to search snippet
     LiftRules.addToPackages("org.eiennohito.kotonoha.web")
 
+    val loggedin = If(UserRecord.loggedIn_? _, "You are not logged in")
     // Build SiteMap
     def sitemap = SiteMap(
       Menu.i("Home") / "index",
-      Menu.i("User") / "user" >> UserRecord.AddUserMenusAfter,
-      Menu.i("Learning") / "learning" / "index" >> If(UserRecord.loggedIn_? _, "Nobody is logged in") submenus (
+      Menu.i("Client Authorizations") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter,
+      Menu.i("Learning") / "learning" / "index" >> loggedin submenus (
         Menu.i("Scheduled words") / "learning" / "scheduled_cnt",
         Menu.i("OF Matrix") / "learning" / "ofmatrix"
         ),
@@ -42,7 +43,7 @@ class Boot {
           Menu.i("Client List") / "admin" / "clients",
           Menu.i("Configuration") / "admin" / "config"
         ),
-      Menu.i("Words") / "words" / "index" >> If(UserRecord.loggedIn_? _, "Nobody is logged in") submenus (
+      Menu.i("Words") / "words" / "index" >> loggedin submenus (
           Menu.i("Add") / "words" / "add",
           Menu.i("Detail") / "words" / "detail" >> Hidden
         ),

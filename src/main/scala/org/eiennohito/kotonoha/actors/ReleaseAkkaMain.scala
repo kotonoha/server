@@ -64,6 +64,7 @@ trait KotonohaMessage
 trait DbMessage extends KotonohaMessage
 trait LifetimeMessage extends KotonohaMessage
 trait ClientMessage extends KotonohaMessage
+trait TokenMessage extends KotonohaMessage
 
 case object TopLevelActors
 
@@ -89,6 +90,7 @@ class RestartActor extends Actor with ActorLogging {
       case m: LifetimeMessage => lifetime.forward(msg)
       case m: QrMessage => qractor.forward(msg)
       case m: ClientMessage => clientActor.forward(msg)
+      case m: TokenMessage => userToken.forward(msg)
     }
   }
 
