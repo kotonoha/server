@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-package org.eiennohito.kotonoha.actors.lift
+package org.eiennohito.kotonoha.tools
 
-import akka.actor.{Actor, ActorRef}
-import akka.pattern.{ask, pipe}
-import net.liftweb.common.SimpleActor
+import scalax.file.Path
+import java.io.{InputStreamReader, FileInputStream}
+import collection.immutable.PagedSeq
+import util.parsing.input.StreamReader
+import org.eiennohito.kotonoha.dict.WarodaiParser
 
 /**
  * @author eiennohito
  * @since 05.04.12
  */
 
-//class SimpleAkka(akka: ActorRef, lift: SimpleActor[AnyRef]) extends SimpleActor[AnyRef] {
-//  def !(msg: AnyRef) = akka ! msg
-//}
-//
-//case class RegisterLift(actor: SimpleActor[_])
-//
-//class GatewayActor extends Actor {
-//  var liftActor: SimpleActor[AnyRef] = _
-//  protected def receive = {
-//    case RegisterLift(actor) => liftActor = actor
-//    case msg : AnyRef => liftActor ! msg
-//  }
-//}
+/**
+ * Usage: first parameter is filename, second is arguments
+ */
+object WarodaiImporter extends App {
+  val fn = args(0)
+  val enc = args(1)
+
+  val inp = new FileInputStream(fn)
+  val reader = new InputStreamReader(inp, enc)
+  val input = StreamReader(reader)
+  val words = WarodaiParser.cards(input)
+  val i = 0
+}
