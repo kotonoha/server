@@ -14,6 +14,10 @@
 * limitations under the License.
 */
 
+import java.util.Date
+import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import sbt._
 import Keys._
 
@@ -30,14 +34,44 @@ object Settings {
   )
 }
 
+object GitData {
+  def gitVer = {
+    val builder = new FileRepositoryBuilder();
+    val repository = builder.setGitDir(file("./.git"))
+      .readEnvironment() // scan environment GIT_* variables
+      .findGitDir() // scan up the file system tree
+      .build();
+    println("repository built")
+    val head = repository.resolve("HEAD")
+    println("head is " + head)
+    val refwalk = new RevWalk(repository)
+    val commit = refwalk.parseCommit(head)
+    val time = new Date(commit.getCommitTime * 1000L)
+    val id = head.abbreviate(10).name()
+    (time, id)
+  }
+}
+
 
 object KotonohaBuild extends Build {
   import Settings._
 
+  val gitId = TaskKey[String]("gitId", "Git commit id")
+  val gitDate = TaskKey[Long]("gitDate", "Git commit date")
+
+  val gitdata = {
+    val (time, id) = GitData.gitVer
+    (
+      gitId := id,
+      gitDate := time.getTime
+    )
+  }
+
+
   lazy val kotonoha = Project(
     id = "kotonoha",
     base = file("."),
-    settings = buildSettings
+    settings = buildSettings ++ Seq(gitdata._1) ++ Seq(gitdata._2)
   ) dependsOn(model)
 
   lazy val model = Project(

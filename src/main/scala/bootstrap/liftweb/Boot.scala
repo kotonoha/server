@@ -45,6 +45,7 @@ class Boot {
         ),
       Menu.i("Words") / "words" / "index" >> loggedin submenus (
           Menu.i("Add") / "words" / "add",
+          Menu.i("Approve") / "words" / "approve_added" >> Hidden,
           Menu.i("Detail") / "words" / "detail" >> Hidden
         ),
       Menu.i("Tools") / "tools" / "index" submenus (

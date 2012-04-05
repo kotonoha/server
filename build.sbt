@@ -1,4 +1,5 @@
 import sbt._
+import KotonohaBuild._
 
 seq(webSettings :_*)
 
@@ -72,6 +73,15 @@ javacOptions ++= Seq("-encoding", "utf8")
 
 scalacOptions ++= Seq("-unchecked")
 
-seq(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
-
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
+
+seq(buildInfoSettings: _*)
+
+sourceGenerators in Compile <+= buildInfo
+
+
+buildInfoKeys := Seq[Scoped](version, scalaVersion, sbtVersion, gitId, gitDate)
+
+buildInfoPackage := "org.eiennohito.kotonoha.util"
+
+buildInfoObject  := "BuildInfo"

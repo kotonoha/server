@@ -30,7 +30,7 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 object Formatting {
   class MyFormatter {
-    lazy val u = UserRecord.currentUser.openTheBox
+    lazy val u = UserRecord.currentUser openOr UserRecord.createRecord
     lazy val locale = u.locale.isAsLocale
     lazy val tz = {
       val t = u.timezone.is
