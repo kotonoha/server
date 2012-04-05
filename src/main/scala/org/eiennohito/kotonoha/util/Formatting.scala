@@ -18,10 +18,9 @@ package org.eiennohito.kotonoha.util
 
 import org.eiennohito.kotonoha.records.UserRecord
 import net.liftweb.http.RequestVar
-import org.eiennohito.kotonoha.util.Formatting.MyFormatter
 import java.util.TimeZone
 import org.joda.time.{DateTimeZone, DateTime}
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
+import org.joda.time.format.DateTimeFormat
 
 /**
  * @author eiennohito

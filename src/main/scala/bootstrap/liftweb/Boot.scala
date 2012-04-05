@@ -49,7 +49,8 @@ class Boot {
           Menu.i("Detail") / "words" / "detail" >> Hidden
         ),
       Menu.i("Tools") / "tools" / "index" submenus (
-        Menu.i("Test parser") / "tools" / "parser"
+        Menu.i("Test parser") / "tools" / "parser",
+        Menu.i("Comet test") / "tools" / "comet_test"
       )
     )
 

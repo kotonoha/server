@@ -17,8 +17,9 @@
 package org.eiennohito.kotonoha.web.snippet
 
 import xml.NodeSeq
-import net.liftweb.http.{CometActor, SHtml}
-import net.liftweb.http.js.{JE, JsonCall}
+import net.liftweb.http.js.{JsCmd, JsExp, JE, JsonCall}
+import net.liftweb.http.js.JsCmds.{RedirectTo, SetHtml, _Noop}
+import net.liftweb.http.{RedirectWithState, CometActor, SHtml}
 
 /**
  * @author eiennohito
@@ -26,8 +27,19 @@ import net.liftweb.http.js.{JE, JsonCall}
  */
 
 object AddWord {
+  import net.liftweb.util.Helpers._
   def addField(in: NodeSeq): NodeSeq = {
-    in
+    var data = ""
+
+    def process : JsCmd = {
+      val d = data
+      val i = 0
+      RedirectTo("added")
+    }
+
+    bind("word", SHtml.ajaxForm(in),
+      "data" -> SHtml.textarea(data, data = _),
+      "submit" -> SHtml.ajaxSubmit("Add words", process _))
   }
 }
 
@@ -38,8 +50,4 @@ class WordActor extends CometActor {
   def doSmt = {
     partialUpdate(JE.Call("smt", JE.Str("1")).cmd)
   }
-
-  def foo[T](bar: => T) = bar
-
-  val foobar = foo {/*enter and tab doesn't work here*/}
 }

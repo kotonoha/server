@@ -22,7 +22,19 @@
     <p>To add new words enter them into form below, one per line.</p>
   </div>
   <div>
-    <span class="lift:AddWord.addField"></span>
+    <div id="stats"></div>
+    <div>
+      <table class="lift:AddWord.addField" xmlns:word="word-data">
+        <tr>
+          <td>Add words here</td>
+          <td><word:data></word:data></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><word:submit></word:submit></td>
+        </tr>
+      </table>
+    </div>
   </div>
 </div>
 </body>
