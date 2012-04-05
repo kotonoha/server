@@ -92,7 +92,7 @@ trait KotonohaRest extends RestHelper with Logging with Akka {
       }
 }
 
-trait LearningRest extends KotonohaRest {
+trait LearningRest extends KotonohaRest with OauthRestHelper {
 
   import ResponseUtil._
   import akka.pattern.ask
@@ -113,7 +113,6 @@ trait LearningRest extends KotonohaRest {
   serve ( "api" / "words" prefix {
     case "scheduled" :: AsInt(max) :: Nil JsonGet req => {
       val t = new Timer
-      val userId = UserUtil.extractUser(req) ?~ "user is not valid" ~> 403
       if (max > 50) ForbiddenResponse("number is too big")
       else async(userId) { id =>
         val f = ask(akkaServ.wordSelector, LoadWords(id, max)).mapTo[WordsAndCards]
@@ -129,7 +128,6 @@ trait LearningRest extends KotonohaRest {
     case "mark" :: Nil JsonPost reqV => {
       val t = new Timer()
       val (json, req) = reqV
-      val userId = UserUtil.extractUser(req) ?~ "user is not valid" ~> 403
       async(userId) { id =>
         val marks = json.children map (MarkEventRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox)
         logger.info("posing %d marks for user %d".format(marks.length, id))
