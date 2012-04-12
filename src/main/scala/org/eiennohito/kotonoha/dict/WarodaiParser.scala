@@ -17,6 +17,7 @@
 package org.eiennohito.kotonoha.dict
 
 import util.parsing.combinator.RegexParsers
+import xml._
 
 /**
  * @author eiennohito
@@ -69,4 +70,69 @@ object WarodaiParser extends RegexParsers {
   def card = fullcard | emptycard
 
   def cards = rep1sep(card, repN(2, endl))
+}
+
+sealed trait Content {
+  def toNodeSeq: NodeSeq
+}
+
+case object Endl extends Content {
+  def toNodeSeq = <br/>
+}
+
+case class StringWrapper(str: String) extends Content {
+  def toNodeSeq = Text(str)
+}
+
+case class Join(left: Content, right: Content) extends Content {
+  def toNodeSeq = left.toNodeSeq ++ right.toNodeSeq
+}
+
+object JoinContent {
+  def apply(left: Content, right: Content): Content = (left, right) match {
+    case (StringWrapper(""), _) => right
+    case (_, StringWrapper("")) => left
+    case (_, _) => Join(left, right)
+  }
+}
+
+
+case class Tag(name: String, content: Content) extends Content {
+  def toNodeSeq = new Elem(null, name, Null, TopScope, content.toNodeSeq: _*)
+}
+
+object WarodaiBodyParser extends RegexParsers {
+  override def skipWhitespace = false
+
+  implicit def str2cont(s: String): Content = StringWrapper(s)
+
+  def text = regex("[^<\\n\\r]+".r) ^^ (StringWrapper(_))
+
+  def endl = "\n\r" | "\r\n" | "\n" ^^^ Endl
+
+  def tagname = regex("[^>]".r)
+
+  def tag : Parser[Content] = ("<" ~> tagname <~ ">") ~ text ~ ("</" ~> tagname <~ ">") into {
+    case n1 ~ content ~ n2 => {
+      if (n1 == n2) {
+        success(Tag(n1, content))
+      } else {
+        failure("tag %s wasn't equal to %s".format(n1, n2))
+      }
+    }
+  }
+
+  def textline = (text ~ line) ^^ { case l ~ r => JoinContent(l, r)}
+  def tagline = (tag ~ line) ^^ {case l ~ r => JoinContent(l, r)}
+  def endline = guard(opt(endl)) ^^ {
+    case Some(x) => Endl
+    case None => StringWrapper("")
+  }
+
+  def line : Parser[Content] = (textline | tagline | endline)
+  def body = rep1sep(line, endl) map {
+    l =>
+      def fnc(a: Content, b: Content) = JoinContent(a, b)
+      l.reduce(fnc)
+  }
 }

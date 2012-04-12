@@ -21,6 +21,8 @@ import java.io.{InputStreamReader, FileInputStream}
 import collection.immutable.PagedSeq
 import util.parsing.input.StreamReader
 import org.eiennohito.kotonoha.dict.WarodaiParser
+import org.eiennohito.kotonoha.mongodb.MongoDbInit
+import org.eiennohito.kotonoha.records.dictionary.WarodaiRecord
 
 /**
  * @author eiennohito
@@ -31,6 +33,7 @@ import org.eiennohito.kotonoha.dict.WarodaiParser
  * Usage: first parameter is filename, second is arguments
  */
 object WarodaiImporter extends App {
+  MongoDbInit.init()
   val fn = args(0)
   val enc = args(1)
 
@@ -38,5 +41,13 @@ object WarodaiImporter extends App {
   val reader = new InputStreamReader(inp, enc)
   val input = StreamReader(reader)
   val words = WarodaiParser.cards(input).get.toArray
-  val i = 0
+
+  for (word <- words) {
+    val rec = WarodaiRecord.createRecord
+    val hdr = word.header
+    val pos = hdr.id
+    rec.posNum(pos.num).posPage(pos.page).posVol(pos.vol).
+    readings(hdr.readings).writings(hdr.writings).rusReadings(hdr.rusReadings).
+    body(word.body).save
+  }
 }

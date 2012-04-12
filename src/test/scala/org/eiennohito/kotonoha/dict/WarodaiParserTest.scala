@@ -132,4 +132,40 @@ class WarodaiParserTest extends org.scalatest.FunSuite with org.scalatest.matche
     "\n\r\n\n\r\r\n"
   }
 
+  test("body parser parses text") {
+    val text = "Western) западный."
+    val pr = WarodaiBodyParser.text(text)
+    pr.successful should be (true)
+  }
+
+  test("body parser parses tag") {
+      val text = "<i>англ.</i>"
+      val pr = WarodaiBodyParser.tag(text)
+      pr.successful should be (true)
+    }
+
+  test("body parser parses tagline") {
+      val text = "<i>англ.</i> Western) западный."
+      val pr = WarodaiBodyParser.tagline(text)
+      pr.successful should be (true)
+    }
+
+  test("body parser parses line") {
+    val text = "(<i>англ.</i> Western) западный."
+    val pr = WarodaiBodyParser.line(text)
+    pr.successful should be (true)
+  }
+
+  test("body parser parses body") {
+    val text = """ウェスタン,ウェスターン(ўэсўтан, ўэсўта:н)〔2;373;47〕
+        (<i>англ.</i> Western) западный.
+        • В БЯРС пропущен вариант русской транскрипции с коротким слогом "та": ўэсўта:н ウェスタ[ー]ン.
+        """.trim
+
+    val crd = card(text)
+    crd.successful should be (true)
+    val body = crd.get.body
+    val pr = WarodaiBodyParser.body(body)
+    pr.successful should be (true)
+  }
 }

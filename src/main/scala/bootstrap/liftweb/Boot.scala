@@ -50,7 +50,8 @@ class Boot {
         ),
       Menu.i("Tools") / "tools" / "index" submenus (
         Menu.i("Test parser") / "tools" / "parser",
-        Menu.i("Comet test") / "tools" / "comet_test"
+        Menu.i("Comet test") / "tools" / "comet_test",
+        Menu.i("Warodai") / "tools" / "warodai"
       )
     )
 
