@@ -37,6 +37,6 @@ object WarodaiImporter extends App {
   val inp = new FileInputStream(fn)
   val reader = new InputStreamReader(inp, enc)
   val input = StreamReader(reader)
-  val words = WarodaiParser.cards(input)
+  val words = WarodaiParser.cards(input).get.toArray
   val i = 0
 }

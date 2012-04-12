@@ -33,27 +33,40 @@ object WarodaiParser extends RegexParsers {
   override def skipWhitespace = false
 
   def uint = regex("""[0-9]+""".r) ^^ (_.toInt)
+  def sint = opt("+" | "-") ~> uint
 
   def endl = "\n\r" | "\r\n" | "\n"
 
   def ws = literal(" ").*
 
-  def identifier = (("〔" ~> uint <~ ";") ~ uint <~ ";") ~ uint <~ "〕" ^^
+  def idwhat = (";" ~> uint) | ("(" ~> sint <~ (rep("," ~ sint) ~ opt(")")))
+
+  def identifier = (("〔" ~> uint <~ (opt(" ") ~ ";" ~ opt(" "))) ~ uint ) ~ idwhat <~ "〕" ^^
     { case vol ~ page ~ entry =>  Identifier(vol, page, entry) }
 
   def rusReading = "(" ~> rep1sep( regex("[^\\,)]+".r), ", ") <~ ")"
 
-  def reading = rep1sep(regex("[^,\\(【]+".r), ", ")
+  def reading = rep1sep(regex("[^,\\(【]+".r), ", ?".r)
 
-  def writing = "【" ~> rep1sep("[^,】]+".r, ", ") <~ "】"
+  def writing = "【" ~> rep1sep("[^,】]+".r, ", ?".r) <~ "】"
 
-  def header = ((reading ~ opt(writing) <~ ws) ~ rusReading <~ ws) ~ identifier ^^ {
+  def header = "<i>".? ~> (((reading ~ opt(writing) <~ ws) ~ rusReading <~ ws) ~ identifier) <~ "</i>".? ^^ {
     case r ~ w ~ rr ~ i => Header(r, w.getOrElse(Nil), rr, i)
   }
 
-  def card = (header <~ "\n") ~ rep1sep("[^\\n]+".r, endl) ^^ {
-    case hdr ~ body => Card(hdr, body.map(_.trim).mkString("\n"))
+  def body: Parser[String] = rep1sep("[^\\n]+".r, endl) ^^ {
+    case body => body.map(_.trim).mkString("\n")
   }
+
+  def fullcard = (header <~ endl) ~ body ^^ {
+    case hdr ~ body => Card(hdr, body)
+  }
+
+  def emptycard : Parser[Card] = (header <~ guard(endl ~ endl)) map {
+    case h: Header => Card(h, "")
+  }
+
+  def card = fullcard | emptycard
 
   def cards = rep1sep(card, repN(2, endl))
 }

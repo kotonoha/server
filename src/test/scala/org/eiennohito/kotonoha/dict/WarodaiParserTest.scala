@@ -55,6 +55,20 @@ class WarodaiParserTest extends org.scalatest.FunSuite with org.scalatest.matche
     pr.get.num should equal (8)
   }
 
+  test("parses what identifier correctly") {
+    val text = "〔1;0185(-0184)〕"
+    val pr = identifier(text)
+    pr.successful should be (true)
+    pr.get.num should equal (184)
+  }
+
+  test("parses what2 identifier correctly") {
+      val text = "〔1;0368(-0367,+0369)〕"
+      val pr = identifier(text)
+      pr.successful should be (true)
+      pr.get.num should equal (367)
+    }
+
   test("parses whole header") {
     val text = "あばよ(абаё)〔1;1;8〕"
     val h = header(text)
@@ -105,10 +119,10 @@ class WarodaiParserTest extends org.scalatest.FunSuite with org.scalatest.matche
   }
 
   test("parse strange") {
-    val text = """あがめる【崇める】 (агамэру)〔1;3;48〕
-        почитать; поклоняться;
-        神と崇める обожествлять;
-        …を師と崇める почитать <i>кого-л.</i> как своего учителя."""
+    val text = """ウェスタン,ウェスターン(ўэсўтан, ўэсўта:н)〔2;373;47〕
+    (<i>англ.</i> Western) западный.
+    • В БЯРС пропущен вариант русской транскрипции с коротким слогом "та": ўэсўта:н ウェスタ[ー]ン.
+    """.trim
 
     val crd = card(text)
     crd.successful should be (true)
