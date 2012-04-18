@@ -74,6 +74,7 @@ class JMDictParserTest extends org.scalatest.FunSuite with org.scalatest.matcher
     </sense>
     </entry>""")
     val e = d.trans("entry")(JMDictParser.parseEntry(_))
-    val i = 0
+    e.meaning.is should have length (1)
+    e.reading.is.head.value.is should equal ("どうじょう")
   }
 }

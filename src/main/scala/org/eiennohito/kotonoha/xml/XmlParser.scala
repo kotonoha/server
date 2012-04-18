@@ -26,7 +26,7 @@ import scala.None
  * @since 14.04.12
  */
 
-trait CalculatingIterator[T] extends Iterator[T] {
+trait CalculatingIterator[T] extends Iterator[T] with BufferedIterator[T] {
   protected def calculate(): Option[T]
 
   private var nextval = calculate()
@@ -38,6 +38,10 @@ trait CalculatingIterator[T] extends Iterator[T] {
     nextval = calculate()
     v
   }
+
+  def head = nextval.get
+
+  def chead = nextval
 }
 
 trait XmlData {
@@ -127,7 +131,6 @@ class XmlIterator(in: XMLEventReader) extends CalculatingIterator[XmlData] {
     while (ok && in.hasNext) {
       val next = in.nextEvent()
       val ev = transform(next)
-      println("calculated next: " + ev)
       ok = ev.isEmpty
       if (!ok) {
         return ev
@@ -137,8 +140,7 @@ class XmlIterator(in: XMLEventReader) extends CalculatingIterator[XmlData] {
   }
 }
 
-class XmlParseTransformer(iter: Iterator[XmlData]) {
-  lazy val in = iter.buffered
+class XmlParseTransformer(in: CalculatingIterator[XmlData]) {
 
   def next() = in.next()
 
@@ -146,7 +148,6 @@ class XmlParseTransformer(iter: Iterator[XmlData]) {
     val work = true
     while (work && in.hasNext) {
       val n = in.head
-      println("trying to match " + n)
       if (pf.isDefinedAt(n)) {
         pf.apply(n)
       }
@@ -210,15 +211,26 @@ class XmlParseTransformer(iter: Iterator[XmlData]) {
   }
 
   def untilEndTag(name: String) = {
-    new XmlParseTransformer(in.takeWhile {
-      case XmlElEnd(nm) if nm == name => false
-      case _ => true
+    new XmlParseTransformer(new CalculatingIterator[XmlData] {
+      protected def calculate() = None
+
+      override def chead = in.chead
+
+      override def head = in.head
+
+      override def next() = in.next()
+
+      override def hasNext = chead match {
+        case None => false
+        case Some(XmlElEnd(nm)) if nm == name => false
+        case _ => true
+      }
     })
   }
 }
 
 object XmlParser {
-  implicit def iterator2parsetransformer(in: Iterator[XmlData]) = new XmlParseTransformer(in)
+  implicit def iterator2parsetransformer(in: CalculatingIterator[XmlData]) = new XmlParseTransformer(in)
 
   def parse(in: XMLEventReader) = new XmlIterator(in)
 }
