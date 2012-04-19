@@ -63,7 +63,7 @@ libraryDependencies += "com.j256.ormlite" % "ormlite-jdbc" % "4.33" % "test"
 
 resolvers += "some weird japanese repo" at "http://dev.mwsoft.jp/repo/"
 
-libraryDependencies += "net.java.sen" % "lucene-gosen" % "1.1.1" exclude ("org.slf4j", "slf4j-jdk14")
+libraryDependencies += "net.java.sen" % "lucene-gosen" % "2.1" exclude ("org.slf4j", "slf4j-jdk14")
 
 libraryDependencies += "com.h2database" % "h2" % "1.3.163" % "test"
 
