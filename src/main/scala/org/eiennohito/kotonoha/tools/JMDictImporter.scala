@@ -18,6 +18,9 @@ package org.eiennohito.kotonoha.tools
 
 import org.eiennohito.kotonoha.dict.JMDictParser
 import java.io.{FileInputStream, File}
+import org.eiennohito.kotonoha.mongodb.MongoDbInit
+import org.eiennohito.kotonoha.records.dictionary.JMDictRecord
+import com.mongodb.BasicDBObject
 
 /**
  * @author eiennohito
@@ -29,10 +32,12 @@ object JMDictImporter {
 
   def main(args: Array[String]) = {
     val name = args(0)
+    MongoDbInit.init()
+    JMDictRecord.delete(new BasicDBObject()) //delete all
     for (input <- managed(new FileInputStream(name))) {
       val entries = JMDictParser.parse(input)
-      val lst = entries.toList
-      lst.foreach(println(_))
+      //val data = entries.slice(0, 20).toArray
+      entries.foreach(_.save)
     }
   }
 

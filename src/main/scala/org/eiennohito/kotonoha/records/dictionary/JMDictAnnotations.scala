@@ -16,14 +16,17 @@
 
 package org.eiennohito.kotonoha.records.dictionary
 
+import com.weiglewilczek.slf4s.Logging
+
 /**
  * @author eiennohito
  * @since 16.04.12
  */
 
-object JMDictAnnotations extends Enumeration {
+object JMDictAnnotations extends Enumeration with Logging {
 
-  class JMAnnotation(short: String, val long: String) extends Val(nextId, short)
+  class JMAnnotation(val short: String, val long: String) extends Val(nextId, short) {
+  }
 
   protected def Value(short: String, lv: String) = new JMAnnotation(short, lv)
 
@@ -139,5 +142,14 @@ object JMDictAnnotations extends Enumeration {
   val hob = Value("hob", "Hokkaido-ben")
   val vt = Value("vt", "transitive verb")
   val vulg = Value("vulg", "vulgar expression or word")
+  val unknown = Value("unknown", "unknown")
   override type Value = JMAnnotation
+
+  private lazy val namemap = {
+    values.map(v => v.toString() -> v).toMap.withDefault{s => logger.warn("unknown value: " + s); unknown}
+  }
+
+  def safeValueOf(in: String) = {
+    namemap(in)
+  }
 }

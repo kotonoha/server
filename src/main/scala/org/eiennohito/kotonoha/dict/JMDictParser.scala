@@ -22,6 +22,7 @@ import java.io.InputStream
 import javax.xml.stream.XMLInputFactory
 import xml.pull.XMLEventReader
 import org.eiennohito.kotonoha.records.dictionary._
+import com.weiglewilczek.slf4s.Logging
 
 
 object JMDictParser {
@@ -49,15 +50,22 @@ object JMDictParser {
     }
   }
 
-  def parseSense(it: XmlParseTransformer): JMDictMeaning = {
+  private def lang(n: XmlEl) = {
+    n.attrs.get("lang") match {
+      case Some(l) => l
+      case None => "eng"
+    }
+  }
+
+   def parseSense(it: XmlParseTransformer): JMDictMeaning = {
     it.trans("sense") { it =>
       val rec = JMDictMeaning.createRecord
-      val pos = JMDictAnnotations.withName(it.textOf("pos"))
-      val mns = it.transSeq("gloss", true) (it => it.next() match {
-        case XmlText(t) => t
-        case _ => ""
-      })
-      rec.pos(pos).vals(mns.toList)
+      val gl = new mut.ListBuffer[LocString]
+      it.selector {
+        case XmlEl("pos") => rec.pos(JMDictAnnotations.safeValueOf(it.textOf("pos")))
+        case x @ XmlEl("gloss") => gl += LocString(it.textOf("gloss"), lang(x))
+      }
+      rec.vals(gl.toList)
     }
   }
 

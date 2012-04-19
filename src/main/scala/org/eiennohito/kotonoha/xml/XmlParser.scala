@@ -145,13 +145,14 @@ class XmlParseTransformer(in: CalculatingIterator[XmlData]) {
   def next() = in.next()
 
   def selector[T](pf: PartialFunction[XmlData, T]) = {
-    val work = true
-    while (work && in.hasNext) {
+    while (in.hasNext) {
       val n = in.head
       if (pf.isDefinedAt(n)) {
         pf.apply(n)
+      } else {
+        in.next()
       }
-      if (in.hasNext) in.next()
+      //if (in.hasNext) in.next()
     }
   }
 
@@ -202,11 +203,14 @@ class XmlParseTransformer(in: CalculatingIterator[XmlData]) {
   }
 
   def textOf(name: String) = {
+    def check(b: String, e: String) = {
+      b == name && e == name
+    }
     val tags = in.take(3).toList
     tags match {
-      case XmlEl(ns) :: XmlText(t) :: XmlElEnd(ne) :: Nil => t
-      case XmlEl(ns) :: XmlERef(t) :: XmlElEnd(ne) :: Nil => t
-      case _ => throw new RuntimeException("there wasn't tag " + name)
+      case XmlEl(ns) :: XmlText(t) :: XmlElEnd(ne) :: Nil if check(ns, ne) => t
+      case XmlEl(ns) :: XmlERef(t) :: XmlElEnd(ne) :: Nil if check(ns, ne) => t
+      case _ => throw new RuntimeException("there wasn't tag " + name + " but there was " + tags)
     }
   }
 

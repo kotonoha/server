@@ -27,11 +27,13 @@ import net.liftweb.mongodb.record.field.{MongoCaseClassListField, BsonRecordList
  * @since 14.04.12
  */
 
+case class LocString(str: String, loc: String)
+
 class JMDictMeaning extends BsonRecord[JMDictMeaning] {
   def meta = JMDictMeaning
 
   object pos extends EnumField(this, JMDictAnnotations)
-  object vals extends MongoListField[JMDictMeaning, String](this)
+  object vals extends MongoCaseClassListField[JMDictMeaning, LocString](this)
 }
 
 object JMDictMeaning extends JMDictMeaning with BsonMetaRecord[JMDictMeaning]
