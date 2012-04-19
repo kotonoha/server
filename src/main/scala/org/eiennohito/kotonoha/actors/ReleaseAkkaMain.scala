@@ -82,6 +82,7 @@ class RestartActor extends Actor with ActorLogging {
   lazy val qractor = context.actorOf(Props[QrCreator])
   lazy val clientActor = context.actorOf(Props[ClientRegistry])
   lazy val userToken = context.actorOf(Props[UserTokenActor])
+  lazy val luceneActor = context.actorOf(Props[ExampleSearchActor])
 
 
   def dispatch(msg: KotonohaMessage) {
@@ -91,6 +92,7 @@ class RestartActor extends Actor with ActorLogging {
       case m: QrMessage => qractor.forward(msg)
       case m: ClientMessage => clientActor.forward(msg)
       case m: TokenMessage => userToken.forward(msg)
+      case m: SearchMessage => luceneActor.forward(msg)
     }
   }
 

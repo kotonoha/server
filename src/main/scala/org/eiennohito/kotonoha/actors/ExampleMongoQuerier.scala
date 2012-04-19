@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-package org.eiennohito.kotonoha.dict
+package org.eiennohito.kotonoha.actors
 
-import java.nio.ByteBuffer
-import java.io.File
+import akka.actor.{Actor, ActorRef}
+import akka.pattern.{ask, pipe}
 
+/**
+ * @author eiennohito
+ * @since 19.04.12
+ */
 
-class TatoebaLinkTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
-  test("test it works") {
-    val bb = ByteBuffer.allocate(1024)
-    val link = TatoebaLink(5, 6, "eng", "rus")
-    link.toBuffer(bb)
-    bb.rewind()
-    val l2 = TatoebaLink.fromBuffer(bb)
-    l2 should equal (link)
-  }
-
-  test("finder works") {
-    val fnd = new TatoebaLinks(new File("e:\\Temp\\wap_soft\\tatoeba\\links.bin"))
-    val vals = fnd.from(1089200).toList
-    val i = 0
+class ExampleMongoQuerier extends Actor {
+  protected def receive = {
+    case "a" =>
   }
 }

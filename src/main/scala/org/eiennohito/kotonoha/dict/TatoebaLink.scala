@@ -75,13 +75,21 @@ class TatoebaLinks(in: File) {
     chan.map(MapMode.READ_ONLY, 0L, in.length())
   }
 
-  private val sz = in.length() / 16L
+  private val sz = in.length()
 
   def findAny(buf: ByteBuffer, id: Int): Int = {
     var bot = 0
     var top = sz.toInt
+    var prev = 0
     while (true) {
+      if (top - bot == 16) {
+        return -1
+      }
       val mid = ((top + bot) >> 1) & 0xfffffff0
+      if (mid == prev) {
+        throw new Exception("repetition in binary search with id: " +id)
+      }
+      prev = mid
       buf.position(mid)
       val item = buf.getInt
       if (item == id) {
@@ -99,6 +107,7 @@ class TatoebaLinks(in: File) {
   def findFirst(id: Long): Int = {
     val buf = buffer.duplicate()
     var pos = findAny(buf, id.toInt)
+    if (pos == -1) { return  pos }
     buf.position(pos)
     while (buf.getInt == id) {
       pos -= 16
@@ -109,6 +118,9 @@ class TatoebaLinks(in: File) {
 
   def from(id: Long): Iterator[TatoebaLink] = {
     val pos = findFirst(id)
+    if (pos == -1) {
+      return Iterator.empty
+    }
     new CalculatingIterator[TatoebaLink] {
       lazy val buf =  {
         val b = buffer.duplicate()

@@ -1,2 +1,6 @@
 db.server=localhost
 db.name=kotonoha
+#dict.name= dictionaries db name here
+#change to yours
+lucene.indexdir=e:\\Temp\\lucene_idx
+example.index=e:\\Temp\\wap_soft\\tatoeba\\links.bin

@@ -19,40 +19,27 @@ package org.eiennohito.kotonoha.lucene
 import org.apache.lucene.analysis.gosen.GosenAnalyzer
 import org.apache.lucene.util.Version
 import org.apache.lucene.store.SimpleFSDirectory
-import org.apache.lucene.index.{IndexWriter, IndexWriterConfig}
 import tools.nsc.io.Path
 import java.nio.channels.FileChannel
 import java.io.{RandomAccessFile, File}
 import java.nio.channels.FileChannel.MapMode
+import org.apache.lucene.queryParser.QueryParser
+import org.apache.lucene.index.{IndexReader, IndexWriter, IndexWriterConfig}
+import org.apache.lucene.search.{TopScoreDocCollector, IndexSearcher}
 
 class LuceneTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
-  implicit def indexWriter2docAdder(i: IndexWriter) = new DocAdder(i)
 
-  test("smt") {
+  test("lucene searches") {
+    val dir = new SimpleFSDirectory(new File("e:\\Temp\\lucene_idx\\"))
     val ga = new GosenAnalyzer(Version.LUCENE_35)
-    val index = new SimpleFSDirectory(new File("e:/Temp/lucene_idx"))
-    val config = new IndexWriterConfig(Version.LUCENE_35, ga)
-    val w = new IndexWriter(index, config)
-
-
-  }
-
-  class DocAdder(i: IndexWriter) {
-
-  }
-
-
-  test("channels and buffers") {
-    val fl = new File("e:/temp/asd")
-    val raf = new RandomAccessFile(fl, "rw")
-    val fc = raf.getChannel
-    val buf = fc.map(MapMode.READ_WRITE, 0, 4096)
-    val lb = buf.asLongBuffer()
-    val al = (0L until 512L).toArray
-    lb.put(al)
-    buf.force()
-    fc.force(false)
-    fc.close()
+    val qp = new QueryParser(Version.LUCENE_35, "text", ga)
+    val q = qp.parse("家　寒い")
+    val ir = IndexReader.open(dir)
+    val is = new IndexSearcher(ir)
+    val tsdc = TopScoreDocCollector.create(12, true)
+    is.search(q, tsdc)
+    val hits = tsdc.topDocs().scoreDocs
+    hits.map(h => h -> is.doc(h.doc)).foreach(println(_))
   }
 
 }
