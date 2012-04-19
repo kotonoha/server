@@ -17,6 +17,7 @@
 package org.eiennohito.kotonoha.dict
 
 import java.nio.ByteBuffer
+import java.io.File
 
 
 class TatoebaLinkTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
@@ -27,5 +28,11 @@ class TatoebaLinkTest extends org.scalatest.FunSuite with org.scalatest.matchers
     bb.rewind()
     val l2 = TatoebaLink.fromBuffer(bb)
     l2 should equal (link)
+  }
+
+  test("finder works") {
+    val fnd = new TatoebaLinks(new File("e:\\Temp\\wap_soft\\tatoeba\\links.bin"))
+    val vals = fnd.from(9523).toList
+    val i = 0
   }
 }

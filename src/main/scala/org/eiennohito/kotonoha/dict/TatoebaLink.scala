@@ -16,8 +16,10 @@
 
 package org.eiennohito.kotonoha.dict
 
-import java.io.File
 import java.nio.ByteBuffer
+import java.io.{FileInputStream, File}
+import java.nio.channels.FileChannel.MapMode
+import org.eiennohito.kotonoha.xml.CalculatingIterator
 
 /**
  * @author eiennohito
@@ -67,6 +69,62 @@ object TatoebaLink {
 }
 
 class TatoebaLinks(in: File) {
+  private val buffer = {
+    val str = new FileInputStream(in)
+    val chan = str.getChannel
+    chan.map(MapMode.READ_ONLY, 0L, in.length())
+  }
 
+  private val sz = in.length() / 16L
+
+  def findAny(buf: ByteBuffer, id: Int): Int = {
+    var bot = 0
+    var top = sz.toInt
+    while (true) {
+      val mid = ((top + bot) >> 1) & 0xfffffff0
+      buf.position(mid)
+      val item = buf.getInt
+      if (item == id) {
+        return mid;
+      }
+      if (item < id) {
+        bot = mid
+      } else {
+        top = mid
+      }
+    }
+    throw new Exception("can't happen!")
+  }
+
+  def findFirst(id: Long): Int = {
+    val buf = buffer.duplicate()
+    var pos = findAny(buf, id.toInt)
+    buf.position(pos)
+    while (buf.getInt == id) {
+      pos -= 16
+      buf.position(pos)
+    }
+    pos + 16
+  }
+
+  def from(id: Long): Iterator[TatoebaLink] = {
+    val pos = findFirst(id)
+    new CalculatingIterator[TatoebaLink] {
+      lazy val buf =  {
+        val b = buffer.duplicate()
+        b.position(pos)
+        b
+      }
+
+      protected def calculate() = {
+        val item = TatoebaLink.fromBuffer(buf)
+        if (item.left == id) {
+          Some(item)
+        } else {
+          None
+        }
+      }
+    }
+  }
   //private val
 }
