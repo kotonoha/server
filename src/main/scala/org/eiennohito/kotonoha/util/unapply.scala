@@ -1,10 +1,3 @@
-package org.eiennohito.kotonoha.gosen
-
-import net.java.sen.SenFactory
-import java.util.List
-import net.java.sen.dictionary.Token
-import scala.collection.JavaConversions._
-
 /*
  * Copyright 2012 eiennohito
  *
@@ -21,15 +14,26 @@ import scala.collection.JavaConversions._
  * limitations under the License.
  */
 
+package org.eiennohito.kotonoha.util
 
-class TestWorks extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
-  
-  test("it works?") {
-    val fact = SenFactory.getStringTagger(null)
-    val tok: List[Token] = fact.analyze("この世は甘くありませんだろう！")
-    tok.foreach { t =>
-      val m = t.getMorpheme
-      println (t.getSurface)
+/**
+ * @author eiennohito
+ * @since 19.04.12
+ */
+
+package object unapply {
+  import net.liftweb.util.ControlHelpers.tryo
+
+  object XHexLong {
+    def unapply(s: String): Option[Long] = {
+      tryo {
+        ParseUtil.hexLong(s)
+      }
     }
   }
+
+  object XLong {
+    def unapply(s: String): Option[Long] = tryo { s.toLong }
+  }
+
 }

@@ -17,9 +17,9 @@
 package org.eiennohito.kotonoha.records.dictionary
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field.{MongoListField, LongPk}
 import net.liftweb.record.field.{StringField, IntField}
+import org.eiennohito.kotonoha.mongodb.DictDatabase
 
 /**
  * @author eiennohito
@@ -40,4 +40,4 @@ class WarodaiRecord private() extends MongoRecord[WarodaiRecord] with LongPk[War
   object body extends StringField(this, 8192)
 }
 
-object WarodaiRecord extends WarodaiRecord with MongoMetaRecord[WarodaiRecord] with NamedDatabase
+object WarodaiRecord extends WarodaiRecord with MongoMetaRecord[WarodaiRecord] with DictDatabase

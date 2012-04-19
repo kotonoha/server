@@ -16,11 +16,10 @@
 
 package org.eiennohito.kotonoha.records.dictionary
 
-import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
 import net.liftweb.record.field.{StringField, EnumField}
-import com.foursquare.rogue.CaseClassListQueryField
-import net.liftweb.mongodb.record.field.{MongoCaseClassListField, BsonRecordListField, MongoListField, LongPk}
+import net.liftweb.mongodb.record.field.{MongoCaseClassListField, BsonRecordListField, LongPk}
+import org.eiennohito.kotonoha.mongodb.DictDatabase
 
 /**
  * @author eiennohito
@@ -57,4 +56,4 @@ class JMDictRecord private() extends MongoRecord[JMDictRecord] with LongPk[JMDic
   object meaning extends BsonRecordListField(this, JMDictMeaning)
 }
 
-object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with NamedDatabase
+object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with DictDatabase

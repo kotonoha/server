@@ -33,11 +33,13 @@ object MongoDbInit extends Logging {
       if (!inited) {
         val server = Props.get("db.server").get
         val dbname = Props.get("db.name").get
+        val dictname = Props.get("dict.name", "dict")
 
         logger.info("using on server %s database %s".format(server, dbname))
 
         val sa = new ServerAddress(server, Props.getInt("db.port", ServerAddress.defaultPort()))
         MongoDB.defineDb(DbId, new Mongo(sa), dbname)
+        MongoDB.defineDb(DictId, new Mongo(sa), dictname)
         inited = true;
       }
     }
@@ -48,6 +50,15 @@ object DbId extends MongoIdentifier {
   def jndiName = dbName
 }
 
+object DictId extends MongoIdentifier {
+  val dbName = Props.get("dict.name", "dict")
+  def jndiName = dbName
+}
+
 trait NamedDatabase { self: MongoMeta[_] =>
   override def mongoIdentifier = DbId
+}
+
+trait DictDatabase {self: MongoMeta[_] =>
+  override def mongoIdentifier = DictId
 }

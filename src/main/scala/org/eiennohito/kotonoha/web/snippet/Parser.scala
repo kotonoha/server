@@ -31,7 +31,7 @@ import xml.{Elem, NodeSeq}
  */
 
 object Parser {
-  val fact = SenFactory.getStringTagger
+  val fact = SenFactory.getStringTagger(null)
 
   import net.liftweb.util.Helpers._
 

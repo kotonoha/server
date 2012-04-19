@@ -1,10 +1,3 @@
-package org.eiennohito.kotonoha.gosen
-
-import net.java.sen.SenFactory
-import java.util.List
-import net.java.sen.dictionary.Token
-import scala.collection.JavaConversions._
-
 /*
  * Copyright 2012 eiennohito
  *
@@ -21,15 +14,18 @@ import scala.collection.JavaConversions._
  * limitations under the License.
  */
 
+package org.eiennohito.kotonoha.dict
 
-class TestWorks extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
-  
-  test("it works?") {
-    val fact = SenFactory.getStringTagger(null)
-    val tok: List[Token] = fact.analyze("この世は甘くありませんだろう！")
-    tok.foreach { t =>
-      val m = t.getMorpheme
-      println (t.getSurface)
-    }
+import java.nio.ByteBuffer
+
+
+class TatoebaLinkTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
+  test("test it works") {
+    val bb = ByteBuffer.allocate(1024)
+    val link = TatoebaLink(5, 6, "eng", "rus")
+    link.toBuffer(bb)
+    bb.rewind()
+    val l2 = TatoebaLink.fromBuffer(bb)
+    l2 should equal (link)
   }
 }

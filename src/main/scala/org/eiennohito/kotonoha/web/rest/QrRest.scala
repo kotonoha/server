@@ -24,6 +24,7 @@ import org.apache.commons.io.IOUtils
 import net.liftweb.http.{LiftRules, InMemoryResponse, StreamingResponse, OutputStreamResponse}
 import org.eiennohito.kotonoha.records.QrEntry
 import org.eiennohito.kotonoha.util.ParseUtil
+import org.eiennohito.kotonoha.util.unapply.XHexLong
 
 
 /**
@@ -31,14 +32,6 @@ import org.eiennohito.kotonoha.util.ParseUtil
  * @since 22.03.12
  */
 
-object HexLong {
-  import net.liftweb.util.ControlHelpers.tryo
-  def unapply(s: String): Option[Long] = {
-    tryo {
-      ParseUtil.hexLong(s)
-    }
-  }
-}
 
 trait QrRest extends KotonohaRest {
   import com.foursquare.rogue.Rogue._
@@ -53,7 +46,7 @@ trait QrRest extends KotonohaRest {
       OutputStreamResponse(s => renderer.toStream(s), -1, List("Content-Type" -> "image/png"))
     }
 
-    case "iqr" :: HexLong(code) :: Nil Get req => {
+    case "iqr" :: XHexLong(code) :: Nil Get req => {
       val entry = QrEntry where (_.id eqs code) get()
       val arr = entry.map(_.binary.is).getOrElse(invalidQr.openTheBox)
       InMemoryResponse(arr, List("Content-Type" -> "image/png"), Nil, 200)
