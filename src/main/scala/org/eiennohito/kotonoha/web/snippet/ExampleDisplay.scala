@@ -44,14 +44,9 @@ trait ExampleDisplay extends Akka {
     bind("ef", in, "fld" -> SHtml.text(query.is, query(_), "name" -> "query"))
   }
 
-  def okayLang(in: String) = in match {
-    case "eng" => true
-    case "rus" => true
-    case _ => false
-  }
-
   //small wtf, build list of examples and translations from query
   def docs: List[List[ExampleSentenceRecord]] = {
+    import org.eiennohito.kotonoha.util.LangUtil.okayLang
     val f = (akkaServ ? SearchQuery(query.is)).mapTo[List[Long]]
     val candidates = Await.result(f, 1 second)
     val complicated = candidates.map(exampleSearcher.from(_).filter(e => okayLang(e.rightLang)).toList)

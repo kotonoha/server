@@ -143,13 +143,15 @@ object JMDictAnnotations extends Enumeration with Logging {
   val vt = Value("vt", "transitive verb")
   val vulg = Value("vulg", "vulgar expression or word")
   val unknown = Value("unknown", "unknown")
+
   override type Value = JMAnnotation
+
 
   private lazy val namemap = {
     values.map(v => v.toString() -> v).toMap.withDefault{s => logger.warn("unknown value: " + s); unknown}
   }
 
   def safeValueOf(in: String) = {
-    namemap(in)
+    namemap(in).asInstanceOf[JMAnnotation]
   }
 }

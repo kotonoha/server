@@ -61,7 +61,7 @@ object Warodai extends Logging {
     val query: JObject = "$or" -> List(("readings" -> inner), ("writings" -> inner))
     val jse = compact(render(query))
     logger.debug(jse)
-    val objs = WarodaiRecord.findAll(query, Limit(25))
+    val objs = WarodaiRecord.findAll(query, Limit(50))
     objs flatMap { o =>
       bind("we", in,
         "writing" -> o.writings.is.mkString(", "),

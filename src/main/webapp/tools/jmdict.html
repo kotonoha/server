@@ -18,22 +18,51 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
-  <form method="GET" class="lift:Warodai.fld" xmlns:frm="warodai-form">
+  <head_merge>
+    <style type="text/css">
+      span.writing {
+        margin: 2pt;
+      }
+
+      .nihongo {
+        font-family: Meiryo, MS Gothic;
+        font-size: larger;
+      }
+
+      .dict-entry {
+        margin: 5pt;
+        border-bottom: dotted gray 1px;
+      }
+
+      div.m-ent {
+        display: table-row;
+      }
+
+      .dict-pos {
+        color: #a52a2a;
+        font-style: italic;
+        display: block;
+      }
+
+      .dict-mean {
+        display: block;
+      }
+    </style>
+  </head_merge>
+  <form method="GET" class="lift:JMDict.fld" xmlns:frm="warodai-form">
     <label>
       Query <input type="text" name="query" frm:value="">
     </label>
     <input type="submit">
   </form>
-  <div class="lift:Warodai.list" xmlns:we="warodai-entry">
+  <div class="lift:JMDict.list dict-entry" xmlns:je="jmdict-entry">
     <div>
-      <div>
-        <span>[</span>
-        <span class="writing"><we:writing></we:writing></span>
-        <span>]</span>
-        <span class="reading"><we:reading></we:reading></span>
+      <div class="nihongo">
+        <span class="writing"><je:writing></je:writing></span>
+        <span class="reading">【<je:reading></je:reading>】</span>
       </div>
       <div>
-        <we:body></we:body>
+        <je:body></je:body>
       </div>
     </div>
   </div>

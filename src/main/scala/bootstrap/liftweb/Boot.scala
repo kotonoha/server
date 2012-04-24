@@ -51,6 +51,7 @@ class Boot {
       Menu.i("Tools") / "tools" / "index" submenus (
         Menu.i("Test parser") / "tools" / "parser",
         Menu.i("Comet test") / "tools" / "comet_test",
+        Menu.i("JMDict") / "tools" / "jmdict",
         Menu.i("Warodai") / "tools" / "warodai",
         Menu.i("Examples") / "tools" / "examples"
       )
