@@ -60,6 +60,15 @@ trait TextAreaHtml {
 
 }
 
+object WordStatus extends Enumeration {
+  type WordStatus = Value
+
+  val New = Value(0)
+  val Approved = Value(1)
+  val ReviewWord = Value(2)
+  val ReviewExamples = Value(3)
+}
+
 class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecord] {
   def meta = WordRecord
 
@@ -67,6 +76,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
   object reading extends StringField(this, 150)
   object meaning extends StringField(this, 1000) with TextAreaHtml
   object createdOn extends DateTimeField(this) with DateJsonFormat
+  object status extends EnumField(this, WordStatus, WordStatus.New)
 
   object examples extends BsonRecordListField(this, ExampleRecord)
   object user extends LongRefField(this, UserRecord)
@@ -75,7 +85,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
 object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with NamedDatabase {
   def myWords = {
     import com.foursquare.rogue.Rogue._
-    WordRecord where (_.user eqs UserRecord.currentId.openTheBox)
+    WordRecord where (_.user eqs UserRecord.currentId.openTheBox) and (_.status eqs WordStatus.Approved)
   }
 }
 
@@ -90,6 +100,13 @@ class WordCardRecord private() extends MongoRecord[WordCardRecord] with LongPk[W
   object user extends LongRefField(this, UserRecord)
   object createdOn extends DateTimeField(this) with DateJsonFormat
   object notBefore extends OptionalDateTimeField(this, Empty) with DateJsonFormat
+  object enabled extends BooleanField(this, true)
 }
 
-object WordCardRecord extends WordCardRecord with MongoMetaRecord[WordCardRecord] with NamedDatabase
+object WordCardRecord extends WordCardRecord with MongoMetaRecord[WordCardRecord] with NamedDatabase {
+  import com.foursquare.rogue.Rogue._
+
+  def enabledFor(id: Long) = {
+    this where (_.user eqs id) and (_.enabled eqs true)
+  }
+}

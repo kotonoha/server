@@ -7,12 +7,12 @@ import net.liftweb.http._
 import net.liftweb.http.rest._
 import com.weiglewilczek.slf4s.Logging
 import akka.util.{Timeout, duration}
-import org.eiennohito.kotonoha.learning.ProcessMarkEvents
 import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
-import org.eiennohito.kotonoha.records.MarkEventRecord
 import akka.dispatch.Future
 import net.liftweb.json.JsonAST.{JField, JObject, JString}
 import org.eiennohito.kotonoha.util.{DateTimeUtils, ResponseUtil, UserUtil}
+import org.eiennohito.kotonoha.records.{ChangeWordStatusEventRecord, AddWordRecord, MarkEventRecord}
+import org.eiennohito.kotonoha.learning.{ProcessWordStatusEvent, ProcessMarkEvents}
 
 
 /*
@@ -129,11 +129,29 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
       val t = new Timer()
       val (json, req) = reqV
       async(userId) { id =>
-        val marks = json.children map (MarkEventRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox)
+        val marks = json.children map (MarkEventRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox) map (_.user(userId))
         logger.info("posing %d marks for user %d".format(marks.length, id))
-        val count = akkaServ.markProcessor ? (ProcessMarkEvents(marks))
+        val count = akkaServ.eventProcessor ? (ProcessMarkEvents(marks))
         count.mapTo[List[Int]] map {c => t.print(); Full(JsonResponse("values" -> Tr(c))) }
       }      
+    }
+
+    case List("add_words") JsonPost reqV => {
+      val (json, req) = reqV
+      val add = json.children map (AddWordRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox) map (_.user(userId))
+      JsonResponse("values" -> Tr(add.map {
+        a => a.save
+        1
+      }))
+    }
+
+    case List("change_word_status") JsonPost reqV => {
+      val (json, req) = reqV
+      val chs = json.children map (ChangeWordStatusEventRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox) map (_.user(userId))
+      async(userId) { id =>
+        val f = (akkaServ ? ProcessWordStatusEvent(chs)).mapTo[List[Int]]
+        f.map {o => Full(JsonResponse("values" -> Tr(o)))}
+      }
     }
   })
 

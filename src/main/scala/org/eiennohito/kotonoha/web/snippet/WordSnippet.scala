@@ -25,8 +25,11 @@ import net.liftweb.common.{Full, Box}
 import net.liftweb.http.{RequestVar, SHtml, SortedPaginatorSnippet, S}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.SetHtml
-import org.eiennohito.kotonoha.records.{ExampleRecord, UserRecord, WordRecord}
-import org.eiennohito.kotonoha.util.{ParseUtil, Formatting, Strings}
+import com.foursquare.rogue.Rogue
+import org.eiennohito.kotonoha.records._
+import org.eiennohito.kotonoha.util.{DateTimeUtils, ParseUtil, Formatting, Strings}
+import org.eiennohito.kotonoha.model.CardMode
+import org.joda.time.{DateTime, Period, Interval}
 
 /**
  * @author eiennohito
@@ -106,6 +109,67 @@ object WordSnippet {
     in.head.flatMap {
       case e: Elem => Elem(e.prefix, e.label, e.attributes, e.scope, e.child ++ inner : _*)
       case _ => in
+    }
+  }
+
+  def renderLearning(box: Box[ItemLearningDataRecord]): NodeSeq = box match {
+    case Full(il) => {
+      import org.eiennohito.kotonoha.math.MathUtil.round
+      import DateTimeUtils._
+
+      val period = {
+        def render(p: Period) = {
+          import org.joda.time.DurationFieldType._
+          val list = List("Year" -> years(), "Month" -> months(), "Week" -> weeks(), "Day" -> days(), "Hour" -> hours(), "Minute" -> minutes(), "Second" -> seconds())
+          val sb = new StringBuilder
+          list.foreach {
+            case (s, tp) => {
+              val i = p.get(tp)
+              if (i != 0) {
+                sb.append(i)
+                sb.append(" ")
+                sb.append(s)
+                if (i % 10 != 1 || i == 11) {
+                  sb.append("s")
+                }
+                sb.append(" ")
+              }
+            }
+          }
+          sb.toString()
+        }
+
+        val prd = new Period(now, il.intervalEnd.is)
+        val negative = prd.getValues.count(_ < 0) > 0
+        if (negative) {
+          render(prd.negated()) + "ago"
+        } else {
+          "in " + render(prd)
+        }
+      }
+
+      <div>Difficulty: {round(il.difficulty.is, 2)}</div> ++
+      <div>Scheduled on: {Formatting.format(il.intervalEnd.is)}, {period}</div> ++
+      <div>Has {il.repetition.is} repetition and {il.lapse.is} lapse</div>
+    }
+    case _ => Text("")
+  }
+
+  def mode(m: Int) = m match {
+    case CardMode.READING => "Reading"
+    case CardMode.WRITING => "Writing"
+    case _ => "Unknown"
+  }
+
+  def renderCards(in: NodeSeq): NodeSeq = {
+    import Helpers._
+    import Rogue._
+    val cards = WordCardRecord where (_.word eqs wordId.get) orderAsc (_.cardMode) fetch()
+    cards.flatMap { c =>
+      bind("wc", in,
+        "mode" -> mode(c.cardMode.is).+(" card"),
+        "learning" -> renderLearning(c.learning.valueBox)
+      )
     }
   }
 

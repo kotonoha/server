@@ -39,6 +39,7 @@ public class WordCard extends Identifiable {
   private ItemLearning learning;
   @DatabaseField
   private transient int status = 0;
+  private transient boolean enabled;
 
   public int getCardMode() {
     return cardMode;

@@ -19,28 +19,56 @@ package org.eiennohito.kotonoha.model.events;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import org.eiennohito.kotonoha.model.EventTypes;
+import org.joda.time.DateTime;
 
 /**
  * @author eiennohito
- * @since 12.04.12
+ * @since 24.04.12
  */
+@DatabaseTable(tableName = "ChangeWordStatusEvent")
+public class ChangeWordStatusEvent extends Event {
 
-@DatabaseTable
-public class AddWordEvent extends Event {
+  ChangeWordStatusEvent(Long id, int status) {
+    super();
+    wordId = id;
+    toStatus = status;
+    setDatetime(DateTime.now());
+  }
+
+  private static final int CHECK_WORD = 2;
+  private static final int CHECK_EXAMPLE = 3;
 
   @DatabaseField
-  private String content;
+  private Long wordId;
 
-  public String getContent() {
-    return content;
-  }
+  @DatabaseField
+  private Integer toStatus;
 
-  public void setContent(String content) {
-    this.content = content;
-  }
 
   @Override
   protected int myType() {
-    return EventTypes.ADD;
+    return EventTypes.CHANGE_WORD_STATUS;
   }
+
+  public void setWordId(Long wordId) {
+    this.wordId = wordId;
+  }
+
+  public void setToStatus(Integer toStatus) {
+    this.toStatus = toStatus;
+  }
+
+  public Long getWordId() {
+    return wordId;
+  }
+
+  public Integer getToStatus() {
+    return toStatus;
+  }
+
+  public static ChangeWordStatusEvent checkWord(Long id) {
+    return new ChangeWordStatusEvent(id, CHECK_WORD);
+  }
+
+
 }

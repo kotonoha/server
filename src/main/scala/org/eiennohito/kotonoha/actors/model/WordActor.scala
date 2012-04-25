@@ -1,13 +1,3 @@
-package org.eiennohito.kotonoha.actors
-
-import org.eiennohito.kotonoha.model.CardMode
-import org.eiennohito.kotonoha.records.{WordCardRecord, WordRecord}
-import akka.dispatch.Future
-import net.liftweb.common.Empty
-import akka.actor.{ActorLogging, Actor}
-import akka.util.Timeout
-import org.eiennohito.kotonoha.util.DateTimeUtils
-
 /*
  * Copyright 2012 eiennohito
  *
@@ -23,20 +13,30 @@ import org.eiennohito.kotonoha.util.DateTimeUtils
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * @author eiennohito
- * @since 02.02.12
- */
 
-case class RegisterWord(word: WordRecord)
-case class RegisterCard(word: Long, userId: Long, cardMode: Int)
+package org.eiennohito.kotonoha.actors.model
 
-class WordRegistry extends Actor with RootActor with ActorLogging {
-  import akka.pattern.{ask, pipe}
+
+
+
+import akka.util.Timeout
+import akka.actor.{ActorLogging, Actor}
+import org.eiennohito.kotonoha.model.CardMode
+import org.eiennohito.kotonoha.actors.{KotonohaMessage, SaveRecord, RootActor}
+import org.eiennohito.kotonoha.records.{WordStatus, WordRecord}
+import akka.dispatch.{ExecutionContext, Future}
+
+trait WordMessage extends KotonohaMessage
+case class RegisterWord(word: WordRecord) extends WordMessage
+case class ChangeWordStatus(word: Long, status: WordStatus.Value)
+
+class WordActor extends Actor with ActorLogging with RootActor {
   import akka.util.duration._
+  import akka.pattern.ask
+  import com.foursquare.rogue.Rogue._
 
   implicit val timeout: Timeout = 1 second
-  implicit def system = context.system
+  implicit val dispatcher = context.dispatcher
 
   def checkReadingWriting(word: WordRecord) = {
     val read = word.reading.is
@@ -50,23 +50,21 @@ class WordRegistry extends Actor with RootActor with ActorLogging {
       val wordid = word.id.is
       var fl = List(ask(root, SaveRecord(word)))
       if (checkReadingWriting(word)) {
-        fl ::= self ? RegisterCard(wordid, userId, CardMode.READING)
+        fl ::= root ? RegisterCard(wordid, userId, CardMode.READING)
       }
-      fl ::= self ? RegisterCard(wordid, userId, CardMode.WRITING)
+      fl ::= root ? RegisterCard(wordid, userId, CardMode.WRITING)
 
       val toReply = sender
       val s = Future.sequence(fl.map(_.mapTo[Boolean]))
-      s foreach { list =>
-        toReply ! word.id.is
+      s foreach {
+        list =>
+          toReply ! word.id.is
       }
     }
-
-    case RegisterCard(word, user, mode) => {
-      import DateTimeUtils._
-      val card = WordCardRecord.createRecord
-      card.user(user).word(word).cardMode(mode).learning(Empty).notBefore(now)
-      val s = sender
-      ask(root, SaveRecord(card)) pipeTo (s)
+    case ChangeWordStatus(word, stat) => {
+      val q = WordRecord where (_.id eqs word) modify(_.status setTo stat)
+      q.updateOne()
+      sender ! 1
     }
   }
 }

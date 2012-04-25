@@ -4,7 +4,7 @@ import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import org.eiennohito.kotonoha.model.EventTypes
 import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
-import net.liftweb.record.field.{DateTimeField, DoubleField, IntField}
+import net.liftweb.record.field._
 
 /*
  * Copyright 2012 eiennohito
@@ -29,8 +29,10 @@ import net.liftweb.record.field.{DateTimeField, DoubleField, IntField}
 
 trait EventRecord[OwnerType <: MongoRecord[OwnerType]] extends LongPk[OwnerType] { self : OwnerType =>
   protected def myType: Int
+
   object eventType extends IntField(this.asInstanceOf[OwnerType], myType)
   object datetime extends DateTimeField(this.asInstanceOf[OwnerType]) with DateJsonFormat
+  object user extends LongRefField(this.asInstanceOf[OwnerType], UserRecord)
 }
 
 class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with LongPk[MarkEventRecord] with EventRecord[MarkEventRecord] {
@@ -45,3 +47,23 @@ class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with LongPk
 }
 
 object MarkEventRecord extends MarkEventRecord with MongoMetaRecord[MarkEventRecord] with NamedDatabase
+
+class AddWordRecord private() extends MongoRecord[AddWordRecord] with LongPk[AddWordRecord] with EventRecord[AddWordRecord] {
+  def meta = AddWordRecord
+
+  protected def myType = EventTypes.ADD
+  object processed extends BooleanField(this, false)
+  object content extends StringField(this, 50)
+}
+
+object AddWordRecord extends AddWordRecord with MongoMetaRecord[AddWordRecord] with NamedDatabase
+
+class ChangeWordStatusEventRecord private() extends MongoRecord[ChangeWordStatusEventRecord] with LongPk[ChangeWordStatusEventRecord] with EventRecord[ChangeWordStatusEventRecord] {
+  def meta = ChangeWordStatusEventRecord
+
+  protected def myType = EventTypes.CHANGE_WORD_STATUS
+  object word extends LongRefField(this, WordRecord)
+  object toStatus extends EnumField(this, WordStatus)
+}
+
+object ChangeWordStatusEventRecord extends ChangeWordStatusEventRecord with MongoMetaRecord[ChangeWordStatusEventRecord] with NamedDatabase

@@ -19,9 +19,7 @@ package org.eiennohito.kotonoha.actors.learning
 import com.foursquare.rogue.Rogue
 import org.joda.time.DateTime
 import util.Random
-import org.eiennohito.kotonoha.model.CardMode
 import org.eiennohito.kotonoha.util.DateTimeUtils
-import akka.dispatch.Await
 import Rogue._
 import akka.pattern._
 import akka.util.duration._
@@ -29,14 +27,15 @@ import DateTimeUtils._
 import akka.util.Timeout
 import akka.actor.{ActorLogging, Props, Actor}
 import org.eiennohito.kotonoha.records.{WordRecord, WordCardRecord}
-import org.eiennohito.kotonoha.math.MathUtil
+import org.eiennohito.kotonoha.actors._
+import model.SchedulePaired
 
 /**
  * @author eiennohito
  * @since 31.01.12
  */
 
-class WordSelector extends Actor with ActorLogging {
+class WordSelector extends Actor with ActorLogging with RootActor {
   def calculateMax(maxInt: Int, firstPerc: Double, overMax: Double) = {
     def ceil(x: Double): Int = math.round(math.ceil(x)).asInstanceOf[Int]
     val max = maxInt * (1 + overMax)
@@ -52,7 +51,7 @@ class WordSelector extends Actor with ActorLogging {
         case v :: Nil => col += v
         case v :: vs =>  {
           col += v 
-          vs.foreach {c => scheduler ! SchedulePaired(c.word.is, c.cardMode.is)}
+          vs.foreach {c => root ! SchedulePaired(c.word.is, c.cardMode.is)}
         }
         case _ =>
       }
@@ -63,7 +62,6 @@ class WordSelector extends Actor with ActorLogging {
 
   val loaderSched = context.actorOf(Props[CardLoader])
   val loaderNew = context.actorOf(Props[CardLoader])
-  val scheduler = context.actorOf(Props[CardScheduler])
 
   def loadNewCards(userId: Long, max: Int, now: DateTime) = {
     if (max == 0) {
@@ -86,12 +84,12 @@ class WordSelector extends Actor with ActorLogging {
 
   def forUser(userId: Long, max: Int) = {
     val now = new DateTime()
-    val valid = WordCardRecord where (_.user eqs userId) and
+    val valid = WordCardRecord.enabledFor(userId) and
       (_.learning.subfield(_.intervalEnd) before now) and (_.notBefore before now) orderAsc
       (_.learning.subfield(_.intervalEnd)) fetch (max)
 
     for (v <- valid) {
-      scheduler ! SchedulePaired(v.word.is, v.cardMode.is)
+      root ! SchedulePaired(v.word.is, v.cardMode.is)
     }
 
     val len = valid.length
@@ -123,34 +121,20 @@ class WordSelector extends Actor with ActorLogging {
 case class LoadScheduled(userId: Long, maxSched: Int)
 case class LoadNewCards(userId: Long, maxNew: Int)
 case class LoadCards(userId: Long, max: Int)
-case class SchedulePaired(wordId: Long, cardType: Int)
 case class LoadWords(userId: Long, max: Int)
 case class WordsAndCards(words: List[WordRecord], cards: List[WordCardRecord])
 
 class CardLoader extends Actor {
   protected def receive = {
     case LoadScheduled(user, max) => {
-      val scheduled = WordCardRecord where (_.user eqs user) and (_.learning exists false) and
+      val scheduled = WordCardRecord.enabledFor(user) and (_.learning exists false) and
         (_.notBefore before now) fetch (max)
       sender ! scheduled
     }
     case LoadNewCards(user, max) => {
-      val newCards = WordCardRecord where (_.user eqs user) and (_.learning exists false) and
+      val newCards = WordCardRecord.enabledFor(user) and (_.learning exists false) and
         (_.notBefore exists false) orderAsc (_.createdOn) fetch (max)
       sender ! newCards
-    }
-  }
-}
-
-class CardScheduler extends Actor with ActorLogging {
-  protected def receive = {
-    case SchedulePaired(word, cardMode) => {
-      val cardType = if (cardMode == CardMode.READING) CardMode.WRITING else CardMode.READING
-      val date = now plus ((3.2 * MathUtil.ofrandom) days)
-      val q = WordCardRecord where (_.cardMode eqs cardType) and
-        (_.word eqs word) modify (_.notBefore setTo date)
-      q.updateOne()
-      sender ! true
     }
   }
 }

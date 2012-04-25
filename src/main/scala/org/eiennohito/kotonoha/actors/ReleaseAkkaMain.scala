@@ -2,7 +2,7 @@ package org.eiennohito.kotonoha.actors
 
 import auth.ClientRegistry
 import learning.WordSelector
-import org.eiennohito.kotonoha.learning.MarkEventProcessor
+import org.eiennohito.kotonoha.learning.EventProcessor
 import akka.util.duration._
 import akka.actor._
 import akka.pattern.ask
@@ -39,9 +39,8 @@ trait AkkaMain {
 
   val root: ActorRef
 
-  val wordRegistry: ActorRef
   val wordSelector: ActorRef
-  val markProcessor: ActorRef
+  val eventProcessor: ActorRef
 
   def context = ExecutionContext.defaultExecutionContext(system)
 
@@ -59,51 +58,7 @@ trait AkkaMain {
   }
 }
 
-
-trait KotonohaMessage
-trait DbMessage extends KotonohaMessage
-trait LifetimeMessage extends KotonohaMessage
-trait ClientMessage extends KotonohaMessage
-trait TokenMessage extends KotonohaMessage
-
 case object TopLevelActors
-
-class RestartActor extends Actor with ActorLogging {
-  import SupervisorStrategy._
-  override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 1500, withinTimeRange = 1 day) {
-    case e: Exception => log.error(e, "Caught an exception in root actor"); Restart
-  }
-  
-  val mongo = context.actorOf(Props[MongoDBActor], "mongo")
-  lazy val wordRegistry = context.actorOf(Props[WordRegistry])
-  lazy val wordSelector = context.actorOf(Props[WordSelector])
-  lazy val markProcessor = context.actorOf(Props[MarkEventProcessor])
-  lazy val lifetime = context.actorOf(Props[LifetimeActor])
-  lazy val qractor = context.actorOf(Props[QrCreator])
-  lazy val clientActor = context.actorOf(Props[ClientRegistry])
-  lazy val userToken = context.actorOf(Props[UserTokenActor])
-  lazy val luceneActor = context.actorOf(Props[ExampleSearchActor])
-
-
-  def dispatch(msg: KotonohaMessage) {
-    msg match {
-      case m: DbMessage => mongo.forward(msg)
-      case m: LifetimeMessage => lifetime.forward(msg)
-      case m: QrMessage => qractor.forward(msg)
-      case m: ClientMessage => clientActor.forward(msg)
-      case m: TokenMessage => userToken.forward(msg)
-      case m: SearchMessage => luceneActor.forward(msg)
-    }
-  }
-
-  protected def receive = {
-    case TopLevelActors => {
-      sender ! (wordRegistry, wordSelector, markProcessor)
-    }
-
-    case msg : KotonohaMessage => dispatch(msg)
-  }
-}
 
 trait RootActor { this: Actor =>
   lazy val root = context.actorFor("/user/root")
@@ -114,10 +69,9 @@ object ReleaseAkkaMain extends AkkaMain {
   val system = ActorSystem("kotonoha_system")
   
   val root = system.actorOf(Props[RestartActor], "root")
-  val f = ask(root, TopLevelActors)(1 second).mapTo[(ActorRef, ActorRef, ActorRef)]
+  val f = ask(root, TopLevelActors)(1 second).mapTo[(ActorRef, ActorRef)]
   val x = Await.result(f, 1 second)
 
-  val wordRegistry = x._1
-  val wordSelector = x._2
-  val markProcessor = x._3
+  val wordSelector = x._1
+  val eventProcessor = x._2
 }

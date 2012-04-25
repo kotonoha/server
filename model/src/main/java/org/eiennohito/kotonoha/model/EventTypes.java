@@ -22,4 +22,6 @@ package org.eiennohito.kotonoha.model;
  */
 public class EventTypes {
   public final static int MARK = 1;
+  public final static int ADD = 2;
+  public final static int CHANGE_WORD_STATUS = 3;
 }

@@ -29,7 +29,7 @@ import akka.testkit.TestActorRef
 import org.eiennohito.kotonoha.actors.learning._
 import java.util.Calendar
 import util.Random
-import org.eiennohito.kotonoha.learning.{ProcessMarkEvent, MarkEventProcessor, ProcessMarkEvents}
+import org.eiennohito.kotonoha.learning.{ProcessMarkEvent, EventProcessor, ProcessMarkEvents}
 import org.eiennohito.kotonoha.util.DateTimeUtils
 
 
@@ -130,7 +130,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   test ("paired card is being postproned") {
     implicit val system = ReleaseAkkaMain.system
     val id = saveWord    
-    val sched = TestActorRef[CardScheduler]
+    val sched = TestActorRef[CardActor]
 
     val cards = WordCardRecord where (_.word eqs id) fetch()
     cards.length should equal (2)
@@ -179,7 +179,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     val event = MarkEventRecord.createRecord
     event.card(card.id.is).mark(5.0).mode(card.cardMode.is).time(2.3142)
 
-    val proc = ReleaseAkkaMain.markProcessor
+    val proc = ReleaseAkkaMain.eventProcessor
     Await.result(ask(proc, ProcessMarkEvents(List(event))), 5 seconds)
     val updatedCard = WordCardRecord.find(card.id.is).get
     updatedCard.learning.valueBox.isEmpty should be (false)
@@ -210,7 +210,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     ev4.card(cid).mark(1.0).mode(card.cardMode.is).datetime(now.withDurationAdded(1 day, 14))
 
 
-    val proc = ReleaseAkkaMain.markProcessor
+    val proc = ReleaseAkkaMain.eventProcessor
     Await.ready(ask(proc, ProcessMarkEvent(event)), 1 second)
     Await.ready(ask(proc, ProcessMarkEvent(ev2)), 1 second)
     Await.ready(ask(proc, ProcessMarkEvent(ev3)), 1 second)

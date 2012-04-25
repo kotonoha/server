@@ -41,6 +41,7 @@ public class Word extends Identifiable {
   private DateTime createdOn;
   @ForeignCollectionField(eager = true, orderColumnName = "example")
   private Collection<Example> examples = new ArrayList<Example>();
+  private transient Integer status;
 
   public String getWriting() {
     return writing;
@@ -80,5 +81,13 @@ public class Word extends Identifiable {
 
   public void setExamples(Collection<Example> examples) {
     this.examples = examples;
+  }
+
+  public Integer getStatus() {
+    return status;
+  }
+
+  public void setStatus(Integer status) {
+    this.status = status;
   }
 }

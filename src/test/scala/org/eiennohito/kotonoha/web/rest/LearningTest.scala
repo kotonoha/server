@@ -46,7 +46,7 @@ object MockAkka extends AkkaMain {
     }
   })
 
-  val markProcessor = TestActorRef(new Actor {
+  val eventProcessor = TestActorRef(new Actor {
     protected def receive = {
       case _ =>
     }
