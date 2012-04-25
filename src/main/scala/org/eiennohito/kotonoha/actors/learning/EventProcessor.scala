@@ -97,21 +97,21 @@ trait MongoActor { this: Actor =>
 }
 
 class EventProcessor extends Actor with ActorLogging with MongoActor with RootActor {
+  implicit val dispatcher = context.dispatcher
   lazy val children = context.actorOf(Props[ChildProcessor])
 
   override def preStart() {
     children ! RegisterServices(mongo, root)
   }
-
   protected def receive = {
     case p : ProcessMarkEvent => children.forward(p)
     case ProcessMarkEvents(evs) =>  {
-      implicit val dispatcher = context.dispatcher
       val futs = evs.map { ev => ask(children, ProcessMarkEvent(ev))(1 second).mapTo[Int]}
       Future.sequence(futs) pipeTo sender
     }
     case ProcessWordStatusEvent(evs) => {
-      evs.map(e => ask(children, ProcessWordStatus(e))(1 second).mapTo[Int])
+      val f = evs.map(e => ask(children, ProcessWordStatus(e))(1 second).mapTo[Int])
+      Future.sequence(f) pipeTo sender
     }
   }
 }
