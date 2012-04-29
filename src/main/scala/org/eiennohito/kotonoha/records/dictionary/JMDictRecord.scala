@@ -20,6 +20,9 @@ import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, Mong
 import net.liftweb.record.field.{StringField, EnumField}
 import net.liftweb.mongodb.record.field.{MongoCaseClassListField, BsonRecordListField, LongPk}
 import org.eiennohito.kotonoha.mongodb.DictDatabase
+import net.liftweb.json.JsonAST.JObject
+import net.liftweb.json._
+import net.liftweb.mongodb.Limit
 
 /**
  * @author eiennohito
@@ -56,4 +59,13 @@ class JMDictRecord private() extends MongoRecord[JMDictRecord] with LongPk[JMDic
   object meaning extends BsonRecordListField(this, JMDictMeaning)
 }
 
-object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with DictDatabase
+object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with DictDatabase {
+  def query(q: String, max: Int) = {
+    import org.eiennohito.kotonoha.util.KBsonDSL._
+    val re = "^" + q
+    val inner = "$regex" -> re
+    val query: JObject = "$or" -> List(("writing.value" -> inner), ("reading.value" -> inner))
+    val jse = compact(render(query))
+    JMDictRecord.findAll(query, Limit(max))
+  }
+}

@@ -18,9 +18,6 @@ package org.eiennohito.kotonoha.web.snippet
 
 import xml.NodeSeq
 import net.liftweb.http.S
-import net.liftweb.json.JsonAST.JObject
-import net.liftweb.json._
-import net.liftweb.mongodb.Limit
 import net.liftweb.common.Full
 import org.eiennohito.kotonoha.util.LangUtil
 import com.weiglewilczek.slf4s.Logging
@@ -33,7 +30,6 @@ import org.eiennohito.kotonoha.records.dictionary.{JMDictAnnotations, JMDictMean
 
 object JMDict extends Logging {
   import net.liftweb.util.Helpers._
-  import org.eiennohito.kotonoha.util.KBsonDSL._
 
   def fld(in: NodeSeq): NodeSeq = {
     val q = S.param("query").openOr("")
@@ -58,13 +54,7 @@ object JMDict extends Logging {
 
   def list(in: NodeSeq): NodeSeq = {
     val q = S.param("query").openOr("")
-    val re = "^" + q
-    val inner = "$regex" -> re
-    val query: JObject = "$or" -> List(("writing.value" -> inner), ("reading.value" -> inner))
-    val jse = compact(render(query))
-    logger.debug("query = " + jse)
-    val objs = JMDictRecord.findAll(query, Limit(50))
-    objs flatMap { o =>
+    JMDictRecord.query(q, 50) flatMap { o =>
       bind("je", in,
         "writing" -> reduce(o.writing.is, ", "),
         "reading" -> reduce(o.reading.is, ", "),

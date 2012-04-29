@@ -1,4 +1,38 @@
 /* <![CDATA[ */
+div.container {
+  width: 95%;
+  margin-left: 2.5%;
+  margin-right: 2.5%;
+}
+
+hr {
+  color: #ddd;
+  border: dotted 1px;
+  margin: 0;
+}
+
+div.sidebar {
+  width: 15%;
+  min-width: 150px;
+  max-width: 250px;
+}
+
+div.column {
+  float: left;
+}
+
+div.content {
+  width: auto;
+  padding: 10px;
+}
+
+.menu-wrapper {
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
+
+.colborder {padding-right:10px;margin-right:10px;border-right:1px dotted #ddd;}
+
 .edit_error_class {
   display: block;
   color: red;
@@ -37,5 +71,12 @@
 	background-color: #eee;
 }
 
+body {
+  font-family: Calibri, Helvetica, Arial;
+}
+
+h1 {
+  font-family: Cambria;
+}
 
   /* ]]> */

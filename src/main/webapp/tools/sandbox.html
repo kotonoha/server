@@ -18,16 +18,21 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
-  <head_merge>
-    <style>
-      .right {
-
-      }
-    </style>
-  </head_merge>
-  <div>
-
+  <div class="lift:Sandbox.objects">
+    <form class="lift:form">
+      <li></li>
+      <div class="cb"></div>
+      <input type="submit">
+    </form>
   </div>
+  <div>
+    <form id="form2">
+      <input name="what">
+    </form>
+  </div>
+  <script language="JavaScript">
+    var x = $("#form2").val()
+  </script>
 </div>
 </body>
 </html>

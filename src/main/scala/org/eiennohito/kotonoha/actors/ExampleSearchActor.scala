@@ -32,7 +32,7 @@ import net.liftweb.util.Props
  */
 
 trait SearchMessage extends KotonohaMessage
-case class SearchQuery(query: String) extends SearchMessage
+case class SearchQuery(query: String, max: Int = 20) extends SearchMessage
 
 class ExampleSearchActor extends Actor {
 
@@ -43,17 +43,17 @@ class ExampleSearchActor extends Actor {
   val searcher = new IndexSearcher(ir)
 
 
-  def findDocs(q: String): List[Long] = {
+  def findDocs(q: String, max: Int): List[Long] = {
     val query = parser.parse(q)
-    val collector = TopScoreDocCollector.create(20, true)
+    val collector = TopScoreDocCollector.create(max, true)
     searcher.search(query, collector)
     val docs = collector.topDocs()
     docs.scoreDocs.map(d => searcher.doc(d.doc).get("id").toLong).toList
   }
 
   protected def receive = {
-    case SearchQuery(q) => {
-      val docs = if (q.length == 0) Nil else findDocs(q)
+    case SearchQuery(q, max) => {
+      val docs = if (q.length == 0) Nil else findDocs(q, max)
       sender ! docs
     }
   }

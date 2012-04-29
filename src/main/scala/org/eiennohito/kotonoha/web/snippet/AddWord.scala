@@ -19,7 +19,8 @@ package org.eiennohito.kotonoha.web.snippet
 import xml.NodeSeq
 import net.liftweb.http.js.{JsCmd, JsExp, JE, JsonCall}
 import net.liftweb.http.js.JsCmds.{RedirectTo, SetHtml, _Noop}
-import net.liftweb.http.{RedirectWithState, CometActor, SHtml}
+import net.liftweb.http._
+import net.liftweb.common.Full
 
 /**
  * @author eiennohito
@@ -31,15 +32,23 @@ object AddWord {
   def addField(in: NodeSeq): NodeSeq = {
     var data = ""
 
-    def process : JsCmd = {
+    def process {
       val d = data
       val i = 0
-      RedirectTo("added")
+      //S.redirectTo()
+      //RedirectWithState("added")
     }
 
     bind("word", SHtml.ajaxForm(in),
       "data" -> SHtml.textarea(data, data = _),
-      "submit" -> SHtml.ajaxSubmit("Add words", process _))
+      "submit" -> SHtml.submit("Add words", process _))
+  }
+
+  def anotherSnippet(in: NodeSeq): NodeSeq = {
+    S.runTemplate("templates-hidden" :: "test" :: Nil) match {
+      case Full(x) => x
+      case _ => <em>Error in rendering template test</em>
+    }
   }
 }
 

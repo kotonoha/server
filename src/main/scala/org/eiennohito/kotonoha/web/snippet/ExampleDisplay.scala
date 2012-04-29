@@ -20,11 +20,13 @@ import xml.{NodeSeq, MetaData}
 import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
 import org.eiennohito.kotonoha.records.dictionary.ExampleSentenceRecord
 import org.eiennohito.kotonoha.actors.SearchQuery
-import akka.dispatch.Await
 import org.eiennohito.kotonoha.dict.TatoebaLinks
 import java.io.File
 import net.liftweb.util.{Props, Helpers}
 import net.liftweb.http.{SHtml, S, RequestVar}
+import org.eiennohito.kotonoha.util.LangUtil
+import akka.dispatch.{Future, Await}
+import org.eiennohito.kotonoha.actors.dict.{ExampleEntry, LoadExamples, ExampleIds, TranslationsWithLangs}
 
 
 /**
@@ -38,25 +40,21 @@ trait ExampleDisplay extends Akka {
   import org.eiennohito.kotonoha.util.DateTimeUtils._
   import com.foursquare.rogue.Rogue._
 
-  val exampleSearcher = new TatoebaLinks(new File(Props.get("example.index").get))
+
 
   def fld(in: NodeSeq): NodeSeq = {
     bind("ef", in, "fld" -> SHtml.text(query.is, query(_), "name" -> "query"))
   }
 
-  //small wtf, build list of examples and translations from query
-  def docs: List[List[ExampleSentenceRecord]] = {
-    import org.eiennohito.kotonoha.util.LangUtil.okayLang
+  //small wtf, build list of examples and translations from query, asynchronously ftw
+  def docs: List[ExampleEntry] = {
     val f = (akkaServ ? SearchQuery(query.is)).mapTo[List[Long]]
-    val candidates = Await.result(f, 1 second)
-    val complicated = candidates.map(exampleSearcher.from(_).filter(e => okayLang(e.rightLang)).toList)
-    val ids = complicated.flatMap(_.map(l => l.right)) ++ candidates
-    val recs = ExampleSentenceRecord where (_.id in ids) fetch()
-    val map = recs.map(r => r.id.is -> r).toMap
-    val struct = complicated.zip(candidates).map {case (c, cand) =>
-      List(map(cand)) ++ c.map(l => map(l.right))
-    }
-    struct
+    val fs = f flatMap { cand => {
+      val comp = (akkaServ ? TranslationsWithLangs(cand, LangUtil.langs)).mapTo[List[ExampleIds]]
+      val recs = comp.flatMap(akkaServ ? LoadExamples(_)).mapTo[List[ExampleEntry]]
+      recs
+    }}
+    Await.result(fs, 5 seconds)
   }
 
   def body(in: NodeSeq): NodeSeq = {
@@ -66,9 +64,9 @@ trait ExampleDisplay extends Akka {
   }
 
 
-  def inner(d: scala.List[ExampleSentenceRecord]): NodeSeq = {
-    <li>{ d.head.content.is }</li> ++
-    d.tail.flatMap(o => <li>{o.content}</li>)
+  def inner(d: ExampleEntry): NodeSeq = {
+    <li>{ d.jap.content.is }</li> ++
+    d.other.flatMap(o => <li>{o.content}</li>)
   }
 }
 

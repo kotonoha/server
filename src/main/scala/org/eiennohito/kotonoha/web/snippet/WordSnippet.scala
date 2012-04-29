@@ -75,10 +75,10 @@ object WordSnippet {
   def renderExamples: NodeSeq = {
     import Helpers._
     val templ = <tr xmlns:ex="example">
-        <td class="kanji" width="50%">
+        <td class="kanji full" width="50%">
           <ex:example></ex:example>
         </td>
-        <td width="50%">
+        <td class="full" width="50%">
           <ex:translation></ex:translation>
         </td>
       </tr>
@@ -236,6 +236,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] {
       val link = "detail?w=%s".format(id.toHexString)
       AttrBindParam("link", Text("javascript:Navigate(\"" + link + "\");"), "onclick")
     }
+
     page.flatMap {i =>
       bind("word", in,
         v(i.id.is),

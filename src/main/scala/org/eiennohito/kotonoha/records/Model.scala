@@ -35,6 +35,7 @@ class ExampleRecord private() extends BsonRecord[ExampleRecord] {
 
   object example extends StringField(this, 250)
   object translation extends StringField(this, 500)
+  object id extends LongField(this)
 }
 
 object ExampleRecord extends ExampleRecord with BsonMetaRecord[ExampleRecord]
@@ -77,6 +78,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
   object meaning extends StringField(this, 1000) with TextAreaHtml
   object createdOn extends DateTimeField(this) with DateJsonFormat
   object status extends EnumField(this, WordStatus, WordStatus.New)
+  object tags extends MongoListField[WordRecord, String](this)
 
   object examples extends BsonRecordListField(this, ExampleRecord)
   object user extends LongRefField(this, UserRecord)

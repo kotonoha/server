@@ -64,6 +64,10 @@ trait RootActor { this: Actor =>
   lazy val root = context.actorFor("/user/root")
 }
 
+trait MongoActor { this: Actor =>
+  lazy val mongo = context.actorFor("/user/root/mongo")
+}
+
 
 object ReleaseAkkaMain extends AkkaMain {
   val system = ActorSystem("kotonoha_system")

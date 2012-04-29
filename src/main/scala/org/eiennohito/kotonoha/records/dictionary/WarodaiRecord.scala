@@ -20,6 +20,9 @@ import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.mongodb.record.field.{MongoListField, LongPk}
 import net.liftweb.record.field.{StringField, IntField}
 import org.eiennohito.kotonoha.mongodb.DictDatabase
+import net.liftweb.json.JsonAST.JObject
+import net.liftweb.json._
+import net.liftweb.mongodb.Limit
 
 /**
  * @author eiennohito
@@ -40,4 +43,12 @@ class WarodaiRecord private() extends MongoRecord[WarodaiRecord] with LongPk[War
   object body extends StringField(this, 8192)
 }
 
-object WarodaiRecord extends WarodaiRecord with MongoMetaRecord[WarodaiRecord] with DictDatabase
+object WarodaiRecord extends WarodaiRecord with MongoMetaRecord[WarodaiRecord] with DictDatabase {
+  def query(q: String, max: Int) = {
+    import org.eiennohito.kotonoha.util.KBsonDSL._
+    val re = "^" + q
+    val inner = "$regex" -> re
+    val query: JObject = "$or" -> List(("readings" -> inner), ("writings" -> inner))
+    findAll(query, Limit(max))
+  }
+}

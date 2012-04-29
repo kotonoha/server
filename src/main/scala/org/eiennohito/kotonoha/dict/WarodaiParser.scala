@@ -74,18 +74,32 @@ object WarodaiParser extends RegexParsers {
 
 sealed trait Content {
   def toNodeSeq: NodeSeq
+  def mkString(bldr: StringBuilder)
 }
 
 case object Endl extends Content {
   def toNodeSeq = <br/>
+
+  def mkString(bldr: StringBuilder) {
+    bldr.append("\n")
+  }
 }
 
 case class StringWrapper(str: String) extends Content {
   def toNodeSeq = Text(str)
+
+  def mkString(bldr: StringBuilder) {
+    bldr.append(str)
+  }
 }
 
 case class Join(left: Content, right: Content) extends Content {
   def toNodeSeq = left.toNodeSeq ++ right.toNodeSeq
+
+  def mkString(bldr: StringBuilder) {
+    left.mkString(bldr)
+    right.mkString(bldr)
+  }
 }
 
 object JoinContent {
@@ -99,6 +113,10 @@ object JoinContent {
 
 case class Tag(name: String, content: Content) extends Content {
   def toNodeSeq = new Elem(null, name, Null, TopScope, content.toNodeSeq: _*)
+
+  def mkString(bldr: StringBuilder) {
+    content.mkString(bldr)
+  }
 }
 
 object WarodaiBodyParser extends RegexParsers {

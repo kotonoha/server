@@ -31,6 +31,7 @@ public class Example {
   private String example;
   @DatabaseField
   private String translation;
+  private transient Long id;
 
 
   public String getExample() {

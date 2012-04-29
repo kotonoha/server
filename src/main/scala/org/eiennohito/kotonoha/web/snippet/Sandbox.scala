@@ -14,34 +14,25 @@
  * limitations under the License.
  */
 
-package org.eiennohito.kotonoha.web.comet
+package org.eiennohito.kotonoha.web.snippet
 
-import net.liftweb.util.Schedule
-import net.liftweb.http.js.JsCmds.SetHtml
-import org.joda.time.DateTime
-import xml.Text
-import net.liftweb.http.CometActor
+import net.liftweb.http.SHtml
 
-class CometTest extends CometActor {
+/**
+ * @author eiennohito
+ * @since 29.04.12
+ */
 
+object Sandbox {
   import net.liftweb.util.Helpers._
-
-  var rnd: Double = _
-
-  def render = {
-    Schedule.schedule(this, TimeMessage, 1 second)
-    rnd = math.random
-    <span id="time">Current time here</span>
-  }
-
-
-  override def lowPriority = {
-    case TimeMessage => {
-      partialUpdate(SetHtml("time", Text(rnd + new DateTime().toString)))
-      Schedule.schedule(this, TimeMessage, 2 seconds)
+  val list = List("1" -> "1", "2" -> "2", "3" -> "3")
+  def objects = {
+    def selected(in: Seq[String]) = {
+      in.foreach{println(_)}
     }
+
+    val holder = SHtml.checkbox[String](List("1", "2", "5", "hatered!"), Nil, println(_))
+    "li" #> SHtml.multiSelect(list, 1 to 3 map (_.toString), selected(_)) &
+    ".cb" #> holder.toForm
   }
-
 }
-
-case object TimeMessage

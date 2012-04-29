@@ -54,6 +54,7 @@ class AddWordRecord private() extends MongoRecord[AddWordRecord] with LongPk[Add
   protected def myType = EventTypes.ADD
   object processed extends BooleanField(this, false)
   object content extends StringField(this, 50)
+  object group extends IntField(this)
 }
 
 object AddWordRecord extends AddWordRecord with MongoMetaRecord[AddWordRecord] with NamedDatabase

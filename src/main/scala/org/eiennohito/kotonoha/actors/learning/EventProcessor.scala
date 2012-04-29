@@ -5,10 +5,10 @@ import net.liftweb.common.{Failure, Empty, Full}
 import akka.util.Timeout
 import akka.dispatch.Future
 import akka.actor.{ActorRef, ActorLogging, Props, Actor}
-import org.eiennohito.kotonoha.actors.{RootActor, RegisterMongo, UpdateRecord, SaveRecord}
 import org.eiennohito.kotonoha.records.{ChangeWordStatusEventRecord, ItemLearningDataRecord, MarkEventRecord}
 import org.eiennohito.kotonoha.supermemo.{SM6, ItemUpdate}
 import org.eiennohito.kotonoha.actors.model.{ChangeWordStatus, ChangeCardEnabled, SchedulePaired}
+import org.eiennohito.kotonoha.actors._
 
 /*
  * Copyright 2012 eiennohito
@@ -92,9 +92,7 @@ class ChildProcessor extends Actor with ActorLogging with RootActor {
   }
 }
 
-trait MongoActor { this: Actor =>
-  lazy val mongo = context.actorFor("/user/root/mongo")
-}
+
 
 class EventProcessor extends Actor with ActorLogging with MongoActor with RootActor {
   implicit val dispatcher = context.dispatcher
@@ -105,7 +103,7 @@ class EventProcessor extends Actor with ActorLogging with MongoActor with RootAc
   }
   protected def receive = {
     case p : ProcessMarkEvent => children.forward(p)
-    case ProcessMarkEvents(evs) =>  {
+    case ProcessMarkEvents(evs) => {
       val futs = evs.map { ev => ask(children, ProcessMarkEvent(ev))(1 second).mapTo[Int]}
       Future.sequence(futs) pipeTo sender
     }

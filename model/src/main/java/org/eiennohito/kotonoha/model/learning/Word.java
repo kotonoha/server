@@ -42,6 +42,7 @@ public class Word extends Identifiable {
   @ForeignCollectionField(eager = true, orderColumnName = "example")
   private Collection<Example> examples = new ArrayList<Example>();
   private transient Integer status;
+  private Collection<String> tags = new ArrayList<String>();
 
   public String getWriting() {
     return writing;

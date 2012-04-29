@@ -16,25 +16,68 @@
 
 package org.eiennohito.kotonoha.actors.lift
 
-import akka.actor.{Actor, ActorRef}
-import akka.pattern.{ask, pipe}
-import net.liftweb.common.SimpleActor
+import akka.pattern.{ask => apa}
+import net.liftweb.http.CometActor
+import org.eiennohito.kotonoha.actors.ioc.Akka
+import org.eiennohito.kotonoha.actors.KotonohaMessage
+import akka.dispatch.Await
+import akka.actor._
 
 /**
  * @author eiennohito
  * @since 05.04.12
  */
 
-//class SimpleAkka(akka: ActorRef, lift: SimpleActor[AnyRef]) extends SimpleActor[AnyRef] {
-//  def !(msg: AnyRef) = akka ! msg
-//}
-//
-//case class RegisterLift(actor: SimpleActor[_])
-//
-//class GatewayActor extends Actor {
-//  var liftActor: SimpleActor[AnyRef] = _
-//  protected def receive = {
-//    case RegisterLift(actor) => liftActor = actor
-//    case msg : AnyRef => liftActor ! msg
-//  }
-//}
+trait LiftMessage extends KotonohaMessage
+case class BindLiftActor(actor: CometActor)
+case class UnbindLiftActor(actor: CometActor)
+case object Ping extends LiftMessage
+case object Shutdown extends LiftMessage
+
+trait AkkaInterop extends CometActor with Akka {
+  def createBridge(): ActorRef = {
+    import akka.util.duration._
+    val f = apa(akkaServ.root, BindLiftActor(this))(5 seconds)
+    Await.result(f.mapTo[ActorRef], 5 seconds)
+  }
+
+  lazy implicit protected val sender: ActorRef = createBridge()
+
+  override protected def localSetup() = {
+    sender.tell(Ping) //compute lazy parameter
+    super.localSetup()
+  }
+
+  override protected def localShutdown() = {
+    sender.tell(Shutdown)
+    super.localShutdown()
+  }
+}
+
+case class ToAkka(actor: ActorRef, in: Any)
+
+class LiftBridge(svc: ActorRef, lift: CometActor) extends Actor {
+  protected def receive = {
+    case ToAkka(ar, msg) => ar ! msg
+    case Ping => //do nothing
+    case Shutdown =>  {
+      svc ! UnbindLiftActor(lift)
+    }
+    case x if !x.isInstanceOf[AutoReceivedMessage] => lift ! x
+  }
+}
+
+class LiftActorService extends Actor {
+  val actors = new collection.mutable.HashMap[CometActor, ActorRef]
+
+  protected def receive = {
+    case BindLiftActor(lift) => {
+      val ar = context.actorOf(Props(new LiftBridge(self, lift)))
+      actors += (lift -> ar)
+      sender ! ar
+    }
+    case UnbindLiftActor(lift) => {
+      actors.remove(lift) map { _ ! PoisonPill }
+    }
+  }
+}

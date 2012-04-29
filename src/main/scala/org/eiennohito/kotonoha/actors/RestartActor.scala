@@ -19,7 +19,9 @@ package org.eiennohito.kotonoha.actors
 import akka.pattern.{ask, pipe}
 import akka.actor._
 import auth.ClientRegistry
+import dict.{ExampleMessage, ExampleActor, DictionaryActor}
 import learning._
+import lift.{LiftMessage, LiftActorService}
 import model.{CardMessage, WordMessage, CardActor, WordActor}
 import org.eiennohito.kotonoha.learning.EventProcessor
 
@@ -33,6 +35,7 @@ trait DbMessage extends KotonohaMessage
 trait LifetimeMessage extends KotonohaMessage
 trait ClientMessage extends KotonohaMessage
 trait TokenMessage extends KotonohaMessage
+trait DictionaryMessage extends KotonohaMessage
 
 class RestartActor extends Actor with ActorLogging {
   import SupervisorStrategy._
@@ -51,26 +54,29 @@ class RestartActor extends Actor with ActorLogging {
   lazy val luceneActor = context.actorOf(Props[ExampleSearchActor])
   lazy val wordActor = context.actorOf(Props[WordActor])
   lazy val cardActor = context.actorOf(Props[CardActor])
+  lazy val liftActor = context.actorOf(Props[LiftActorService])
+  lazy val dictActor = context.actorOf(Props[DictionaryActor])
+  lazy val exampleActor = context.actorOf(Props[ExampleActor])
 
 
   def dispatch(msg: KotonohaMessage) {
     msg match {
-      case m: DbMessage => mongo.forward(msg)
-      case m: LifetimeMessage => lifetime.forward(msg)
-      case m: QrMessage => qractor.forward(msg)
-      case m: ClientMessage => clientActor.forward(msg)
-      case m: TokenMessage => userToken.forward(msg)
-      case m: SearchMessage => luceneActor.forward(msg)
-      case m: WordMessage => wordActor.forward(msg)
-      case m: CardMessage => cardActor.forward(msg)
+      case _: DbMessage => mongo.forward(msg)
+      case _: LifetimeMessage => lifetime.forward(msg)
+      case _: QrMessage => qractor.forward(msg)
+      case _: ClientMessage => clientActor.forward(msg)
+      case _: TokenMessage => userToken.forward(msg)
+      case _: SearchMessage => luceneActor.forward(msg)
+      case _: WordMessage => wordActor.forward(msg)
+      case _: CardMessage => cardActor.forward(msg)
+      case _: LiftMessage => liftActor.forward(msg)
+      case _: DictionaryMessage => dictActor.forward(msg)
+      case _: ExampleMessage => exampleActor.forward(msg)
     }
   }
 
   protected def receive = {
-    case TopLevelActors => {
-      sender ! (wordSelector, markProcessor)
-    }
-
+    case TopLevelActors => sender ! (wordSelector, markProcessor)
     case msg : KotonohaMessage => dispatch(msg)
   }
 }

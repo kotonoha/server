@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package org.eiennohito.kotonoha.util
+.nihongo {
+  font-size: larger;
+  font-family: Meiryo, MS Gothic;
+}
 
-/**
- * @author eiennohito
- * @since 24.04.12
- */
+.area textarea {
+  height: 100%;
+}
 
-object LangUtil {
-  def okayLang(in: String) = in match {
-    case "eng" => true
-    case "rus" => true
-    case _ => false
-  }
-
-  val langs = List("eng", "rus")
+.full textarea, .full input {
+  width: 100%;
 }

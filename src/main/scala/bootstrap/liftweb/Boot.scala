@@ -45,7 +45,7 @@ class Boot {
         ),
       Menu.i("Words") / "words" / "index" >> loggedin submenus (
           Menu.i("Add") / "words" / "add",
-          Menu.i("Approve") / "words" / "approve_added" >> Hidden,
+          Menu.i("Approve & Review") / "words" / "approve_added",
           Menu.i("Detail") / "words" / "detail" >> Hidden
         ),
       Menu.i("Tools") / "tools" / "index" submenus (
@@ -53,7 +53,8 @@ class Boot {
         Menu.i("Comet test") / "tools" / "comet_test",
         Menu.i("JMDict") / "tools" / "jmdict",
         Menu.i("Warodai") / "tools" / "warodai",
-        Menu.i("Examples") / "tools" / "examples"
+        Menu.i("Examples") / "tools" / "examples",
+        Menu.i("Sandbox") / "tools" / "sandbox"
       )
     )
 

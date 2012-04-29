@@ -85,3 +85,5 @@ buildInfoKeys := Seq[Scoped](version, scalaVersion, sbtVersion, gitId, gitDate)
 buildInfoPackage := "org.eiennohito.kotonoha.util"
 
 buildInfoObject  := "BuildInfo"
+
+scanInterval in Compile := 0

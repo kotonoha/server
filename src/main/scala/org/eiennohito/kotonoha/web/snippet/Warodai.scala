@@ -17,11 +17,8 @@
 package org.eiennohito.kotonoha.web.snippet
 
 import org.eiennohito.kotonoha.records.dictionary.WarodaiRecord
-import net.liftweb.mongodb.Limit
 import xml.NodeSeq
 import net.liftweb.http.S
-import net.liftweb.json._
-import net.liftweb.json.JsonAST.JObject
 import com.weiglewilczek.slf4s.Logging
 import net.liftweb.common.{Full, Box}
 import org.eiennohito.kotonoha.dict.WarodaiBodyParser
@@ -33,7 +30,6 @@ import util.parsing.input.CharSequenceReader
  */
 
 object Warodai extends Logging {
-  import org.eiennohito.kotonoha.util.KBsonDSL._
   import net.liftweb.util.Helpers._
 
   def parse(sb: Box[String]): NodeSeq = sb match {
@@ -56,13 +52,7 @@ object Warodai extends Logging {
 
   def list(in: NodeSeq): NodeSeq = {
     val q = S.param("query").openOr("")
-    val re = "^" + q
-    val inner = "$regex" -> re
-    val query: JObject = "$or" -> List(("readings" -> inner), ("writings" -> inner))
-    val jse = compact(render(query))
-    logger.debug(jse)
-    val objs = WarodaiRecord.findAll(query, Limit(50))
-    objs flatMap { o =>
+    WarodaiRecord.query(q, 50) flatMap { o =>
       bind("we", in,
         "writing" -> o.writings.is.mkString(", "),
         "reading" -> o.readings.is.mkString(", "),
