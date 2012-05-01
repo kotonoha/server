@@ -29,8 +29,8 @@ import akka.actor._
  */
 
 trait LiftMessage extends KotonohaMessage
-case class BindLiftActor(actor: CometActor)
-case class UnbindLiftActor(actor: CometActor)
+case class BindLiftActor(actor: CometActor) extends LiftMessage
+case class UnbindLiftActor(actor: CometActor) extends LiftMessage
 case object Ping extends LiftMessage
 case object Shutdown extends LiftMessage
 

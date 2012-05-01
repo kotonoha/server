@@ -75,7 +75,7 @@ object WordSnippet {
   def renderExamples: NodeSeq = {
     import Helpers._
     val templ = <tr xmlns:ex="example">
-        <td class="kanji full" width="50%">
+        <td class="nihongo full" width="50%">
           <ex:example></ex:example>
         </td>
         <td class="full" width="50%">

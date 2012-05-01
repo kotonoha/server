@@ -17,16 +17,83 @@
 
 <html>
 <body class="lift:content_id=main">
-<div id="main" class="lift:surround?with=default;at=content">
+<div id="main" class="lift:surround?with=default;at=content full" xmlns:lift="lift-framework">
   <head_merge>
     <style>
-      .right {
+      .full {
+        min-width: 500px;
+      }
+      .center {
+        width: auto;
+        min-width: 250px;
+      }
 
+      .right {
+        margin-right: 15px;
+        float:right;
+        width: 40%;
+        min-width: 150px;
+      }
+
+      .counter {
+        min-width: 100px;
       }
     </style>
+    <script language="javascript">
+      function copyToWord(e) {
+        var chld = $.children(e);
+        $("word-writing").val(chld[0].text());
+      }
+    </script>
   </head_merge>
-  <div>
+  <div class="lift:AddWordActorSnippet" xmlns:aa="approve-added">
+    <div id="status">
+      <span id="counter" class="counter"></span>
+      <span id="status-string"><b>Please wait, loading...</b></span>
+    </div>
+    <div class="column center" id="left">
+      <lift:form>
+      <div id="word-card">
+        <table xmlns:word="word-display">
+          <tbody>
+          <tr>
+            <td>Writing</td>
+            <td class="nihongo">
+              <word:writing></word:writing>
+            </td>
+          </tr>
+          <tr>
+            <td>Reading</td>
+            <td class="nihongo">
+              <word:reading></word:reading>
+            </td>
+          </tr>
+          <tr>
+            <td>Meaning</td>
+            <td class="area nihongo">
+              <word:meaning></word:meaning>
+            </td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>
+              <word:submit></word:submit>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="word-examples">
 
+      </div>
+      </lift:form>
+      <div id="button-pane">Buttons go here!</div>
+    </div>
+    <div class="right" id="right">
+      <div id="dictionary-entries">
+
+      </div>
+    </div>
   </div>
 </div>
 </body>

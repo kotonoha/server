@@ -18,19 +18,17 @@ package org.eiennohito.kotonoha.model
 import org.eiennohito.kotonoha.mongodb.MongoDbInit
 import com.foursquare.rogue.Rogue
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfter}
-import org.eiennohito.kotonoha.actors.{RegisterWord, ReleaseAkkaMain}
 import net.liftweb.common.Empty
-import org.eiennohito.kotonoha.records._
-import akka.pattern._
-import akka.util.duration._
 import akka.util.Timeout
 import akka.dispatch.{Future, Await}
 import akka.testkit.TestActorRef
-import org.eiennohito.kotonoha.actors.learning._
 import java.util.Calendar
 import util.Random
-import org.eiennohito.kotonoha.learning.{ProcessMarkEvent, EventProcessor, ProcessMarkEvents}
+import org.eiennohito.kotonoha.learning.{ProcessMarkEvent, ProcessMarkEvents}
 import org.eiennohito.kotonoha.util.DateTimeUtils
+import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
+import org.eiennohito.kotonoha.actors.model.{SchedulePaired, CardActor, RegisterWord}
+import org.eiennohito.kotonoha.actors.learning.{WordsAndCards, LoadWords, LoadCards}
 
 
 trait MongoDb {
@@ -39,6 +37,9 @@ trait MongoDb {
 
 class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers with BeforeAndAfter
   with BeforeAndAfterAll with MongoDb {
+  import akka.pattern._
+  import akka.util.duration._
+  import org.eiennohito.kotonoha.records._
   import Rogue._
 
   var user : UserRecord = _
@@ -105,7 +106,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   
   def saveWordAsync = {
     implicit val timeout = Timeout(500 millis)
-    val fut = ReleaseAkkaMain.wordRegistry ? RegisterWord(createWord)
+    val fut = ReleaseAkkaMain.root ? RegisterWord(createWord)
     fut.mapTo[Long]
   }
   

@@ -51,7 +51,7 @@ libraryDependencies ++= {
   )
 }
 
-libraryDependencies +=  "org.eclipse.jetty" % "jetty-webapp" % "8.0.4.v20111024" % "container"
+libraryDependencies +=  "org.mortbay.jetty" % "jetty" % "6.1.22" % "container"
 
 libraryDependencies += "com.foursquare" %% "rogue" % "1.1.1" intransitive()
 

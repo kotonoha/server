@@ -21,27 +21,35 @@ import net.liftweb.http.js.{JsCmd, JsExp, JE, JsonCall}
 import net.liftweb.http.js.JsCmds.{RedirectTo, SetHtml, _Noop}
 import net.liftweb.http._
 import net.liftweb.common.Full
+import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
+import org.eiennohito.kotonoha.util.unapply.XLong
+import org.eiennohito.kotonoha.web.comet.{PrepareWords, WordList}
+import org.eiennohito.kotonoha.records.{AddWordRecord, UserRecord}
+import util.Random
+import com.weiglewilczek.slf4s.Logging
 
 /**
  * @author eiennohito
  * @since 17.03.12
  */
 
-object AddWord {
+object AddWord extends Logging {
   import net.liftweb.util.Helpers._
   def addField(in: NodeSeq): NodeSeq = {
     var data = ""
 
-    def process {
-      val d = data
-      val i = 0
-      //S.redirectTo()
-      //RedirectWithState("added")
+    def process = {
+      logger.debug("trying to add words from string " + data)
+      val d = data.split("\n").map(_.trim).filter(_.length != 0)
+      val opid = Random.nextLong()
+      d.map(d => AddWordRecord.createRecord.content(d).processed(false).group(opid).user(UserRecord.currentId)).foreach(_.save)
+      RedirectTo("/words/approve_added?list="+opid.toHexString)
+      //SetHtml("asdf", <a href="http://google.com">Google</a>)
     }
 
     bind("word", SHtml.ajaxForm(in),
       "data" -> SHtml.textarea(data, data = _),
-      "submit" -> SHtml.submit("Add words", process _))
+      "submit" -> SHtml.ajaxSubmit("Add words", () => process))
   }
 
   def anotherSnippet(in: NodeSeq): NodeSeq = {
@@ -52,11 +60,26 @@ object AddWord {
   }
 }
 
+object AddWordActorSnippet extends InsertNamedComet {
 
-class WordActor extends CometActor {
-  def render = null
+  /**
+   * These are the two val(s) you would have to
+   * override after extending this trait.
+   * No need to touch the render method (I hope)
+   */
+  def cometClass = "AddWordActor"
 
-  def doSmt = {
-    partialUpdate(JE.Call("smt", JE.Str("1")).cmd)
+  override def name = {
+    S.param("list") match {
+      case Full(XLong(lid)) => "list"+lid
+      case _ => "user" + UserRecord.currentUserId.openOr(super.name)
+    }
+  }
+
+  override def messages = {
+    S.param("list") match {
+      case Full(XLong(id)) => WordList(id) :: Nil
+      case _ => PrepareWords :: Nil
+    }
   }
 }

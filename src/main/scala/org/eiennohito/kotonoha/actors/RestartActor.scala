@@ -24,6 +24,8 @@ import learning._
 import lift.{LiftMessage, LiftActorService}
 import model.{CardMessage, WordMessage, CardActor, WordActor}
 import org.eiennohito.kotonoha.learning.EventProcessor
+import net.liftweb.http.CometMessage
+import com.fmpwizard.cometactor.pertab.namedactor.{NamedCometMessage, PertabCometManager}
 
 /**
  * @author eiennohito
@@ -57,6 +59,7 @@ class RestartActor extends Actor with ActorLogging {
   lazy val liftActor = context.actorOf(Props[LiftActorService])
   lazy val dictActor = context.actorOf(Props[DictionaryActor])
   lazy val exampleActor = context.actorOf(Props[ExampleActor])
+  lazy val cometActor = context.actorOf(Props[PertabCometManager])
 
 
   def dispatch(msg: KotonohaMessage) {
@@ -72,6 +75,7 @@ class RestartActor extends Actor with ActorLogging {
       case _: LiftMessage => liftActor.forward(msg)
       case _: DictionaryMessage => dictActor.forward(msg)
       case _: ExampleMessage => exampleActor.forward(msg)
+      case _: NamedCometMessage => cometActor.forward(msg)
     }
   }
 

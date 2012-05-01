@@ -3,8 +3,8 @@ package org.eiennohito.kotonoha.records
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import org.eiennohito.kotonoha.model.EventTypes
-import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
 import net.liftweb.record.field._
+import net.liftweb.mongodb.record.field.{MongoListField, LongRefField, LongPk}
 
 /*
  * Copyright 2012 eiennohito
@@ -54,7 +54,8 @@ class AddWordRecord private() extends MongoRecord[AddWordRecord] with LongPk[Add
   protected def myType = EventTypes.ADD
   object processed extends BooleanField(this, false)
   object content extends StringField(this, 50)
-  object group extends IntField(this)
+  object group extends LongField(this)
+  object tags extends MongoListField[AddWordRecord, String](this)
 }
 
 object AddWordRecord extends AddWordRecord with MongoMetaRecord[AddWordRecord] with NamedDatabase
