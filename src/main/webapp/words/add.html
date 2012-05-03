@@ -18,24 +18,104 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
+  <head_merge>
+    <script language="JavaScript" class="lift:AddWord.asyncFunc">
+      function displaySimilar(text) {}
+    </script>
+    <script language="JavaScript">
+      var executing = false;
+      var next = null;
+
+      function send() {
+        if (!executing && next != null) {
+          var n = next;
+          next = null;
+          executing = true;
+          window.setTimeout(
+            function() {
+              displaySimilar(n)
+            },
+            150);
+        }
+      }
+
+      function finish() {
+        executing = false;
+        window.setTimeout(send, 250)
+      }
+
+      $().ready(function() {
+        var f = function(e) {
+                  next = $(e.target).val();
+                  send();
+                };
+
+        $("#word-area").change(f).keyup(f)
+      });
+
+      $().ready(function () {
+        $("form input, form select").live('keypress', function (e) {
+        if ($(this).parents('form').find('button[type=submit].default, input[type=submit].default').length <= 0)
+          return true;
+        if ((e.which && e.which == 13) || (e.keyCode && e.keyCode == 13)) {
+          $(this).parents('form').find('button[type=submit].default, input[type=submit].default').click();
+          return false;
+        } else {
+          return true;
+        }
+      });
+      });
+    </script>
+    <style>
+      .good {
+        background-color: #98fb98;
+      }
+
+      .bad {
+        background-color: #ffc0cb;
+      }
+
+      .word-container {
+        width: 100px;
+      }
+
+      .already-present {
+        background-color: orange;
+      }
+
+      .reading {}
+
+      .writing {}
+
+      div#similar-words {
+        margin-left: 40px;
+        border-left: 1px brown dotted;
+      }
+
+    </style>
+  </head_merge>
   <div>
     <p>To add new words enter them into form below, one per line.</p>
   </div>
-  <div>
+  <div class="column">
     <div id="stats"></div>
     <div>
       <table class="lift:AddWord.addField" xmlns:word="word-data">
         <tr>
           <td>Add words here</td>
-          <td><word:data></word:data></td>
+          <td><word:data><textarea id="word-area"></textarea></word:data></td>
         </tr>
         <tr>
-          <td></td>
-          <td><word:submit></word:submit></td>
+          <td><word:all></word:all></td>
+          <td><word:nonproblem></word:nonproblem></td>
         </tr>
       </table>
       <div class="lift:AddWord.anotherSnippet"></div>
       <div id="asdf"></div>
+    </div>
+  </div>
+  <div class="column">
+    <div id="similar-words">
     </div>
   </div>
 </div>

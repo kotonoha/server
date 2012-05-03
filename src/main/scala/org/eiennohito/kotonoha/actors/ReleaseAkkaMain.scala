@@ -73,8 +73,8 @@ object ReleaseAkkaMain extends AkkaMain {
   val system = ActorSystem("kotonoha_system")
   
   val root = system.actorOf(Props[RestartActor], "root")
-  val f = ask(root, TopLevelActors)(1 second).mapTo[(ActorRef, ActorRef)]
-  val x = Await.result(f, 1 second)
+  private val f = ask(root, TopLevelActors)(1 second).mapTo[(ActorRef, ActorRef)]
+  private val x = Await.result(f, 1 second)
 
   val wordSelector = x._1
   val eventProcessor = x._2

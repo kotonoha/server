@@ -24,9 +24,9 @@ import org.eiennohito.kotonoha.actors.{ReleaseAkkaMain, AkkaMain}
  */
 
 trait Akka {
-  val akkaServ: AkkaMain
+  def akkaServ: AkkaMain
 }
 
 trait ReleaseAkka { self: Akka =>
-  override val akkaServ = ReleaseAkkaMain
+  override def akkaServ = ReleaseAkkaMain
 }

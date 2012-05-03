@@ -27,7 +27,7 @@ import org.eiennohito.kotonoha.records.{WordStatus, WordRecord}
 import akka.dispatch.{ExecutionContext, Future}
 
 trait WordMessage extends KotonohaMessage
-case class RegisterWord(word: WordRecord) extends WordMessage
+case class RegisterWord(word: WordRecord, state: WordStatus.Value = WordStatus.Approved) extends WordMessage
 case class ChangeWordStatus(word: Long, status: WordStatus.Value)
 
 class WordActor extends Actor with ActorLogging with RootActor {
@@ -45,7 +45,7 @@ class WordActor extends Actor with ActorLogging with RootActor {
   }
 
   protected def receive = {
-    case RegisterWord(word) => {
+    case RegisterWord(word, st) => {
       val userId = word.user.is
       val wordid = word.id.is
       var fl = List(ask(root, SaveRecord(word)))
@@ -55,7 +55,7 @@ class WordActor extends Actor with ActorLogging with RootActor {
       fl ::= root ? RegisterCard(wordid, userId, CardMode.WRITING)
 
       val toReply = sender
-      val s = Future.sequence(fl.map(_.mapTo[Boolean]))
+      val s = Future.sequence(fl.map(_.mapTo[Boolean])).flatMap(_ => self ? ChangeWordStatus(wordid, st))
       s foreach {
         list =>
           toReply ! word.id.is
@@ -64,7 +64,13 @@ class WordActor extends Actor with ActorLogging with RootActor {
     case ChangeWordStatus(word, stat) => {
       val q = WordRecord where (_.id eqs word) modify(_.status setTo stat)
       q.updateOne()
-      sender ! 1
+      val f = stat match {
+        case WordStatus.Approved => root ? ChangeCardEnabled(word, true)
+        case _ => root ? ChangeCardEnabled(word, false)
+      }
+
+      val s = sender
+      f map {_ => s ! 1 }
     }
   }
 }

@@ -85,9 +85,13 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
 }
 
 object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with NamedDatabase {
-  def myWords = {
-    import com.foursquare.rogue.Rogue._
-    WordRecord where (_.user eqs UserRecord.currentId.openTheBox) and (_.status eqs WordStatus.Approved)
+  import com.foursquare.rogue.Rogue._
+  def myApproved = {
+    myAll and (_.status eqs WordStatus.Approved)
+  }
+
+  def myAll = {
+    WordRecord where (_.user eqs UserRecord.currentId.openTheBox)
   }
 }
 

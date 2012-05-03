@@ -17,6 +17,7 @@ import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
 import org.eiennohito.kotonoha.mongodb.MongoDbInit
 import org.eiennohito.kotonoha.records.UserRecord
 import org.eiennohito.kotonoha.web.rest.{StatusApi, QrRest, Learning, SimpleRest}
+import org.eiennohito.kotonoha.actors.lift.Ping
 
 
 /**
@@ -26,6 +27,9 @@ import org.eiennohito.kotonoha.web.rest.{StatusApi, QrRest, Learning, SimpleRest
 class Boot {
   def boot {
     MongoDbInit.init()
+
+    //Bootstrap lazy akka
+    ReleaseAkkaMain.root ! Ping
 
     // where to search snippet
     LiftRules.addToPackages("org.eiennohito.kotonoha.web")

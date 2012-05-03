@@ -23,6 +23,7 @@
       .full {
         min-width: 500px;
       }
+
       .center {
         width: auto;
         min-width: 250px;
@@ -30,7 +31,7 @@
 
       .right {
         margin-right: 15px;
-        float:right;
+        float: right;
         width: 40%;
         min-width: 150px;
       }
@@ -38,11 +39,57 @@
       .counter {
         min-width: 100px;
       }
+
+      .fifty {
+        width: auto;
+        max-width: 50%;
+      }
+
+      .block {
+        display: block;
+      }
+
+      .dict-name {
+        margin-bottom: 10px;
+        font-weight: bold;
+        border-top: 1px dotted #a52a2a;
+      }
+
+      .dict-entry {
+        border: 1px solid transparent;
+      }
+
+      .dict-entry:hover {
+        border: solid 1px red;
+        background-color: #fff969;
+      }
+
+      td.checkbox_cell {
+        vertical-align: middle;
+        width: 10%
+      }
+
+      td.fifty {
+        width: 45%;
+        padding: 2px;
+        vertical-align: baseline;
+      }
+
+      td.fifty input {
+        height: 20px;
+      }
+
+      #button-pane span {
+        margin: 10px;
+      }
     </style>
     <script language="javascript">
       function copyToWord(e) {
-        var chld = $.children(e);
-        $("word-writing").val(chld[0].text());
+        var chld = $(e).children();
+        $("#word-writing").val($(chld[0]).text());
+        var s2 = $(chld[1]).text();
+        $("#word-reading").val(s2.substr(1, s2.length - 2));
+        $("#word-meaning").text($(chld[2]).text());
       }
     </script>
   </head_merge>
@@ -52,44 +99,45 @@
       <span id="status-string"><b>Please wait, loading...</b></span>
     </div>
     <div class="column center" id="left">
-      <lift:form>
-      <div id="word-card">
-        <table xmlns:word="word-display">
-          <tbody>
-          <tr>
-            <td>Writing</td>
-            <td class="nihongo">
-              <word:writing></word:writing>
-            </td>
-          </tr>
-          <tr>
-            <td>Reading</td>
-            <td class="nihongo">
-              <word:reading></word:reading>
-            </td>
-          </tr>
-          <tr>
-            <td>Meaning</td>
-            <td class="area nihongo">
-              <word:meaning></word:meaning>
-            </td>
-          </tr>
-          <tr>
-            <td></td>
-            <td>
-              <word:submit></word:submit>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-      <div id="word-examples">
-
-      </div>
-      </lift:form>
+      <form id="main-form">
+        <div id="word-card">
+          <table xmlns:word="word-display">
+            <tbody>
+            <tr>
+              <td>Writing</td>
+              <td class="nihongo">
+                <word:writing></word:writing>
+              </td>
+            </tr>
+            <tr>
+              <td>Reading</td>
+              <td class="nihongo">
+                <word:reading></word:reading>
+              </td>
+            </tr>
+            <tr>
+              <td>Meaning</td>
+              <td class="area nihongo">
+                <word:meaning></word:meaning>
+              </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>
+                <word:submit></word:submit>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="word-examples">
+        </div>
+      </form>
       <div id="button-pane">Buttons go here!</div>
     </div>
     <div class="right" id="right">
+      <span>Click a dictionary entry to fill word entries with it</span>
+
       <div id="dictionary-entries">
 
       </div>
