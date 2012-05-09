@@ -70,7 +70,7 @@ object WordStatus extends Enumeration {
   val ReviewExamples = Value(3)
 }
 
-class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecord] {
+class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecord] with SequencedLongId[WordRecord] {
   def meta = WordRecord
 
   object writing extends StringField(this, 100)
