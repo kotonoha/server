@@ -59,6 +59,7 @@ object WordSnippet {
           "writing" -> w.writing.toForm,
           "reading" -> w.reading.toForm,
           "meaning" -> w.meaning.toForm,
+          "status" -> w.status.toForm,
           "submit" -> SHtml.ajaxSubmit("Save", () => save(w)))
       }
       case _ => S.error("Invalid word"); <em>Invalid word</em>
@@ -182,7 +183,7 @@ object WordSnippet {
 class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] {
   import org.eiennohito.kotonoha.util.KBsonDSL._
 
-  def headers = ("adate" -> "createdOn" ) :: ("writing" -> "writing") :: ("reading" -> "reading") :: Nil
+  def headers = ("adate" -> "createdOn" ) :: ("status" -> "status") :: ("writing" -> "writing") :: ("reading" -> "reading") :: Nil
 
   lazy val count = WordRecord.count(query)
 
@@ -243,7 +244,8 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] {
         "addeddate" -> Formatting.format(i.createdOn.is),
         "reading" -> i.reading.is,
         "writing" -> i.writing.is,
-        "meaning" -> Strings.substr(i.meaning.is, 50)
+        "meaning" -> Strings.substr(i.meaning.is, 50),
+        "status" -> i.status.is.toString
       )
     }
   }
