@@ -29,17 +29,13 @@
         background: rgb(241, 255, 200)
       }
 
-      .big {
-        font-size: larger;
-      }
-
-      .kanji {
-        font-family: Meiryo, MS Gothic;
-      }
-
       tr.word-row td {
         padding-left: 5px;
         padding-right: 5px;
+      }
+
+      tr.search-header td a:visited {
+        color: blue;
       }
 
       .pages a { margin: 0.5mm;}
@@ -54,7 +50,7 @@
   </div>
   <table xmlns:sort="sort">
     <thead>
-    <tr class="lift:WordPaginator.paginate">
+    <tr class="search-header lift:WordPaginator.paginate">
       <td><sort:adate>Added date</sort:adate></td>
       <td><sort:status>Status</sort:status></td>
       <td><sort:writing>Writing</sort:writing></td>
@@ -66,9 +62,9 @@
     <tr class="word-row lift:WordPaginator.renderPage" xmlns:word="word-namespace" word:link="">
       <td><word:addedDate></word:addedDate></td>
       <td class=""><word:status></word:status></td>
-      <td class="big kanji"><word:writing></word:writing></td>
-      <td class="kanji big"><word:reading></word:reading></td>
-      <td class="kanji"><word:meaning></word:meaning></td>
+      <td class="nihongo"><word:writing></word:writing></td>
+      <td class="nihongo"><word:reading></word:reading></td>
+      <td class="nihongo"><word:meaning></word:meaning></td>
     </tr>
     </tbody>
   </table>
