@@ -34,11 +34,12 @@ import org.eiennohito.kotonoha.actors._
 import akka.pattern._
 import akka.util.duration._
 
-case class ProcessMarkEvents(marks: List[MarkEventRecord])
-case class ProcessMarkEvent(mark: MarkEventRecord)
-case class RegisterServices(mong: ActorRef, sched: ActorRef)
-case class ProcessWordStatusEvent(ev: List[ChangeWordStatusEventRecord])
-case class ProcessWordStatus(ev: ChangeWordStatusEventRecord)
+trait EventMessage extends KotonohaMessage
+case class ProcessMarkEvents(marks: List[MarkEventRecord]) extends EventMessage
+case class ProcessMarkEvent(mark: MarkEventRecord) extends EventMessage
+case class RegisterServices(mong: ActorRef, sched: ActorRef) extends EventMessage
+case class ProcessWordStatusEvent(ev: List[ChangeWordStatusEventRecord]) extends EventMessage
+case class ProcessWordStatus(ev: ChangeWordStatusEventRecord) extends EventMessage
 
 
 class ChildProcessor extends Actor with ActorLogging with RootActor {

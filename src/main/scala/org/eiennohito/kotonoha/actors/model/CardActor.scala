@@ -29,6 +29,7 @@ trait CardMessage extends KotonohaMessage
 case class SchedulePaired(wordId: Long, cardType: Int) extends CardMessage
 case class ChangeCardEnabled(wordId: Long, status: Boolean) extends CardMessage
 case class RegisterCard(word: Long, userId: Long, cardMode: Int) extends CardMessage
+case class ClearNotBefore(card: Long) extends CardMessage
 
 class CardActor extends Actor with ActorLogging with RootActor {
   import akka.util.duration._
@@ -57,6 +58,10 @@ class CardActor extends Actor with ActorLogging with RootActor {
       card.user(user).word(word).cardMode(mode).learning(Empty).notBefore(now)
       val s = sender
       ask(root, SaveRecord(card)) pipeTo (s)
+    }
+    case ClearNotBefore(card) => {
+      log.debug("Clearning not before for card id {}", card)
+      WordCardRecord where (_.id eqs card) modify(_.notBefore setTo(now))
     }
   }
 }

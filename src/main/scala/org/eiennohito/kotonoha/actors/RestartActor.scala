@@ -23,9 +23,9 @@ import dict.{ExampleMessage, ExampleActor, DictionaryActor}
 import learning._
 import lift.{LiftMessage, LiftActorService}
 import model.{CardMessage, WordMessage, CardActor, WordActor}
-import org.eiennohito.kotonoha.learning.EventProcessor
 import net.liftweb.http.CometMessage
 import com.fmpwizard.cometactor.pertab.namedactor.{NamedCometMessage, PertabCometManager}
+import org.eiennohito.kotonoha.learning.{EventMessage, EventProcessor}
 
 /**
  * @author eiennohito
@@ -64,6 +64,7 @@ class RestartActor extends Actor with ActorLogging {
 
   def dispatch(msg: KotonohaMessage) {
     msg match {
+      case _: EventMessage => markProcessor.forward(msg)
       case _: DbMessage => mongo.forward(msg)
       case _: LifetimeMessage => lifetime.forward(msg)
       case _: QrMessage => qractor.forward(msg)

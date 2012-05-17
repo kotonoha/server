@@ -23,17 +23,21 @@ import akka.util.Timeout
 import akka.actor.{ActorLogging, Actor}
 import org.eiennohito.kotonoha.model.CardMode
 import org.eiennohito.kotonoha.actors.{KotonohaMessage, SaveRecord, RootActor}
-import org.eiennohito.kotonoha.records.{WordStatus, WordRecord}
 import akka.dispatch.{ExecutionContext, Future}
+import org.eiennohito.kotonoha.records.{MarkEventRecord, WordCardRecord, WordStatus, WordRecord}
+import net.liftweb.common.Empty
+import org.eiennohito.kotonoha.learning.ProcessMarkEvents
 
 trait WordMessage extends KotonohaMessage
 case class RegisterWord(word: WordRecord, state: WordStatus.Value = WordStatus.Approved) extends WordMessage
-case class ChangeWordStatus(word: Long, status: WordStatus.Value)
+case class ChangeWordStatus(word: Long, status: WordStatus.Value) extends WordMessage
+case class MarkAllWordCards(word: Long, mark: Int) extends WordMessage
 
 class WordActor extends Actor with ActorLogging with RootActor {
   import akka.util.duration._
   import akka.pattern.ask
   import com.foursquare.rogue.Rogue._
+  import org.eiennohito.kotonoha.util.DateTimeUtils._
 
   implicit val timeout: Timeout = 1 second
   implicit val dispatcher = context.dispatcher
@@ -71,6 +75,22 @@ class WordActor extends Actor with ActorLogging with RootActor {
 
       val s = sender
       f map {_ => s ! 1 }
+    }
+    case MarkAllWordCards(word, mark) => {
+      val cards = WordCardRecord where(_.word eqs word) fetch()
+      val data = cards map {c => {
+        val r =  MarkEventRecord.createRecord
+        r.card(c.id.valueBox)
+        r.mode(c.cardMode.valueBox)
+        r.time(Empty)
+        r.mark(mark)
+        r.datetime(now)
+        r.user(c.user.valueBox)
+        r
+      }}
+      (root ? ProcessMarkEvents(data)) andThen {case _ =>
+        data map { d => root ! ClearNotBefore(d.card.is) }
+      }
     }
   }
 }

@@ -16,7 +16,6 @@
 
 package org.eiennohito.kotonoha.web.snippet
 
-import xml.NodeSeq
 import net.liftweb.http._
 import js.JE.Call
 import js.JsCmds.{SetHtml, Script, Function, RedirectTo}
@@ -29,13 +28,17 @@ import com.weiglewilczek.slf4s.Logging
 import org.eiennohito.kotonoha.web.comet.{Cleanup, PrepareWords, WordList}
 import org.eiennohito.kotonoha.records.{WordRecord, AddWordRecord, UserRecord}
 import net.liftweb.json.JsonAST.{JObject, JValue}
+import xml.{Text, NodeSeq}
+import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
+import org.eiennohito.kotonoha.actors.RootActor
+import org.eiennohito.kotonoha.actors.model.MarkAllWordCards
 
 /**
  * @author eiennohito
  * @since 17.03.12
  */
 
-object AddWord extends Logging {
+object AddWord extends Logging with Akka with ReleaseAkka {
   import net.liftweb.util.Helpers._
 
   object data extends RequestVar[String]("")
@@ -70,6 +73,11 @@ object AddWord extends Logging {
     }
   }
 
+  def penaltizeWord(w: WordRecord): JsCmd = {
+    akkaServ ! MarkAllWordCards(w.id.is, 1)
+    JsCmds.Noop
+  }
+
   case class RenderData(candidate: String, present: List[WordRecord]) {
     def badness = present match {
       case Nil => "good"
@@ -79,7 +87,8 @@ object AddWord extends Logging {
     def renderPresent: NodeSeq = present flatMap { w =>
       <div class="writing nihongo">{w.writing.is}</div>
       <div class="reading nihongo">{w.reading.is}</div>
-      <div class="meaning">{w.meaning.is}</div>
+      <div class="meaning">{w.meaning.is}</div> ++
+      SHtml.a(() => penaltizeWord(w), Text("Penaltize word"))
     }
   }
 
@@ -94,15 +103,19 @@ object AddWord extends Logging {
     import org.eiennohito.kotonoha.util.KBsonDSL._
     logger.debug("Handle word data called with string:" + in)
     val lines = all(in)
-    val patterns = lines map {l => "$regex" -> ("^"+l) }
-    val q: JObject = "$or" -> (patterns map ("writing" -> _))
-    logger.debug(q.toString())
-    val ws = WordRecord.findAll(q).groupBy{w => w.writing.is}
-    val data = lines map {
-      l => RenderData(l, ws.get(l).getOrElse(Nil))
+    val html = if (lines.isEmpty) {
+      Text("")
+    } else {
+      val patterns = lines map {l => "$regex" -> ("^"+l) }
+      val q: JObject = "$or" -> (patterns map ("writing" -> _))
+      logger.debug(q.toString())
+      val ws = WordRecord.findAll(q).groupBy{w => w.writing.is}
+      val data = lines map {
+        l => RenderData(l, ws.get(l).getOrElse(Nil))
+      }
+      good(data.filter(_.present.isEmpty).map(_.candidate))
+      data flatMap (render(_))
     }
-    val html = data flatMap (render(_))
-    good(data.filter(_.present.isEmpty).map(_.candidate))
     SetHtml("similar-words", html) & Call("finish").cmd
   }
 
