@@ -28,7 +28,7 @@ import akka.actor.{ActorLogging, ActorRef, Actor}
  * @since 30.01.12
  */
 
-case class ItemUpdate(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long)
+case class ItemUpdate(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long, card: Long)
 
 class SM6 extends Actor with ActorLogging {
   import DateTimeUtils._
@@ -57,30 +57,48 @@ class SM6 extends Actor with ActorLogging {
     }
   }
 
+  //F(0) = 0
+  //F(0.25) = 0.5
+  //F(0.5) = ~0.75
+  //F(1) = 1
+  //F(6.5) = 2
+  //F(29) = 3
+  def magicFunction(x: Double): Double = {
+    math.log(1 + (math.E - 1) * math.pow(x, 0.7))
+  }
+
   def calculateMod(time: DateTime, start: DateTime, end: DateTime) = {
-    val p1 = new Duration(start, time).getMillis
-    val p2 = new Duration(start, end).getMillis
-    val ratio = p1.toDouble / p2
-    log.debug("should have scheduled for {}, waited for {}, ratio = {}", p1, p2, ratio)
-    1.0 min ratio
+    val defacto = new Duration(start, time).getMillis
+    val planned = new Duration(start, end).getMillis
+    val ratio = defacto.toDouble / planned.toDouble
+    val f = magicFunction(ratio)
+    log.debug("should have scheduled for {}, waited for {}, ratio = {}, f(ratio) = {}", planned, defacto, ratio, f)
+    if (f.isInfinite || f.isNaN) {
+      1.0
+    } else {
+      f
+    }
   }
 
   def updateLearningItem(item: ItemUpdate, mat: OFMatrixRecord) {
+    import akka.util.duration._
     val q = item.q
     val data = item.data
+    val mod = calculateMod(item.time, data.intervalStart.is, data.intervalEnd.is)
     val raw = if (q < 3.5) {
       data.lapse(data.lapse.is + 1)
       data.repetition(1)
-      mat.value(1, data.difficulty.is).value.is
+      mat.value(1, data.difficulty.is).value.is * mod
     } else {
       data.repetition(data.repetition.is + 1)
-      val mod = calculateMod(item.time, data.intervalStart.is, data.intervalEnd.is)
       val oldI = data.intervalLength.is
       val newI = data.intervalLength.is * mat.value(data.repetition.is, data.difficulty.is).value.is
       log.debug("updating item from {} to {} with mod {}", oldI, newI, mod)
       oldI + (newI - oldI) * mod
     }
-    data.intervalLength(raw * MathUtil.ofrandom)
+    val interval = raw * MathUtil.ofrandom
+    log.debug("Scheduling card {} in {} days, on {}", item.card, interval, item.time.plus(interval days))
+    data.intervalLength(interval)
   }
 
   def updateDates(item: ItemUpdate) {

@@ -77,7 +77,7 @@ class ChildProcessor extends Actor with ActorLogging with RootActor {
       }
       case Full(card) => {
         val sc = sched ? SchedulePaired(card.word.is, card.cardMode.is)
-        val it = ItemUpdate(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is)
+        val it = ItemUpdate(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
         val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord].map(card.learning(_))
         val ur = cardF.flatMap {
           c => mongo ? UpdateRecord(c)
