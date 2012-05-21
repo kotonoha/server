@@ -38,7 +38,15 @@ class ExampleActor extends Actor {
 
   val exampleSearcher = new TatoebaLinks(new File(LP.get("example.index").get))
 
+
+
   import com.foursquare.rogue.Rogue._
+
+  override def postStop() {
+    super.postStop()
+    exampleSearcher.close()
+  }
+
   protected def receive = {
     case LoadExamples(eids) =>  {
       val ids = (eids flatMap (ei => List(ei.jap) ++ ei.other.map(_.right))).distinct

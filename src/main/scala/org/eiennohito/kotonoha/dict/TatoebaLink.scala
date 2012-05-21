@@ -17,9 +17,9 @@
 package org.eiennohito.kotonoha.dict
 
 import java.nio.ByteBuffer
-import java.io.{FileInputStream, File}
 import java.nio.channels.FileChannel.MapMode
 import org.eiennohito.kotonoha.xml.CalculatingIterator
+import java.io.{Closeable, FileInputStream, File}
 
 /**
  * @author eiennohito
@@ -68,11 +68,19 @@ object TatoebaLink {
   }
 }
 
-class TatoebaLinks(in: File) {
-  private val buffer = {
+class TatoebaLinks(in: File) extends Closeable {
+  private val chan = {
     val str = new FileInputStream(in)
-    val chan = str.getChannel
+    str.getChannel
+  }
+
+  private lazy val buffer = {
     chan.map(MapMode.READ_ONLY, 0L, in.length())
+  }
+
+
+  def close() {
+    chan.close()
   }
 
   private val sz = in.length()
