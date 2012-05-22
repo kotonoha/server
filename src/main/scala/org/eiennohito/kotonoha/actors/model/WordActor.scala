@@ -27,6 +27,7 @@ import akka.dispatch.{ExecutionContext, Future}
 import org.eiennohito.kotonoha.records.{MarkEventRecord, WordCardRecord, WordStatus, WordRecord}
 import net.liftweb.common.Empty
 import org.eiennohito.kotonoha.learning.ProcessMarkEvents
+import net.liftweb.json.JsonAST.JObject
 
 trait WordMessage extends KotonohaMessage
 case class RegisterWord(word: WordRecord, state: WordStatus.Value = WordStatus.Approved) extends WordMessage
@@ -66,8 +67,10 @@ class WordActor extends Actor with ActorLogging with RootActor {
       }
     }
     case ChangeWordStatus(word, stat) => {
-      val q = WordRecord where (_.id eqs word) modify(_.status setTo stat)
-      q.updateOne()
+      import org.eiennohito.kotonoha.util.KBsonDSL._
+      val sq: JObject = "_id" -> word
+      val uq: JObject = "$set" -> ("status" -> stat.id)
+      WordRecord.update(sq, uq)
       val f = stat match {
         case WordStatus.Approved => root ? ChangeCardEnabled(word, true)
         case _ => root ? ChangeCardEnabled(word, false)
