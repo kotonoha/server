@@ -23,13 +23,24 @@
       var items = [];
       var item = null;
       var time = new Date().getTime();
+      var last = [];
       const MODE_QUESTION = 0;
       const MODE_ANSWER = 1;
       const MODE_NEXT = 2;
       var mode = -1;
 
       function publish_new(list) {
-        items = jQuery.parseJSON(list);
+        var parsed = jQuery.parseJSON(list);
+        items = [];
+        parsed.forEach(function(e) {
+          for (var i = 0; i < last.length; ++i) {
+            if (e.cid == last[i]) {
+              return;
+            }
+          }
+          items.push(e);
+        });
+
         if (item == null) {
           display_next();
         }
@@ -55,6 +66,10 @@
           var next = items.shift();
           item = next;
           display_item(next);
+          if (last.length >= 12) {
+            last.shift();
+          }
+          last.push(item.cid);
         }
       }
 
