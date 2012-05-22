@@ -22,19 +22,8 @@
     </encoder>
   </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <!-- use the previously created timestamp to create a uniquely
-     named log file -->
-        <file>log-${bySecond}.txt</file>
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
   <root level="debug">
     <appender-ref ref="console" />
     <appender-ref ref="mongo" />
-	<appender-ref ref="FILE" />
   </root>
-  <timestamp key="bySecond" datePattern="yyyyMMdd'T'HHmmss"/>
 </configuration>
