@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright 2012 eiennohito
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html>
+<body class="lift:content_id=main">
+<div id="main" class="lift:surround?with=default;at=content">
+  <head_merge>
+    <script language="JavaScript">
+      var items = [];
+      var item = null;
+      var time = new Date().getTime();
+      const MODE_QUESTION = 0;
+      const MODE_ANSWER = 1;
+      const MODE_NEXT = 2;
+      var mode = -1;
+
+      function publish_new(list) {
+        items = jQuery.parseJSON(list);
+        if (item == null) {
+          display_next();
+        }
+      }
+
+      function display_no_items() {
+
+      }
+
+      function display_item(item) {
+        show_question(item.mode);
+        $("#word-writing").text(item.writing);
+        $("#word-reading").text(item.reading);
+        $("#word-meaning").text(item.meaning);
+        $("#example-pane").html(item.examples);
+      }
+
+      function display_next() {
+        if (items === null || items.length == 0) {
+          display_no_items();
+        } else {
+          var next = items.shift();
+          item = next;
+          display_item(next);
+        }
+      }
+
+      function mark_displayed(mark) {
+        mode = MODE_NEXT;
+        $("#mark-pane").hide();
+        $("#next-word-pane").show();
+
+        var timeMill = new Date().getTime() - time;
+        var timeDouble = timeMill / 1000.0;
+        var markObj = { card: item.cid, mode: item.mode, time: timeDouble,
+          mark: mark, remaining: items.length };
+        send_to_actor(markObj);
+      }
+
+      function show_answer() {
+        mode = MODE_ANSWER;
+
+        $("#show-answer-pane").hide();
+
+        $("#word-writing").show();
+        $("#word-reading").show();
+        $("#word-meaning").show();
+        $("#example-pane").show();
+        $("#mark-pane").show();
+      }
+
+      function hide_all() {
+        $("#word-writing").hide();
+        $("#word-reading").hide();
+        $("#word-meaning").hide();
+        $("#example-pane").hide();
+        $("#mark-pane").hide();
+        $("#next-word-pane").hide();
+        $("#show-answer-pane").hide();
+      }
+
+      function show_question(qm) {
+        mode = MODE_QUESTION;
+        hide_all();
+        $("#show-answer-pane").show();
+        if (qm == 1) {
+          $("#word-writing").show();
+        } else {
+          $("#word-reading").show();
+        }
+      }
+    </script>
+    <script language="javascript">
+      $().ready(function () {
+        $("#mark1").click(function () { mark_displayed(1); return false; });
+        $("#mark2").click(function () { mark_displayed(2); return false; });
+        $("#mark3").click(function () { mark_displayed(3); return false; });
+        $("#mark4").click(function () { mark_displayed(4); return false; });
+        $("#mark5").click(function () { mark_displayed(5); return false; });
+        $("#show-next").click(function () { display_next(); return false; });
+        $("#show-answer").click(function() { show_answer(); return false; })
+      });
+    </script>
+  </head_merge>
+  <div class="lift:RepeatActorSnippet">
+    <div class="word-display">
+      <div class="column">
+        <div class="nihongo word-writing" id="word-writing"></div>
+        <div class="nihongo word-reading" id="word-reading"></div>
+        <div class="word-meaning" id="word-meaning"></div>
+        <div class="button-pane" id="button-pane">
+          <div id="mark-pane">
+            <button id="mark1">1</button>
+            <button id="mark2">2</button>
+            <button id="mark3">3</button>
+            <button id="mark4">4</button>
+            <button id="mark5">5</button>
+          </div>
+          <div id="next-word-pane">
+            <button id="show-next">Show next word</button>
+          </div>
+          <div id="show-answer-pane">
+            <button id="show-answer">Show answer</button>
+          </div>
+        </div>
+      </div>
+      <div class="column" id="example-pane">
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+

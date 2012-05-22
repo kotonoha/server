@@ -38,6 +38,7 @@ trait LifetimeMessage extends KotonohaMessage
 trait ClientMessage extends KotonohaMessage
 trait TokenMessage extends KotonohaMessage
 trait DictionaryMessage extends KotonohaMessage
+trait SelectWordsMessage extends KotonohaMessage
 
 class RestartActor extends Actor with ActorLogging {
   import SupervisorStrategy._
@@ -64,6 +65,7 @@ class RestartActor extends Actor with ActorLogging {
 
   def dispatch(msg: KotonohaMessage) {
     msg match {
+      case _: SelectWordsMessage => wordSelector.forward(msg)
       case _: EventMessage => markProcessor.forward(msg)
       case _: DbMessage => mongo.forward(msg)
       case _: LifetimeMessage => lifetime.forward(msg)

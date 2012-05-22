@@ -24,12 +24,14 @@ import org.eiennohito.kotonoha.util.DateTimeUtils
 import net.liftweb.common.Empty
 import org.eiennohito.kotonoha.actors.{SaveRecord, RootActor, KotonohaMessage}
 import akka.util.Timeout
+import org.joda.time.ReadableDuration
 
 trait CardMessage extends KotonohaMessage
 case class SchedulePaired(wordId: Long, cardType: Int) extends CardMessage
 case class ChangeCardEnabled(wordId: Long, status: Boolean) extends CardMessage
 case class RegisterCard(word: Long, userId: Long, cardMode: Int) extends CardMessage
 case class ClearNotBefore(card: Long) extends CardMessage
+case class ScheduleLater(card: Long, duration: ReadableDuration) extends CardMessage
 
 class CardActor extends Actor with ActorLogging with RootActor {
   import akka.util.duration._
@@ -62,6 +64,10 @@ class CardActor extends Actor with ActorLogging with RootActor {
     case ClearNotBefore(card) => {
       log.debug("Clearning not before for card id {}", card)
       WordCardRecord where (_.id eqs card) modify(_.notBefore setTo(now))
+    }
+    case ScheduleLater(card, interval) => {
+      val time = now plus (interval)
+      WordCardRecord where(_.id eqs card) modify (_.notBefore setTo(time))
     }
   }
 }

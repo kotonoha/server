@@ -40,6 +40,7 @@ class Boot {
       Menu.i("Home") / "index",
       Menu.i("Client Authorizations") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter,
       Menu.i("Learning") / "learning" / "index" >> loggedin submenus (
+        Menu.i("Repetition") / "learning" / "repeat",
         Menu.i("Scheduled words") / "learning" / "scheduled_cnt",
         Menu.i("OF Matrix") / "learning" / "ofmatrix"
         ),
