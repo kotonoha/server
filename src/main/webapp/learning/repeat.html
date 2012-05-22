@@ -36,10 +36,11 @@
       }
 
       function display_no_items() {
-
+        $("#button-pane").hide()
       }
 
       function display_item(item) {
+        $("#button-pane").show()
         show_question(item.mode);
         $("#word-writing").text(item.writing);
         $("#word-reading").text(item.reading);
@@ -104,6 +105,28 @@
     </script>
     <script language="javascript">
       $().ready(function () {
+        $(document).keypress(function (event) {
+          switch(mode) {
+            case MODE_QUESTION:
+              if (event.which == 32) show_answer(); return false;
+            case MODE_ANSWER:
+                switch(event.which) {
+                 case 49: case 122:
+                   mark_displayed(1); return false;
+                 case 50: case 120:
+                   mark_displayed(2); return false;
+                 case 51: case 99:
+                   mark_displayed(3); return false;
+                 case 52: case 118:
+                   mark_displayed(4); return false;
+                 case 53: case 98:
+                   mark_displayed(5); return false;
+              }
+            break;
+            case MODE_NEXT:
+              if (event.which == 32) display_next(); return false;
+          }
+        })
         $("#mark1").click(function () { mark_displayed(1); return false; });
         $("#mark2").click(function () { mark_displayed(2); return false; });
         $("#mark3").click(function () { mark_displayed(3); return false; });

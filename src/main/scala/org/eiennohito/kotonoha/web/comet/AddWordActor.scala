@@ -278,7 +278,7 @@ trait AddWordActorT extends NamedCometActor with AkkaInterop with Logging {
           val f = calculate(items.head)
           cur_ += 1
           items = items.tail
-          self ! WordCount(cur + 1, total)
+          self ! WordCount(cur, total)
           Some(f)
         }
       }
