@@ -101,14 +101,12 @@ object AddWord extends Logging with Akka with ReleaseAkka {
 
   def handleWordData(in: String): JsCmd = {
     import org.eiennohito.kotonoha.util.KBsonDSL._
-    logger.debug("Handle word data called with string:" + in)
     val lines = all(in)
     val html = if (lines.isEmpty) {
       Text("")
     } else {
       val patterns = lines map {l => "$regex" -> ("^"+l) }
-      val q: JObject = "$or" -> (patterns map ("writing" -> _))
-      logger.debug(q.toString())
+      val q: JObject = ("user" -> UserRecord.currentId.get) ~ ("$or" -> (patterns map ("writing" -> _)))
       val ws = WordRecord.findAll(q).groupBy{w => w.writing.is}
       val data = lines map {
         l => RenderData(l, ws.get(l).getOrElse(Nil))
