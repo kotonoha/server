@@ -6,9 +6,9 @@ import akka.util.Timeout
 import akka.dispatch.Future
 import akka.actor.{ActorRef, ActorLogging, Props, Actor}
 import org.eiennohito.kotonoha.records.{ChangeWordStatusEventRecord, ItemLearningDataRecord, MarkEventRecord}
-import org.eiennohito.kotonoha.supermemo.{SM6, ItemUpdate}
 import org.eiennohito.kotonoha.actors.model.{ChangeWordStatus, ChangeCardEnabled, SchedulePaired}
 import org.eiennohito.kotonoha.actors._
+import org.eiennohito.kotonoha.supermemo.{SMParentActor, SM6, ItemUpdate}
 
 /*
  * Copyright 2012 eiennohito
@@ -47,7 +47,7 @@ class ChildProcessor extends Actor with ActorLogging with RootActor {
   
   var mongo : ActorRef = _
   var sched : ActorRef = _
-  var sm6 : ActorRef = context.actorOf(Props[SM6])
+  var sm6 : ActorRef = context.actorOf(Props[SMParentActor])
 
   def processWs(ws: ChangeWordStatusEventRecord) = {
     mongo ! SaveRecord(ws)
@@ -63,7 +63,6 @@ class ChildProcessor extends Actor with ActorLogging with RootActor {
     case x: RegisterServices => {
       mongo = x.mong
       sched = x.sched
-      sm6 ! RegisterMongo(mongo)
     }
   }
 

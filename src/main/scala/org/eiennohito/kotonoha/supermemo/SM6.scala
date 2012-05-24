@@ -1,11 +1,10 @@
 package org.eiennohito.kotonoha.supermemo
 
-import org.eiennohito.kotonoha.records.{OFMatrixRecord, ItemLearningDataRecord}
 import org.eiennohito.kotonoha.math.MathUtil
 import org.eiennohito.kotonoha.util.DateTimeUtils
-import org.eiennohito.kotonoha.actors.{UpdateRecord, RegisterMongo}
-import org.joda.time.{Period, Duration, DateTime}
-import akka.actor.{ActorLogging, ActorRef, Actor}
+import org.joda.time.{Duration, DateTime}
+import akka.actor.{ActorLogging, Actor}
+import org.eiennohito.kotonoha.records.{OFElementRecord, OFMatrixRecord, ItemLearningDataRecord}
 
 /*
  * Copyright 2012 eiennohito
@@ -29,14 +28,67 @@ import akka.actor.{ActorLogging, ActorRef, Actor}
  */
 
 case class ItemUpdate(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long, card: Long)
+case class UpdateMatrixElement(rep: Int, diff: Double, v: Double)
 
-class SM6 extends Actor with ActorLogging {
+
+class OFMatrixHolder(user: Long) {
+  import com.foursquare.rogue.Rogue._
+  import MathUtil.round
+
+  case class MatrixCoordinate(rep: Int, diff: Double) {
+    def copyTo(in: OFElementRecord) = {
+      in.ef(diff).n(rep)
+    }
+  }
+
+  object Crd {
+    def apply(rep: Int, diff: Double) = new MatrixCoordinate(rep, round(diff, 2))
+  }
+
+
+  val matrix = OFMatrixRecord.forUser(user)
+
+  var elements: Map[MatrixCoordinate, OFElementRecord] = lookupElements(matrix)
+
+  def lookupElements(record: OFMatrixRecord) = {
+    val elems = OFElementRecord where (_.matrix eqs matrix.id.is) fetch()
+    elems.map{e => Crd(e.n.is, e.ef.is) -> e}.toMap
+  }
+
+  def apply(rep: Int, diff: Double) = {
+    elements.get(Crd(rep, diff)) match {
+      case Some(v) => v.value.is
+      case None => diff
+    }
+  }
+
+  def update(rep: Int, diff: Double, value: Double): Unit = {
+    val mc = Crd(rep, diff)
+    elements.get(mc) match {
+      case Some(el) => {
+        el.value(value)
+        val q = OFElementRecord where (_.id eqs el.id.is) modify (_.value setTo(value))
+        q.updateOne()
+      }
+      case None => {
+        val el = mc.copyTo(OFElementRecord.createRecord)
+        el.value(value)
+        el.save
+        elements += mc -> el
+      }
+    }
+  }
+}
+
+class SM6(user: Long) extends Actor with ActorLogging {
   import DateTimeUtils._
 
-  def updateMatrix(matrix: OFMatrixRecord, item: ItemUpdate, oldEf: Double, n: Int, oldN : Int) {    
+  lazy val matrix = new OFMatrixHolder(user)
+
+  def updateMatrix(item: ItemUpdate, oldEf: Double, n: Int, oldN : Int) {
     val il = item.data.intervalLength.is
-    val of = matrix.value(n, item.data.difficulty.is)
-    val oldOf = matrix.value(oldN, oldEf)
+    val of = matrix(n, item.data.difficulty.is)
+    val oldOf = matrix(oldN, oldEf)
     val q = item.q
     val mod5 = 1.05 max  (il + 1) / il
     val mod2 = 0.75 min  (il - 1) / il
@@ -47,13 +99,12 @@ class SM6 extends Actor with ActorLogging {
       1 - (mod2 - 1) / 2 * (4 - q)
     }
     
-    val oldOfval = of.value.is
-    val newof = oldOf.value.is * mod
+    val newof = oldOf * mod
     
-    val change = (q > 4 && newof > oldOfval) || (q < 4 && newof < oldOfval) 
+    val change = (q > 4 && newof > of) || (q < 4 && newof < of)
     if (change) {
-      of.value(1.2 max (oldOfval*0.9 + newof * 0.1))
-      myMongo ! UpdateRecord(of)
+      val change = 1.2 max (of * 0.9 + newof * 0.1)
+      self ! UpdateMatrixElement(n, item.data.difficulty.is, change)
     }
   }
 
@@ -80,7 +131,7 @@ class SM6 extends Actor with ActorLogging {
     }
   }
 
-  def updateLearningItem(item: ItemUpdate, mat: OFMatrixRecord) {
+  def updateLearningItem(item: ItemUpdate) {
     import akka.util.duration._
     val q = item.q
     val data = item.data
@@ -88,11 +139,11 @@ class SM6 extends Actor with ActorLogging {
     val raw = if (q < 3.5) {
       data.lapse(data.lapse.is + 1)
       data.repetition(1)
-      mat.value(1, data.difficulty.is).value.is * mod
+      matrix(1, data.difficulty.is) * mod
     } else {
       data.repetition(data.repetition.is + 1)
       val oldI = data.intervalLength.is
-      val newI = data.intervalLength.is * mat.value(data.repetition.is, data.difficulty.is).value.is
+      val newI = data.intervalLength.is * matrix(data.repetition.is, data.difficulty.is)
       log.debug("updating item from {} to {} with mod {}", oldI, newI, mod)
       oldI + (newI - oldI) * mod
     }
@@ -112,7 +163,6 @@ class SM6 extends Actor with ActorLogging {
   }
 
   def update(item: ItemUpdate) : ItemLearningDataRecord = {
-    val matrix = OFMatrixRecord.forUser(item.userId)
     val q = item.q
     val data = item.data
     val oldEf = item.data.difficulty.is
@@ -123,20 +173,18 @@ class SM6 extends Actor with ActorLogging {
       data.lapse(1)
       data.intervalLength(4)
       //updateMatrix(matrix, item, oldEf, 1, 1)
-      data.intervalLength(matrix.value(1, ef).value.is * MathUtil.ofrandom)
+      data.intervalLength(matrix(1, ef) * MathUtil.ofrandom)
       updateDates(item)
       return data
     }
 
     data.difficulty(ef)
     val n = data.repetition.is
-    updateMatrix(matrix, item, oldEf, n, if (n <= 1) 1 else n - 1)
-    updateLearningItem(item, matrix)
+    updateMatrix(item, oldEf, n, if (n <= 1) 1 else n - 1)
+    updateLearningItem(item)
     updateDates(item)
     data
   }
-
-  var myMongo : ActorRef = _
 
   def printE[T](f : => T): T = {
     try {
@@ -148,6 +196,7 @@ class SM6 extends Actor with ActorLogging {
 
   protected def receive = {
     case i: ItemUpdate => sender ! printE { update(i) }
-    case RegisterMongo(mongo) => myMongo = mongo
+    case TerminateSM6 => context.stop(self)
+    case UpdateMatrixElement(rep, diff, v) => matrix.update(rep, diff, v)
   }
 }

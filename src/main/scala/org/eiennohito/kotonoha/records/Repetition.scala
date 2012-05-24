@@ -47,21 +47,6 @@ object ItemLearningDataRecord extends ItemLearningDataRecord with BsonMetaRecord
 class OFMatrixRecord private() extends MongoRecord[OFMatrixRecord] with LongPk[OFMatrixRecord] with UserRef {
   def meta = OFMatrixRecord
   object user extends LongRefField(this, UserRecord)
-
-  def value(n: Int, rawEf: Double) = {
-    val ef = MathUtil.round(rawEf, 1)
-    val q = OFElementRecord where (_.matrix eqs id.is) and (_.n eqs n) and (_.ef eqs ef)
-    q.get() getOrElse {
-      val elem = OFElementRecord
-        .createRecord
-        .matrix(id.is)
-        .n(n)
-        .ef(ef)
-        .value(ef)
-      elem.save
-      elem
-    }
-  }
 }
 
 object OFMatrixRecord extends OFMatrixRecord with MongoMetaRecord[OFMatrixRecord] with NamedDatabase {
