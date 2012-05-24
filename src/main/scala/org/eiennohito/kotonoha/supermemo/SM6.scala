@@ -30,7 +30,6 @@ import org.eiennohito.kotonoha.records.{OFElementRecord, OFMatrixRecord, ItemLea
 case class ItemUpdate(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long, card: Long)
 case class UpdateMatrixElement(rep: Int, diff: Double, v: Double)
 
-
 class OFMatrixHolder(user: Long) {
   import com.foursquare.rogue.Rogue._
   import MathUtil.round
@@ -139,7 +138,7 @@ class SM6(user: Long) extends Actor with ActorLogging {
     val raw = if (q < 3.5) {
       data.lapse(data.lapse.is + 1)
       data.repetition(1)
-      matrix(1, data.difficulty.is) * mod
+      matrix(1, data.difficulty.is) * (0.8 max mod)
     } else {
       data.repetition(data.repetition.is + 1)
       val oldI = data.intervalLength.is
@@ -174,6 +173,7 @@ class SM6(user: Long) extends Actor with ActorLogging {
       data.intervalLength(4)
       //updateMatrix(matrix, item, oldEf, 1, 1)
       data.intervalLength(matrix(1, ef) * MathUtil.ofrandom)
+      data.difficulty(ef)
       updateDates(item)
       return data
     }

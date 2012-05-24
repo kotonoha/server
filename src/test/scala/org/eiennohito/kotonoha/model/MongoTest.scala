@@ -221,15 +221,4 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     updatedCard.learning.valueBox.isEmpty should be (false)
     updatedCard.learning.value.lapse.is should be (2)
   }
-  
-  test("of matrix test") {
-    val mat = OFMatrixRecord.forUser(userId)
-    val v = mat.value(1, 2.5)
-    val v2 = mat.value(1, 2.5)    
-    v.id.is should equal (v2.id.is)
-    v.value.is should equal (v2.value.is)
-    v.value(5).update
-    val v3 = mat.value(1, 2.5)
-    v.value.is should equal (v3.value.is)
-  }
 }
