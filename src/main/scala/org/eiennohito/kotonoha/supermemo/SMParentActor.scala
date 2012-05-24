@@ -17,14 +17,14 @@
 package org.eiennohito.kotonoha.supermemo
 
 import akka.actor.{Props, ActorRef, Actor}
-import org.joda.time.{Duration, DateTime}
+import org.joda.time.Duration
 
 /**
  * @author eiennohito
  * @since 24.05.12
  */
 
-case class TimeoutSM6(user: Long, time: DateTime)
+case object TimeoutSM6
 case object TerminateSM6
 
 /**
@@ -34,6 +34,7 @@ class SMParentActor extends Actor {
   import akka.util.duration._
   import org.eiennohito.kotonoha.util.DateTimeUtils._
   private var active: Map[Long, ActorRef] = Map()
+  private var useTime: Map[Long, Long] = Map()
 
   def createChildFor(userId: Long): ActorRef = {
     val actor = context.actorOf(Props(new SM6(userId)))
@@ -41,19 +42,27 @@ class SMParentActor extends Actor {
     actor
   }
 
+  val cancellable = context.system.scheduler.schedule(1 minute, 5 minutes, self, TimeoutSM6)
+
+
+  override def postStop() {
+    cancellable.cancel()
+  }
+
+  def time = System.currentTimeMillis()
+
   protected def receive = {
     case i: ItemUpdate => {
       active.get(i.userId).getOrElse(createChildFor(i.userId)) forward (i)
-      context.system.scheduler.scheduleOnce(5 minutes, self, TimeoutSM6(i.userId, now plus (5 minutes)))
+      useTime += i.userId -> System.currentTimeMillis()
     }
-    case TimeoutSM6(user, time) => {
-      val dur = new Duration(time, now)
-      if (dur.getMillis <= 0) {
-        active get (user) map { _ ! TerminateSM6 }
-        active -= user
-      } else {
-        context.system.scheduler.scheduleOnce(1 minute, self, TimeoutSM6(user, now plus (1 minute)))
-      }
+    case TimeoutSM6 => {
+      val t = time
+      val stale: Set[Long] = useTime filter (p => new Duration(p._2, t).isLongerThan(5 minutes)) map (_._1) toSet()
+      stale map { active(_) } foreach { _ ! TerminateSM6 }
+
+      useTime = useTime filter (s => stale.contains(s._1))
+      active = active filter (s => stale.contains(s._1))
     }
   }
 }
