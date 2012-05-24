@@ -59,7 +59,7 @@ class SMParentActor extends Actor {
     case TimeoutSM6 => {
       val t = time
       val stale: Set[Long] = useTime filter (p => new Duration(p._2, t).isLongerThan(5 minutes)) map (_._1) toSet()
-      stale map { active(_) } foreach { _ ! TerminateSM6 }
+      stale map { active.get(_) } foreach  { _ map { _ ! TerminateSM6 } }
 
       useTime = useTime filter (s => stale.contains(s._1))
       active = active filter (s => stale.contains(s._1))
