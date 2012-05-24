@@ -51,6 +51,8 @@ class SMParentActor extends Actor {
 
   def time = System.currentTimeMillis()
 
+  val interval = (5 minutes).getMillis
+
   protected def receive = {
     case i: ItemUpdate => {
       active.get(i.userId).getOrElse(createChildFor(i.userId)) forward (i)
@@ -58,7 +60,7 @@ class SMParentActor extends Actor {
     }
     case TimeoutSM6 => {
       val t = time
-      val stale: Set[Long] = useTime filter (p => new Duration(p._2, t).isLongerThan(5 minutes)) map (_._1) toSet()
+      val stale = useTime.filter{ case (_, ts) => (ts - t) >= interval }.map{ case (id, _) => id }.toSet[Long]
       stale map { active.get(_) } foreach  { _ map { _ ! TerminateSM6 } }
 
       useTime = useTime filter (s => stale.contains(s._1))

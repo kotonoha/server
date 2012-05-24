@@ -37,7 +37,7 @@ class OFMatrixHolder(user: Long) extends Logging {
 
   case class MatrixCoordinate(rep: Int, diff: Double) {
     def copyTo(in: OFElementRecord) = {
-      in.ef(diff).n(rep)
+      in.ef(diff).n(rep).matrix(matrix.id.is)
     }
   }
 
