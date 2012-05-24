@@ -5,6 +5,7 @@ import org.eiennohito.kotonoha.util.DateTimeUtils
 import org.joda.time.{Duration, DateTime}
 import akka.actor.{ActorLogging, Actor}
 import org.eiennohito.kotonoha.records.{OFElementRecord, OFMatrixRecord, ItemLearningDataRecord}
+import com.weiglewilczek.slf4s.Logging
 
 /*
  * Copyright 2012 eiennohito
@@ -30,7 +31,7 @@ import org.eiennohito.kotonoha.records.{OFElementRecord, OFMatrixRecord, ItemLea
 case class ItemUpdate(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long, card: Long)
 case class UpdateMatrixElement(rep: Int, diff: Double, v: Double)
 
-class OFMatrixHolder(user: Long) {
+class OFMatrixHolder(user: Long) extends Logging {
   import com.foursquare.rogue.Rogue._
   import MathUtil.round
 
@@ -63,6 +64,7 @@ class OFMatrixHolder(user: Long) {
 
   def update(rep: Int, diff: Double, value: Double): Unit = {
     val mc = Crd(rep, diff)
+    logger.debug("updateing OF matrix element (%d, %f) to %f".format(mc.rep, mc.diff, value))
     elements.get(mc) match {
       case Some(el) => {
         el.value(value)
