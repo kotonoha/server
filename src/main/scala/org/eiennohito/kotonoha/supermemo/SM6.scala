@@ -42,7 +42,7 @@ class OFMatrixHolder(user: Long) extends Logging {
   }
 
   object Crd {
-    def apply(rep: Int, diff: Double) = new MatrixCoordinate(rep, round(diff, 2))
+    def apply(rep: Int, diff: Double) = new MatrixCoordinate(rep, round(diff, 1))
   }
 
 
