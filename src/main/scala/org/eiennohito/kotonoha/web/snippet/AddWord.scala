@@ -33,6 +33,7 @@ import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
 import org.eiennohito.kotonoha.actors.RootActor
 import org.eiennohito.kotonoha.actors.model.MarkAllWordCards
 import org.eiennohito.kotonoha.records.dictionary.JMDictRecord
+import org.eiennohito.kotonoha.util.LangUtil
 
 /**
  * @author eiennohito
@@ -108,7 +109,7 @@ object AddWord extends Logging with Akka with ReleaseAkka {
         case Some(e) =>
           <div class="dic-cell">
             <div class="nihongo">{ e.reading.is.map(_.value.is).headOr("") }</div>
-            <div> {e.meaning.is.map(_.vals.is.filter().map(_.str)).headOr("") }</div>
+            <div> {e.meaning.is.flatMap(_.vals.is.filter{x => LangUtil.okayLang(x.loc)}.map(_.str)).headOr("") }</div>
           </div>
       }
 
