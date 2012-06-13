@@ -11,7 +11,7 @@ version := "0.1-SNAPSHOT"
 
 moduleName := "kotonoha"
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "1.6.1" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "1.8" % "test"
 
 libraryDependencies ++=
 					Seq("org.scalaz" %% "scalaz-core" % "6.0.3",
