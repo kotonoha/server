@@ -32,27 +32,50 @@ import xml.{Text, NodeSeq}
 import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
 import org.eiennohito.kotonoha.actors.RootActor
 import org.eiennohito.kotonoha.actors.model.MarkAllWordCards
+import org.eiennohito.kotonoha.records.dictionary.JMDictRecord
 
 /**
  * @author eiennohito
  * @since 17.03.12
  */
 
+case class Candidate(writing: String, reading: Option[String], meaning: Option[String])
+
+case class InvalidStringException(str: String) extends Exception("String " + str + " is not valid")
+
+object Candidate {
+  def apply(in: String) = {
+    in.split("[|｜]", 3) match {
+      case Array(w) => new Candidate(w, None, None)
+      case Array(w, r, m) => new Candidate(w, Some(r), Some(m))
+      case Array(w, smt) => {
+        import org.eiennohito.kotonoha.util.UnicodeUtil._
+        if (stream(smt).forall(isKana(_))) {
+          new Candidate(w, Some(smt), None)
+        } else {
+          new Candidate(w, None, Some(smt))
+        }
+      }
+      case _ => throw new InvalidStringException(in)
+    }
+  }
+}
+
 object AddWord extends Logging with Akka with ReleaseAkka {
   import net.liftweb.util.Helpers._
 
   object data extends RequestVar[String]("")
-  object good extends RequestVar[List[String]](Nil)
+  object good extends RequestVar[List[Candidate]](Nil)
 
-  def all(s: String): List[String] = s.split("\n").map(_.trim).filter(_.length != 0).toList
+  def all(s: String): List[Candidate] = s.split("\n").map(_.trim).filter(_.length != 0).map(Candidate(_)).toList
 
   def addField(in: NodeSeq): NodeSeq = {
-    def process(d: List[String]) = {
+    def process(d: List[Candidate]) = {
       logger.debug("trying to add words from " + d)
       val opid = Random.nextLong()
       val recs = d.map(d => {
         val rec = AddWordRecord.createRecord
-        rec.content(d).processed(false).group(opid).user(UserRecord.currentId)
+        rec.writing(d.writing).meaning(d.meaning).reading(d.reading).processed(false).group(opid).user(UserRecord.currentId)
         rec.save
       })
 
@@ -78,7 +101,19 @@ object AddWord extends Logging with Akka with ReleaseAkka {
     JsCmds.Noop
   }
 
-  case class RenderData(candidate: String, present: List[WordRecord]) {
+  case class RenderData(candidate: Candidate, present: List[WordRecord], dicEn: Option[JMDictRecord]) {
+    def renderDic(): NodeSeq = {
+      dicEn match {
+        case None => Nil
+        case Some(e) =>
+          <div class="dic-cell">
+            <div class="nihongo">{ e.reading.is.map(_.value.is).headOr("") }</div>
+            <div> {e.meaning.is.map(_.vals.is.filter().map(_.str)).headOr("") }</div>
+          </div>
+      }
+
+    }
+
     def badness = present match {
       case Nil => "good"
       case _ => "bad"
@@ -94,22 +129,28 @@ object AddWord extends Logging with Akka with ReleaseAkka {
 
   def render(d: RenderData): NodeSeq = {
     <div class="word-container">
-      <div class={d.badness + " nihongo"}>{d.candidate}</div>
-      <div class="already-present">{d.renderPresent}</div>
+      <div class="word-cell">
+        <div class={d.badness + " nihongo"}>{d.candidate.writing}</div>
+        <div class="already-present">{d.renderPresent}</div>
+      </div>
+      {d.renderDic()}
     </div>
   }
 
   def handleWordData(in: String): JsCmd = {
     import org.eiennohito.kotonoha.util.KBsonDSL._
+    data(in)
     val lines = all(in)
     val html = if (lines.isEmpty) {
       Text("")
     } else {
-      val patterns = lines map {l => "$regex" -> ("^"+l) }
+      val patterns = lines map {l => "$regex" -> ("^"+l.writing) }
       val q: JObject = ("user" -> UserRecord.currentId.get) ~ ("$or" -> (patterns map ("writing" -> _)))
-      val ws = WordRecord.findAll(q).groupBy{w => w.writing.is}
+      val dicQ: JObject = "$or" -> patterns.map("writing.value"  -> _ )
+      val ws = WordRecord.findAll(q).groupBy{w => w.writing.is} withDefaultValue(Nil)
+      val des = JMDictRecord.findAll(dicQ).flatMap { de => de.writing.is.map{jms => jms.value.is -> Some(de)}}.toMap.withDefaultValue(None)
       val data = lines map {
-        l => RenderData(l, ws.get(l).getOrElse(Nil))
+        l => RenderData(l, ws(l.writing), des(l.writing))
       }
       good(data.filter(_.present.isEmpty).map(_.candidate))
       data flatMap (render(_))

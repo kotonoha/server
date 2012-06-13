@@ -50,6 +50,8 @@ object UnicodeUtil {
 
   def isKatakana(p: Int) = inRange(p, katakanaRange)
 
+  def isKana(p: Int) = isHiragana(p) || isKatakana(p)
+
   def isJapanese(s: String) = stream(s).take(50).foldLeft(false) {
     case (false, c) => isKanji(c) || isHiragana(c) || isKatakana(c)
     case (true, _) => true

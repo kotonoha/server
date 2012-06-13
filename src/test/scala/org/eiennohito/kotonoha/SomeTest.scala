@@ -104,4 +104,11 @@ class SomeTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     val d2 = Extraction.extract[TestClass](o)(MyFormat + DateTimeConverter, Manifest.classType(classOf[TestClass]))
     val c = 1
   }
+
+  test("wtf") {
+    val str = "help me!"
+    val str2 = "kill me!"
+
+    println(str.diff(str2))
+  }
 }

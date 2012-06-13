@@ -29,14 +29,36 @@ import org.eiennohito.kotonoha.model.EventTypes;
 public class AddWordEvent extends Event {
 
   @DatabaseField
-  private String content;
+  private String writing;
 
-  public String getContent() {
-    return content;
+  @DatabaseField
+  private String reading;
+
+  @DatabaseField
+  private String meaning;
+
+  public String getWriting() {
+    return writing;
   }
 
-  public void setContent(String content) {
-    this.content = content;
+  public void setWriting(String writing) {
+    this.writing = writing;
+  }
+
+  public String getReading() {
+    return reading;
+  }
+
+  public void setReading(String reading) {
+    this.reading = reading;
+  }
+
+  public String getMeaning() {
+    return meaning;
+  }
+
+  public void setMeaning(String meaning) {
+    this.meaning = meaning;
   }
 
   @Override

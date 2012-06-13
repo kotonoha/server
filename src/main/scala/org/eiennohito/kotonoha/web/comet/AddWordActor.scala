@@ -284,15 +284,16 @@ trait AddWordActorT extends NamedCometActor with AkkaInterop with Logging {
       }
     }
 
-    protected def calculate(item: AddWordRecord) = synchronized {
-      prepareWord(item.content.is) map (w => {
-        w.word.tags(item.tags.is).writing(item.content.valueBox).user(item.user.valueBox);
-        w.onSave map {
-          i => root ! UpdateRecord(item.processed(true))
-        }
-        w
-      })
-    }
+    protected def calculate(item: AddWordRecord) =
+    prepareWord(item.writing.is) map (w => {
+      w.word.tags(item.tags.is).writing(item.writing.valueBox).user(item.user.valueBox)
+      item.reading.valueBox map {r => w.word.reading(r) }
+      item.meaning.valueBox map {m => w.word.meaning(m) }
+      w.onSave map {
+        i => root ! UpdateRecord(item.processed(true))
+      }
+      w
+    })
   }
 
   def prepare() = {
