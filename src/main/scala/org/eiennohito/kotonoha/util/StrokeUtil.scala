@@ -14,35 +14,16 @@
  * limitations under the License.
  */
 
-package org.eiennohito.kotonoha.web.snippet
+package org.eiennohito.kotonoha.util
 
-import xml.NodeSeq
 import org.eiennohito.kotonoha.records.AppConfig
-import net.liftweb.http.SHtml
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JsCmds.SetHtml
 
 /**
  * @author eiennohito
- * @since 01.04.12
+ * @since 20.06.12
  */
 
-object Config {
-  def config(in: NodeSeq): NodeSeq = {
-    import net.liftweb.util.Helpers._
-
-    val config = AppConfig.apply()
-
-    def save(): JsCmd = {
-      config.save
-      SetHtml("status", <b>Saved</b>)
-    }
-
-    bind("c", SHtml.ajaxForm(in),
-      "invites" -> config.inviteOnly.toForm,
-      "uri" -> config.baseUri.toForm,
-      "kakijyun" -> config.stokeUri.toForm,
-      "submit" -> SHtml.ajaxSubmit("Save", save)
-      )
-  }
+object StrokesUtil {
+  def strokeUri(cp: Int): String = "%s/%04x.svgz".format(AppConfig().stokeUri.is, cp)
+  def strokeUri(s: String, pos: Int): String = strokeUri(s.codePointAt(pos))
 }

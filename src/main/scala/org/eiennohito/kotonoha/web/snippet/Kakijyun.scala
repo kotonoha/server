@@ -17,32 +17,22 @@
 package org.eiennohito.kotonoha.web.snippet
 
 import xml.NodeSeq
-import org.eiennohito.kotonoha.records.AppConfig
-import net.liftweb.http.SHtml
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.http.S
+import org.eiennohito.kotonoha.util.{StrokesUtil, UnicodeUtil}
 
 /**
  * @author eiennohito
- * @since 01.04.12
+ * @since 20.06.12
  */
 
-object Config {
-  def config(in: NodeSeq): NodeSeq = {
-    import net.liftweb.util.Helpers._
-
-    val config = AppConfig.apply()
-
-    def save(): JsCmd = {
-      config.save
-      SetHtml("status", <b>Saved</b>)
-    }
-
-    bind("c", SHtml.ajaxForm(in),
-      "invites" -> config.inviteOnly.toForm,
-      "uri" -> config.baseUri.toForm,
-      "kakijyun" -> config.stokeUri.toForm,
-      "submit" -> SHtml.ajaxSubmit("Save", save)
-      )
+object Kakijyun {
+  import net.liftweb.util.Helpers._
+  def render(in: NodeSeq): NodeSeq = {
+    val q = S.param("q").getOrElse("書き順")
+    val strokes = UnicodeUtil.stream(q).filter(UnicodeUtil.isKanji(_)).map(StrokesUtil.strokeUri(_))
+    val nodeseq: NodeSeq = strokes.flatMap { uri => <object data={uri} type={"image/svg+xml"} /> }
+    val tf = "#sentence-input [value]" #> q &
+              "#content *" #> nodeseq
+    tf(in)
   }
 }

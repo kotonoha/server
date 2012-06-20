@@ -19,7 +19,7 @@ package org.eiennohito.kotonoha.records
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field.LongPk
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.record.field.{StringField, BooleanField}
+import net.liftweb.record.field.{OptionalStringField, StringField, BooleanField}
 
 /**
  * @author eiennohito
@@ -32,6 +32,9 @@ class ConfigRecord private() extends MongoRecord[ConfigRecord] with LongPk[Confi
 
   object inviteOnly extends BooleanField(this, false)
   object baseUri extends StringField(this, 250)
+  object stokeUri extends StringField(this, 250, "")
+
+  def hasStrokes = stokeUri.is.length == 0
 
   def meta = ConfigRecord
 }

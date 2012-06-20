@@ -18,25 +18,15 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
-  <div id="status" style="height: 20px;"></div>
-  <table class="lift:Config.config" xmlns:c="configuration">
-    <tr>
-      <td>Require invites</td>
-      <td><c:invites></c:invites></td>
-    </tr>
-    <tr>
-      <td>Base Uri</td>
-      <td><c:uri></c:uri></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><c:kakijyun></c:kakijyun></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><c:submit></c:submit></td>
-    </tr>
-  </table>
+  <div class="lift:Kakijyun">
+    <form method="get">
+      <label for="sentence-input">Input sentence</label>
+      <input type="text" id="sentence-input" name="q">
+      <input type="submit">
+    </form>
+    <div id="content">
+    </div>
+  </div>
 </div>
 </body>
 </html>

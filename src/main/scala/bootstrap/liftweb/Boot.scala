@@ -59,6 +59,7 @@ class Boot {
         Menu.i("JMDict") / "tools" / "jmdict",
         Menu.i("Warodai") / "tools" / "warodai",
         Menu.i("Examples") / "tools" / "examples",
+        Menu.i("Stroke orders") / "tools" / "kakijyun",
         Menu.i("Sandbox") / "tools" / "sandbox"
       )
     )
