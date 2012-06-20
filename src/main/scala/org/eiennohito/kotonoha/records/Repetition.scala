@@ -38,6 +38,7 @@ class ItemLearningDataRecord private() extends BsonRecord[ItemLearningDataRecord
   object intervalLength extends DoubleField(this)
 
   object difficulty extends DoubleField(this, 2.5)
+  object inertia extends DoubleField(this, 1.0)
   object lapse extends IntField(this)
   object repetition extends IntField(this)
 }

@@ -97,7 +97,7 @@ class SM6(user: Long) extends Actor with ActorLogging {
     val mod = if (q > 4) {
       1 + (mod5 - 1)*(q - 4)
     } else {
-      1 - (mod2 - 1) / 2 * (4 - q)
+      1 - (1 - mod2) / 2 * (4 - q)
     }
     
     val newof = oldOf * mod
@@ -132,6 +132,16 @@ class SM6(user: Long) extends Actor with ActorLogging {
     }
   }
 
+  def inertiaVal(data: ItemLearningDataRecord, q: Double) = {
+    val i = data.inertia.is
+    val p = q match {
+      case v if v >= 3 => 0.95
+      case v if v >= 2 => 0.9
+      case _ => 0.8
+    }
+    i * p
+  }
+
   def updateLearningItem(item: ItemUpdate) {
     import akka.util.duration._
     val q = item.q
@@ -140,8 +150,13 @@ class SM6(user: Long) extends Actor with ActorLogging {
     val raw = if (q < 3.5) {
       data.lapse(data.lapse.is + 1)
       data.repetition(1)
-      matrix(1, data.difficulty.is) * (0.8 max mod)
+      data.inertia(inertiaVal(data, q))
+      matrix(data.lapse.is, data.difficulty.is) * (0.8 max mod) * (data.inertia.is max 0.05)
     } else {
+      if (data.inertia.is < 1.0) {
+        data.inertia(1.0)
+        data.intervalLength(matrix(data.lapse.is, data.difficulty.is))
+      }
       data.repetition(data.repetition.is + 1)
       val oldI = data.intervalLength.is
       val newI = data.intervalLength.is * matrix(data.repetition.is, data.difficulty.is)
