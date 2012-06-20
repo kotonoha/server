@@ -42,7 +42,7 @@ object LearningCommon {
         val ns = nsq.count()
         val now = DateTimeUtils.now
         val nsf = nsq and (_.notBefore after now) count()
-        val sf = lq and (_.notBefore after now) count()
+        val sf = lq and (_.notBefore after now) raw (f => f.add("$where", "this.notBefore < this.learning.intervalEnd")) count()
 
         val av_1 = lq where (_.learning subfield(_.intervalEnd) before now) and (_.notBefore before now) count()
         val av_2 = nsq where (_.notBefore before now) count()
