@@ -53,9 +53,13 @@ class JMDictQActor extends Actor {
     val entrs = objs.map { j =>
       val wrs = j.writing.is.flatMap {s => s.value.valueBox}
       val rds = j.reading.is.flatMap {s => s.value.valueBox}
-      val mns = j.meaning.is.map { mn =>
-        mn.pos.valueBox.map(_.toString() + ": ").openOr("") + mn.vals.is.filter(s => LangUtil.okayLang(s.loc)).map(_.str).mkString("; ")
-      }
+      val mns = j.meaning.is.map { mn => {
+        val info = mn.info.is match {
+          case Nil => ""
+          case l => l.mkString("(", ",", "):")
+        }
+        info + mn.vals.is.filter(s => LangUtil.okayLang(s.loc)).map(_.str).mkString("; ")
+      }}
       DictionaryEntry(wrs, rds, mns)
     }
     SearchResult(entrs)

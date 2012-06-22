@@ -41,12 +41,10 @@ object JMDict extends Logging {
   }
 
   def rendMeaning(m: JMDictMeaning): NodeSeq = {
-    val pos: NodeSeq = m.pos.valueBox match {
-      case Full(x) => {
-        val lng = JMDictAnnotations.safeValueOf(x.toString()).long
-        <div title={lng} class="dict-pos">{x.toString()}</div>
+    val pos: NodeSeq = m.info.is flatMap { s => {
+        val lng = JMDictAnnotations.safeValueOf(s).long
+        <div title={lng} class="dict-pos">{s}</div>
       }
-      case _ => Nil
     }
     val bdy = m.vals.is.filter(l => LangUtil.okayLang(l.loc)).flatMap(l => <span class="dict-mean">{l.str}</span>)
     pos ++ bdy

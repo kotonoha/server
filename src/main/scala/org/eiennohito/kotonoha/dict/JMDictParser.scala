@@ -61,11 +61,14 @@ object JMDictParser {
     it.trans("sense") { it =>
       val rec = JMDictMeaning.createRecord
       val gl = new mut.ListBuffer[LocString]
+      val poss = new mut.ListBuffer[String]
+      val misc = new mut.ListBuffer[String]
       it.selector {
-        case XmlEl("pos") => rec.pos(JMDictAnnotations.safeValueOf(it.textOf("pos")))
+        case XmlEl("pos") =>  poss += it.textOf("pos") //rec.pos(JMDictAnnotations.safeValueOf(it.textOf("pos")))
+        case XmlEl("misc") => misc += it.textOf("misc")
         case x @ XmlEl("gloss") => gl += LocString(it.textOf("gloss"), lang(x))
       }
-      rec.vals(gl.toList)
+      rec.info(poss.toList ++ misc.toList).vals(gl.toList)
     }
   }
 

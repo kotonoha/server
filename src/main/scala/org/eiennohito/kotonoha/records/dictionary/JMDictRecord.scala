@@ -18,7 +18,7 @@ package org.eiennohito.kotonoha.records.dictionary
 
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
 import net.liftweb.record.field.{StringField, EnumField}
-import net.liftweb.mongodb.record.field.{MongoCaseClassListField, BsonRecordListField, LongPk}
+import net.liftweb.mongodb.record.field.{MongoListField, MongoCaseClassListField, BsonRecordListField, LongPk}
 import org.eiennohito.kotonoha.mongodb.DictDatabase
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.json._
@@ -34,7 +34,7 @@ case class LocString(str: String, loc: String)
 class JMDictMeaning extends BsonRecord[JMDictMeaning] {
   def meta = JMDictMeaning
 
-  object pos extends EnumField(this, JMDictAnnotations)
+  object info extends MongoListField[JMDictMeaning, String](this)
   object vals extends MongoCaseClassListField[JMDictMeaning, LocString](this)
 }
 
