@@ -97,7 +97,12 @@ class WordSelector extends Actor with ActorLogging with RootActor {
     loadNewCards(userId, max - len, now) map (valid ++ _)
   }
 
+  def loadReviewList(user: Long, max: Int): Unit = {
+
+  }
+
   protected def receive = {
+    case LoadReviewList(user, max) => loadReviewList(user, max)
     case LoadCards(user, max) => {
       val dest = sender
       forUser(user, max) map (dest ! _)
@@ -123,6 +128,8 @@ case class LoadNewCards(userId: Long, maxNew: Int)
 case class LoadCards(userId: Long, max: Int) extends SelectWordsMessage
 case class LoadWords(userId: Long, max: Int) extends SelectWordsMessage
 case class WordsAndCards(words: List[WordRecord], cards: List[WordCardRecord])
+
+case class LoadReviewList(userId: Long, max: Int) extends SelectWordsMessage
 
 class CardLoader extends Actor {
   protected def receive = {
