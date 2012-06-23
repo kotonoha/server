@@ -107,10 +107,8 @@ object AddWord extends Logging with Akka with ReleaseAkka {
       dicEn match {
         case None => Nil
         case Some(e) =>
-          <div class="dic-cell">
             <div class="nihongo">{ e.reading.is.map(_.value.is).headOr("") }</div>
             <div> {e.meaning.is.flatMap(_.vals.is.filter{x => LangUtil.okayLang(x.loc)}.map(_.str)).headOr("") }</div>
-          </div>
       }
 
     }
@@ -129,13 +127,12 @@ object AddWord extends Logging with Akka with ReleaseAkka {
   }
 
   def render(d: RenderData): NodeSeq = {
-    <div class="word-container">
-      <div class="word-cell">
-        <div class={d.badness + " nihongo"}>{d.candidate.writing}</div>
-        <div class="already-present">{d.renderPresent}</div>
-      </div>
-      {d.renderDic()}
-    </div>
+    val word = <div class={d.badness + " nihongo"}>{d.candidate.writing}</div>
+            <div class="already-present">{d.renderPresent}</div> ;
+    <tr class="word-container">
+      <td class="word-cell">{word}</td>
+      <td class="dic-cell">{d.renderDic()}</td>
+    </tr>
   }
 
   def handleWordData(in: String): JsCmd = {
