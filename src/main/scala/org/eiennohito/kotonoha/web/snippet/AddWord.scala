@@ -40,7 +40,14 @@ import org.eiennohito.kotonoha.util.LangUtil
  * @since 17.03.12
  */
 
-case class Candidate(writing: String, reading: Option[String], meaning: Option[String])
+case class Candidate(writing: String, reading: Option[String], meaning: Option[String]) {
+  def toQuery: JValue = {
+    import org.eiennohito.kotonoha.util.KBsonDSL._
+    def regex(s: String) = "$regex" -> ("^" + s)
+
+    ("writing.value" -> regex(writing)) ~ (reading map { r => ("reading.value" -> regex(r) ) } )
+  }
+}
 
 case class InvalidStringException(str: String) extends Exception("String " + str + " is not valid")
 
@@ -142,9 +149,9 @@ object AddWord extends Logging with Akka with ReleaseAkka {
     val html = if (lines.isEmpty) {
       Text("")
     } else {
-      val patterns = lines map {l => "$regex" -> ("^"+l.writing) }
+      val patterns = lines map { _.toQuery }
       val q: JObject = ("user" -> UserRecord.currentId.get) ~ ("$or" -> (patterns map ("writing" -> _)))
-      val dicQ: JObject = "$or" -> patterns.map("writing.value"  -> _ )
+      val dicQ: JObject = "$or" -> patterns
       val ws = WordRecord.findAll(q).groupBy{w => w.writing.is} withDefaultValue(Nil)
       val des = JMDictRecord.findAll(dicQ).flatMap { de => de.writing.is.map{jms => jms.value.is -> Some(de)}}.toMap.withDefaultValue(None)
       val data = lines map {
