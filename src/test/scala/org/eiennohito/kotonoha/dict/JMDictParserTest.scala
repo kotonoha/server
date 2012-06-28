@@ -54,7 +54,7 @@ class JMDictParserTest extends org.scalatest.FunSuite with org.scalatest.matcher
   test("sense parses successfully") {
     val d = p("<sense>\n<pos>&n;</pos>\n<gloss>\"as above\" mark</gloss>\n<gloss xml:lang=\"ger\">(n) siehe oben (Abk.)</gloss>\n</sense>")
     val i = JMDictParser.parseSense(d)
-    i.pos.get should equal (JMDictAnnotations.n)
+    i.info.get should equal (JMDictAnnotations.n)
     i.vals.get should have length (2)
   }
 
@@ -77,7 +77,7 @@ class JMDictParserTest extends org.scalatest.FunSuite with org.scalatest.matcher
     val m = e.meaning.is
     m should have length (1)
     val m0 = m(0)
-    m0.pos.is should equal (JMDictAnnotations.n)
+    m0.info.is should equal (JMDictAnnotations.n)
     m0.vals.is should have size (2)
     e.reading.is.head.value.is should equal ("どうじょう")
   }

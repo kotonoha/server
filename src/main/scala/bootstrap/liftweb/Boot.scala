@@ -42,7 +42,8 @@ class Boot {
       Menu.i("Learning") / "learning" / "index" >> loggedin submenus (
         Menu.i("Repetition") / "learning" / "repeat",
         Menu.i("Scheduled words") / "learning" / "scheduled_cnt",
-        Menu.i("OF Matrix") / "learning" / "ofmatrix"
+        Menu.i("OF Matrix") / "learning" / "ofmatrix",
+        Menu.i("Words for review") / "learning" / "bad_cards"
         ),
       Menu.i("Admin") / "admin" / "index" >> If(() => UserRecord.isAdmin, "Only administrators allowed here") submenus (
           Menu.i("Client List") / "admin" / "clients",

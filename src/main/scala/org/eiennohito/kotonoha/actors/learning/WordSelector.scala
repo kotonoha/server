@@ -19,16 +19,18 @@ package org.eiennohito.kotonoha.actors.learning
 import com.foursquare.rogue.Rogue
 import org.joda.time.DateTime
 import util.Random
-import org.eiennohito.kotonoha.util.DateTimeUtils
+import org.eiennohito.kotonoha.util.{ObjectRenderer, DateTimeUtils}
 import Rogue._
 import akka.pattern._
 import akka.util.duration._
-import DateTimeUtils._
 import akka.util.Timeout
 import akka.actor.{ActorLogging, Props, Actor}
 import org.eiennohito.kotonoha.records.{WordRecord, WordCardRecord}
 import org.eiennohito.kotonoha.actors._
 import model.SchedulePaired
+import net.liftweb.json.JsonAST.{JValue, JObject}
+import DateTimeUtils._
+import net.liftweb.mongodb.Limit
 
 /**
  * @author eiennohito
@@ -97,8 +99,23 @@ class WordSelector extends Actor with ActorLogging with RootActor {
     loadNewCards(userId, max - len, now) map (valid ++ _)
   }
 
-  def loadReviewList(user: Long, max: Int): Unit = {
+  def loadReviewList(user: Long, max: Int) {
+    import org.eiennohito.kotonoha.util.KBsonDSL._
 
+    val filter: JObject = ("notBefore" -> ("$lt" -> d(now))) ~
+      ("learning.intervalEnd" -> ("$lt" -> d(now.plus(2 days))))
+    val order: JObject = ("learning.lapse" -> -1)
+    val flds: JObject = ("word" -> 1)
+    //val ids = WordCardRecord.findAll(filter, flds, Some(order), Limit(max)) map { _.word.is }
+    val q = WordCardRecord.enabledFor(user) and (_.notBefore before now) and
+      (_.learning.subfield(_.repetition) neqs (1)) and
+      (_.learning.subfield(_.intervalEnd) before (now.plus(2 days)))
+    val ids = q.select(_.word).limit(max).orderDesc(_.learning.subfield(_.lapse)) fetch()
+    //val wds = WordRecord.findAll("id" -> ("$in" -> ids)) map {r => r.id.is -> r} toMap
+    val wds = WordRecord where (_.id in ids) fetch() map {r => r.id.is -> r} toMap
+    //val s = ObjectRenderer.renderJvalue(filter)
+    val ordered = ids flatMap { wds.get(_) }
+    sender ! WordsAndCards(ordered, Nil)
   }
 
   protected def receive = {

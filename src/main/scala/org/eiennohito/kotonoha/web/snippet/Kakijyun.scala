@@ -18,7 +18,7 @@ package org.eiennohito.kotonoha.web.snippet
 
 import xml.NodeSeq
 import net.liftweb.http.S
-import org.eiennohito.kotonoha.util.{StrokesUtil, UnicodeUtil}
+import org.eiennohito.kotonoha.util.{StrokeType, StrokesUtil, UnicodeUtil}
 
 /**
  * @author eiennohito
@@ -27,12 +27,26 @@ import org.eiennohito.kotonoha.util.{StrokesUtil, UnicodeUtil}
 
 object Kakijyun {
   import net.liftweb.util.Helpers._
+
+  def sod150(s: String): NodeSeq = {
+    import UnicodeUtil._
+    val strokes = UnicodeUtil.stream(s).
+      filter{ k => isKanji(k) || isHiragana(k) || isKatakana(k) }.
+      map {c => (Character.toChars(c), StrokesUtil.strokeUri(c, StrokeType.Png150))}
+    strokes.flatMap { case (c, uri) =>
+        <img src={uri} alt={new String(c)}></img> }
+  }
+
+  def sods(s: String): NodeSeq = {
+    val strokes = UnicodeUtil.stream(s).
+      filter(UnicodeUtil.isKanji(_)).map(StrokesUtil.strokeUri(_))
+    strokes.flatMap { uri => <object data={uri} type={"image/svg+xml"} /> }
+  }
+
   def render(in: NodeSeq): NodeSeq = {
     val q = S.param("q").getOrElse("書き順")
-    val strokes = UnicodeUtil.stream(q).filter(UnicodeUtil.isKanji(_)).map(StrokesUtil.strokeUri(_))
-    val nodeseq: NodeSeq = strokes.flatMap { uri => <object data={uri} type={"image/svg+xml"} /> }
     val tf = "#sentence-input [value]" #> q &
-              "#content *" #> nodeseq
+              "#content *" #> sods(q)
     tf(in)
   }
 }

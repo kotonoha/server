@@ -23,7 +23,21 @@ import org.eiennohito.kotonoha.records.AppConfig
  * @since 20.06.12
  */
 
+object StrokeType extends Enumeration {
+  val Svgz, Svg, Png150, Png500 = Value
+  type StrokeType = Value
+}
+
 object StrokesUtil {
-  def strokeUri(cp: Int): String = "%s/%04x.svgz".format(AppConfig().stokeUri.is, cp)
-  def strokeUri(s: String, pos: Int): String = strokeUri(s.codePointAt(pos))
+  def strokeUri(cp: Int, st: StrokeType.StrokeType = StrokeType.Svgz): String = {
+    st match {
+      case StrokeType.Svg => "%s/uz/%04x.svg".format(AppConfig().stokeUri.is, cp)
+      case StrokeType.Svgz => "%s/%04x.svgz".format(AppConfig().stokeUri.is, cp)
+      case StrokeType.Png150 => "%s/p150/%04x.png".format(AppConfig().stokeUri.is, cp)
+      case StrokeType.Png500 => "%s/p500/%04x.png".format(AppConfig().stokeUri.is, cp)
+    }
+  }
+
+  def strokeUriStr(s: String, pos: Int, st: StrokeType.StrokeType = StrokeType.Svgz): String =
+    strokeUri(s.codePointAt(pos), st)
 }
