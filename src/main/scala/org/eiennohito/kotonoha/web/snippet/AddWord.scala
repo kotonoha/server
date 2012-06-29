@@ -32,7 +32,7 @@ import xml.{Text, NodeSeq}
 import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
 import org.eiennohito.kotonoha.actors.RootActor
 import org.eiennohito.kotonoha.actors.model.MarkAllWordCards
-import org.eiennohito.kotonoha.records.dictionary.JMDictRecord
+import org.eiennohito.kotonoha.records.dictionary.{JMString, JMDictRecord}
 import org.eiennohito.kotonoha.util.LangUtil
 
 /**
@@ -43,25 +43,33 @@ import org.eiennohito.kotonoha.util.LangUtil
 case class Candidate(writing: String, reading: Option[String], meaning: Option[String]) {
   def toQuery: JValue = {
     import org.eiennohito.kotonoha.util.KBsonDSL._
-    def regex(s: String) = "$regex" -> ("^" + s)
+    //def regex(s: String) = "$regex" -> ("^" + s + "$")
 
-    ("writing.value" -> regex(writing)) ~ (reading map { r => ("reading.value" -> regex(r) ) } )
+    ("writing.value" -> writing) ~ (reading map { r => ("reading.value" -> r) } )
   }
 }
 
 case class InvalidStringException(str: String) extends Exception("String " + str + " is not valid")
 
 object Candidate {
+  def wrap(s1: String) = {
+    val s = s1.trim
+    if (s == null || s.equals("")) {
+      None
+    } else {
+      Some(s)
+    }
+  }
   def apply(in: String) = {
     in.split("[|｜]", 3) match {
       case Array(w) => new Candidate(w, None, None)
-      case Array(w, r, m) => new Candidate(w, Some(r), Some(m))
+      case Array(w, r, m) => new Candidate(w, wrap(r), wrap(m))
       case Array(w, smt) => {
         import org.eiennohito.kotonoha.util.UnicodeUtil._
         if (stream(smt).forall(isKana(_))) {
-          new Candidate(w, Some(smt), None)
+          new Candidate(w, wrap(smt), None)
         } else {
-          new Candidate(w, None, Some(smt))
+          new Candidate(w, None, wrap(smt))
         }
       }
       case _ => throw new InvalidStringException(in)
@@ -142,6 +150,15 @@ object AddWord extends Logging with Akka with ReleaseAkka {
     </tr>
   }
 
+  def findDescription(c: Candidate, m: Map[String, List[JMDictRecord]]): Option[JMDictRecord] = {
+    m.get(c.writing) flatMap (l => {
+      c.reading match {
+        case None => l.headOption
+        case Some(s) => l.filterNot(_.reading.is.find(_.value.is.equals(s)).isEmpty).headOption
+      }
+    })
+  }
+
   def handleWordData(in: String): JsCmd = {
     import org.eiennohito.kotonoha.util.KBsonDSL._
     data(in)
@@ -153,9 +170,22 @@ object AddWord extends Logging with Akka with ReleaseAkka {
       val q: JObject = ("user" -> UserRecord.currentId.get) ~ ("$or" -> (patterns map ("writing" -> _)))
       val dicQ: JObject = "$or" -> patterns
       val ws = WordRecord.findAll(q).groupBy{w => w.writing.is} withDefaultValue(Nil)
-      val des = JMDictRecord.findAll(dicQ).flatMap { de => de.writing.is.map{jms => jms.value.is -> Some(de)}}.toMap.withDefaultValue(None)
+      val dics = JMDictRecord.findAll(dicQ).toArray
+      val des = dics.map { de => de.writing.is.map{jms => jms.value.is -> List(de) } toMap }.
+        foldLeft(Map[String, List[JMDictRecord]]()) {
+        case (m1, m2) => {
+          var m = m1
+          for ((k, v) <- m2) {
+            m.get(k) match {
+              case Some(l) => m  += k -> (l ++ v).distinct
+              case None => m += k -> v
+            }
+          }
+          m
+        }
+      }
       val data = lines map {
-        l => RenderData(l, ws(l.writing), des(l.writing))
+        l => RenderData(l, ws(l.writing), findDescription(l, des))
       }
       good(data.filter(_.present.isEmpty).map(_.candidate))
       data flatMap (render(_))
