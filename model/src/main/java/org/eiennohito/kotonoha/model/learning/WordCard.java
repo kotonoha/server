@@ -33,6 +33,8 @@ public class WordCard extends Identifiable {
   private DateTime createdOn;
   @DatabaseField(persisterClass = DateTimePersister.class)
   private DateTime notBefore;
+  @DatabaseField(persisterClass = DateTimePersister.class)
+  private transient DateTime gotOn;
   @DatabaseField
   private long word;
   @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true)
@@ -87,5 +89,13 @@ public class WordCard extends Identifiable {
 
   public void setStatus(int status) {
     this.status = status;
+  }
+
+  public DateTime getGotOn() {
+    return gotOn;
+  }
+
+  public void setGotOn(DateTime gotOn) {
+    this.gotOn = gotOn;
   }
 }
