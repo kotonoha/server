@@ -1,6 +1,6 @@
 package org.eiennohito.kotonoha.web.rest
 
-import org.eiennohito.kotonoha.actors.learning.{WordsAndCards, LoadWords}
+import org.eiennohito.kotonoha.actors.learning.{LoadReviewList, WordsAndCards, LoadWords}
 import net.liftweb.common._
 import net.liftweb.util.BasicTypesHelpers.AsInt
 import net.liftweb.http._
@@ -116,6 +116,15 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
       if (max > 50) ForbiddenResponse("number is too big")
       else async(userId) { id =>
         val f = ask(akkaServ.wordSelector, LoadWords(id, max)).mapTo[WordsAndCards]
+        f map { wc => t.print(); Full(JsonResponse(deuser(jsonResponse(wc)))) }
+      }
+    }
+
+    case "review" :: AsInt(max) :: Nil JsonGet req => {
+      val t = new Timer
+      if (max > 50) ForbiddenResponse("number is too big")
+      else async(userId) { id =>
+        val f = ask(akkaServ.wordSelector, LoadReviewList(id, max)).mapTo[WordsAndCards]
         f map { wc => t.print(); Full(JsonResponse(deuser(jsonResponse(wc)))) }
       }
     }
