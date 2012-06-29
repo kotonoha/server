@@ -37,19 +37,19 @@ object DictType extends Enumeration {
   type DictType = Value
 }
 
-case class DictQuery(dict: DictType.DictType, query: String, max: Int) extends DictionaryMessage
-private case class Query(query: String, max: Int)
+case class DictQuery(dict: DictType.DictType, writing: String, reading: Option[String], max: Int) extends DictionaryMessage
+private case class Query(writing: String, reading: Option[String], max: Int)
 
 class DictionaryActor extends Actor {
   protected def receive = {
-    case DictQuery(DictType.jmdict, q, max) => context.actorOf(Props[JMDictQActor]).forward(Query(q, max))
-    case DictQuery(DictType.warodai, q, max) => context.actorOf(Props[WarodaiQActor]).forward(Query(q, max))
+    case DictQuery(DictType.jmdict, w, r, max) => context.actorOf(Props[JMDictQActor]).forward(Query(w, r, max))
+    case DictQuery(DictType.warodai, w, r, max) => context.actorOf(Props[WarodaiQActor]).forward(Query(w, r, max))
   }
 }
 
 class JMDictQActor extends Actor {
-  def process(q: String, max: Int): SearchResult = {
-    val objs = JMDictRecord.query(q, max)
+  def process(w: String, r: Option[String], max: Int): SearchResult = {
+    val objs = JMDictRecord.query(w, r, max)
     val entrs = objs.map { j =>
       val wrs = j.writing.is.flatMap {s => s.value.valueBox}
       val rds = j.reading.is.flatMap {s => s.value.valueBox}
@@ -66,16 +66,16 @@ class JMDictQActor extends Actor {
   }
 
   protected def receive = {
-    case Query(q, max) => {
-      sender ! process(q, max)
+    case Query(w, r, max) => {
+      sender ! process(w, r, max)
       context.stop(self)
     }
   }
 }
 
 class WarodaiQActor extends Actor {
-  def process(q: String, max: Int): SearchResult = {
-    val objs = WarodaiRecord.query(q, max)
+  def process(w: String, r: Option[String], max: Int): SearchResult = {
+    val objs = WarodaiRecord.query(w, r, max)
     val builder = new StringBuilder(1024)
     val entrs = objs.map {w =>
       val rds = w.readings.is
@@ -96,8 +96,8 @@ class WarodaiQActor extends Actor {
   }
 
   protected def receive = {
-    case Query(q, max) => {
-      sender ! process(q, max)
+    case Query(w, r, max) => {
+      sender ! process(w, r, max)
       context.stop(self)
     }
   }

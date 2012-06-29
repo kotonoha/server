@@ -44,11 +44,14 @@ class WarodaiRecord private() extends MongoRecord[WarodaiRecord] with LongPk[War
 }
 
 object WarodaiRecord extends WarodaiRecord with MongoMetaRecord[WarodaiRecord] with DictDatabase {
-  def query(q: String, max: Int) = {
+  def query(w: String, rd: Option[String], max: Int) = {
     import org.eiennohito.kotonoha.util.KBsonDSL._
-    val re = "^" + q
-    val inner = "$regex" -> re
-    val query: JObject = "$or" -> List(("readings" -> inner), ("writings" -> inner))
+
+    val query: JObject = rd match {
+      case Some(r) => ("readings" -> bre(r)) ~ ("writings" -> bre(w))
+      case None => "$or" -> List(("readings" -> bre(w)), ("writings" -> bre(w)))
+    }
+
     findAll(query, Limit(max))
   }
 }

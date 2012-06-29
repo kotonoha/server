@@ -48,6 +48,8 @@ trait KBsonDSL extends JsonDSL {
     case _ => new JsonListOptionAssoc(Nil)
   }
 
+  def bre(s: String) = regex2jvalue(("^" + s).r)
+
   class JsonOptionAssoc[A <% JValue](left: (String, A)) extends JsonAssoc[A](left) {
     def ~[B <% JValue](right: Option[(String, B)]) : JObject = right match {
       case Some(r) => left ~ r

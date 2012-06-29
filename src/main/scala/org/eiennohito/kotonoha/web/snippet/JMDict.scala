@@ -52,7 +52,7 @@ object JMDict extends Logging {
 
   def list(in: NodeSeq): NodeSeq = {
     val q = S.param("query").openOr("")
-    JMDictRecord.query(q, 50) flatMap { o =>
+    JMDictRecord.query(q, None, 50) flatMap { o =>
       bind("je", in,
         "writing" -> reduce(o.writing.is, ", "),
         "reading" -> reduce(o.reading.is, ", "),

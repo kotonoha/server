@@ -60,12 +60,12 @@ class JMDictRecord private() extends MongoRecord[JMDictRecord] with LongPk[JMDic
 }
 
 object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with DictDatabase {
-  def query(q: String, max: Int) = {
+  def query(w: String, rd: Option[String], max: Int) = {
     import org.eiennohito.kotonoha.util.KBsonDSL._
-    val re = "^" + q
-    val inner = "$regex" -> re
-    val query: JObject = "$or" -> List(("writing.value" -> inner), ("reading.value" -> inner))
-    val jse = compact(render(query))
+    val query: JObject = rd match {
+      case Some(r) => ("writing.value" -> bre(w)) ~ ("reading.value" -> bre(r))
+      case None => "$or" -> List(("writing.value" -> bre(w)), ("reading.value" -> bre(w)))
+    }
     JMDictRecord.findAll(query, Limit(max))
   }
 }

@@ -52,7 +52,7 @@ object Warodai extends Logging {
 
   def list(in: NodeSeq): NodeSeq = {
     val q = S.param("query").openOr("")
-    WarodaiRecord.query(q, 50) flatMap { o =>
+    WarodaiRecord.query(q, None, 50) flatMap { o =>
       bind("we", in,
         "writing" -> o.writings.is.mkString(", "),
         "reading" -> o.readings.is.mkString(", "),

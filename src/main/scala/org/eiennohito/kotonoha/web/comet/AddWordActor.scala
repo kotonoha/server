@@ -87,16 +87,18 @@ trait AddWordActorT extends NamedCometActor with AkkaInterop with Logging {
     rec
   }
 
-  def prepareWord(in: String): Future[WordData] = {
-    val jf = (root ? DictQuery(jmdict, in, 5)).mapTo[SearchResult]
-    val wf = (root ? DictQuery(warodai, in, 5)).mapTo[SearchResult]
+  def prepareWord(rec: AddWordRecord): Future[WordData] = {
+    val wr = rec.writing.is
+    val rd: Option[String] = rec.reading.valueBox
+    val jf = (root ? DictQuery(jmdict, wr, rd, 5)).mapTo[SearchResult]
+    val wf = (root ? DictQuery(warodai, wr, rd, 5)).mapTo[SearchResult]
     val exs = jf.flatMap { jmen => {
       val idsf = jmen.entries match {
         case Nil => { //don't have such word in dictionary
-          root ? SearchQuery(in)
+          root ? SearchQuery(wr)
         }
         case x :: _ => {
-          root ? SearchQuery(in + " " + x.readings.head)
+          root ? SearchQuery(wr + " " + x.readings.head)
         }
       }
       idsf.mapTo[List[Long]].map(_.distinct).flatMap { exIds => {
@@ -285,7 +287,7 @@ trait AddWordActorT extends NamedCometActor with AkkaInterop with Logging {
     }
 
     protected def calculate(item: AddWordRecord) =
-    prepareWord(item.writing.is) map (w => {
+    prepareWord(item) map (w => {
       w.word.tags(item.tags.is).writing(item.writing.valueBox).user(item.user.valueBox)
       item.reading.valueBox map {r => w.word.reading(r) }
       item.meaning.valueBox map {m => w.word.meaning(m) }
