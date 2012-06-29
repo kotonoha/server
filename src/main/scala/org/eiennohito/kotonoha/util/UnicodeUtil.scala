@@ -52,9 +52,8 @@ object UnicodeUtil {
 
   def isKana(p: Int) = isHiragana(p) || isKatakana(p)
 
-  def isJapanese(s: String) = stream(s).take(50).foldLeft(false) {
-    case (false, c) => isKanji(c) || isHiragana(c) || isKatakana(c)
-    case (true, _) => true
+  def isJapanese(s: String) = stream(s).take(50).forall {
+    c => isKanji(c) || isHiragana(c) || isKatakana(c)
   }
 
   def stream(s: String): Stream[Int] = stream(new StringReader(s))
