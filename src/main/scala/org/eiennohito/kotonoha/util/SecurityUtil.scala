@@ -18,6 +18,11 @@ package org.eiennohito.kotonoha.util
 
 import java.security.SecureRandom
 import org.apache.commons.codec.binary.Hex
+import net.liftweb.util.SecurityHelpers
+import io.Codec
+import org.bouncycastle.crypto.engines.AESFastEngine
+import org.bouncycastle.crypto.params.KeyParameter
+import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher
 
 /**
  * @author eiennohito
@@ -32,5 +37,27 @@ object SecurityUtil {
     val array = new Array[Byte](bytes)
     rng.nextBytes(array)
     Hex.encodeHexString(array)
+  }
+
+  def encryptAes(s: String, key: Array[Byte]) = {
+    val aes = new PaddedBufferedBlockCipher(new AESFastEngine())
+    val kp = new KeyParameter(key)
+    aes.init(true, kp)
+    val bytes = s.getBytes("UTF-8")
+    val processed = new Array[Byte](aes.getOutputSize(bytes.length))
+    val pos = aes.processBytes(bytes, 0, bytes.length, processed, 0)
+    aes.doFinal(processed, pos)
+    SecurityHelpers.base64Encode(processed)
+  }
+
+  def decryptAes(enc: String, key: Array[Byte]) = {
+    val aes = new PaddedBufferedBlockCipher(new AESFastEngine())
+    val kp = new KeyParameter(key)
+    aes.init(false, kp)
+    val bytes = SecurityHelpers.base64Decode(enc)
+    val decr = new Array[Byte](aes.getOutputSize(bytes.length))
+    val len = aes.processBytes(bytes, 0, bytes.length, decr, 0)
+    val l1 = aes.doFinal(decr, len)
+    new String(Codec.fromUTF8(decr), 0, len + l1)
   }
 }

@@ -1,7 +1,11 @@
 package org.eiennohito.kotonoha.util
 
 import net.liftweb.http.Req
-import net.liftweb.common.Full
+import net.liftweb.common.{Empty, Full}
+import org.eiennohito.kotonoha.records.AppConfig
+import javax.crypto.KeyGenerator
+import net.liftweb.util.SecurityHelpers
+import org.eiennohito.kotonoha.util.unapply.{XHexLong, XLong}
 
 /*
  * Copyright 2012 eiennohito
@@ -23,8 +27,45 @@ import net.liftweb.common.Full
  * @since 04.02.12
  */
 
-object UserUtil {
+trait UserUtilT {
 
-  def extractUser(req: Req) = Full(1L)
+  def serverKey: Array[Byte]
 
+  def authByCookie(encrypted: String, userAgent: String) = {
+    val str = SecurityUtil.decryptAes(encrypted, serverKey)
+    str.split("\\|") match {
+      case Array(XHexLong(time), XHexLong(uid), ua) => {
+        val iua = SecurityHelpers.md5(userAgent)
+        if (time > System.currentTimeMillis() && ua.equals(iua))
+          Full(uid)
+        else Empty
+      }
+      case _ => Empty
+    }
+  }
+
+  def cookieAuthFor(uid: Long, userAgent: String) = {
+    val date = DateTimeUtils.now.plusMonths(1).getMillis
+    val ua = SecurityHelpers.md5(userAgent)
+    val s = "%x|%x|%s".format(date, uid, ua)
+    SecurityUtil.encryptAes(s, serverKey)
+  }
+
+}
+
+object UserUtil extends UserUtilT {
+  override def serverKey = {
+    AppConfig().myKey.valueBox match {
+      case Full(k) => k
+      case _ => {
+        //val k = SecurityUtil.randomHex(16)
+        val kgen = KeyGenerator.getInstance("AES")
+        kgen.init(256)
+        val k = kgen.generateKey().getEncoded
+        AppConfig().myKey(k)
+        AppConfig.save
+        k
+      }
+    }
+  }
 }

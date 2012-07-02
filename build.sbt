@@ -69,6 +69,8 @@ libraryDependencies += "com.h2database" % "h2" % "1.3.163" % "test"
 
 libraryDependencies += "com.google.zxing" % "javase" % "2.0"
 
+libraryDependencies += "org.bouncycastle" % "bcprov-jdk15on" % "1.47"
+
 javacOptions ++= Seq("-encoding", "utf8")
 
 scalacOptions ++= Seq("-unchecked")

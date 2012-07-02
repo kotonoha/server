@@ -2,13 +2,15 @@ package org.eiennohito.kotonoha.records
 
 import org.eiennohito.kotonoha.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.common.Full
+import net.liftweb.common.{Empty, Full}
 import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
 import net.liftweb.util.FieldError
 import net.liftweb.oauth.OAuthConsumer
 import net.liftweb.record.field.{DateTimeField, EnumField, StringField}
-import org.eiennohito.kotonoha.util.DateTimeUtils
+import org.eiennohito.kotonoha.util.{UserUtil, DateTimeUtils}
 import java.util.Calendar
+import net.liftweb.http.S
+import net.liftweb.http.provider.HTTPCookie
 
 /*
  * Copyright 2012 eiennohito
@@ -84,6 +86,42 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
   def currentId = currentUserId map {_.toLong}
 
   override protected def userFromStringId(id: String) = currentId.flatMap(find(_))
+
+  private val authCookie = "koto-auth"
+
+  autologinFunc = Full ({() =>
+
+    S.findCookie(authCookie) match {
+      case Full(cook) => {
+        cook.value match {
+          case Full(crypt) => {
+            val ua = S.request.flatMap(_.userAgent).openOr("none")
+            UserUtil.authByCookie(crypt, ua) match {
+              case Full(id) =>  {
+                updateCookie(id)
+                logUserIdIn(id.toString)
+              }
+              case _ => S.deleteCookie(authCookie)
+            }
+          }
+          case _ => S.deleteCookie(authCookie)
+        }
+      }
+      case _ => //do nothing
+    }
+  })
+
+
+  onLogOut ::= { case _ => S.deleteCookie(authCookie) }
+
+  onLogIn ::= ((u: UserRecord) => {
+    updateCookie(u.id.is)
+  })
+
+  def updateCookie(id: Long) {
+    val s = UserUtil.cookieAuthFor(id, S.request.flatMap(_.userAgent).openOr("none"))
+    S.addCookie(HTTPCookie(authCookie, s).setMaxAge(60 * 24 * 30 * 1000).setPath("/"))
+  }
 }
 
 object ClientStatus extends Enumeration {

@@ -11,6 +11,7 @@ import Helpers._
 
 import common._
 import http._
+import provider.HTTPCookie
 import sitemap._
 import Loc._
 import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
@@ -18,13 +19,14 @@ import org.eiennohito.kotonoha.mongodb.MongoDbInit
 import org.eiennohito.kotonoha.records.UserRecord
 import org.eiennohito.kotonoha.web.rest.{StatusApi, QrRest, Learning, SimpleRest}
 import org.eiennohito.kotonoha.actors.lift.Ping
+import com.weiglewilczek.slf4s.Logging
 
 
 /**
  * A class that's instantiated early and run.  It allows the application
  * to modify lift's environment
  */
-class Boot {
+class Boot extends Logging {
   def boot {
     MongoDbInit.init()
 
@@ -95,7 +97,7 @@ class Boot {
     LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
 
     // What is the function to test if a user is logged in?
-    //LiftRules.loggedInTest = Full(() => User.loggedIn_?)
+    LiftRules.loggedInTest = Full(() => UserRecord.loggedIn_?)
 
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>
