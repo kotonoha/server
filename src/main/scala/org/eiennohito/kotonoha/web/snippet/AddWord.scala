@@ -167,7 +167,7 @@ object AddWord extends Logging with Akka with ReleaseAkka {
       Text("")
     } else {
       val patterns = lines map { _.toQuery }
-      val q: JObject = ("user" -> UserRecord.currentId.get) ~ ("$or" -> (patterns map ("writing" -> _)))
+      val q: JObject = ("user" -> UserRecord.currentId.get) ~ ("$or" -> (lines map { c => "writing" -> bre(c.writing)}))
       val dicQ: JObject = "$or" -> patterns
       val ws = WordRecord.findAll(q).groupBy{w => w.writing.is} withDefaultValue(Nil)
       val dics = JMDictRecord.findAll(dicQ).toArray
