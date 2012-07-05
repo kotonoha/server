@@ -28,15 +28,19 @@ import org.joda.time.DateTime;
 @DatabaseTable(tableName = "ChangeWordStatusEvent")
 public class ChangeWordStatusEvent extends Event {
 
-  ChangeWordStatusEvent(Long id, int status) {
+  ChangeWordStatusEvent() {
     super();
+  }
+
+  ChangeWordStatusEvent(Long id, int status) {
+    this();
     wordId = id;
     toStatus = status;
     setDatetime(DateTime.now());
   }
 
-  private static final int CHECK_WORD = 2;
-  private static final int CHECK_EXAMPLE = 3;
+  public static final int STATUS_CHECK_WORD = 2;
+  public static final int STATUS_CHECK_EXAMPLE = 3;
 
   @DatabaseField
   private Long wordId;
@@ -67,7 +71,7 @@ public class ChangeWordStatusEvent extends Event {
   }
 
   public static ChangeWordStatusEvent checkWord(Long id) {
-    return new ChangeWordStatusEvent(id, CHECK_WORD);
+    return new ChangeWordStatusEvent(id, STATUS_CHECK_WORD);
   }
 
 
