@@ -89,6 +89,11 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
 
   private val authCookie = "koto-auth"
 
+  private def deleteCookie() {
+    val cook = HTTPCookie(authCookie, "").setPath(S.contextPath)
+    S.deleteCookie(cook)
+  }
+
   autologinFunc = Full ({() =>
 
     S.findCookie(authCookie) match {
@@ -101,10 +106,10 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
                 updateCookie(id)
                 logUserIdIn(id.toString)
               }
-              case _ => S.deleteCookie(authCookie)
+              case _ => deleteCookie()
             }
           }
-          case _ => S.deleteCookie(authCookie)
+          case _ => deleteCookie()
         }
       }
       case _ => //do nothing
@@ -112,7 +117,7 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
   })
 
 
-  onLogOut ::= { case _ => S.deleteCookie(authCookie) }
+  onLogOut ::= { case _ => deleteCookie() }
 
   onLogIn ::= ((u: UserRecord) => {
     updateCookie(u.id.is)
@@ -120,7 +125,7 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
 
   def updateCookie(id: Long) {
     val s = UserUtil.cookieAuthFor(id, S.request.flatMap(_.userAgent).openOr("none"))
-    S.addCookie(HTTPCookie(authCookie, s).setMaxAge(60 * 24 * 30 * 1000).setPath("/"))
+    S.addCookie(HTTPCookie(authCookie, s).setMaxAge(60 * 24 * 30 * 1000).setPath(S.contextPath))
   }
 }
 
