@@ -16,7 +16,7 @@
 
 package org.eiennohito.kotonoha.web.snippet
 
-import xml.NodeSeq
+import xml.{Text, NodeSeq}
 import org.eiennohito.kotonoha.actors.ioc.{Akka, ReleaseAkka}
 import org.eiennohito.kotonoha.records.{UserSettings, WordRecord, UserRecord}
 import org.eiennohito.kotonoha.actors.learning.{WordsAndCards, LoadReviewList}
@@ -26,7 +26,7 @@ import net.liftweb.http.{SHtml, RequestVar, S, DispatchSnippet}
 import net.liftweb.common.Full
 import org.eiennohito.kotonoha.util.unapply.XInt
 import org.eiennohito.kotonoha.actors.{UpdateRecord, SaveRecord}
-import org.eiennohito.kotonoha.util.StrokeType
+import org.eiennohito.kotonoha.util.{UnicodeUtil, StrokeType}
 import collection.mutable.ListBuffer
 import annotation.tailrec
 
@@ -45,7 +45,6 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
     case "words" => words
     case "selector" => selector
     case "stripped" => str
-    case "words2" => words2
   }
 
   object stripped extends RequestVar[Boolean](S.param("stripped") match {
@@ -107,56 +106,32 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
     val obj = (akkaServ ? LoadReviewList(uid, maxRecs.is)).mapTo[WordsAndCards]
     val res = Await.result(obj, 5.0 seconds)
 
-    def tf(w: WordRecord) = {
-      val css: CssSel = (".data *" #>
-        <div>{w.writing.is}</div>
-        <div>{w.reading.is}</div>) &
-      ".mean *" #> <span>{w.meaning.is}</span> &
-      ".sod *" #> <span>{sod(w.writing.is)}</span>
-      css(in)
-    }
-
-    res.words.flatMap(w => tf(w))
-  }
-
-  def words2(in: NodeSeq): NodeSeq = {
-    val uid = UserRecord.currentId.openTheBox
-    val obj = (akkaServ ? LoadReviewList(uid, maxRecs.is)).mapTo[WordsAndCards]
-    val res = Await.result(obj, 5.0 seconds)
-
     val wds = asRows(res.words)
     val ns = rowsToTable(wds)
 
     ("table *" #> ns) (in)
   }
 
-  trait WordRenderer
-  trait CellRenderer extends WordRenderer {
+  trait CellRenderer {
+    def weight: Int = 1
+
     def render: NodeSeq
   }
 
-  trait RowRenderer extends WordRenderer {
-    def render: List[NodeSeq]
-  }
 
-  class TwoCellRenderer(left: CellRenderer, right: CellRenderer) extends RowRenderer {
-    def render = List(left.render, right.render)
-  }
-
-  object NullRenderer extends CellRenderer {
-    def render = Nil
-  }
 
   class SimpleWordCell(w: WordRecord) extends CellRenderer {
     def render =
-      <div>
+      <div class="wc half">
         <div class="rd">{w.reading.is}</div>
         <div class="sod">{sod(w.writing.is)}</div>
         <div class="mn">{w.meaning.is}</div>
       </div>
+
+    override def weight = w.meaning.is.length
   }
 
-  class SimpleWordRow(w: WordRecord) extends RowRenderer {
+  class SimpleWordRow(w: WordRecord) extends CellRenderer {
 
     def left =
       <div>
@@ -164,17 +139,39 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
           <span class="wr">{w.writing.is}</span>
           <span class="rd">{w.reading.is}</span>
         </div>
-        <div class="sod">{kanjSod(w.writing.is)}</div>
+        <span class="sod">{kanjSod(w.writing.is)}</span>
       </div>
 
-    def right = <div class="mn">{w.meaning.is}</div>
 
-    def render = List(left, right)
+    override def weight = 50000
+
+    def right = <div class="ma"><span class="mn">{w.meaning.is}</span></div>
+
+    def render = <div class="wc row">{left ++ right}</div>
+  }
+
+  class LotsKanjiSmallMeaning(w: WordRecord, kanji: Int) extends CellRenderer {
+    def left = {
+      val style = "tc k%d".format(kanji)
+      <div class={style}>
+        <div>
+          <span class="wr">{w.writing.is}</span>
+          <span class="rd">{w.reading.is}</span>
+        </div>
+        <span class="sod">{kanjSod(w.writing.is)}</span>
+      </div>
+    }
+
+    def right = <div class="tc ma"><span class="mn">{w.meaning.is}</span></div>
+
+    def render = <div class="wc tr">{left ++ right}</div>
+
+    override def weight = 100000
   }
 
   object SimpleSmall {
     def unapply(w: WordRecord): Option[SimpleWordCell] = {
-      val b1 = w.reading.is.length < 150
+      val b1 = w.meaning.is.length < 300
       val b2 = w.writing.is.length < 6
       if (b1 && b2) {
         Some(new SimpleWordCell(w))
@@ -182,29 +179,25 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
     }
   }
 
+  object LotsOfKanjiSmallMean {
+    def unapply(w: WordRecord): Option[LotsKanjiSmallMeaning] = {
+      val l1 = w.meaning.is.length
+      val l2 = UnicodeUtil.klen(w.writing.is)
+      if ((l2 * 120 + l1) < 1100) Some(new LotsKanjiSmallMeaning(w, l2)) else None
+    }
+  }
+
   def asRows(in: List[WordRecord]) = {
-    val rows = new ListBuffer[RowRenderer]
     val cells = new ListBuffer[CellRenderer]
     in.foreach {
       case SimpleSmall(c) => cells += c
-      case w => rows += new SimpleWordRow(w)
+      case LotsOfKanjiSmallMean(c) => cells += c
+      case w => cells += new SimpleWordRow(w)
     }
-
-    def rec(lst: List[CellRenderer]): List[RowRenderer] = {
-      lst match {
-        case a :: b :: xs => new TwoCellRenderer(a, b) :: rec(xs)
-        case a :: Nil => new TwoCellRenderer(a, NullRenderer) :: Nil
-        case Nil => Nil
-      }
-    }
-    rows.toList ++ rec(cells.toList)
+    cells.sortBy(-_.weight).toList
   }
 
-  def rowsToTable(in: List[RowRenderer]): NodeSeq = {
-    in.flatMap {r =>
-      <tr>{
-        r.render.map {c => <td>{c}</td>}
-        }</tr>
-    }
+  def rowsToTable(in: List[CellRenderer]): NodeSeq = {
+    in.flatMap { _.render }
   }
 }

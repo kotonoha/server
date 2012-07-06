@@ -74,4 +74,6 @@ object UnicodeUtil {
       rec(r)
     }
 
+  def klen(s: String) = stream(s) filter(isKanji(_)) length
+
 }
