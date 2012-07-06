@@ -88,7 +88,13 @@
         var chld = $(e).children();
         $("#word-writing").val($(chld[0]).text());
         var s2 = $(chld[1]).text();
-        $("#word-reading").val(s2.substr(1, s2.length - 2));
+        var rd;
+        if (s2 == null || s2.length <= 2) {
+          rd = $(chld[0]).text();
+        } else {
+          rd = s2.substr(1, s2.length - 2);
+        }
+        $("#word-reading").val(rd);
         $("#word-meaning").text($(chld[2]).text());
       }
     </script>
