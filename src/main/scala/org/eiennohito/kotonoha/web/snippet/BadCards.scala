@@ -63,10 +63,12 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
   }
 
   def selector(in: NodeSeq): NodeSeq = {
-    val ents = List(10, 20, 30, 40, 50) map {_.toString} map {c => c -> c}
+    val lst = (maxRecs.is :: List(10, 20, 30, 40, 50)).distinct.sorted
+    val ents = lst map {_.toString} map {c => c -> c}
     def onSubmit(cnt: String): Unit = {
       cnt match {
-        case XInt(c) => {
+        case XInt(c1) => {
+          val c = c1 min 75
           val cur = UserSettings.current.badCount(c)
           akkaServ ! UpdateRecord(cur)
           maxRecs.set(c)
@@ -74,7 +76,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
         case _ => ///
       }
     }
-    val ns = SHtml.select(ents, Full(maxRecs.is.toString), onSubmit)
+    val ns = SHtml.untrustedSelect(ents, Full(maxRecs.is.toString), onSubmit)
     ("select" #> ns) (in)
   }
 
