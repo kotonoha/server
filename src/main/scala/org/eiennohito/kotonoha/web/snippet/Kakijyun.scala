@@ -37,6 +37,15 @@ object Kakijyun {
         <img src={uri} alt={new String(c)}></img> }
   }
 
+  def sod500(s: String): NodeSeq = {
+    import UnicodeUtil._
+    val strokes = UnicodeUtil.stream(s).
+      filter{ k => isKanji(k) || isHiragana(k) || isKatakana(k) }.
+      map {c => (Character.toChars(c), StrokesUtil.strokeUri(c, StrokeType.Png500))}
+    strokes.flatMap { case (c, uri) =>
+        <img src={uri} alt={new String(c)}></img> }
+  }
+
   def sods(s: String): NodeSeq = {
     val strokes = UnicodeUtil.stream(s).
       filter(UnicodeUtil.isKanji(_)).map(StrokesUtil.strokeUri(_))

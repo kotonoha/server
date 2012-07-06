@@ -180,6 +180,11 @@ trait AddWordActorT extends NamedCometActor with AkkaInterop with Logging {
     logger.debug("Calling save!")
     displaying match {
       case Full(w) => {
+        w.word.writing.valueBox match {
+          case Empty => w.word.writing(w.word.reading.is)
+          case Full("") => w.word.writing(w.word.reading.is)
+          case _ => //
+        }
         val f = root ? RegisterWord(w.word, stat)
         f map { _ => w.onSave.tryComplete(Right(w)) }
       }

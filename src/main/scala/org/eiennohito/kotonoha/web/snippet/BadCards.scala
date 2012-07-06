@@ -18,23 +18,74 @@ package org.eiennohito.kotonoha.web.snippet
 
 import xml.NodeSeq
 import org.eiennohito.kotonoha.actors.ioc.{Akka, ReleaseAkka}
-import org.eiennohito.kotonoha.records.{WordRecord, UserRecord}
+import org.eiennohito.kotonoha.records.{UserSettings, WordRecord, UserRecord}
 import org.eiennohito.kotonoha.actors.learning.{WordsAndCards, LoadReviewList}
 import akka.dispatch.Await
 import net.liftweb.util.CssSel
+import net.liftweb.http.{SHtml, RequestVar, S, DispatchSnippet}
+import net.liftweb.common.Full
+import org.eiennohito.kotonoha.util.unapply.XInt
+import org.eiennohito.kotonoha.actors.{UpdateRecord, SaveRecord}
 
 /**
  * @author eiennohito
  * @since 27.06.12
  */
 
-object BadCards extends Akka with ReleaseAkka  {
+object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
   import net.liftweb.util.Helpers._
   import akka.util.duration._
 
-  def render(in: NodeSeq): NodeSeq = {
+
+  def dispatch = {
+    case "surround" => surround
+    case "words" => words
+    case "selector" => selector
+    case "stripped" => str
+  }
+
+  object stripped extends RequestVar[Boolean](S.param("stripped") match {
+    case Full("true") => true
+    case _ => false
+  })
+
+  object maxRecs extends RequestVar[Int] ({
+    val cur = UserSettings.current
+    cur.badCount.valueBox openOr(20)
+  })
+
+  def str(in: NodeSeq): NodeSeq = {
+    val s = S.attr("s") match {
+      case Full("false") => false
+      case _ => true
+    }
+    if (s == stripped.is) in else Nil
+  }
+
+  def selector(in: NodeSeq): NodeSeq = {
+    val ents = List(10, 20, 30, 40, 50) map {_.toString} map {c => c -> c}
+    def onSubmit(cnt: String): Unit = {
+      cnt match {
+        case XInt(c) => {
+          val cur = UserSettings.current.badCount(c)
+          akkaServ ! UpdateRecord(cur)
+          maxRecs.set(c)
+        }
+        case _ => ///
+      }
+    }
+    val ns = SHtml.select(ents, Full(maxRecs.is.toString), onSubmit)
+    ("select" #> ns) (in)
+  }
+
+  def surround(in: NodeSeq): NodeSeq = {
+    if (stripped.is) { in }
+    else { <lift:surround with="default" at="content">{in}</lift:surround> }
+  }
+
+  def words(in: NodeSeq): NodeSeq = {
     val uid = UserRecord.currentId.openTheBox
-    val obj = (akkaServ ? LoadReviewList(uid, 20)).mapTo[WordsAndCards]
+    val obj = (akkaServ ? LoadReviewList(uid, maxRecs.is)).mapTo[WordsAndCards]
     val res = Await.result(obj, 5.0 seconds)
 
     def tf(w: WordRecord) = {
@@ -42,7 +93,9 @@ object BadCards extends Akka with ReleaseAkka  {
         <div>{w.writing.is}</div>
         <div>{w.reading.is}</div>) &
       ".mean *" #> <span>{w.meaning.is}</span> &
-      ".sod *" #> <span>{Kakijyun.sod150(w.writing.is)}</span>
+      ".sod *" #> <span>{if (stripped.is)
+        Kakijyun.sod500(w.writing.is)
+        else Kakijyun.sod150(w.writing.is)}</span>
       css(in)
     }
 

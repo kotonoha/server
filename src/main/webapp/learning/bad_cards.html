@@ -17,18 +17,47 @@
 
 <html>
 <body class="lift:content_id=main">
-<div id="main" class="lift:surround?with=default;at=content">
+<div id="main" class="lift:BadCards.surround">
   <head_merge>
-    <style type="text/css">
+    <style type="text/css" class="lift:BadCards:stripped?s=false">
       td.sod span img {
         height: 2.5cm;
         width: 2.5cm;
       }
     </style>
+    <style type="text/css" class="lift:BadCards:stripped">
+      td.sod span img {
+        height: 1.5cm;
+        width: 1.5cm;
+      }
+
+      td.sod {
+        width: 7cm;
+      }
+
+      td.data {
+        font-family: Meiryo, MS Mincho, serif;
+      }
+    </style>
+    <script type="text/javascript">
+      $(window).load(function() {
+        $('.max-form select').on('change', function() {
+          $('.max-form').submit();
+        })
+      })
+    </script>
   </head_merge>
+  <div class="lift:BadCards.stripped?s=false">
+    <form class="lift:BadCards.selector max-form">
+      <b>Max entries</b>
+      <select>
+      </select>
+      <a href="?stripped=true">Print version</a>
+    </form>
+  </div>
   <table>
     <tr></tr>
-    <tr class="lift:BadCards">
+    <tr class="lift:BadCards.words">
       <td class="data"></td>
       <td class="mean"></td>
       <td class="sod"></td>

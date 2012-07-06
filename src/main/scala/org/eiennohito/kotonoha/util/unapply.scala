@@ -36,4 +36,8 @@ package object unapply {
     def unapply(s: String): Option[Long] = tryo { s.toLong }
   }
 
+  object XInt {
+    def unapply(s: String): Option[Int] = tryo { s.toInt }
+  }
+
 }
