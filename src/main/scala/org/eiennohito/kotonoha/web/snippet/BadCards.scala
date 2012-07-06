@@ -120,6 +120,20 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
 
 
 
+  class VerySmallCell(w: WordRecord, len: Int) extends CellRenderer {
+    override def weight = -100 * len
+
+    def render = {
+      val cl = "wc k%d".format(len + 1)
+      <div class={cl}>
+        <div class="rd">{w.reading.is}</div>
+        <div class="sod">{sod(w.writing.is)}</div>
+        <div class="mn">{w.meaning.is}</div>
+      </div>
+    }
+  }
+
+
   class SimpleWordCell(w: WordRecord) extends CellRenderer {
     def render =
       <div class="wc half">
@@ -169,6 +183,16 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
     override def weight = 100000
   }
 
+  object VerySmall {
+    def unapply(w: WordRecord): Option[CellRenderer] = {
+      val l1 = w.writing.is.length
+      val l2 = w.meaning.is.length
+      if (l1 < 4 && (l1 * 25) > l2) {
+        Some(new VerySmallCell(w, l1))
+      } else None
+    }
+  }
+
   object SimpleSmall {
     def unapply(w: WordRecord): Option[SimpleWordCell] = {
       val b1 = w.meaning.is.length < 300
@@ -190,6 +214,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
   def asRows(in: List[WordRecord]) = {
     val cells = new ListBuffer[CellRenderer]
     in.foreach {
+      case VerySmall(c) => cells += c
       case SimpleSmall(c) => cells += c
       case LotsOfKanjiSmallMean(c) => cells += c
       case w => cells += new SimpleWordRow(w)
