@@ -26,6 +26,9 @@ import net.liftweb.http.{SHtml, RequestVar, S, DispatchSnippet}
 import net.liftweb.common.Full
 import org.eiennohito.kotonoha.util.unapply.XInt
 import org.eiennohito.kotonoha.actors.{UpdateRecord, SaveRecord}
+import org.eiennohito.kotonoha.util.StrokeType
+import collection.mutable.ListBuffer
+import annotation.tailrec
 
 /**
  * @author eiennohito
@@ -42,6 +45,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
     case "words" => words
     case "selector" => selector
     case "stripped" => str
+    case "words2" => words2
   }
 
   object stripped extends RequestVar[Boolean](S.param("stripped") match {
@@ -85,6 +89,19 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
     else { <lift:surround with="default" at="content">{in}</lift:surround> }
   }
 
+  def sod(in: String) = {
+    Kakijyun.japSod(in, sodType)
+  }
+
+  def kanjSod(in: String) = {
+    Kakijyun.kanjiSod(in, sodType)
+  }
+
+  def sodType = {
+    if (stripped.is) StrokeType.Png500
+    else StrokeType.Png150
+  }
+
   def words(in: NodeSeq): NodeSeq = {
     val uid = UserRecord.currentId.openTheBox
     val obj = (akkaServ ? LoadReviewList(uid, maxRecs.is)).mapTo[WordsAndCards]
@@ -95,12 +112,99 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
         <div>{w.writing.is}</div>
         <div>{w.reading.is}</div>) &
       ".mean *" #> <span>{w.meaning.is}</span> &
-      ".sod *" #> <span>{if (stripped.is)
-        Kakijyun.sod500(w.writing.is)
-        else Kakijyun.sod150(w.writing.is)}</span>
+      ".sod *" #> <span>{sod(w.writing.is)}</span>
       css(in)
     }
 
     res.words.flatMap(w => tf(w))
+  }
+
+  def words2(in: NodeSeq): NodeSeq = {
+    val uid = UserRecord.currentId.openTheBox
+    val obj = (akkaServ ? LoadReviewList(uid, maxRecs.is)).mapTo[WordsAndCards]
+    val res = Await.result(obj, 5.0 seconds)
+
+    val wds = asRows(res.words)
+    val ns = rowsToTable(wds)
+
+    ("table *" #> ns) (in)
+  }
+
+  trait WordRenderer
+  trait CellRenderer extends WordRenderer {
+    def render: NodeSeq
+  }
+
+  trait RowRenderer extends WordRenderer {
+    def render: List[NodeSeq]
+  }
+
+  class TwoCellRenderer(left: CellRenderer, right: CellRenderer) extends RowRenderer {
+    def render = List(left.render, right.render)
+  }
+
+  object NullRenderer extends CellRenderer {
+    def render = Nil
+  }
+
+  class SimpleWordCell(w: WordRecord) extends CellRenderer {
+    def render =
+      <div>
+        <div class="rd">{w.reading.is}</div>
+        <div class="sod">{sod(w.writing.is)}</div>
+        <div class="mn">{w.meaning.is}</div>
+      </div>
+  }
+
+  class SimpleWordRow(w: WordRecord) extends RowRenderer {
+
+    def left =
+      <div>
+        <div>
+          <span class="wr">{w.writing.is}</span>
+          <span class="rd">{w.reading.is}</span>
+        </div>
+        <div class="sod">{kanjSod(w.writing.is)}</div>
+      </div>
+
+    def right = <div class="mn">{w.meaning.is}</div>
+
+    def render = List(left, right)
+  }
+
+  object SimpleSmall {
+    def unapply(w: WordRecord): Option[SimpleWordCell] = {
+      val b1 = w.reading.is.length < 150
+      val b2 = w.writing.is.length < 6
+      if (b1 && b2) {
+        Some(new SimpleWordCell(w))
+      } else None
+    }
+  }
+
+  def asRows(in: List[WordRecord]) = {
+    val rows = new ListBuffer[RowRenderer]
+    val cells = new ListBuffer[CellRenderer]
+    in.foreach {
+      case SimpleSmall(c) => cells += c
+      case w => rows += new SimpleWordRow(w)
+    }
+
+    def rec(lst: List[CellRenderer]): List[RowRenderer] = {
+      lst match {
+        case a :: b :: xs => new TwoCellRenderer(a, b) :: rec(xs)
+        case a :: Nil => new TwoCellRenderer(a, NullRenderer) :: Nil
+        case Nil => Nil
+      }
+    }
+    rows.toList ++ rec(cells.toList)
+  }
+
+  def rowsToTable(in: List[RowRenderer]): NodeSeq = {
+    in.flatMap {r =>
+      <tr>{
+        r.render.map {c => <td>{c}</td>}
+        }</tr>
+    }
   }
 }

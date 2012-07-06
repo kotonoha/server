@@ -28,9 +28,9 @@ import org.eiennohito.kotonoha.util.{StrokeType, StrokesUtil, UnicodeUtil}
 object Kakijyun {
   import net.liftweb.util.Helpers._
 
+  import UnicodeUtil._
   def sod150(s: String): NodeSeq = {
-    import UnicodeUtil._
-    val strokes = UnicodeUtil.stream(s).
+    val strokes = stream(s).
       filter{ k => isKanji(k) || isHiragana(k) || isKatakana(k) }.
       map {c => (Character.toChars(c), StrokesUtil.strokeUri(c, StrokeType.Png150))}
     strokes.flatMap { case (c, uri) =>
@@ -38,16 +38,31 @@ object Kakijyun {
   }
 
   def sod500(s: String): NodeSeq = {
-    import UnicodeUtil._
-    val strokes = UnicodeUtil.stream(s).
+    val strokes = stream(s).
       filter{ k => isKanji(k) || isHiragana(k) || isKatakana(k) }.
       map {c => (Character.toChars(c), StrokesUtil.strokeUri(c, StrokeType.Png500))}
     strokes.flatMap { case (c, uri) =>
         <img src={uri} alt={new String(c)}></img> }
   }
 
+  def japSod(s: String, tp: StrokeType.StrokeType = StrokeType.Png150): NodeSeq = {
+    val strokes = stream(s).
+      filter{ k => isKanji(k) || isHiragana(k) || isKatakana(k) }.
+      map {c => (Character.toChars(c), StrokesUtil.strokeUri(c, tp))}
+    strokes.flatMap { case (c, uri) =>
+        <img src={uri} alt={new String(c)}></img> }
+  }
+
+  def kanjiSod(s: String, tp: StrokeType.StrokeType = StrokeType.Png150): NodeSeq = {
+    val strokes = stream(s).
+      filter{ k => isKanji(k) }.
+      map {c => (Character.toChars(c), StrokesUtil.strokeUri(c, tp))}
+    strokes.flatMap { case (c, uri) =>
+        <img src={uri} alt={new String(c)}></img> }
+  }
+
   def sods(s: String): NodeSeq = {
-    val strokes = UnicodeUtil.stream(s).
+    val strokes = stream(s).
       filter(UnicodeUtil.isKanji(_)).map(StrokesUtil.strokeUri(_))
     strokes.flatMap { uri => <object data={uri} type={"image/svg+xml"} /> }
   }
