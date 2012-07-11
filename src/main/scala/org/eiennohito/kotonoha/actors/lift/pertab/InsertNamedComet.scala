@@ -33,7 +33,7 @@ trait InsertNamedComet {
 
   final def render(xhtml: NodeSeq): NodeSeq = {
     for (sess <- S.session) {
-      CometName(name) :: messages foreach (
+      messages foreach (
         sess.sendCometActorMessage(cometClass, Full(name), _)
       )
     }

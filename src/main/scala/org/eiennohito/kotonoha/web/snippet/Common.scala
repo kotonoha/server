@@ -19,6 +19,9 @@ package org.eiennohito.kotonoha.web.snippet
 import xml.NodeSeq
 import org.eiennohito.kotonoha.util.Formatting
 import org.joda.time.DateTime
+import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
+import org.eiennohito.kotonoha.web.comet.ActorUser
+import org.eiennohito.kotonoha.records.UserRecord
 
 /**
  * @author eiennohito
@@ -35,5 +38,12 @@ object Common {
     import org.eiennohito.kotonoha.util.BuildInfo._
     <span>Version {version}, Git revision {gitId} on {formatDate(gitDate)}</span>
   }
+}
 
+object GlobalComet extends InsertNamedComet {
+  def cometClass = "GlobalActor"
+
+  override def messages = ActorUser(UserRecord.currentId.openOr(0)) :: Nil
+
+  override def name = UserRecord.currentId map {u => "user"+u} openOr(super.name)
 }

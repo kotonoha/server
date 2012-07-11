@@ -8,6 +8,7 @@ import org.eiennohito.kotonoha.actors.KotonohaMessage
 import akka.dispatch.Await
 import akka.pattern.ask
 import akka.util.duration._
+import org.eiennohito.kotonoha.actors.lift.{PerUserMessage, PerUserActorSvc}
 
 
 /**
@@ -40,6 +41,7 @@ case object Count
 class PertabCometManager extends Actor with Logger {
 
   private val listeners = new collection.mutable.HashMap[NamedComet, ActorRef]
+  private lazy val perUser = context.actorOf(Props[PerUserActorSvc])
 
   def listenerFor(nc: NamedComet): ActorRef = synchronized {
     listeners.get(nc) match {
@@ -61,5 +63,6 @@ class PertabCometManager extends Actor with Logger {
         if (cnt == 0) { listeners.remove(nc).map(context.stop(_)) }
       })
     }
+    case msg: PerUserMessage => perUser.forward(msg)
   }
 }

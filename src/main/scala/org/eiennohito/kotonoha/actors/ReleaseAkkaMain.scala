@@ -70,7 +70,7 @@ trait MongoActor { this: Actor =>
 
 
 object ReleaseAkkaMain extends AkkaMain {
-  val system = ActorSystem("kotonoha_system")
+  val system = ActorSystem("kot")
   
   val root = system.actorOf(Props[RestartActor], "root")
   private val f = ask(root, TopLevelActors)(1 second).mapTo[(ActorRef, ActorRef)]
