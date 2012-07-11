@@ -43,7 +43,7 @@ libraryDependencies ++= {
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= {
-  val akkaVer = "2.0"
+  val akkaVer = "2.0.2"
   Seq(
     "com.typesafe.akka" % "akka-actor" % akkaVer,
     "com.typesafe.akka" % "akka-slf4j" % akkaVer,
@@ -53,7 +53,7 @@ libraryDependencies ++= {
 
 libraryDependencies +=  "org.mortbay.jetty" % "jetty" % "6.1.22" % "container"
 
-libraryDependencies += "com.foursquare" %% "rogue" % "1.1.1" intransitive()
+libraryDependencies += "com.foursquare" %% "rogue" % "1.1.8" intransitive()
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.0" % "compile"
 
