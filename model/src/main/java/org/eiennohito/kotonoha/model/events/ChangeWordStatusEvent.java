@@ -16,6 +16,7 @@
 
 package org.eiennohito.kotonoha.model.events;
 
+import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import org.eiennohito.kotonoha.model.EventTypes;
@@ -43,6 +44,7 @@ public class ChangeWordStatusEvent extends Event {
   public static final int STATUS_CHECK_EXAMPLE = 3;
 
   @DatabaseField
+  @SerializedName("word")
   private Long wordId;
 
   @DatabaseField
