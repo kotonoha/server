@@ -109,6 +109,7 @@ class WordSelector extends Actor with ActorLogging with RootActor {
     //val ids = WordCardRecord.findAll(filter, flds, Some(order), Limit(max)) map { _.word.is }
     val q = WordCardRecord.enabledFor(user) and (_.notBefore before now) and
       (_.learning.subfield(_.repetition) eqs (1)) and
+      (_.learning.subfield(_.lapse) neqs (1)) and
       (_.learning.subfield(_.intervalEnd) before (now.plus(2 days)))
     val ids = q.select(_.word).limit(max).orderDesc(_.learning.subfield(_.lapse)) fetch()
     //val wds = WordRecord.findAll("id" -> ("$in" -> ids)) map {r => r.id.is -> r} toMap
