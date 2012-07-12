@@ -30,13 +30,15 @@ import org.eiennohito.kotonoha.records._
 import org.eiennohito.kotonoha.util.{DateTimeUtils, ParseUtil, Formatting, Strings}
 import org.eiennohito.kotonoha.model.CardMode
 import org.joda.time.{DateTime, Period, Interval}
+import org.eiennohito.kotonoha.actors.ioc.{Akka, ReleaseAkka}
+import org.eiennohito.kotonoha.actors.model.ChangeWordStatus
 
 /**
  * @author eiennohito
  * @since 15.03.12
  */
 
-object WordSnippet {
+object WordSnippet extends Akka with ReleaseAkka {
 
   def wordId: Box[Long] = {
     S.param("w") map (ParseUtil.hexLong(_))
@@ -49,6 +51,11 @@ object WordSnippet {
     SetHtml("status", <b>Saved!</b>)
   }
 
+  def sna(rec: WordRecord): JsCmd = {
+    akkaServ ! ChangeWordStatus(rec.id.is, WordStatus.Approved)
+    SetHtml("word-status", Text("Approved")) & SetHtml("status", <b>Saved</b>)
+  }
+
   def renderForm(in: NodeSeq): NodeSeq = {
     import Helpers._
     import org.eiennohito.kotonoha.util.DateTimeUtils._
@@ -59,8 +66,9 @@ object WordSnippet {
           "writing" -> w.writing.toForm,
           "reading" -> w.reading.toForm,
           "meaning" -> w.meaning.toForm,
-          "status" -> w.status.toForm,
-          "submit" -> SHtml.ajaxSubmit("Save", () => save(w)))
+          "status" -> w.status.is.toString,
+          "submit" -> SHtml.ajaxSubmit("Save", () => save(w)),
+          "sna" -> SHtml.ajaxSubmit("Save & Approve", () => sna(w)))
       }
       case _ => S.error("Invalid word"); <em>Invalid word</em>
     }

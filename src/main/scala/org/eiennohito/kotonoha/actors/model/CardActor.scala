@@ -52,7 +52,7 @@ class CardActor extends Actor with ActorLogging with RootActor {
     }
     case ChangeCardEnabled(word, status) => {
       val q = WordCardRecord where (_.word eqs word) modify (_.enabled setTo status)
-      q.updateOne()
+      q.updateMulti()
       sender ! true
     }
     case RegisterCard(word, user, mode) => {
