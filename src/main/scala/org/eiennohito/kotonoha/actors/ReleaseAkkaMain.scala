@@ -35,12 +35,12 @@ trait AkkaMain {
   def ! (x : AnyRef) = root ! x
   def ? (x: AnyRef) = ask(root, x)(5 seconds)
 
-  val system: ActorSystem
+  def system: ActorSystem
 
-  val root: ActorRef
+  def root: ActorRef
 
-  val wordSelector: ActorRef
-  val eventProcessor: ActorRef
+  def wordSelector: ActorRef
+  def eventProcessor: ActorRef
 
   def context = ExecutionContext.defaultExecutionContext(system)
 
@@ -72,9 +72,9 @@ trait MongoActor { this: Actor =>
 object ReleaseAkkaMain extends AkkaMain {
   val system = ActorSystem("kot")
   
-  val root = system.actorOf(Props[RestartActor], "root")
-  private val f = ask(root, TopLevelActors)(1 second).mapTo[(ActorRef, ActorRef)]
-  private val x = Await.result(f, 1 second)
+  lazy val root = system.actorOf(Props[RestartActor], "root")
+  private val f = ask(root, TopLevelActors)(10 seconds).mapTo[(ActorRef, ActorRef)]
+  private val x = Await.result(f, 10 seconds)
 
   val wordSelector = x._1
   val eventProcessor = x._2
