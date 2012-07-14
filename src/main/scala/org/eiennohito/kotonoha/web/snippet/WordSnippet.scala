@@ -16,14 +16,14 @@
 
 package org.eiennohito.kotonoha.web.snippet
 
-import net.liftweb.json.JsonAST.JObject
+import net.liftweb.json.JsonAST.{JString, JArray, JObject}
 import net.liftweb.mongodb.{Limit, Skip}
 import net.liftweb.util.{Helpers, BindHelpers}
 import util.matching.Regex
 import xml.{Elem, Text, NodeSeq}
 import net.liftweb.common.{Full, Box}
 import net.liftweb.http.{RequestVar, SHtml, SortedPaginatorSnippet, S}
-import net.liftweb.http.js.JsCmd
+import net.liftweb.http.js.{JsCmds, JE, JsCmd}
 import net.liftweb.http.js.JsCmds.SetHtml
 import com.foursquare.rogue.Rogue
 import org.eiennohito.kotonoha.records._
@@ -31,7 +31,10 @@ import org.eiennohito.kotonoha.util.{DateTimeUtils, ParseUtil, Formatting, Strin
 import org.eiennohito.kotonoha.model.CardMode
 import org.joda.time.{DateTime, Period, Interval}
 import org.eiennohito.kotonoha.actors.ioc.{Akka, ReleaseAkka}
-import org.eiennohito.kotonoha.actors.model.ChangeWordStatus
+import org.eiennohito.kotonoha.actors.model.{MarkForDeletion, ChangeWordStatus}
+import net.liftweb.http.js.jquery.JqJE.Jq
+import net.liftweb.http.js.jquery.JqJE
+import org.eiennohito.kotonoha.util.unapply.XHexLong
 
 /**
  * @author eiennohito
@@ -188,7 +191,7 @@ object WordSnippet extends Akka with ReleaseAkka {
 
 }
 
-class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] {
+class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka with ReleaseAkka {
   import org.eiennohito.kotonoha.util.KBsonDSL._
 
   def headers = ("adate" -> "createdOn" ) :: ("status" -> "status") :: ("writing" -> "writing") :: ("reading" -> "reading") :: Nil
@@ -199,6 +202,35 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] {
 
   def searchQuery = {
     S.param("q") openOr ""
+  }
+
+  def findIds(s: String) = {
+    s.split('&') flatMap {
+      _.split('=') match {
+        case Array(XHexLong(id), _) => Some(id)
+        case _ => None
+      }
+    }
+  }
+
+  def ajaxReq(in: NodeSeq) = {
+    import net.liftweb.json.{compact, render}
+    def handler(s: String): JsCmd = {
+      val ids = findIds(s)
+      ids foreach { akkaServ ! ChangeWordStatus(_, WordStatus.ReviewWord) }
+      val data = JArray(ids.toList.map{ l => JString(l.toHexString) } )
+      val x = compact(render(data))
+      JE.Call("update_data", JE.JsRaw(x), JE.Str("ReviewWord") ).cmd
+    }
+    def handler_delete(s: String): JsCmd = {
+      val ids = findIds(s)
+      ids foreach { akkaServ ! MarkForDeletion(_) }
+      val data = JArray(ids.toList.map{ l => JString(l.toHexString) } )
+      val x = compact(render(data))
+      JE.Call("update_data", JE.JsRaw(x), JE.Str("Deleting") ).cmd
+    }
+    SHtml.ajaxButton(Text("Mark for review"), JE.Call("list_data") , handler _) ++
+    SHtml.ajaxButton(Text("Delete"), JE.Call("list_data") , handler_delete _)
   }
 
 
@@ -242,16 +274,17 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] {
     import org.eiennohito.kotonoha.util.DateTimeUtils._
 
     def v(id: Long) =  {
-      val link = "detail?w=%s".format(id.toHexString)
-      AttrBindParam("link", Text("javascript:Navigate(\"" + link + "\");"), "onclick")
+      val link = "row-%s".format(id.toHexString)
+      AttrBindParam("row", Text(link), "id")
     }
 
     page.flatMap {i =>
       bind("word", in,
         v(i.id.is),
+        "selected" -> <input type="checkbox" name={i.id.is.toHexString} /> ,
         "addeddate" -> Formatting.format(i.createdOn.is),
         "reading" -> i.reading.is,
-        "writing" -> i.writing.is,
+        "writing" -> <a href={"detail?w="+ i.id.is.toHexString}>{i.writing.is}</a>,
         "meaning" -> Strings.substr(i.meaning.is, 50),
         "status" -> i.status.is.toString
       )

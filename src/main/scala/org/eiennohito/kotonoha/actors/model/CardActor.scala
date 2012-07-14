@@ -32,6 +32,7 @@ case class ChangeCardEnabled(wordId: Long, status: Boolean) extends CardMessage
 case class RegisterCard(word: Long, userId: Long, cardMode: Int) extends CardMessage
 case class ClearNotBefore(card: Long) extends CardMessage
 case class ScheduleLater(card: Long, duration: ReadableDuration) extends CardMessage
+case class DeleteCardsForWord(word: Long)
 
 class CardActor extends Actor with ActorLogging with RootActor {
   import akka.util.duration._
@@ -68,6 +69,9 @@ class CardActor extends Actor with ActorLogging with RootActor {
     case ScheduleLater(card, interval) => {
       val time = now plus (interval)
       WordCardRecord where(_.id eqs card) modify (_.notBefore setTo(time))
+    }
+    case DeleteCardsForWord(word) => {
+      WordCardRecord where (_.word eqs word) bulkDelete_!!()
     }
   }
 }

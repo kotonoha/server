@@ -39,7 +39,47 @@
       }
 
       .pages a { margin: 0.5mm;}
+      .selections a { margin: 0.5mm; }
     </style>
+    <script language="javascript">
+      function list_data() {
+        return $('tbody#tbl * input[type=checkbox]').serialize();
+      }
+
+      function select_all() {
+        $('tbody#tbl * input[type=checkbox]').val(
+          function(ind, val) {
+            this.checked = true;
+            return true;
+          }
+        );
+      }
+
+      function select_none() {
+        $('tbody#tbl * input[type=checkbox]').val(
+          function(ind, val) {
+            this.checked = false;
+            return false;
+          }
+        );
+      }
+
+      function select_inverse() {
+        $('tbody#tbl * input[type=checkbox]').val(
+          function(ind, val) {
+            var ch = this.checked;
+            this.checked = !ch;
+            return !ch;
+          }
+        );
+      }
+
+      function update_data(ids, status) {
+        $(ids).each(function (o) {
+          $('#row-'+this+' .status').text(status);
+        })
+      }
+    </script>
   </head_merge>
   <div id="search-box">
     <form method="get">
@@ -48,9 +88,20 @@
       <input type="submit" title="Search" value="Search" >
     </form>
   </div>
+  <div>
+    <span class="selections">
+      Select:
+      <a onclick="select_all(); return false;">All</a>
+      <a onclick="select_none(); return false;">None</a>
+      <a onclick="select_inverse(); return false">Inverse</a>
+    </span>
+    <span class="lift:WordPaginator.ajaxReq"></span>
+  </div>
+
   <table xmlns:sort="sort">
     <thead>
     <tr class="search-header lift:WordPaginator.paginate">
+      <td></td>
       <td><sort:adate>Added date</sort:adate></td>
       <td><sort:status>Status</sort:status></td>
       <td><sort:writing>Writing</sort:writing></td>
@@ -58,10 +109,11 @@
       <td>Meaning</td>
     </tr>
     </thead>
-    <tbody>
-    <tr class="word-row lift:WordPaginator.renderPage" xmlns:word="word-namespace" word:link="">
+    <tbody id="tbl">
+    <tr class="word-row lift:WordPaginator.renderPage" xmlns:word="word-namespace" word:row="">
+      <td><word:selected></word:selected></td>
       <td><word:addedDate></word:addedDate></td>
-      <td class=""><word:status></word:status></td>
+      <td class="status"><word:status></word:status></td>
       <td class="nihongo"><word:writing></word:writing></td>
       <td class="nihongo"><word:reading></word:reading></td>
       <td class="nihongo"><word:meaning></word:meaning></td>

@@ -33,6 +33,8 @@ trait WordMessage extends KotonohaMessage
 case class RegisterWord(word: WordRecord, state: WordStatus.Value = WordStatus.Approved) extends WordMessage
 case class ChangeWordStatus(word: Long, status: WordStatus.Value) extends WordMessage
 case class MarkAllWordCards(word: Long, mark: Int) extends WordMessage
+case class MarkForDeletion(word: Long) extends WordMessage
+case object DeleteReadyWords
 
 class WordActor extends Actor with ActorLogging with RootActor {
   import akka.util.duration._
@@ -46,7 +48,12 @@ class WordActor extends Actor with ActorLogging with RootActor {
   def checkReadingWriting(word: WordRecord) = {
     val read = word.reading.is
     val writ = word.writing.is
-    !read.equalsIgnoreCase(writ)
+    if (writ == null || writ == "") {
+      word.writing(word.reading.is)
+      false
+    } else {
+      !read.equalsIgnoreCase(writ)
+    }
   }
 
   protected def receive = {
@@ -95,5 +102,20 @@ class WordActor extends Actor with ActorLogging with RootActor {
         data map { d => root ! ClearNotBefore(d.card.is) }
       }
     }
+    case MarkForDeletion(word) => {
+      WordRecord where (_.id eqs word) modify (_.deleteOn setTo(now.plusDays(1))) updateOne()
+      self ! ChangeWordStatus(word, WordStatus.Deleting)
+    }
+    case DeleteReadyWords => {
+      val time = now
+      val q = WordRecord where (_.deleteOn before time) and (_.status eqs WordStatus.Deleting)
+      q foreach { w => { root ! DeleteCardsForWord(w.id.is) } }
+      q bulkDelete_!!()
+      context.system.scheduler.scheduleOnce(3 hours, self, DeleteReadyWords)
+    }
+  }
+
+  override def preStart() {
+    context.system.scheduler.scheduleOnce(1 hour, self, DeleteReadyWords)
   }
 }

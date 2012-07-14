@@ -68,6 +68,7 @@ object WordStatus extends Enumeration {
   val Approved = Value(1)
   val ReviewWord = Value(2)
   val ReviewExamples = Value(3)
+  val Deleting = Value(4)
 }
 
 class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecord] with SequencedLongId[WordRecord] {
@@ -82,6 +83,8 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
 
   object examples extends BsonRecordListField(this, ExampleRecord)
   object user extends LongRefField(this, UserRecord)
+
+  object deleteOn extends DateTimeField(this) with DateJsonFormat
 }
 
 object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with NamedDatabase {
