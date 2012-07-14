@@ -27,4 +27,19 @@ object Strings {
     if (l <= len) in
     else in.substring(0, len) + "..."
   }
+
+  def trim(in: String) = {
+    var len = in.length
+    var st = 0
+
+    //japanese space or simple space
+    while ((st < len) && (in(st) == ' ' || in(st) == '　')) {
+      st += 1
+    }
+    while ((st < len) && (in(len - 1) == ' ' || in(len - 1) == '　')) {
+      len -= 1
+    }
+
+    if (((st > 0) || (len < in.length))) in.substring(st, len) else in
+  }
 }

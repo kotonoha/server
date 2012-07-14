@@ -33,7 +33,9 @@ import org.eiennohito.kotonoha.actors.ioc.{ReleaseAkka, Akka}
 import org.eiennohito.kotonoha.actors.RootActor
 import org.eiennohito.kotonoha.actors.model.MarkAllWordCards
 import org.eiennohito.kotonoha.records.dictionary.{JMString, JMDictRecord}
-import org.eiennohito.kotonoha.util.LangUtil
+import org.eiennohito.kotonoha.util.{Strings, LangUtil}
+import org.eiennohito.kotonoha.util.parsing.AddStringParser
+import util.parsing.input.CharSequenceReader
 
 /**
  * @author eiennohito
@@ -53,7 +55,7 @@ case class InvalidStringException(str: String) extends Exception("String " + str
 
 object Candidate {
   def wrap(s1: String) = {
-    val s = s1.trim
+    val s = Strings.trim(s1)
     if (s == null || s.equals("")) {
       None
     } else {
@@ -83,7 +85,10 @@ object AddWord extends Logging with Akka with ReleaseAkka {
   object data extends RequestVar[String]("")
   object good extends RequestVar[List[Candidate]](Nil)
 
-  def all(s: String): List[Candidate] = s.split("\n").map(_.trim).filter(_.length != 0).map(Candidate(_)).toList
+  def all(s: String): List[Candidate] = AddStringParser.entries(new CharSequenceReader(s)) match {
+    case AddStringParser.Success(l, _) => l
+    case _ => Nil
+  }
 
   def addField(in: NodeSeq): NodeSeq = {
     def process(d: List[Candidate]) = {
