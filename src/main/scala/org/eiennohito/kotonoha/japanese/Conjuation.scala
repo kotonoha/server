@@ -42,14 +42,14 @@ case class Conjuable(data: Option[String]) {
    * @return
    */
   def withLast(hm: Int)(f: String => Option[String]) = {
-    data map {s => {
+    Conjuable(data flatMap {s => {
       val l = s.length
       if (l < hm) { None }
       else {
         val rest = l - hm
         f(s.substring(rest)) map { s.substring(0, rest) + _ }
       }
-    }}
+    }})
   }
 }
 
