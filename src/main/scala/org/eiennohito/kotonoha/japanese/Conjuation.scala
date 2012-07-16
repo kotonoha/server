@@ -35,6 +35,7 @@ case class ConjObj(tag: String, content: String) {
     case "v5m" => content.end("む", "み").conj("ます").data
     case "v5r" => content.end("る", "り").conj("ます").data
     case "vk" => Some("来ます")
+    case _ if content.equals("する") => Some("します")
     case _ => None
   }
 }

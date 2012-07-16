@@ -9,5 +9,4 @@ object WordUtils {
      val word_type = JMDictRecord.query(word, None, 1).head.meaning.is.firstOption.flatMap(_.info.is.firstOption)
      ConjObj(word_type.getOrElse(""), word).masuForm
    } catch { case _ => None }
-
 }
