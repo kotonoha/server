@@ -63,6 +63,7 @@ class Boot extends Logging {
         Menu.i("Warodai") / "tools" / "warodai",
         Menu.i("Examples") / "tools" / "examples",
         Menu.i("Stroke orders") / "tools" / "kakijyun",
+        Menu.i("Additional") / "tools" / "addit_info",
         Menu.i("Sandbox") / "tools" / "sandbox"
       )
     )

@@ -31,7 +31,7 @@ import org.eiennohito.kotonoha.records._
 import org.eiennohito.kotonoha.util.DateTimeUtils
 import org.eiennohito.kotonoha.learning.ProcessMarkEvent
 import org.eiennohito.kotonoha.util.unapply.XHexLong
-import xml.Utility
+import xml.{Node, Utility}
 import net.liftweb.json.JsonAST.{JField, JObject, JValue}
 
 /**
@@ -75,6 +75,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   def publish(words: List[WordRecord], cards: List[WordCardRecord]): Unit = {
     import org.eiennohito.kotonoha.util.KBsonDSL._
     import net.liftweb.json.{compact => jc, render => jr}
+    import org.eiennohito.kotonoha.util.WordUtils.processWord
     val wm = words.map(w => (w.id.is, w)).toMap
     def getExamples(in: List[ExampleRecord], max: Int) = {
       val selected = Random.shuffle(in).take(max)
@@ -88,7 +89,8 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     val data: JValue = cards map (c => {
       val w = wm(c.word.is)
       ("writing" -> w.writing) ~ ("reading" -> w.reading) ~ ("meaning" -> w.meaning) ~
-      ("cid" -> c.id.is.toHexString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5))
+      ("cid" -> c.id.is.toHexString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
+      ("additional" -> processWord(w.writing.toString()).getOrElse("【誤った】"))
     })
     partialUpdate(Call("publish_new", jc(jr(data))).cmd)
   }

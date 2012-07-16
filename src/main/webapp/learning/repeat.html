@@ -57,6 +57,7 @@
         $("#word-reading").text(item.reading);
         $("#word-meaning").text(item.meaning);
         $("#example-pane").html(item.examples);
+        $("#word-additional").html(item.additional);
       }
 
       function display_next() {
@@ -89,7 +90,7 @@
         mode = MODE_ANSWER;
 
         $("#show-answer-pane").hide();
-
+        $("#word-additional").show();
         $("#word-writing").show();
         $("#word-reading").show();
         $("#word-meaning").show();
@@ -102,6 +103,7 @@
         $("#word-reading").hide();
         $("#word-meaning").hide();
         $("#example-pane").hide();
+        $("#word-additional").hide();
         $("#mark-pane").hide();
         $("#next-word-pane").hide();
         $("#show-answer-pane").hide();
@@ -158,6 +160,7 @@
         <div class="nihongo word-writing" id="word-writing"></div>
         <div class="nihongo word-reading" id="word-reading"></div>
         <div class="word-meaning" id="word-meaning"></div>
+        <div class="word-additional" id="word-additional"></div>
         <div class="button-pane" id="button-pane">
           <div id="mark-pane">
             <button id="mark1">1</button>
