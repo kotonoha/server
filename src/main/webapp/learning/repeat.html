@@ -123,6 +123,7 @@
     <script language="javascript">
       $().ready(function () {
         $(document).keypress(function (event) {
+          if (event.ctrlKey || event.altKey || event.shiftKey || event.metaKey) return;
           switch(mode) {
             case MODE_QUESTION:
               if (event.which == 32) show_answer(); return false;
