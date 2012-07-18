@@ -7,6 +7,6 @@ object WordUtils {
    def processWord(word:String): Option[String] = try {
      MongoDbInit.init()
      val word_type = JMDictRecord.query(word, None, 1).head.meaning.is.firstOption.flatMap(_.info.is.firstOption)
-     ConjObj(word_type.getOrElse(""), word).masuForm
+     ConjObj(word_type.getOrElse("exp"), word).masuForm.data
    } catch { case _ => None }
 }

@@ -23,21 +23,27 @@ package org.eiennohito.kotonoha.japanese
 
 case class ConjObj(tag: String, content: String) {
   import Conjuable._
-  def masuForm = tag match {
-    case "v1" => content.end("る", "").conj("ます").data
-    case "v5u" => content.end("う", "い").conj("ます").data
-    case "v5k" => content.end("く", "き").conj("ます").data
-    case "v5g" => content.end("ぐ", "ぎ").conj("ます").data
-    case "v5s" => content.end("す", "し").conj("ます").data
-    case "v5t" => content.end("つ", "ち").conj("ます").data
-    case "v5n" => content.end("ぬ", "に").conj("ます").data
-    case "v5b" => content.end("ぶ", "び").conj("ます").data
-    case "v5m" => content.end("む", "み").conj("ます").data
-    case "v5r" => content.end("る", "り").conj("ます").data
-    case "vk" => Some("来ます")
-    case _ if content.equals("する") => Some("します")
-    case _ => None
+  def secondStem:Conjuable = {
+    val godanEndings = Map (    
+        "う"-> "い",
+        "く"-> "き",
+        "ぐ"-> "ぎ",
+        "す"-> "し",
+        "つ"-> "ち",
+        "ぬ"-> "に",
+        "ぶ"-> "び",
+        "む"-> "み",
+        "る"-> "り")
+    def pairFor(s:Char) = godanEndings.dropWhile({!_._1.equals(s)}).head
+    tag match {
+      case "vk" => "来"
+      case _ if content.equals("する") =>"し"
+      case "v1" => content.end("る", "")
+      case s if s.startsWith("v5") =>  content.end(pairFor(content.last))
+    }
+    
   }
+  def masuForm = secondStem conj "ます"
 }
 
 case class Conjuable(data: Option[String]) {
@@ -49,6 +55,10 @@ case class Conjuable(data: Option[String]) {
         else None
     })
   }
+
+  def end(from: String, to: Option[String]): Conjuable = if (to.isEmpty) Conjuable(None) else end(from, to.get)
+  def end(pair:(String,  String)): Conjuable = end(pair._1, pair._2)
+
 
   /**
    *
