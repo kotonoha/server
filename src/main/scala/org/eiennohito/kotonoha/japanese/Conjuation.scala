@@ -38,7 +38,7 @@ case class ConjObj(tag: String, content: String) {
     tag match {
       case "vk" => "来"
       case _ if content.equals("する") => "し"
-      case _ if content.equals("行く") => "行き"
+      //case _ if content.equals("行く") => "行き"
       case "v1" => content.end("る", "")
       case s if s.startsWith("v5") =>  content.end(last(content), godanEndings.get(last(content)))
     }

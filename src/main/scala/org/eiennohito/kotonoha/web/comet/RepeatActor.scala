@@ -90,7 +90,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
       val w = wm(c.word.is)
       ("writing" -> w.writing) ~ ("reading" -> w.reading) ~ ("meaning" -> w.meaning) ~
       ("cid" -> c.id.is.toHexString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
-      ("additional" -> processWord(w.writing.toString()).getOrElse(""))
+      ("additional" -> processWord(w.writing.toString(), Some(w.reading.toString())).getOrElse(""))
     })
     partialUpdate(Call("publish_new", jc(jr(data))).cmd)
   }

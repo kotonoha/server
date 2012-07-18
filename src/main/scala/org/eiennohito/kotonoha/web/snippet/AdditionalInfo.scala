@@ -19,7 +19,7 @@ object AdditionalInfo {
   def response(in: NodeSeq): NodeSeq = {
     import net.liftweb.util.Helpers._
     val q = S.param("query").openOr("")
-    bind("je", in, "response" -> processWord(q).getOrElse(""))
+    bind("je", in, "response" -> processWord(q, None).getOrElse(""))
   }
 
 }
