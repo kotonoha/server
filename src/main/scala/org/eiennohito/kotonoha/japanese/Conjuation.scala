@@ -21,26 +21,29 @@ package org.eiennohito.kotonoha.japanese
  * @since 14.07.12
  */
 
+case object ConjObj {
+  protected val godanEndings = Map (
+    "う"-> "い",
+    "く"-> "き",
+    "ぐ"-> "ぎ",
+    "す"-> "し",
+    "つ"-> "ち",
+    "ぬ"-> "に",
+    "ぶ"-> "び",
+    "む"-> "み",
+    "る"-> "り")
+}
+
 case class ConjObj(tag: String, content: String) {
   import Conjuable._
   def secondStem:Conjuable = {
-    val godanEndings = Map (    
-        "う"-> "い",
-        "く"-> "き",
-        "ぐ"-> "ぎ",
-        "す"-> "し",
-        "つ"-> "ち",
-        "ぬ"-> "に",
-        "ぶ"-> "び",
-        "む"-> "み",
-        "る"-> "り")
     def last(s:String) = s.substring(s.length - 1)
     tag match {
       case "vk" => "来"
       case _ if content.equals("する") => "し"
       //case _ if content.equals("行く") => "行き"
       case "v1" => content.end("る", "")
-      case s if s.startsWith("v5") =>  content.end(last(content), godanEndings.get(last(content)))
+      case s if s.startsWith("v5") =>  content.end(last(content), ConjObj.godanEndings.get(last(content)))
     }
     
   }
