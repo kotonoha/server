@@ -34,12 +34,13 @@ case class ConjObj(tag: String, content: String) {
         "ぶ"-> "び",
         "む"-> "み",
         "る"-> "り")
-    def pairFor(s:Char) = godanEndings.dropWhile({!_._1.equals(s)}).head
+    def ends(s:String) = s.substring(s.length - 1)
     tag match {
       case "vk" => "来"
-      case _ if content.equals("する") =>"し"
+      case _ if content.equals("する") => "し"
+      case _ if content.equals("行く") => "行き"
       case "v1" => content.end("る", "")
-      case s if s.startsWith("v5") =>  content.end(pairFor(content.last))
+      case s if s.startsWith("v5") =>  content.end(ends(content), godanEndings.get(ends(content)))
     }
     
   }
