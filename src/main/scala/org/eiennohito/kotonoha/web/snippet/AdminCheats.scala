@@ -38,7 +38,7 @@ object AdminCheats {
     }
 
     val item = SHtml.text("", changeId)
-    ".another-user *" #>
+
     <form>
       <b>User Id</b>
       {item}
@@ -51,7 +51,7 @@ object AdminCheats {
     users flatMap {
       u => bind("c", in,
             "name" -> u.niceName,
-            "id" -> u.id.is.toString )
+            "uid" -> u.id.is.toString )
     }
 
   }
