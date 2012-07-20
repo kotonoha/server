@@ -31,8 +31,9 @@ import org.eiennohito.kotonoha.records._
 import org.eiennohito.kotonoha.util.DateTimeUtils
 import org.eiennohito.kotonoha.learning.ProcessMarkEvent
 import org.eiennohito.kotonoha.util.unapply.XHexLong
-import xml.{NodeSeq, Node, Utility}
+import xml.{Text, NodeSeq, Node, Utility}
 import net.liftweb.json.JsonAST.{JField, JObject, JValue}
+import net.liftweb.http.js.JsCmds.SetHtml
 
 /**
  * @author eiennohito
@@ -42,11 +43,13 @@ import net.liftweb.json.JsonAST.{JField, JObject, JValue}
 case class RecieveJson(obj: JValue)
 case class RepeatUser(id: Long)
 case class WebMark(card: String, mode: Int, time: Double, mark: Int, remaining: Int)
+case object UpdateNum
 
 trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   def self = this
   val root = akkaServ.root
   var userId: Long = -1
+  var count = 0
 
   def render = {
     val js = JsCmds.Function("send_to_actor", List("obj"), jsonSend(JsRaw("obj")))
@@ -64,6 +67,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
       case JObject(JField("command", data) :: _) => {
         val mark = extract[WebMark](data)
         self ! mark
+        self ! UpdateNum
       }
       case _ => logger.debug("invalid json: " + obj)
     }
@@ -122,6 +126,10 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     case RecieveJson(o) => processJson(o)
     case WordsAndCards(words, cards) => publish(words, cards)
     case m: WebMark => processMark(m)
+    case UpdateNum => {
+      partialUpdate(SetHtml("rpt-num", Text("Repeated %d word(s)".format(count))))
+      count += 1
+    }
     case _: Int => //do nothing
   }
 }

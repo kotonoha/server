@@ -51,11 +51,11 @@
       }
 
       function display_item(item) {
-        $("#button-pane").show()
+        $("#button-pane").show();
         show_question(item.mode);
         $("#word-writing").text(item.writing);
         $("#word-reading").text(item.reading);
-        $("#word-meaning").text(item.meaning);
+        $("#word-meaning").html(item.meaning.replace("\n", "<br/>"));
         $("#example-pane").html(item.examples);
         $("#word-additional").html(item.additional);
       }
@@ -154,10 +154,28 @@
         $("#show-answer").click(function() { show_answer(); return false; })
       });
     </script>
+    <style type="text/css">
+      .card-data {
+        max-width: 10cm;
+      }
+
+      .example-data {
+        max-width: 13cm;
+        margin-left: 5px;
+        padding-left: 15px;
+        border-left: 1px grey dotted;
+      }
+
+      .button-pane {
+        margin-left: auto;
+        margin-right: auto;
+      }
+    </style>
   </head_merge>
   <div class="lift:RepeatActorSnippet">
     <div class="word-display">
-      <div class="column">
+      <div id="rpt-num"></div>
+      <div class="column card-data">
         <div class="nihongo word-writing" id="word-writing"></div>
         <div class="nihongo word-reading" id="word-reading"></div>
         <div class="word-meaning" id="word-meaning"></div>
@@ -178,7 +196,7 @@
           </div>
         </div>
       </div>
-      <div class="column" id="example-pane">
+      <div class="column example-data" id="example-pane">
       </div>
     </div>
   </div>
