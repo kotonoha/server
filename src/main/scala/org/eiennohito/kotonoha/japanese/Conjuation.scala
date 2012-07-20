@@ -48,6 +48,21 @@ case class ConjObj(tag: String, content: String) {
     
   }
   def masuForm = secondStem conj "ます"
+
+  def teForm: Conjuable = {
+    tag match {
+      case "vk" => "来て"
+      case _ if content.equals("する") => "して"
+      case "v1" => content.end("る", "て")
+      case s if s.startsWith("v5") => content.withLast(1) {
+        case "う" | "る" | "つ" => Some("って")
+        case "ぶ" | "む" | "ぬ" => Some("んで")
+        case "く" => Some("いて")
+        case "ぐ" => Some("いで")
+        case "す" => Some("して")
+      }
+    }
+  }
 }
 
 case class Conjuable(data: Option[String]) {

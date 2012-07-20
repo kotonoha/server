@@ -31,7 +31,7 @@ import org.eiennohito.kotonoha.records._
 import org.eiennohito.kotonoha.util.DateTimeUtils
 import org.eiennohito.kotonoha.learning.ProcessMarkEvent
 import org.eiennohito.kotonoha.util.unapply.XHexLong
-import xml.{Node, Utility}
+import xml.{NodeSeq, Node, Utility}
 import net.liftweb.json.JsonAST.{JField, JObject, JValue}
 
 /**
@@ -72,6 +72,12 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
 
   override protected def dontCacheRendering = true
 
+  def nsString(in: NodeSeq) = {
+    val sb = new StringBuilder
+    Utility.sequenceToXML(in, sb = sb)
+    sb.toString()
+  }
+
   def publish(words: List[WordRecord], cards: List[WordCardRecord]): Unit = {
     import org.eiennohito.kotonoha.util.KBsonDSL._
     import net.liftweb.json.{compact => jc, render => jr}
@@ -82,15 +88,15 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
       val html = selected flatMap(e =>
         <div class="nihongo">{e.example.is}</div>
         <div>{e.translation.is}</div>)
-      val sb = new StringBuilder
-      Utility.sequenceToXML(html, sb = sb)
-      sb.toString()
+      nsString(html)
     }
     val data: JValue = cards map (c => {
       val w = wm(c.word.is)
+      val addInfo = processWord(w.writing.toString(), Some(w.reading.toString()))
+      val procInfo = addInfo map {nsString(_)} getOrElse ""
       ("writing" -> w.writing) ~ ("reading" -> w.reading) ~ ("meaning" -> w.meaning) ~
       ("cid" -> c.id.is.toHexString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
-      ("additional" -> processWord(w.writing.toString(), Some(w.reading.toString())).getOrElse(""))
+      ("additional" -> procInfo)
     })
     partialUpdate(Call("publish_new", jc(jr(data))).cmd)
   }
