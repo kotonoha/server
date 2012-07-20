@@ -49,7 +49,8 @@ class Boot extends Logging {
         ),
       Menu.i("Admin") / "admin" / "index" >> If(() => UserRecord.isAdmin, "Only administrators allowed here") submenus (
           Menu.i("Client List") / "admin" / "clients",
-          Menu.i("Configuration") / "admin" / "config"
+          Menu.i("Configuration") / "admin" / "config",
+          Menu.i("Debug") / "admin" / "debug"
         ),
       Menu.i("Words") / "words" / "index" >> loggedin submenus (
           Menu.i("Add") / "words" / "add",
