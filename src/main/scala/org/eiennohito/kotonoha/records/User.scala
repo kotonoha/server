@@ -142,7 +142,7 @@ class ClientRecord private() extends MongoRecord[ClientRecord] with LongPk[Clien
   object name extends StringField(this, 50)
   object apiPublic extends StringField(this, 32)
   object apiPrivate extends StringField(this, 32)
-  object registeredDate extends DateTimeField(this)
+  object registeredDate extends DateTimeField(this) with DateJsonFormat
 
   def reset {}
 

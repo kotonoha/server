@@ -9,7 +9,8 @@ import org.eiennohito.kotonoha.util.DateTimeUtils
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTimeZone, DateTime}
 import net.liftweb.json.JsonAST.{JString, JValue}
-import net.liftweb.common.{Empty, Box}
+import net.liftweb.common.{Full, Empty, Box}
+import java.util
 
 
 /*
@@ -32,7 +33,7 @@ import net.liftweb.common.{Empty, Box}
  * @since 07.02.12
  */
 
-trait DateJsonFormat { this: TypedField[Calendar] =>
+trait DateJsonFormat { this: TypedField[Calendar] with DateTimeTypedField =>
 
   def format(date: Calendar): String = {
     val fb = ISODateTimeFormat.basicDateTime()
@@ -62,5 +63,11 @@ trait DateJsonFormat { this: TypedField[Calendar] =>
       case _ => setBox(Empty)
     }
   }
-  
+
+  override def setFromAny(in: Any) = {
+    in match {
+      case d: DateTime => setBox(Full(d.toCalendar(util.Locale.getDefault)))
+      case _ => this.asInstanceOf[DateTimeTypedField].setFromAny(in)
+    }
+  }
 }

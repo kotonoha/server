@@ -24,6 +24,7 @@ import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord, BsonMetaRecord,
 import net.liftweb.mongodb.record.field.{BsonRecordField, ObjectIdPk}
 import net.liftweb.record.field.{IntField, EnumField, StringField, DateTimeField}
 import net.liftweb.common.{Box, Full, Empty}
+import org.eiennohito.kotonoha.records.DateJsonFormat
 
 /**
  * @author eiennohito
@@ -62,7 +63,7 @@ object LoggingThrowableR extends LoggingThrowableR with BsonMetaRecord[LoggingTh
 class LogRecord private() extends MongoRecord[LogRecord] with ObjectIdPk[LogRecord] {
   def meta = LogRecord
 
-  object timestamp extends DateTimeField(this)
+  object timestamp extends DateTimeField(this) with DateJsonFormat
   object thread extends StringField(this, 50)
   object level extends EnumField(this, LogLevel)
   object name extends StringField(this, 50)

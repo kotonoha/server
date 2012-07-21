@@ -35,7 +35,7 @@ class NonceRecord private() extends MongoRecord[NonceRecord] with LongPk[NonceRe
   object consumerKey extends StringField(this, 32)
   object token extends StringField(this, 32)
   object nonce extends StringField(this, 50)
-  object timestamp extends DateTimeField(this)
+  object timestamp extends DateTimeField(this) with DateJsonFormat
 
   def value = new OAuthNonce {
     def nonce = NonceRecord.this.nonce.is
