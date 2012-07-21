@@ -4,9 +4,10 @@ import java.util.Calendar
 
 import akka.util.FiniteDuration
 import net.liftweb.util.Helpers.TimeSpan
-import org.joda.time.{ReadableInstant, DateTimeZone, DateTime, Duration => JodaDuration}
+import org.joda.time.{Duration => JodaDuration, _}
 import org.eiennohito.kotonoha.records.UserRecord
 import java.util.concurrent.TimeUnit
+import scala.Some
 
 /*
  * Copyright 2012 eiennohito
@@ -64,6 +65,10 @@ object DateTimeUtils {
   def tonight = {
     val dt = now
     dt.toDateMidnight
+  }
+
+  def last10midn = {
+    intervals(tonight.minusDays(10), JodaDuration.standardDays(1), 11)
   }
 
   def intervals(begin: ReadableInstant, dur: JodaDuration, times: Int): List[DateTime] = {

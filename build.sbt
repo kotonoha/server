@@ -18,9 +18,9 @@ libraryDependencies ++=
 						"com.github.jsuereth.scala-arm" %% "scala-arm" % "1.0"
 					)
 
-libraryDependencies += "com.github.scala-incubator.io" %% "scala-io-core" % "0.2.0"
+libraryDependencies += "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.0"
 
-libraryDependencies +=  "com.github.scala-incubator.io" %% "scala-io-file" % "0.2.0"
+libraryDependencies +=  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.0"
 
 resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/"
 
@@ -33,11 +33,17 @@ libraryDependencies ++= {
     "net.liftweb" %% "lift-json-ext" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),
     "net.liftweb" %% "lift-webkit" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",
-    "net.liftweb" %% "lift-mongodb-record" % liftVersion,
+    "net.liftweb" %% "lift-mongodb-record" % liftVersion exclude("org.mongodb", "mongo-java-driver"),
     "net.liftweb" %% "lift-json-scalaz" % liftVersion,
     "net.liftweb" %% "lift-oauth" % (liftVersion + "-kotonoha"),
     "net.liftweb" %% "lift-testkit" % liftVersion % "test",
 	  "javax.servlet" % "servlet-api" % "2.5" % "provided->default")
+}
+
+libraryDependencies ++= {
+  Seq(
+    "org.mongodb" %% "casbah" % "2.4.1" exclude("org.specs2", "*")
+  )
 }
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"

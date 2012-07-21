@@ -6,6 +6,9 @@ package bootstrap.liftweb
  */
 
 import net.liftweb._
+import common.Full
+import http.Html5Properties
+import sitemap.Loc.If
 import util._
 import Helpers._
 
@@ -17,9 +20,10 @@ import Loc._
 import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
 import org.eiennohito.kotonoha.mongodb.MongoDbInit
 import org.eiennohito.kotonoha.records.UserRecord
-import org.eiennohito.kotonoha.web.rest.{StatusApi, QrRest, Learning, SimpleRest}
+import org.eiennohito.kotonoha.web.rest._
 import org.eiennohito.kotonoha.actors.lift.Ping
 import com.weiglewilczek.slf4s.Logging
+import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 
 
 /**
@@ -29,6 +33,7 @@ import com.weiglewilczek.slf4s.Logging
 class Boot extends Logging {
   def boot {
     MongoDbInit.init()
+    RegisterJodaTimeConversionHelpers.register()
 
     //Bootstrap lazy akka
     ReleaseAkkaMain.root ! Ping
@@ -50,7 +55,8 @@ class Boot extends Logging {
       Menu.i("Admin") / "admin" / "index" >> If(() => UserRecord.isAdmin, "Only administrators allowed here") submenus (
           Menu.i("Client List") / "admin" / "clients",
           Menu.i("Configuration") / "admin" / "config",
-          Menu.i("Debug") / "admin" / "debug"
+          Menu.i("Debug") / "admin" / "debug",
+          Menu.i("Global learning") / "admin" / "learning"
         ),
       Menu.i("Words") / "words" / "index" >> loggedin submenus (
           Menu.i("Add") / "words" / "add",
@@ -83,6 +89,8 @@ class Boot extends Logging {
     LiftRules.statelessDispatchTable.append(Learning)
     LiftRules.statelessDispatchTable.append(QrRest)
     LiftRules.statelessDispatchTable.append(new StatusApi)
+
+    LiftRules.dispatch.append(Stats)
 
     // Use jQuery 1.4
     LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
