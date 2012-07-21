@@ -229,8 +229,16 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
       val x = compact(render(data))
       JE.Call("update_data", JE.JsRaw(x), JE.Str("Deleting") ).cmd
     }
+    def handler_approveall(s: String): JsCmd = {
+      val ids = findIds(s)
+      ids foreach { akkaServ ! ChangeWordStatus(_, WordStatus.Approved) }
+      val data = JArray(ids.toList map { i => JString(i.toHexString) } )
+      val x = compact(render(data))
+      JE.Call("update_data", JE.JsRaw(x), JE.Str("Approved")).cmd
+    }
     SHtml.ajaxButton(Text("Mark for review"), JE.Call("list_data") , handler _) ++
-    SHtml.ajaxButton(Text("Delete"), JE.Call("list_data") , handler_delete _)
+    SHtml.ajaxButton(Text("Delete"), JE.Call("list_data") , handler_delete _) ++
+    SHtml.ajaxButton(Text("Approve"), JE.Call("list_data"), handler_approveall _)
   }
 
 
