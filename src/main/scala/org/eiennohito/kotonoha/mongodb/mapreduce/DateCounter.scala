@@ -32,21 +32,12 @@ class DateCounter {
   import akka.util.duration._
   import scala.collection.JavaConversions.seqAsJavaList
 
-  //requires dates value
-  val index_in_range = new Code("""function rande_idx(val, arr){
-    var len = arr.length;
-    for (var i = 0; i < len; ++i) {
-      var v = arr[i];
-      if (v > val) {
-        return i - 1;
-      }
-    }
-    return len - 1;
-  }""")
-
   val map = """function map() {
-    var date = Math.max(this.notBefore, this.learning.intervalEnd);
-    emit(range_idx(date, dates), {count : 1});
+    var tm = this.learning === null ? 0 : this.learning.intervalEnd.getTime();
+    var date = Math.max(this.notBefore.getTime(), tm);
+    var d = (date - pivot) / 86400000;
+    var rng = Math.max(-1, Math.floor(d));
+    emit(rng, {count : 1});
   }"""
 
   val reduce = """function reduce(key, vals) {
@@ -62,8 +53,7 @@ class DateCounter {
 
   val scope : java.util.Map[String, AnyRef] = {
     val map = new java.util.HashMap[String, AnyRef]()
-    map.put("range_idx", index_in_range)
-    map.put("dates", dateList())
+    map.put("pivot", System.currentTimeMillis().asInstanceOf[AnyRef])
     map
   }
 
