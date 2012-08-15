@@ -135,9 +135,9 @@ class SM6(user: Long) extends Actor with ActorLogging {
   def inertiaVal(data: ItemLearningDataRecord, q: Double) = {
     val i = data.inertia.is
     val p = q match {
-      case v if v >= 3 => 0.95
-      case v if v >= 2 => 0.9
-      case _ => 0.8
+      case v if v >= 3 => 0.9
+      case v if v >= 2 => 0.8
+      case _ => 0.6
     }
     i * p
   }
