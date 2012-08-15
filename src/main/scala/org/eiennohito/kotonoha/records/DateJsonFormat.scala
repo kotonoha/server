@@ -33,9 +33,9 @@ import java.util
  * @since 07.02.12
  */
 
-trait DateJsonFormat { this: TypedField[Calendar] with DateTimeTypedField =>
+trait DateJsonFormat extends TypedField[util.Calendar] with DateTimeTypedField {
 
-  def format(date: Calendar): String = {
+  def format(date: util.Calendar): String = {
     val fb = ISODateTimeFormat.basicDateTime()
     val dt = new DateTime(date.getTimeInMillis).withZone(DateTimeZone.UTC)
     fb.print(dt)
@@ -47,11 +47,11 @@ trait DateJsonFormat { this: TypedField[Calendar] with DateTimeTypedField =>
   
   override def asJValue = asJString(v => format(v))
 
-  def parse(s: String): Box[Calendar] = {
+  def parse(s: String): Box[util.Calendar] = {
     val fb = ISODateTimeFormat.basicDateTime()
     tryo {
       val dt = fb.parseDateTime(s)
-      val c = Calendar.getInstance()
+      val c = util.Calendar.getInstance()
       c.setTimeInMillis(dt.getMillis)
       c
     }
@@ -64,10 +64,10 @@ trait DateJsonFormat { this: TypedField[Calendar] with DateTimeTypedField =>
     }
   }
 
-  override def setFromAny(in: Any) = {
+  override def setFromAny(in: Any): Box[util.Calendar]  = {
     in match {
       case d: DateTime => setBox(Full(d.toCalendar(util.Locale.getDefault)))
-      case _ => this.asInstanceOf[DateTimeTypedField].setFromAny(in)
+      case _ => super.setFromAny(in)
     }
   }
 }
