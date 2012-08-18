@@ -67,7 +67,6 @@ object Candidate {
       case Array(w) => new Candidate(w, None, None)
       case Array(w, r, m) => new Candidate(w, wrap(r), wrap(m))
       case Array(w, smt) => {
-        import ws.kotonoha.server.util.UnicodeUtil._
         if (stream(smt).forall(isKana(_))) {
           new Candidate(w, wrap(smt), None)
         } else {

@@ -2,7 +2,7 @@ package ws.kotonoha.server.kanji
 
 import java.io.InputStreamReader
 import collection.mutable.HashMap
-import ws.kotonoha.server.util.UnicodeUtil
+import ws.kotonoha.akane.unicode.UnicodeUtil
 
 
 /*

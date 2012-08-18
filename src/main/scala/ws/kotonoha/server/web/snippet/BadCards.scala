@@ -26,6 +26,7 @@ import net.liftweb.http.{SHtml, RequestVar, S, DispatchSnippet}
 import net.liftweb.common.Full
 import ws.kotonoha.server.util.unapply.XInt
 import ws.kotonoha.server.actors.{UpdateRecord, SaveRecord}
+import ws.kotonoha.akane.unicode.UnicodeUtil
 import ws.kotonoha.server.util.{UnicodeUtil, StrokeType}
 import collection.mutable.ListBuffer
 import annotation.tailrec
