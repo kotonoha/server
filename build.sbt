@@ -3,9 +3,9 @@ import KotonohaBuild._
 
 seq(webSettings :_*)
 
-organization := "org.eiennohito"
+organization := "ws.kotonoha"
 
-name := "kotonoha-server"
+name := "server"
 
 version := "0.1-SNAPSHOT"
 
@@ -90,7 +90,7 @@ sourceGenerators in Compile <+= buildInfo
 
 buildInfoKeys := Seq[Scoped](version, scalaVersion, sbtVersion, gitId, gitDate)
 
-buildInfoPackage := "org.eiennohito.kotonoha.util"
+buildInfoPackage := "ws.kotonoha.server.util"
 
 buildInfoObject  := "BuildInfo"
 

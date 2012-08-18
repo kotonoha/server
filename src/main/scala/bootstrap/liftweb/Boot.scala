@@ -17,11 +17,11 @@ import http._
 import provider.HTTPCookie
 import sitemap._
 import Loc._
-import org.eiennohito.kotonoha.actors.ReleaseAkkaMain
-import org.eiennohito.kotonoha.mongodb.MongoDbInit
-import org.eiennohito.kotonoha.records.UserRecord
-import org.eiennohito.kotonoha.web.rest._
-import org.eiennohito.kotonoha.actors.lift.Ping
+import ws.kotonoha.server.actors.ReleaseAkkaMain
+import ws.kotonoha.server.mongodb.MongoDbInit
+import ws.kotonoha.server.records.UserRecord
+import ws.kotonoha.server.web.rest._
+import ws.kotonoha.server.actors.lift.Ping
 import com.weiglewilczek.slf4s.Logging
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 
@@ -39,7 +39,7 @@ class Boot extends Logging {
     ReleaseAkkaMain.root ! Ping
 
     // where to search snippet
-    LiftRules.addToPackages("org.eiennohito.kotonoha.web")
+    LiftRules.addToPackages("ws.kotonoha.server.web")
 
     val loggedin = If(UserRecord.loggedIn_? _, "You are not logged in")
     // Build SiteMap

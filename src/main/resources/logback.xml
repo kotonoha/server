@@ -15,7 +15,7 @@
   -->
 
 <configuration>
-  <appender name="mongo" class="org.eiennohito.kotonoha.util.MongoAppender" />
+  <appender name="mongo" class="ws.kotonoha.server.util.MongoAppender" />
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
