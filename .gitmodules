@@ -1,0 +1,3 @@
+[submodule "akane"]
+	path = akane
+	url = git@github.com:kotonoha/akane.git

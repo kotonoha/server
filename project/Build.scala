@@ -72,11 +72,17 @@ object KotonohaBuild extends Build {
     id = "kotonoha",
     base = file("."),
     settings = buildSettings ++ Seq(gitdata._1) ++ Seq(gitdata._2)
-  ) dependsOn(model)
+  ) dependsOn(model, akane)
 
   lazy val model = Project(
     id = "model",
     base = file("model"),
+    settings = buildSettings
+  )
+  
+  lazy val akane = Project(
+    id = "akane",
+    base = file("akane"),
     settings = buildSettings
   )
 
