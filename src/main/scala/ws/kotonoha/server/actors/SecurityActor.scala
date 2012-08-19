@@ -62,7 +62,7 @@ object SecurityManager extends Akka with ReleaseAkka {
 
   implicit val timeout: Timeout = 5 seconds
 
-  def checkRole(user: Long, role: Roles.Role) = checkRole(user, role.toString)
+  def checkRole(user: Long, role: Roles.Role): Boolean = checkRole(user, role.toString)
 
   def checkRole(user: Long, role: String): Boolean = {
     val f = (actor ? CheckGrant(user, role)).mapTo[GrantStatus]

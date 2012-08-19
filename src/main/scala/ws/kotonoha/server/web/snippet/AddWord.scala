@@ -19,7 +19,7 @@ package ws.kotonoha.server.web.snippet
 import net.liftweb.http._
 import js.JE.Call
 import js.JsCmds.{SetHtml, Script, Function, RedirectTo}
-import js.{JE, JsCmds, JsCmd, JsExp}
+import js.{JE, JsCmds, JsCmd}
 import net.liftweb.common.Full
 import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
 import ws.kotonoha.server.util.unapply.XLong
@@ -30,12 +30,12 @@ import ws.kotonoha.server.records.{WordRecord, AddWordRecord, UserRecord}
 import net.liftweb.json.JsonAST.{JObject, JValue}
 import xml.{Text, NodeSeq}
 import ws.kotonoha.server.actors.ioc.{ReleaseAkka, Akka}
-import ws.kotonoha.server.actors.RootActor
 import ws.kotonoha.server.actors.model.MarkAllWordCards
-import ws.kotonoha.server.records.dictionary.{JMString, JMDictRecord}
+import ws.kotonoha.server.records.dictionary.JMDictRecord
 import ws.kotonoha.server.util.{Strings, LangUtil}
 import ws.kotonoha.server.util.parsing.AddStringParser
 import util.parsing.input.CharSequenceReader
+import ws.kotonoha.akane.unicode.UnicodeUtil
 
 /**
  * @author eiennohito
@@ -54,6 +54,7 @@ case class Candidate(writing: String, reading: Option[String], meaning: Option[S
 case class InvalidStringException(str: String) extends Exception("String " + str + " is not valid")
 
 object Candidate {
+  import UnicodeUtil._
   def wrap(s1: String) = {
     val s = Strings.trim(s1)
     if (s == null || s.equals("")) {

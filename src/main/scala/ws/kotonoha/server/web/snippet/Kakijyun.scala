@@ -19,7 +19,7 @@ package ws.kotonoha.server.web.snippet
 import xml.NodeSeq
 import net.liftweb.http.S
 import ws.kotonoha.akane.unicode.UnicodeUtil
-import ws.kotonoha.server.util.{StrokeType, StrokesUtil, UnicodeUtil}
+import ws.kotonoha.server.util.{StrokeType, StrokesUtil}
 
 /**
  * @author eiennohito
