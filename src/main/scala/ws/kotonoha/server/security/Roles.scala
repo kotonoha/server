@@ -22,6 +22,10 @@ package ws.kotonoha.server.security
  */
 
 object Roles extends Enumeration {
+  def safeRole(s: String): Option[Role] = {
+    values.find(_.toString == s)
+  }
+
   type Role = Value
 
   /**

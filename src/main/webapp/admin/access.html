@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright 2012 eiennohito
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html>
+<body class="lift:content_id=main">
+<div id="main" class="lift:surround?with=default;at=content">
+  <head_merge>
+    <script id="dataTables" type="text/javascript" src="/static/plugins/jquery.dataTables.js"></script>
+    <script id="jediable" type="text/javascript" src="/static/plugins/jquery.jeditable.js"></script>
+    <script language="JavaScript">
+      $(document).ready(function() {
+        var dt = $('#example').dataTable({
+          "bProcessing": true,
+          "bServerSide": true,
+          "bSort": false,
+          "sAjaxSource": "../api/sec/grants",
+          "aoColumns" : [
+            { "mDataProp": "name" },
+            { "mDataProp": "roles", "sClass": "roles" }
+          ],
+          "fnDrawCallback": function() {
+            $("td.roles", this).editable("../api/sec/grant_role", {
+              "name": "roles",
+              "callback": function(sValue, y) {
+                var aPos = dt.fnGetPosition( this );
+                dt.fnUpdate( sValue, aPos[0], aPos[1] );
+              },
+              "submitdata": function(value, settings) {
+                var obj = dt.fnGetData(this.parentNode);
+                return { code: obj.code };
+              }
+            });
+          }
+        });
+      })
+    </script>
+
+  </head_merge>
+  <div>
+    <table id="example">
+      <thead>
+      <tr>
+        <th>User Name and Email</th>
+        <th>Accessible roles</th>
+      </tr>
+      </thead>
+    </table>
+  </div>
+</div>
+</body>
+</html>
+

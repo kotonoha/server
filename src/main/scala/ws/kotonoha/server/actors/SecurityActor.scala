@@ -21,7 +21,7 @@ import ioc.{ReleaseAkka, Akka}
 import akka.util.Timeout
 import akka.util.duration._
 import akka.pattern.ask
-import akka.dispatch.Await
+import akka.dispatch.{Future, Await}
 import ws.kotonoha.server.security.{Roles, GrantRecord}
 
 /**
@@ -53,7 +53,7 @@ class SecurityActor extends Actor {
   }
 }
 
-object SecurityManager extends Akka with ReleaseAkka {
+object GrantManager extends Akka with ReleaseAkka {
   lazy val actor: ActorRef = {
     implicit val timeout: Timeout = 10 seconds
     val f = (akkaServ ? GetSecurityActor).mapTo[ActorRef]
@@ -65,8 +65,14 @@ object SecurityManager extends Akka with ReleaseAkka {
   def checkRole(user: Long, role: Roles.Role): Boolean = checkRole(user, role.toString)
 
   def checkRole(user: Long, role: String): Boolean = {
-    val f = (actor ? CheckGrant(user, role)).mapTo[GrantStatus]
-    Await.result(f, 5 seconds).status
+    val f = checkRoleAsync(user, role)
+    Await.result(f, 5 seconds)
+  }
+
+  def checkRoleAsync(user: Long, role: String): Future[Boolean] = {
+    (actor ? CheckGrant(user, role)).mapTo[GrantStatus].map {
+      _.status
+    }
   }
 
   def grantRole(user: Long, role: Roles.Role) = {

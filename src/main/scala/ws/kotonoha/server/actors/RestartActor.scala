@@ -61,6 +61,7 @@ class RestartActor extends Actor with ActorLogging {
   lazy val dictActor = context.actorOf(Props[DictionaryActor])
   lazy val exampleActor = context.actorOf(Props[ExampleActor])
   lazy val cometActor = context.actorOf(Props[PertabCometManager])
+  lazy val securityActor = context.actorOf(Props[SecurityActor])
 
 
   def dispatch(msg: KotonohaMessage) {
@@ -79,6 +80,7 @@ class RestartActor extends Actor with ActorLogging {
       case _: DictionaryMessage => dictActor.forward(msg)
       case _: ExampleMessage => exampleActor.forward(msg)
       case _: NamedCometMessage => cometActor.forward(msg)
+      case _: SecurityMessage => securityActor.forward(msg)
     }
   }
 

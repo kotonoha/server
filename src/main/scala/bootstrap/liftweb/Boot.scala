@@ -54,6 +54,7 @@ class Boot extends Logging {
         ),
       Menu.i("Admin") / "admin" / "index" >> If(() => UserRecord.isAdmin, "Only administrators allowed here") submenus (
           Menu.i("Client List") / "admin" / "clients",
+          Menu.i("Access list") / "admin" / "access",
           Menu.i("Configuration") / "admin" / "config",
           Menu.i("Debug") / "admin" / "debug",
           Menu.i("Global learning") / "admin" / "learning"
@@ -91,6 +92,7 @@ class Boot extends Logging {
     LiftRules.statelessDispatchTable.append(new StatusApi)
 
     LiftRules.dispatch.append(Stats)
+    LiftRules.dispatch.append(Grants)
 
     // Use jQuery 1.4
     LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
