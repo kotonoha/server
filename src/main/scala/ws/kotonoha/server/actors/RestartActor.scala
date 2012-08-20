@@ -20,12 +20,14 @@ import akka.pattern.{ask, pipe}
 import akka.actor._
 import auth.ClientRegistry
 import dict.{ExampleMessage, ExampleActor, DictionaryActor}
+import interop.{JumanRouter, JumanMessage, JumanPipeActor}
 import learning._
 import lift.{LiftMessage, LiftActorService}
 import model.{CardMessage, WordMessage, CardActor, WordActor}
 import net.liftweb.http.CometMessage
 import com.fmpwizard.cometactor.pertab.namedactor.{NamedCometMessage, PertabCometManager}
 import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
+import akka.routing.RoundRobinRouter
 
 /**
  * @author eiennohito
@@ -62,6 +64,7 @@ class RestartActor extends Actor with ActorLogging {
   lazy val exampleActor = context.actorOf(Props[ExampleActor])
   lazy val cometActor = context.actorOf(Props[PertabCometManager])
   lazy val securityActor = context.actorOf(Props[SecurityActor])
+  lazy val jumanActor = context.actorOf(Props[JumanRouter])
 
 
   def dispatch(msg: KotonohaMessage) {
@@ -81,6 +84,7 @@ class RestartActor extends Actor with ActorLogging {
       case _: ExampleMessage => exampleActor.forward(msg)
       case _: NamedCometMessage => cometActor.forward(msg)
       case _: SecurityMessage => securityActor.forward(msg)
+      case _: JumanMessage => jumanActor.forward(msg)
     }
   }
 

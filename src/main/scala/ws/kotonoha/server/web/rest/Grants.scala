@@ -17,16 +17,14 @@
 package ws.kotonoha.server.web.rest
 
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.http.{S, OkResponse, JsonResponse}
+import net.liftweb.http.{OkResponse, JsonResponse}
 import net.liftweb.common.Full
-import ws.kotonoha.server.records.{AppConfig, UserRecord}
+import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.security.{Roles, GrantRecord}
-import net.liftweb.json.JsonAST.{JArray, JString, JObject}
+import net.liftweb.json.JsonAST.JObject
 import net.liftweb.mongodb.{Skip, Limit}
 import ws.kotonoha.server.util.unapply.{XLong, XInt}
-import net.liftweb.http.S.SFuncHolder
 import ws.kotonoha.server.actors.GrantManager
-import ws.kotonoha.server.web.snippet.Config
 import ws.kotonoha.server.util.{SecurityUtil, UserUtil}
 
 /**
@@ -57,7 +55,6 @@ object Grants extends KotonohaRest with ReleaseAkka {
 
   serve("api"/ "sec" prefix {
     case "grants" :: Nil JsonGet req => {
-
       val srch = req.param("sSearch") openOr("")
       val re : JObject = ("$regex" -> ("^" + srch)) ~ ("$options" -> "i")
 
