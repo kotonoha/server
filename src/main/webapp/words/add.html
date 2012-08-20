@@ -64,6 +64,23 @@
           return true;
         }
       });
+        $('#parse-btn').click(function() {
+          var area = $('#parse-area');
+          var data = area.val();
+          $.ajax({
+            url: "../api/juman/unique_words",
+            type: "POST",
+            contentType: "text/plain; charset=UTF8",
+            dataType: "text",
+            processData: false,
+            data: data
+          }).done(function(text) {
+            var already = $('#word-area');
+            var str = text + "\n" + already.val();
+            $('#word-area').val(str);
+            area.val("");
+          });
+        });
       });
     </script>
     <style>
@@ -111,6 +128,14 @@
     <div id="stats"></div>
     <div>
       <table class="lift:AddWord.addField" xmlns:word="word-data">
+        <tr>
+          <td>Paste text here</td>
+          <td><textarea id="parse-area"></textarea></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><button id="parse-btn">Parse</button> </td>
+        </tr>
         <tr>
           <td>Add words here</td>
           <td><word:data><textarea id="word-area"></textarea></word:data></td>
