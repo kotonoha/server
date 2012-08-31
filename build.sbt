@@ -95,3 +95,5 @@ buildInfoPackage := "ws.kotonoha.server.util"
 buildInfoObject  := "BuildInfo"
 
 scanInterval in Compile := 0
+
+seq(coffeeSettings: _*)
