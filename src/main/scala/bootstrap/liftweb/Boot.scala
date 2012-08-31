@@ -24,6 +24,8 @@ import ws.kotonoha.server.web.rest._
 import ws.kotonoha.server.actors.lift.Ping
 import com.weiglewilczek.slf4s.Logging
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
+import ws.kotonoha.server.web.snippet.ClasspathResource
+import java.net.URI
 
 
 /**
@@ -43,38 +45,42 @@ class Boot extends Logging {
 
     val loggedin = If(UserRecord.loggedIn_? _, "You are not logged in")
     // Build SiteMap
-    def sitemap = SiteMap(
-      Menu.i("Home") / "index",
-      Menu.i("Client Authorizations") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter,
-      Menu.i("Learning") / "learning" / "index" >> loggedin submenus (
-        Menu.i("Repetition") / "learning" / "repeat",
-        Menu.i("Scheduled words") / "learning" / "scheduled_cnt",
-        Menu.i("OF Matrix") / "learning" / "ofmatrix",
-        Menu.i("Words for review") / "learning" / "bad_cards"
-        ),
-      Menu.i("Admin") / "admin" / "index" >> If(() => UserRecord.isAdmin, "Only administrators allowed here") submenus (
-          Menu.i("Client List") / "admin" / "clients",
-          Menu.i("Access list") / "admin" / "access",
-          Menu.i("Configuration") / "admin" / "config",
-          Menu.i("Debug") / "admin" / "debug",
-          Menu.i("Global learning") / "admin" / "learning"
-        ),
-      Menu.i("Words") / "words" / "index" >> loggedin submenus (
+    val admin = Menu.i("Admin") / "admin" / "index" >> If(() => UserRecord.isAdmin, "Only administrators allowed here") submenus(
+      Menu.i("Client List") / "admin" / "clients",
+      Menu.i("Access list") / "admin" / "access",
+      Menu.i("Configuration") / "admin" / "config",
+      Menu.i("Debug") / "admin" / "debug",
+      Menu.i("Global learning") / "admin" / "learning"
+    )
+
+    def sitemap = {
+      SiteMap(
+        Menu.i("Home") / "index",
+        Menu.i("Client Authorizations") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter,
+        Menu.i("Learning") / "learning" / "index" >> loggedin submenus(
+          Menu.i("Repetition") / "learning" / "repeat",
+          Menu.i("Scheduled words") / "learning" / "scheduled_cnt",
+          Menu.i("OF Matrix") / "learning" / "ofmatrix",
+          Menu.i("Words for review") / "learning" / "bad_cards"
+          ),
+        admin,
+        Menu.i("Words") / "words" / "index" >> loggedin submenus(
           Menu.i("Add") / "words" / "add",
           Menu.i("Approve & Review") / "words" / "approve_added",
           Menu.i("Detail") / "words" / "detail" >> Hidden
-        ),
-      Menu.i("Tools") / "tools" / "index" submenus (
-        Menu.i("Test parser") / "tools" / "parser",
-        Menu.i("Comet test") / "tools" / "comet_test",
-        Menu.i("JMDict") / "tools" / "jmdict",
-        Menu.i("Warodai") / "tools" / "warodai",
-        Menu.i("Examples") / "tools" / "examples",
-        Menu.i("Stroke orders") / "tools" / "kakijyun",
-        Menu.i("Additional") / "tools" / "addit_info",
-        Menu.i("Sandbox") / "tools" / "sandbox"
+          ),
+        Menu.i("Tools") / "tools" / "index" submenus(
+          Menu.i("Test parser") / "tools" / "parser",
+          Menu.i("Comet test") / "tools" / "comet_test",
+          Menu.i("JMDict") / "tools" / "jmdict",
+          Menu.i("Warodai") / "tools" / "warodai",
+          Menu.i("Examples") / "tools" / "examples",
+          Menu.i("Stroke orders") / "tools" / "kakijyun",
+          Menu.i("Additional") / "tools" / "addit_info",
+          Menu.i("Sandbox") / "tools" / "sandbox" >> If(() => Props.devMode, "Inaccessible")
+          )
       )
-    )
+    }
 
       // more complex because this menu allows anything in the
       // /static path to be visible
@@ -120,5 +126,34 @@ class Boot extends Logging {
     //S.addAround(DB.buildLoanWrapper)
 
     LiftRules.unloadHooks.append({ () => ReleaseAkkaMain.shutdown() })
+
+    LiftRules.snippetDispatch.append(
+      Map("cpres" -> ClasspathResource)
+    )
+
+    //transform njs to ws/kotonoha/script/angular
+    ResourceServer.rewrite({
+      case "njs" :: xs => ".." :: "ws" :: "kotonoha" :: "script" :: "angular" :: xs
+      case "cpres" :: xs => ".." :: xs
+    })
+
+    LiftRules.getResource = name => {
+      val r = LiftRules.defaultGetResource(name)
+      r or (try {
+        val uri = new URI(name)
+        val path = uri.normalize().getPath
+        val x = LiftRules.getClass.getResource(path)
+        Box !! x
+      } catch {
+        case _ => Empty
+      })
+    }
+
+    //allow css, js and png from classpath
+    ResourceServer.allow({
+      case x if x.last.endsWith(".css") => true
+      case x if x.last.endsWith(".js") => true
+      case x if x.last.endsWith(".png") => true
+    })
   }
 }

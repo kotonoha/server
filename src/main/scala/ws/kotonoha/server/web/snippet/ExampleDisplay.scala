@@ -16,16 +16,13 @@
 
 package ws.kotonoha.server.web.snippet
 
-import xml.{NodeSeq, MetaData}
+import xml.NodeSeq
 import ws.kotonoha.server.actors.ioc.{ReleaseAkka, Akka}
-import ws.kotonoha.server.records.dictionary.ExampleSentenceRecord
 import ws.kotonoha.server.actors.SearchQuery
-import ws.kotonoha.server.dict.TatoebaLinks
-import java.io.File
-import net.liftweb.util.{Props, Helpers}
+import net.liftweb.util.Helpers
 import net.liftweb.http.{SHtml, S, RequestVar}
 import ws.kotonoha.server.util.LangUtil
-import akka.dispatch.{Future, Await}
+import akka.dispatch.Await
 import ws.kotonoha.server.actors.dict.{ExampleEntry, LoadExamples, ExampleIds, TranslationsWithLangs}
 
 
@@ -38,8 +35,6 @@ trait ExampleDisplay extends Akka {
   object query extends RequestVar[String](S.param("query").openOr(""))
   import Helpers._
   import ws.kotonoha.server.util.DateTimeUtils._
-  import com.foursquare.rogue.Rogue._
-
 
 
   def fld(in: NodeSeq): NodeSeq = {
