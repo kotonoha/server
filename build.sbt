@@ -87,7 +87,6 @@ seq(buildInfoSettings: _*)
 
 sourceGenerators in Compile <+= buildInfo
 
-
 buildInfoKeys := Seq[Scoped](version, scalaVersion, sbtVersion, gitId, gitDate)
 
 buildInfoPackage := "ws.kotonoha.server.util"

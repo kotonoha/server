@@ -18,7 +18,7 @@ div.sidebar {
 }
 
 div.column {
-  float: left;
+  float: right;
 }
 
 div.content {
@@ -39,38 +39,40 @@ div.content {
   color: red;
 }
 
-.sidebar ul {
+.menu ul {
 	margin:0;
 	padding:0;
-	border-bottom:1px solid #ccc;
+/*	border-bottom:1px solid #ccc; */
 }
 
 
-.sidebar ul li {
+.menu ul li {
 	margin:0;
-	padding:0;
-	list-style:none;
-	border:1px solid #ccc;
+  padding: 0 0 0 0.2cm;
+  list-style:none;
+/*	border:1px solid #ccc; */
 	border-bottom:none;
 }
 
-.sidebar ul li a {
+.menu ul li a {
 	display:block;
 	padding:3px;
 	text-indent:30px;
 	text-decoration:none;
 }
 
-.sidebar ul li span {
+.menu ul li span {
 	display:block;
 	padding:3px;
 	text-indent:30px;
 	text-decoration:none;
 }
 
-.sidebar ul li a:hover {
+.menu ul li a:hover {
 	background-color: #eee;
 }
+
+.menu ul li a:visited { color: #08c; }
 
 body {
   font-family: Calibri, Helvetica, Arial;

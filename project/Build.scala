@@ -14,6 +14,7 @@
 * limitations under the License.
 */
 
+import com.github.siasia.Container
 import java.util.Date
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevWalk

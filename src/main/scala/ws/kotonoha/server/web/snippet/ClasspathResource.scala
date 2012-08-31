@@ -32,7 +32,7 @@ import net.liftweb.util.Props
 object ClasspathResource extends DispatchSnippet {
 
   def min(in: String) = {
-    if (Props.devMode) {
+    if (Props.devMode || S.attr("nomin").map(_.toBoolean).getOrElse(false)) {
       in
     } else {
       in + ".min"
@@ -66,6 +66,7 @@ object ClasspathResource extends DispatchSnippet {
 
   def dispatch = {
     case "script" => script
+    case "js" => script
     case "css" => css
     case _ => script
   }
