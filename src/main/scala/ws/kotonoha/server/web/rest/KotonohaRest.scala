@@ -20,9 +20,9 @@ import net.liftweb.http.rest.{RestContinuation, RestHelper}
 import com.weiglewilczek.slf4s.Logging
 import ws.kotonoha.server.actors.ioc.Akka
 import akka.util.{Timeout, duration}
-import akka.dispatch.Future
+import akka.dispatch.{KeptPromise, Future}
 import net.liftweb.common._
-import net.liftweb.http.{PlainTextResponse, LiftResponse}
+import net.liftweb.http.{JsonResponse, PlainTextResponse, LiftResponse}
 import net.liftweb.common.Full
 
 trait KotonohaRest extends RestHelper with Logging with Akka {
@@ -72,5 +72,9 @@ trait KotonohaRest extends RestHelper with Logging with Akka {
           }
         }
     })
+  }
+
+  def kept[T <% LiftResponse](obj: T) = {
+    new KeptPromise[Box[LiftResponse]](Right(Full(obj)))(akkaServ.system.dispatcher)
   }
 }

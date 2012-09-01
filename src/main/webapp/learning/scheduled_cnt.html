@@ -1,44 +1,16 @@
 <!DOCTYPE html>
-<html xmlns:test="my-test">
+<html xmlns:test="my-test" xmlns:lift="http://liftweb.net">
 
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
   <head_merge>
-    <script type="text/javascript" src="/static/jquery.jqplot.js"></script>
-    <script type="text/javascript" src="/static/plugins/jqplot.canvasTextRenderer.js"></script>
-    <script type="text/javascript" src="/static/plugins/jqplot.canvasAxisLabelRenderer.js"></script>
-    <script type="text/javascript" src="/static/plugins/jqplot.barRenderer.js"></script>
+    <script class="lift:cpres.script?src=jquery.jqplot"></script>
+    <script class="lift:cpres.script?src=plugins/jqplot.canvasTextRenderer"></script>
+    <script class="lift:cpres.script?src=plugins/jqplot.canvasAxisLabelRenderer"></script>
+    <script class="lift:cpres.script?src=plugins/jqplot.barRenderer"></script>
   </head_merge>
-  <div class="lift:ScheduledCount.script"></div>
-  <script language="JavaScript">
-    function process(objs) {
-      var arr = [];
-      objs.forEach(function (o) {
-        arr.push([o.idx, o.count]);
-      });
-      return arr;
-    }
-
-    function datesCallback(dates) {
-      var plot2 = $.jqplot('chart2', [process(dates)], {
-        title:"Scheduled count for next 10 days",
-        seriesDefaults:{
-          renderer:$.jqplot.BarRenderer,
-          rendererOptions:{
-            barWidth:25
-          },
-          pointLabels: {show: true}
-        }
-      })
-    }
-
-    $(document).ready(function () {
-      loadDates("datesCallback")
-    })
-  </script>
-
+  <script class="lift:cpres.js?src=js/word/scheduled"></script>
   <h2>Scheduled cards</h2>
-
   <div>You have <span class=lift:ScheduledCount.cntScheduled>0 cards</span> scheduled</div>
   <div id="chart2" style="width: 500px;"></div>
 </div>

@@ -1,5 +1,5 @@
 $(document).ready ->
-  uri = "../api/ofmatrix"
+  uri = "../api/stats/personal/ofmatrix"
   $.ajax {
     url: uri,
     dataType: "json",
