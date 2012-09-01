@@ -124,34 +124,36 @@
   <div>
     <p>To add new words enter them into form below, one per line.</p>
   </div>
-  <div class="column">
-    <div id="stats"></div>
-    <div>
-      <table class="lift:AddWord.addField" xmlns:word="word-data">
-        <tr>
-          <td>Paste text here</td>
-          <td><textarea id="parse-area"></textarea></td>
-        </tr>
-        <tr>
-          <td></td>
-          <td><button id="parse-btn">Parse</button> </td>
-        </tr>
-        <tr>
-          <td>Add words here</td>
-          <td><word:data><textarea id="word-area"></textarea></word:data></td>
-        </tr>
-        <tr>
-          <td><word:all></word:all></td>
-          <td><word:nonproblem></word:nonproblem></td>
-        </tr>
-      </table>
-      <div class="lift:AddWord.anotherSnippet"></div>
-      <div id="asdf"></div>
+  <div class="row-fluid">
+    <div class="span6">
+      <div id="stats"></div>
+      <div>
+        <table class="lift:AddWord.addField" xmlns:word="word-data">
+          <tr>
+            <td>Paste text here</td>
+            <td><textarea id="parse-area"></textarea></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><button id="parse-btn">Parse</button> </td>
+          </tr>
+          <tr>
+            <td>Add words here</td>
+            <td><word:data><textarea id="word-area"></textarea></word:data></td>
+          </tr>
+          <tr>
+            <td><word:all></word:all></td>
+            <td><word:nonproblem></word:nonproblem></td>
+          </tr>
+        </table>
+        <div class="lift:AddWord.anotherSnippet"></div>
+        <div id="asdf"></div>
+      </div>
     </div>
-  </div>
-  <div class="column">
-    <table id="similar-words">
-    </table>
+    <div class="span6">
+      <table id="similar-words">
+      </table>
+    </div>
   </div>
 </div>
 </body>
