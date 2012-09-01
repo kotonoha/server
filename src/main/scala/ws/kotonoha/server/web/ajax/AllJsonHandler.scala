@@ -29,7 +29,7 @@ import net.liftweb.http.js.JE._
 import net.liftweb.http.js._
 
 import JsCmds._
-import ws.kotonoha.server.web.snippet.{OFMatrix, ScheduledCount}
+import ws.kotonoha.server.web.snippet.{ScheduledCount}
 import ws.kotonoha.server.records.{OFElementRecord, OFMatrixRecord, UserRecord, WordCardRecord}
 
 object AllJsonHandler extends SessionVar[JsonHandler](
@@ -65,9 +65,6 @@ object AllJsonHandler extends SessionVar[JsonHandler](
     def apply(in: Any): JsCmd = in match {
       case JsonCmd(ScheduledCount.callbackName, resp, _, _) =>
         Call(resp, loadDates)
-
-      case JsonCmd(OFMatrix.loadFncName, resp, _, _) =>
-        Call(resp, loadOFMatrix)
 
       case JsonCmd("oneString", resp, XString(s), _) =>
         Call(resp, s)

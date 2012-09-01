@@ -79,6 +79,7 @@ hide_all = ->
   $("#mark-pane").hide();
   $("#next-word-pane").hide();
   $("#show-answer-pane").hide();
+  $("div.word-display button").blur()
 
 show_question = (qm) ->
   mode = MODE_QUESTION;
@@ -111,7 +112,7 @@ $(document).ready -> (
         mark_displayed(mark) if mark
       when MODE_NEXT
         if (event.which == 32) then display_next()
-        false
+    false
 
   for i in [1..5]
     $("#mark#{i}").click -> mark_displayed(i); false

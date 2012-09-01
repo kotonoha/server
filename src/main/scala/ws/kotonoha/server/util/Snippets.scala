@@ -16,9 +16,9 @@ package ws.kotonoha.server.util
  * limitations under the License.
  */
 
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.JsCmds.Function
-import net.liftweb.http.js.JE.{JsObj, JsVar}
+import net.liftweb.http.js.{JE, JsCmd}
+import net.liftweb.http.js.JsCmds.{SetExp, Function}
+import net.liftweb.http.js.JE.{JsRaw, JsVal, JsObj, JsVar}
 import ws.kotonoha.server.web.ajax.AllJsonHandler
 
 /*
@@ -61,8 +61,8 @@ object Snippets {
     def unapply(in: Any): Option[List[Number]] =
       in match {
         case lst: List[_] => Some(lst.flatMap {
-          case n: Number => Some(n)
-          case _ => None
+          case n: Number => List(n)
+          case _ => Nil
         })
         case _ => None
       }
@@ -70,9 +70,11 @@ object Snippets {
 
 
   def callbackFn(name: String): JsCmd = {
-    Function(name, List("callback"),
+    val lhs = JsVar("window") ~> JsVal(name)
+    val fn = Function("", List("callback"),
       AllJsonHandler.is.call(name,
         JsVar("callback"),
         JsObj()))
+    SetExp(lhs, JsRaw(fn.toJsCmd))
   }
 }

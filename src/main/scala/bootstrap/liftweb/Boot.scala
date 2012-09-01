@@ -100,6 +100,7 @@ class Boot extends Logging {
     LiftRules.dispatch.append(Stats)
     LiftRules.dispatch.append(Grants)
     LiftRules.dispatch.append(Juman)
+    LiftRules.dispatch.append(OFMatrix)
 
     // Use jQuery 1.4
     LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
