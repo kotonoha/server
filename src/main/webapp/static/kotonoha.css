@@ -26,3 +26,18 @@
 .full textarea, .full input {
   width: 100%;
 }
+
+.nav-list > li > a {
+  display: inline-block;
+}
+
+.nav-list > .active > span {
+  color: white;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
+  background-color: #08c;
+  min-width: 60%;
+  display: inline-block;
+  margin-left: -15px;
+  padding: 3px 15px;
+}
+
