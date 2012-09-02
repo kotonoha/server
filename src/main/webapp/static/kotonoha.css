@@ -41,3 +41,7 @@
   padding: 3px 15px;
 }
 
+textarea.autoresize {
+  overflow: hidden;
+  resize: none;
+}

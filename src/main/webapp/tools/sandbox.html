@@ -18,7 +18,30 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
-  <div>
+  <head_merge>
+    <style type="text/css">
+
+    </style>
+  </head_merge>
+  <script class="lift:cpres.ng?src=test"></script>
+  <script class="lift:cpres.ng?src=dir/editable-span"></script>
+  <script class="lift:cpres.js?src=jq.autoresize"></script>
+  <div ng-controller="Model">
+    {{ "hey" }} {{4 + 9}}
+    <ui>
+      <li ng-repeat="item in items">
+        <p>{{item.name}}</p>
+      </li>
+    </ui>
+  </div>
+  <div ng-controller="Ctl">
+    <span contenteditable="true" ng-model="halp">wat?</span>
+    <input type="text" ng-model="halp">
+    <p>
+      <b ng-model="one"></b>
+      <textarea type="text" style="resize: none; overflow: hidden;" ng-model="one"></textarea>
+    </p>
+    <textarea class="autoresize" ng-model="one"></textarea>
   </div>
 </div>
 </body>

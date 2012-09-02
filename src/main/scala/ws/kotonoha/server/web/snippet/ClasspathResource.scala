@@ -19,7 +19,7 @@ package ws.kotonoha.server.web.snippet
 import xml.{Text, NodeSeq}
 import net.liftweb.http.{DispatchSnippet, S}
 import net.liftweb.common.Full
-import net.liftweb.util.Props
+import net.liftweb.util.{Helpers, Props}
 
 /**
  * @author eiennohito
@@ -30,14 +30,15 @@ import net.liftweb.util.Props
  * Classpath resource
  */
 object ClasspathResource extends DispatchSnippet {
-
   def min(in: String) = {
-    if (Props.devMode || S.attr("nomin").map(_.toBoolean).getOrElse(false)) {
+    if (Props.devMode || minattr) {
       in
     } else {
       in + ".min"
     }
   }
+
+  def minattr = S.attr("nomin").flatMap{Helpers.asBoolean(_)}.getOrElse(false)
 
   def js(in: String) = in + ".js"
 
@@ -48,10 +49,18 @@ object ClasspathResource extends DispatchSnippet {
   }
 
   val basepath = "/classpath/cpres/"
+  val ngpath = "/classpath/cpres/js/ng/"
+  val jspath = "/classpath/cpres/js/"
 
-  def script(in: NodeSeq) = {
+  def script(path: String, minver: Boolean, in: NodeSeq) = {
     S.attr("src") match {
-      case Full(x) => <script type="text/javascript" src={basepath+js(min(x))}></script>
+      case Full(x) => {
+        val uri = path + (minver match {
+          case false => js(x)
+          case true => js(min(x))
+        })
+        <script type="text/javascript" src={uri}></script>
+      }
       case _ => Nil
     }
   }
@@ -65,10 +74,11 @@ object ClasspathResource extends DispatchSnippet {
   }
 
   def dispatch = {
-    case "script" => script
-    case "js" => script
+    case "script" => script(basepath, minattr, _)
+    case "js" => script(jspath, false, _)
+    case "ng" => script(ngpath, false, _)
     case "css" => css
-    case _ => script
+    case x => (ns) => <h1>Error in classpath resource: {x} is not valid</h1>
   }
 }
 

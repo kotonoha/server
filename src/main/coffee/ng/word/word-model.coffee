@@ -1,0 +1,2 @@
+window.WordCtrl = ($scope) ->
+  false
