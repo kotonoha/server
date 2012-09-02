@@ -99,53 +99,55 @@
       }
     </script>
   </head_merge>
-  <div class="lift:AddWordActorSnippet" xmlns:aa="approve-added">
+  <div class="lift:AddWordActorSnippet">
     <div id="status">
       <span id="counter" class="counter"></span>
       <span id="status-string"><b>Please wait, loading...</b></span>
     </div>
-    <div class="column center" id="left">
-      <form id="main-form">
-        <div id="word-card">
-          <table xmlns:word="word-display">
-            <tbody>
-            <tr>
-              <td>Writing</td>
-              <td class="nihongo">
-                <word:writing></word:writing>
-              </td>
-            </tr>
-            <tr>
-              <td>Reading</td>
-              <td class="nihongo">
-                <word:reading></word:reading>
-              </td>
-            </tr>
-            <tr>
-              <td>Meaning</td>
-              <td class="area nihongo">
-                <word:meaning></word:meaning>
-              </td>
-            </tr>
-            <tr>
-              <td></td>
-              <td>
-                <word:submit></word:submit>
-              </td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-        <div id="word-examples">
-        </div>
-      </form>
-      <div id="button-pane">Buttons go here!</div>
-    </div>
-    <div class="right" id="right">
-      <span>Click a dictionary entry to fill word entries with it</span>
+    <div class="row-fluid">
+      <div class="span8 center" id="left">
+        <form id="main-form">
+          <div id="word-card">
+            <table xmlns:word="word-display">
+              <tbody>
+              <tr>
+                <td>Writing</td>
+                <td class="nihongo">
+                  <word:writing></word:writing>
+                </td>
+              </tr>
+              <tr>
+                <td>Reading</td>
+                <td class="nihongo">
+                  <word:reading></word:reading>
+                </td>
+              </tr>
+              <tr>
+                <td>Meaning</td>
+                <td class="area nihongo">
+                  <word:meaning></word:meaning>
+                </td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>
+                  <word:submit></word:submit>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="word-examples">
+          </div>
+        </form>
+        <div id="button-pane">Buttons go here!</div>
+      </div>
+      <div class="span4" id="right">
+        <span>Click a dictionary entry to fill word entries with it</span>
 
-      <div id="dictionary-entries">
+        <div id="dictionary-entries">
 
+        </div>
       </div>
     </div>
   </div>
