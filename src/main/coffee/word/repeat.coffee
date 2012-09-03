@@ -120,7 +120,7 @@ $(document).ready -> (
         mark_displayed(mark) if mark
       when MODE_NEXT
         if (event.which == 32) then display_next()
-    false
+    return
 
   for i in [1..5]
     $("#mark#{i}").click -> mark_displayed(i); false
