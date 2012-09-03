@@ -7,6 +7,7 @@ MODE_QUESTION = 0
 MODE_ANSWER = 1
 MODE_NEXT = 2
 mode = -1
+state = 'up'
 
 in_last = (cid) ->
   for id in last
@@ -99,7 +100,14 @@ eventmap =
 
 
 $(document).ready -> (
-  $(document).keypress (event) ->
+  $(document).keyup (event) ->
+    state = 'up'
+    return
+
+  $(document).keydown (event) ->
+    if (state != 'up')
+      return
+    state = 'down'
     if (event.ctrlKey || event.altKey || event.shiftKey || event.metaKey)
       return
     switch mode
