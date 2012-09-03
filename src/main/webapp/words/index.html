@@ -82,7 +82,7 @@
     </script>
   </head_merge>
   <div id="search-box">
-    <form method="get">
+    <form method="get" action=".">
       <input class="lift:WordPaginator.queryVal" type="text" name="q">
       <input class="lift:WordPaginator.params">
       <input type="submit" title="Search" value="Search" >
@@ -98,7 +98,7 @@
     <span class="lift:WordPaginator.ajaxReq"></span>
   </div>
 
-  <table xmlns:sort="sort">
+  <table xmlns:sort="sort" class="table table-hover">
     <thead>
     <tr class="search-header lift:WordPaginator.paginate">
       <td></td>

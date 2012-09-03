@@ -8,16 +8,18 @@
 
   <title class="lift:Menu.title">App: </title>
   <head_merge>
-    <lift:cpres.script src="jquery-1.8.1"></lift:cpres.script>
-    <lift:cpres.script src="angular-1.0.1"></lift:cpres.script>
-    <lift:cpres.script src="bootstrap"></lift:cpres.script>
-
-    <script id="json" src="/classpath/json.js" type="text/javascript"></script>
-    <script id="jlift" src="/classpath/jlift.js" type="text/javascript"></script>
-
     <link rel="stylesheet" type="text/css" href="/static/kotonoha.css">
     <link rel="stylesheet" type="text/css" href="/static/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="/static/bootstrap-responsive.css">
+
+    <lift:cpres.script src="jquery-1.8.1"></lift:cpres.script>
+    <lift:cpres.script src="angular-1.0.1"></lift:cpres.script>
+    <lift:cpres.script src="bootstrap"></lift:cpres.script>
+    <script id="json" src="/classpath/json.js" type="text/javascript"></script>
+    <script id="jlift" src="/classpath/jlift.js" type="text/javascript"></script>
+    <script language="javascript">
+      angular.module('kotonoha', []); //module creation for angular
+    </script>
   </head_merge>
 </head>
 <body>
