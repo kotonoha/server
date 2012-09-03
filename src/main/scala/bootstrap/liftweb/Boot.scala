@@ -21,6 +21,7 @@ import ws.kotonoha.server.actors.ReleaseAkkaMain
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.web.rest._
+import model.Words
 import ws.kotonoha.server.actors.lift.Ping
 import com.weiglewilczek.slf4s.Logging
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
@@ -101,6 +102,7 @@ class Boot extends Logging {
     LiftRules.dispatch.append(Grants)
     LiftRules.dispatch.append(Juman)
     LiftRules.dispatch.append(PersonalStats)
+    LiftRules.dispatch.append(Words)
 
     // Use jQuery 1.4
     LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
@@ -136,6 +138,7 @@ class Boot extends Logging {
     ResourceServer.rewrite({
       case "njs" :: xs => ".." :: "ws" :: "kotonoha" :: "script" :: "angular" :: xs
       case "cpres" :: xs => ".." :: xs
+      case x if x.last.startsWith("glyphicons-halflings") => x
     })
 
     LiftRules.getResource = name => {

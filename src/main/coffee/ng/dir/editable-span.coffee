@@ -1,4 +1,4 @@
-angular.module("kotonoha", []).directive("contenteditable", ->
+angular.module("kotonoha", []).directive "contenteditable", ->
     name: "editableSpan"
     restrict: 'A'
     require: "?ngModel"
@@ -26,7 +26,10 @@ angular.module("kotonoha", []).directive("contenteditable", ->
 
       read()
       ngmod.$render()
-)
 
-angular.module("kotonoha").controller "Ctl", ($scope) ->
+window.TestController = ($scope) ->
   $scope.halp = "test"
+
+
+#angular.module("kotonoha", []).controller "TestController", ($scope) ->
+#  $scope.halp = "test"

@@ -45,3 +45,11 @@ textarea.autoresize {
   overflow: hidden;
   resize: none;
 }
+
+.holder {
+  display: inline-block;
+}
+
+.centered {
+  text-align: center;
+}

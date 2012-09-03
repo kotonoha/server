@@ -24,7 +24,7 @@ $.fn.autoresize = ->
   this.each (i) -> resizer(this, i)
 
 
-angular.module("kotonoha").directive "autoresize", ->
+angular.module("kotonoha", []).directive "autoresize", ->
   restrict: "C"
   scope: false
   link: (scope, el, attrs, cont) ->

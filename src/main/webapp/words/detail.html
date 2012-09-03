@@ -19,73 +19,77 @@
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content" xmlns:word="word">
   <head_merge>
-    <style>
-      td.area textarea {
-        height: 100px;
-      }
-    </style>
+    <script class="lift:cpres.js?src=jq.autoresize"></script>
+    <script class="lift:cpres.ng?src=word/word-rest"></script>
   </head_merge>
-  <div style="border: 1px solid black">
-    <div style="margin: 5px">
-      Word information
+  <h2>Word card</h2>
+  <div ng-controller="WordCon">
+    <div ng-show="status" class="span12">
+      <b>Saved</b>
     </div>
-    <div id="status"></div>
-    <table class="lift:WordSnippet.renderForm">
-      <tbody>
-      <tr>
-        <td>Added Date</td>
-        <td>
-          <word:createdOn></word:createdOn>
-        </td>
-      </tr>
-      <tr>
-        <td>Writing</td>
-        <td class="nihongo">
-          <word:writing></word:writing>
-        </td>
-      </tr>
-      <tr>
-        <td>Reading</td>
-        <td class="nihongo">
-          <word:reading></word:reading>
-        </td>
-      </tr>
-      <tr>
-        <td>Meaning</td>
-        <td class="area nihongo">
-          <word:meaning></word:meaning>
-        </td>
-      </tr>
-      <tr>
-        <td>Status</td>
-        <td id="word-status"><word:status></word:status></td>
-      </tr>
-      <tr>
-        <td><word:sna></word:sna></td>
-        <td>
-          <word:submit></word:submit>
-        </td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-  <div>
-    <div style="margin: 5px">Examples</div>
-    <table class="lift:WordSnippet.exampleAjaxForm">
-      <thead>
-      <tr>
-        <td>Example</td>
-        <td>Translation</td>
-      </tr>
-      </thead>
-      <tbody id="extable" class="lift:WordSnippet.renderExamples">
-      </tbody>
-    </table>
-  </div>
-  <div>
-    <div class="lift:WordSnippet.renderCards" xmlns:wc="card-for-word">
-      <wc:mode></wc:mode>
-      <wc:learning></wc:learning>
+    <div class="row-fluid">
+      <table class="span6 table table-hover">
+        <tbody>
+          <tr class="fluid-row">
+            <td class="span2">Created on</td>
+            <td class="span3">{{word.createdOn | date:'short'}}</td>
+          </tr>
+          <tr>
+            <td>Writing</td>
+            <td>
+              <input type="text" class="nihongo" ng-model="word.writing">
+            </td>
+          </tr>
+          <tr>
+            <td>Reading</td>
+            <td>
+              <input type="text" class="nihongo" ng-model="word.reading">
+            </td>
+          </tr>
+          <tr>
+            <td>Meaning</td>
+            <td>
+              <textarea class="autoresize nihongo" ng-model="word.meaning"></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td>Status</td>
+            <td>{{word.status}}</td>
+          </tr>
+          <tr>
+            <td>
+              <button class="btn" ng-click="save('update')">Save</button>
+            </td>
+            <td>
+              <button class="btn" ng-click="save('update-approve')">Save & Approve</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="span5">
+        <div class="lift:WordSnippet.renderCards" xmlns:wc="card-for-word">
+          <wc:mode></wc:mode>
+          <wc:learning></wc:learning>
+        </div>
+      </div>
+      <hr/>
+    </div>
+    <div class="row-fluid">
+      <h2>Examples</h2>
+    </div>
+    <div class="row-fluid" ng-repeat="ex in word.examples">
+      <br/>
+      <div class="span1">
+        <input type="checkbox" ng-model="ex.selected" class="centered">
+      </div>
+      <div class="span10">
+        <textarea class="autoresize nihongo span11" ng-model="ex.example"></textarea><br>
+        <textarea class="autoresize span11" ng-model="ex.translation"></textarea>
+      </div>
+    </div>
+    <div>
+      <a class="btn" ng-click="addExample()"><i class="icon-pencil"></i> Add new example</a>
+      <button class="btn" ng-click="save('update')">Save</button>
     </div>
   </div>
 </div>

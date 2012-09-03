@@ -8,6 +8,12 @@ import xml.NodeSeq
 import net.liftweb.common.{Full, Box, Empty}
 import net.liftweb.http.S.SFuncHolder
 import net.liftweb.record.field._
+import net.liftweb.json.JsonAST._
+import ws.kotonoha.server.util.ResponseUtil
+import net.liftweb.json.JsonAST.JObject
+import net.liftweb.common.Full
+import net.liftweb.json.JsonAST.JField
+import net.liftweb.json.JsonAST.JBool
 
 /*
 * Copyright 2012 eiennohito
@@ -84,6 +90,22 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
   object examples extends BsonRecordListField(this, ExampleRecord)
   object user extends LongRefField(this, UserRecord)
 
+  def stripped: JValue = {
+    WordRecord.trimInternal(asJValue)
+  }
+
+
+  override def asJValue = {
+    val v = super.asJValue
+    val tfed = v transform {
+      case JField("examples", o) =>
+        o.transform {
+          case JObject(lst) => JObject(JField("selected", JBool(true)) :: lst)
+        }
+    }
+    tfed.asInstanceOf[JObject]
+  }
+
   object deleteOn extends DateTimeField(this) with DateJsonFormat
 }
 
@@ -95,6 +117,33 @@ object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with Named
 
   def myAll = {
     WordRecord where (_.user eqs UserRecord.currentId.openTheBox)
+  }
+
+  def filterExamples(value: JValue) = {
+    val tfed = value transform {
+      case JField("examples", exobj) => JField("examples",
+        exobj remove {
+          case j: JObject => j \ "selected" match {
+            case JBool(v) => !v
+            case _ => true
+          }
+          case _ => false
+        }
+      )
+    } remove {
+      case JField("selected", _) => true
+      case _ => false
+    }
+    tfed
+  }
+
+  def trimInternal(in: JValue, out: Boolean = true) = {
+    val trimmed = in remove {
+      case JField("user" | "deleteOn", _) => true
+      case JField("createdOn" | "status" | "_id", _) => !out
+      case _ => false
+    }
+    JNothing ++ (if (out) trimmed else filterExamples(trimmed))
   }
 }
 

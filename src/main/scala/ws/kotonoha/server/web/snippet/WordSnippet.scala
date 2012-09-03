@@ -23,17 +23,15 @@ import util.matching.Regex
 import xml.{Elem, Text, NodeSeq}
 import net.liftweb.common.{Full, Box}
 import net.liftweb.http.{RequestVar, SHtml, SortedPaginatorSnippet, S}
-import net.liftweb.http.js.{JsCmds, JE, JsCmd}
+import net.liftweb.http.js.{JE, JsCmd}
 import net.liftweb.http.js.JsCmds.SetHtml
 import com.foursquare.rogue.Rogue
 import ws.kotonoha.server.records._
 import ws.kotonoha.server.util.{DateTimeUtils, ParseUtil, Formatting, Strings}
 import ws.kotonoha.server.model.CardMode
-import org.joda.time.{DateTime, Period, Interval}
+import org.joda.time.Period
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.actors.model.{MarkForDeletion, ChangeWordStatus}
-import net.liftweb.http.js.jquery.JqJE.Jq
-import net.liftweb.http.js.jquery.JqJE
 import ws.kotonoha.server.util.unapply.XHexLong
 
 /**
@@ -179,7 +177,7 @@ object WordSnippet extends Akka with ReleaseAkka {
     val cards = WordCardRecord where (_.word eqs wordId.get) orderAsc (_.cardMode) fetch()
     cards.flatMap { c =>
       bind("wc", in,
-        "mode" -> mode(c.cardMode.is).+(" card"),
+        "mode" -> <h5>{mode(c.cardMode.is).+(" card")}</h5>,
         "learning" -> renderLearning(c.learning.valueBox)
       )
     }
