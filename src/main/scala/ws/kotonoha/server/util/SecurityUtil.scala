@@ -23,6 +23,7 @@ import io.Codec
 import org.bouncycastle.crypto.engines.AESFastEngine
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher
+import org.bouncycastle.crypto.InvalidCipherTextException
 
 /**
  * @author eiennohito
@@ -51,13 +52,17 @@ object SecurityUtil {
   }
 
   def decryptAes(enc: String, key: Array[Byte]) = {
-    val aes = new PaddedBufferedBlockCipher(new AESFastEngine())
-    val kp = new KeyParameter(key)
-    aes.init(false, kp)
-    val bytes = SecurityHelpers.base64Decode(enc)
-    val decr = new Array[Byte](aes.getOutputSize(bytes.length))
-    val len = aes.processBytes(bytes, 0, bytes.length, decr, 0)
-    val l1 = aes.doFinal(decr, len)
-    new String(Codec.fromUTF8(decr), 0, len + l1)
+    try {
+      val aes = new PaddedBufferedBlockCipher(new AESFastEngine())
+      val kp = new KeyParameter(key)
+      aes.init(false, kp)
+      val bytes = SecurityHelpers.base64Decode(enc)
+      val decr = new Array[Byte](aes.getOutputSize(bytes.length))
+      val len = aes.processBytes(bytes, 0, bytes.length, decr, 0)
+      val l1 = aes.doFinal(decr, len)
+      new String(Codec.fromUTF8(decr), 0, len + l1)
+    } catch {
+      case e: InvalidCipherTextException => "" //returns empty string on invalid cypher string
+    }
   }
 }
