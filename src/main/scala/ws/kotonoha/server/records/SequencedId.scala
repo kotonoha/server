@@ -19,7 +19,7 @@ package ws.kotonoha.server.records
 import net.liftweb.mongodb.record.MongoRecord
 import net.liftweb.mongodb.record.field.LongPk
 import java.util.concurrent.atomic.AtomicLong
-import com.mongodb.BasicDBObject
+import com.mongodb.{MongoException, BasicDBObject}
 import net.liftweb.mongodb.Limit
 import net.liftweb.record.field.LongField
 import org.slf4j.LoggerFactory
@@ -38,14 +38,18 @@ trait SequencedLongId[OwnerType <: MongoRecord[OwnerType]] { self: (MongoRecord[
     val dbo = new BasicDBObject()
     val sdbo = new BasicDBObject()
     sdbo.append("_id", -1)
-    val all = meta.findAll(dbo, sdbo, Limit(1))
-    log.debug("Trying to resolve max id for class " + getClass)
-    val n = all match {
-      case o :: Nil => o.id.asInstanceOf[LongField[OwnerType]].get
-      case _ => 0L
+    try {
+      val all = meta.findAll(dbo, sdbo, Limit(1))
+      log.debug("Trying to resolve max id for class " + getClass)
+      val n = all match {
+        case o :: Nil => o.id.asInstanceOf[LongField[OwnerType]].get
+        case _ => 0L
+      }
+      log.debug("Maximum current Id is " + n)
+      n
+    } catch {
+      case e: MongoException if e.getMessage.startsWith("Collection not found:") => 0L
     }
-    log.debug("Maximum current Id is " + n)
-    n
   }
 
   private lazy val curId: AtomicLong = synchronized { new AtomicLong(resolveMaxId + 1) }

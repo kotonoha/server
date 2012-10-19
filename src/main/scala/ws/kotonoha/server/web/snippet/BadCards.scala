@@ -128,7 +128,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
       val cl = "wc t%d".format(len)
       <div class={cl}>
         <div class="rd">{w.reading.is}</div>
-        <div class="sod">{sod(w.writing.is)}</div>
+        <div class="sod">{sod(w.writing.stris)}</div>
         <div class="mn">{w.meaning.is}</div>
       </div>
     }
@@ -139,7 +139,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
     def render =
       <div class="wc half">
         <div class="rd">{w.reading.is}</div>
-        <div class="sod">{sod(w.writing.is)}</div>
+        <div class="sod">{sod(w.writing.stris)}</div>
         <div class="mn">{w.meaning.is}</div>
       </div>
 
@@ -154,7 +154,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
           <span class="wr">{w.writing.is}</span>
           <span class="rd">{w.reading.is}</span>
         </div>
-        <span class="sod">{kanjSod(w.writing.is)}</span>
+        <span class="sod">{kanjSod(w.writing.stris)}</span>
       </div>
 
 
@@ -173,7 +173,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
           <span class="wr">{w.writing.is}</span>
           <span class="rd">{w.reading.is}</span>
         </div>
-        <span class="sod">{kanjSod(w.writing.is)}</span>
+        <span class="sod">{kanjSod(w.writing.stris)}</span>
       </div>
     }
 
@@ -186,7 +186,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
 
   object VerySmall {
     def unapply(w: WordRecord): Option[CellRenderer] = {
-      val l1 = w.writing.is.length
+      val l1 = w.writing.stris.length
       val l2 = w.meaning.is.length
 
       if (l1 < 4 && (25 + l1 * 25) > l2) {
@@ -198,7 +198,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
   object SimpleSmall {
     def unapply(w: WordRecord): Option[SimpleWordCell] = {
       val b1 = w.meaning.is.length < 300
-      val b2 = w.writing.is.length < 6
+      val b2 = w.writing.stris.length < 6
       if (b1 && b2) {
         Some(new SimpleWordCell(w))
       } else None
@@ -208,7 +208,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
   object LotsOfKanjiSmallMean {
     def unapply(w: WordRecord): Option[LotsKanjiSmallMeaning] = {
       val l1 = w.meaning.is.length
-      val l2 = UnicodeUtil.klen(w.writing.is)
+      val l2 = UnicodeUtil.klen(w.writing.stris)
       if ((l2 * 120 + l1) < 1100) Some(new LotsKanjiSmallMeaning(w, l2)) else None
     }
   }

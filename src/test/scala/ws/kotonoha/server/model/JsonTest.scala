@@ -54,7 +54,7 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
   
   test("word record becomes nice json") {
     val rec = WordRecord.createRecord
-    rec.writing("hey").reading("guys")
+    rec.writing("hey" :: "pal" :: Nil).reading("guys")
     
     val js = rec.asJSON.toString()
     val rec2 = WordRecord.createRecord

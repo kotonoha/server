@@ -182,7 +182,7 @@ trait AddWordActorT extends NamedCometActor with AkkaInterop with Logging {
       case Full(w) => {
         w.word.writing.valueBox match {
           case Empty => w.word.writing(w.word.reading.is)
-          case Full("") => w.word.writing(w.word.reading.is)
+          case Full(Nil) => w.word.writing(w.word.reading.is)
           case _ => //
         }
         val f = root ? RegisterWord(w.word, stat)
@@ -222,7 +222,7 @@ trait AddWordActorT extends NamedCometActor with AkkaInterop with Logging {
   }
 
   def checked(in: Seq[ExampleRecord], w: WordRecord) = {
-    val c = w.writing.is(0)
+    val c = w.writing.stris(0)
     in.filter(_.example.is.contains(c))
   }
 

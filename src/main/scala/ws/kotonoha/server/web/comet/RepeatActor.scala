@@ -96,9 +96,9 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     }
     val data: JValue = cards map (c => {
       val w = wm(c.word.is)
-      val addInfo = processWord(w.writing.toString(), Some(w.reading.toString()))
+      val addInfo = processWord(w.writing.stris, Some(w.reading.stris))
       val procInfo = addInfo map {nsString(_)} getOrElse ""
-      ("writing" -> w.writing) ~ ("reading" -> w.reading) ~ ("meaning" -> w.meaning) ~
+      ("writing" -> w.writing.stris) ~ ("reading" -> w.reading.stris) ~ ("meaning" -> w.meaning) ~
       ("cid" -> c.id.is.toHexString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
       ("additional" -> procInfo)
     })

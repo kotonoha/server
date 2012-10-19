@@ -289,8 +289,8 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
         v(i.id.is),
         "selected" -> <input type="checkbox" name={i.id.is.toHexString} /> ,
         "addeddate" -> Formatting.format(i.createdOn.is),
-        "reading" -> i.reading.is,
-        "writing" -> <a href={"detail?w="+ i.id.is.toHexString}>{i.writing.is}</a>,
+        "reading" -> i.reading.stris,
+        "writing" -> <a href={"detail?w="+ i.id.is.toHexString}>{i.writing.stris}</a>,
         "meaning" -> Strings.substr(i.meaning.is, 50),
         "status" -> i.status.is.toString
       )

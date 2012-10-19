@@ -139,8 +139,8 @@ object AddWord extends Logging with Akka with ReleaseAkka {
     }
 
     def renderPresent: NodeSeq = present flatMap { w =>
-      <div class="writing nihongo">{w.writing.is}</div>
-      <div class="reading nihongo">{w.reading.is}</div>
+      <div class="writing nihongo">{w.writing.stris}</div>
+      <div class="reading nihongo">{w.reading.stris}</div>
       <div class="meaning">{w.meaning.is}</div> ++
       SHtml.a(() => penaltizeWord(w), Text("Penaltize word"))
     }
@@ -174,7 +174,11 @@ object AddWord extends Logging with Akka with ReleaseAkka {
       val patterns = lines map { _.toQuery }
       val q: JObject = ("user" -> UserRecord.currentId.get) ~ ("$or" -> (lines map { c => "writing" -> bre(c.writing)}))
       val dicQ: JObject = "$or" -> patterns
-      val ws = WordRecord.findAll(q).groupBy{w => w.writing.is} withDefaultValue(Nil)
+      val found = WordRecord.findAll(q)
+      val ws = found.flatMap (i => {
+        i.writing.is.map {w => (w, i)}
+      }) groupBy(_._1) map {case (x, y) => (x, y.map(_._2))} withDefaultValue(Nil)
+      //val ws = WordRecord.findAll(q).groupBy{w => w.writing.stris} withDefaultValue(Nil)
       val dics = JMDictRecord.findAll(dicQ).toArray
       val des = dics.map { de => de.writing.is.map{jms => jms.value.is -> List(de) } toMap }.
         foldLeft(Map[String, List[JMDictRecord]]()) {

@@ -118,7 +118,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   test("word is being saved all right") {
     val saved = saveWord
     
-    val wOpt = WordRecord where (_.writing eqs "例") and (_.user eqs userId) get()
+    val wOpt = WordRecord where (_.writing contains ("例")) and (_.user eqs userId) get()
     wOpt should not be (None)
     val id = wOpt.get.id.is
     saved should equal (id)

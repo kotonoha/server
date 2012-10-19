@@ -46,8 +46,8 @@ class WordActor extends Actor with ActorLogging with RootActor {
   implicit val dispatcher = context.dispatcher
 
   def checkReadingWriting(word: WordRecord) = {
-    val read = word.reading.is
-    val writ = word.writing.is
+    val read = word.reading.stris
+    val writ = word.writing.stris
     if (writ == null || writ == "") {
       word.writing(word.reading.is)
       false

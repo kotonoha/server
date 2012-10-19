@@ -24,6 +24,7 @@ import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JBool
 import net.liftweb.json.JsonAST.JObject
+import ws.kotonoha.server.mongodb.record.DelimitedStringList
 
 object WordStatus extends Enumeration {
   type WordStatus = Value
@@ -42,8 +43,8 @@ object WordStatus extends Enumeration {
 class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecord] with SequencedLongId[WordRecord] {
   def meta = WordRecord
 
-  object writing extends StringField(this, 100)
-  object reading extends StringField(this, 150)
+  object writing extends DelimitedStringList(this, ",、･")
+  object reading extends DelimitedStringList(this, ",、･")
   object meaning extends StringField(this, 1000) with TextAreaHtml
   object createdOn extends DateTimeField(this) with DateJsonFormat
   object status extends EnumField(this, WordStatus, WordStatus.New)
