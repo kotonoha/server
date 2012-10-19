@@ -100,7 +100,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
       val procInfo = addInfo map {nsString(_)} getOrElse ""
       ("writing" -> w.writing.stris) ~ ("reading" -> w.reading.stris) ~ ("meaning" -> w.meaning) ~
       ("cid" -> c.id.is.toHexString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
-      ("additional" -> procInfo)
+      ("additional" -> procInfo) ~ ("wid" -> c.word.is.toHexString)
     })
     partialUpdate(Call("publish_new", jc(jr(data))).cmd)
   }

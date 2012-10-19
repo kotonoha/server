@@ -127,4 +127,10 @@ $(document).ready -> (
 
   $("#show-next").click( -> display_next(); false )
   $("#show-answer").click( -> show_answer(); false )
+
+  $("#edit-link").click ->
+    if (item?)
+      window.open("../words/detail?w=#{item.wid}", '_blank')
+
+    false
 )
