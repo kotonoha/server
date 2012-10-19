@@ -36,7 +36,8 @@ object Common {
 
   def versionInfo(in: NodeSeq) : NodeSeq = {
     import ws.kotonoha.server.util.BuildInfo._
-    <span>Version {version}, Git revision {gitId} on {formatDate(gitDate)}</span>
+    val link = <a href="https://github.com/kotonoha/server">Git revision {gitId}</a> ;
+    <span>Version {version}, {link} on {formatDate(gitDate)}</span>
   }
 }
 
