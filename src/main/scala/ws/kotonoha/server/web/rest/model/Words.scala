@@ -20,11 +20,17 @@ import ws.kotonoha.server.web.rest.KotonohaRest
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.util.unapply.XHexLong
 import ws.kotonoha.server.records.{WordStatus, WordRecord, UserRecord}
-import net.liftweb.http.{LiftResponse, OkResponse, ForbiddenResponse, JsonResponse}
+import net.liftweb.http._
 import net.liftweb.common.{Failure, Box, Full}
 import net.liftweb.json.JsonAST.{JInt, JField, JValue, JString}
-import ws.kotonoha.server.actors.model.ChangeWordStatus
+import ws.kotonoha.server.actors.model.{MarkForDeletion, ChangeWordStatus}
 import ws.kotonoha.server.tools.JsonAstUtil
+import ws.kotonoha.server.actors.model.ChangeWordStatus
+import net.liftweb.http.OkResponse
+import net.liftweb.json.JsonAST.JField
+import net.liftweb.json.JsonAST.JString
+import net.liftweb.json.JsonAST.JInt
+import ws.kotonoha.server.actors.model.MarkForDeletion
 
 /**
  * @author eiennohito
@@ -74,6 +80,16 @@ object Words extends KotonohaRest with ReleaseAkka {
         case _ => Failure("Can't handle request")
       }
       (res ~> 401)
+    }
+    case XHexLong(wid) :: Nil Delete req => {
+      val uid = UserRecord.currentId
+      val cnt = WordRecord where (_.id eqs wid) and (_.user eqs uid.openOr(0)) count()
+      if (cnt == 1) {
+        akkaServ ! MarkForDeletion(wid)
+        OkResponse()
+      } else {
+        ForbiddenResponse()
+      }
     }
   })
 }

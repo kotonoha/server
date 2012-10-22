@@ -57,11 +57,10 @@
             <td>{{word.status}}</td>
           </tr>
           <tr>
-            <td>
+            <td colspan="2">
               <button class="btn" ng-click="save('update')">Save</button>
-            </td>
-            <td>
               <button class="btn" ng-click="save('update-approve')">Save & Approve</button>
+              <button class="btn" ng-click="delete()">Delete</button>
             </td>
           </tr>
         </tbody>
@@ -88,7 +87,7 @@
       </div>
     </div>
     <div>
-      <a class="btn" ng-click="addExample()"><i class="icon-pencil"></i> Add new example</a>
+      <a class="btn" ng-click="addExample()"><i class="icon-plus"></i> Add new example</a>
       <button class="btn" ng-click="save('update')">Save</button>
     </div>
   </div>

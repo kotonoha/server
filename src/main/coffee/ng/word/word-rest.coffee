@@ -13,6 +13,10 @@ window.WordCon = ($scope, $http) ->
       w = $scope.word
       $scope.word = w
 
+  $scope.delete = ->
+    $http.delete("../api/model/words/#{id}").success ->
+      $scope.word.status = "Deleting"
+
   $scope.addExample = ->
     $scope.word.examples.push
       selected: true
