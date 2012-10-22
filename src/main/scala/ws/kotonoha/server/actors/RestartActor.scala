@@ -49,7 +49,7 @@ class RestartActor extends Actor with ActorLogging {
     case e: Exception => log.error(e, "Caught an exception in root actor"); Restart
   }
 
-  val mongo = context.actorOf(Props[MongoDBActor], "mongo")
+  lazy val mongo = context.actorOf(Props[MongoDBActor], "mongo")
   lazy val wordSelector = context.actorOf(Props[WordSelector])
   lazy val markProcessor = context.actorOf(Props[EventProcessor])
   lazy val lifetime = context.actorOf(Props[LifetimeActor])

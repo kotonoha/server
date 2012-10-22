@@ -28,6 +28,7 @@ import ws.kotonoha.server.records.{MarkEventRecord, WordCardRecord, WordStatus, 
 import net.liftweb.common.Empty
 import ws.kotonoha.server.learning.ProcessMarkEvents
 import net.liftweb.json.JsonAST.JObject
+import ws.kotonoha.akane.unicode.KanaUtil
 
 trait WordMessage extends KotonohaMessage
 case class RegisterWord(word: WordRecord, state: WordStatus.Value = WordStatus.Approved) extends WordMessage
@@ -52,7 +53,8 @@ class WordActor extends Actor with ActorLogging with RootActor {
       word.writing(word.reading.is)
       false
     } else {
-      !read.equalsIgnoreCase(writ)
+      //normalized katakana == hiragana equals
+      !KanaUtil.kataToHira(read).equalsIgnoreCase(KanaUtil.kataToHira(writ))
     }
   }
 

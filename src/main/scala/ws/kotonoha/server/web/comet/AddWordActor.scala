@@ -19,34 +19,42 @@ package ws.kotonoha.server.web.comet
 import ws.kotonoha.server.actors.lift.AkkaInterop
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import akka.util.Timeout
-import ws.kotonoha.server.actors.dict._
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
-import ws.kotonoha.server.xml.CalculatingIterator
 import ws.kotonoha.server.records._
-import ws.kotonoha.server.util.{DateTimeUtils, LangUtil}
-import ws.kotonoha.server.actors.{UpdateRecord, SearchQuery}
+import ws.kotonoha.server.util.DateTimeUtils
 import com.weiglewilczek.slf4s.Logging
-import akka.dispatch.{Promise, DefaultPromise, Future}
 import net.liftweb.http.js.jquery.JqJsCmds.{Hide, Show}
-import net.liftweb.common.{Full, Empty, Box}
-import ws.kotonoha.server.actors.model.RegisterWord
-import net.liftweb.http.{S, RenderOut, SHtml, CometActor}
-import net.liftweb.http.js.JsCmds.{RedirectTo, SetHtml}
-import xml.{Text, NodeSeq}
+import net.liftweb.common.{Empty, Box}
+import ws.kotonoha.server.actors.model._
+import net.liftweb.http.{S, SHtml, CometActor}
+import net.liftweb.http.js.JsCmds.RedirectTo
+import xml.NodeSeq
 import net.liftweb.json.JsonAST._
 import net.liftweb.http.S.AFuncHolder
 import net.liftweb.http.js.JE.{JsObj, FormToJSON}
 import net.liftweb.http.js.{JE, JsCmds, JsCmd}
+import akka.actor.Props
+import scala.Left
+import scala.Some
+import xml.Text
+import net.liftweb.json.JsonAST.JString
+import net.liftweb.http.js.JsCmds.SetHtml
+import ws.kotonoha.server.actors.UpdateRecord
+import net.liftweb.common.Full
+import scala.Right
+import ws.kotonoha.server.actors.model.DictData
+import net.liftweb.json.JsonAST.JArray
+import ws.kotonoha.server.actors.model.WordData
+import net.liftweb.json.JsonAST.JField
+import net.liftweb.http.RenderOut
+import ws.kotonoha.server.actors.model.RegisterWord
 
 /**
  * @author eiennohito
  * @since 29.04.12
  */
 
-case class ExampleForSelection(ex: String, translation: Box[String], id: Long)
-case class DictData(name: String, data: List[DictCard])
-case class DictCard(writing: String, reading: String, meaning: String)
-case class WordData(dicts: List[DictData], examples: List[ExampleForSelection], word: WordRecord, onSave: Promise[WordData])
+
 
 case class WordList(id: Long)
 case object PrepareWords
@@ -60,7 +68,6 @@ class TimeoutException extends RuntimeException
 trait AddWordActorT extends NamedCometActor with AkkaInterop with Logging {
   lazy val root = akkaServ.root
   val self = this
-  import ws.kotonoha.server.actors.dict.DictType._
   import akka.util.duration._
   import akka.pattern.ask
   import com.foursquare.rogue.Rogue._
@@ -70,71 +77,11 @@ trait AddWordActorT extends NamedCometActor with AkkaInterop with Logging {
   private var list: Box[WordList] = Empty
   private var selector: WordDataCalculator = _
 
-  def createWord(dictData: List[DictData], examples: List[ExampleForSelection]): WordRecord = {
-    val rec = WordRecord.createRecord
-    rec.user(UserRecord.currentId).status(WordStatus.New).createdOn(DateTimeUtils.now)
+  lazy val wordCreator = createActor(Props[WordCreateActor])
 
-    val exs = examples.map { e =>
-      ExampleRecord.createRecord.id(e.id).example(e.ex).translation(e.translation.openOr(""))
-    }
-    rec.examples(exs)
-
-    val data = dictData.flatMap(d => d.data).headOption
-    data match {
-      case Some(d) => rec.writing(d.writing).reading(d.reading).meaning(d.meaning)
-      case _ => rec.writing("").reading("").meaning("")
-    }
-    rec
-  }
-
-  def prepareWord(rec: AddWordRecord): Future[WordData] = {
-    val wr = rec.writing.is
-    val rd: Option[String] = rec.reading.valueBox
-    val jf = (root ? DictQuery(jmdict, wr, rd, 5)).mapTo[SearchResult]
-    val wf = (root ? DictQuery(warodai, wr, rd, 5)).mapTo[SearchResult]
-    val exs = jf.flatMap { jmen => {
-      val idsf = jmen.entries match {
-        case Nil => { //don't have such word in dictionary
-          root ? SearchQuery(wr)
-        }
-        case x :: _ => {
-          root ? SearchQuery(wr + " " + x.readings.head)
-        }
-      }
-      idsf.mapTo[List[Long]].map(_.distinct).flatMap { exIds => {
-        val trsid = (root ? TranslationsWithLangs(exIds, LangUtil.langs)).mapTo[List[ExampleIds]]
-        val exs = trsid.flatMap(root ? LoadExamples(_)).mapTo[List[ExampleEntry]]
-        exs.map (_.map{ e => {
-           ExampleForSelection(e.jap.content.is, e.other match {
-             case x :: _ => x.content.valueBox
-             case _ => Empty
-           }, e.jap.id.is)
-        }})
-      }}
-    }}
-
-
-    def collapse(in: SearchResult, name: String) = {
-      DictData( name,
-        in.entries.map (e => {
-          DictCard(
-            e.writings.mkString(", "),
-            e.readings.mkString(", "),
-            e.meanings.mkString("\n")
-          )
-        })
-      )
-    }
-
-    jf.zip(wf).zip(exs) map {
-      case ((sr1, sr2), ex) => {
-        val dicts = List(collapse(sr1, "JMDict"), collapse(sr2, "Warodai"))
-        logger.debug("Calculated word data")
-        val onSave = new DefaultPromise[WordData]()(executor)
-        akkaServ.schedule(() => onSave.tryComplete(Left(new TimeoutException)), 15 minutes)
-        WordData(dicts, ex, createWord(dicts, ex), onSave)
-      }
-    }
+  def prepareWord(in: AddWordRecord) = {
+    val f = (wordCreator ? CreateWordData(in)).mapTo[WordData]
+    f
   }
 
   def button(code: String, value: String) = {

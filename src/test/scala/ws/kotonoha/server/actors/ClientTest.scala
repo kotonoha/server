@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.actor
+package ws.kotonoha.server.actors
 
 import ws.kotonoha.server.model.MongoDb
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}

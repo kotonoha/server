@@ -20,19 +20,18 @@
 <div id="main" class="lift:surround?with=default;at=content">
   <head_merge>
     <style type="text/css">
-
+      .ng-dirty { background: #808080; }
     </style>
   </head_merge>
   <script class="lift:cpres.ng?src=test"></script>
   <script class="lift:cpres.ng?src=dir/editable-span"></script>
   <script class="lift:cpres.js?src=jq.autoresize"></script>
   <div ng-controller="Model">
-    {{ "hey" }} {{4 + 9}}
-    <ui>
-      <li ng-repeat="item in items">
-        <p>{{item.name}}</p>
-      </li>
-    </ui>
+    <div>
+      <div>{{text}}</div>
+      <input type="text" ng-model="text">
+      <button ng-click="rtext()">Press me</button>
+    </div>
   </div>
   <div ng-controller="TestController">
     <span contenteditable="true" ng-model="halp">wat?</span>

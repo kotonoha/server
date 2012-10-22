@@ -5,6 +5,8 @@ window.Model = ($scope) ->
   $scope.start = 23
   $scope.regenerate = -> $scope.items = tens($scope.start)
   $scope.regenerate()
+  $scope.text = "This is text"
+  $scope.rtext = -> $scope.text = "This is text0"
 
 angular.module('kotonoha', []).directive 'dataGrid', ($injector) ->
   restrict: 'A'
