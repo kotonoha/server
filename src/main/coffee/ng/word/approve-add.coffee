@@ -1,6 +1,6 @@
 angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
   svc = AddSvc
-  waiting = true;
+  $scope.waiting = true;
   $scope.loaded = false;
   $scope.btns_visible = false;
   nextItems = []
@@ -11,7 +11,7 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
     $scope.total = obj.total;
 
   display = () ->
-    waiting = false
+    $scope.waiting = false
     $scope.btns_visible = true
     obj = nextItems.shift()
     $scope.word = obj.word
@@ -22,7 +22,7 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
     if (nextItems.length != 0)
       display() #just display next word
     else
-      waiting = true
+      $scope.waiting = true
       $scope.btns_visible = false
 
 
@@ -64,7 +64,7 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
     if (obj.cmd?) then switch(obj.cmd)
       when "word"
         nextItems.push(obj)
-        if (waiting) then $scope.$apply -> display()
+        if ($scope.waiting) then $scope.$apply -> display()
       when "update-indices" then $scope.$apply -> updateIndices(obj)
       when "no-items" then return 0
 

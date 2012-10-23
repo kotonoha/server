@@ -48,10 +48,11 @@
   </head_merge>
   <div class="lift:AddWordActorSnippet" ng-controller="AddWord">
     <div id="status">
-      <span id="counter" class="counter ng-cloak">Showing {{cur + 1}} of {{total}}</span>
+      <span ng-show="loaded && cur == total">Nothing to add now, pal</span>
+      <span id="counter" class="counter ng-cloak" ng-show="cur != total">Showing {{cur + 1}} of {{total}}</span>
       <span id="status-string" ng-show="waiting"><b>Please wait, loading...</b></span>
     </div>
-    <h2>Word card</h2>
+    <h2 ng-show="cur != total">Word card</h2>
     <div class="row-fluid" ng-show="cur != total">
       <div class="span8 center" id="left">
         <form id="main-form">
