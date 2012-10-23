@@ -78,7 +78,7 @@ class LiftBridge(svc: ActorRef, lift: CometActor) extends Actor {
     case Shutdown =>  {
       svc ! UnbindLiftActor(lift)
     }
-    //case x if !x.isInstanceOf[AutoReceivedMessage] => lift ! x
+    case x => lift ! x
   }
 }
 
