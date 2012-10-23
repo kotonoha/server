@@ -81,9 +81,9 @@
             </table>
           </div>
           <div class="button-pane" ng-show="btns_visible">
-            <button ng-click="save('approved')">Save as good</button>
-            <button ng-click="save('new')">Save, don't learn</button>
-            <button ng-click="skip()">Skip word</button>
+            <button class="btn" ng-click="save('approved')"><i class="icon-ok-sign"></i> Save as good</button>
+            <button class="btn" ng-click="save('new')"><i class="icon-question-sign"></i> Save, don't learn</button>
+            <button class="btn" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
           </div>
           <h2>Examples</h2>
           <div id="word-examples" style="display: table" ng-show="cur != total">
@@ -102,9 +102,9 @@
           </div>
         </form>
         <div class="button-pane" ng-show="btns_visible">
-          <button ng-click="save('approved')">Save as good</button>
-          <button ng-click="save('new')">Save, don't learn</button>
-          <button ng-click="skip()">Skip word</button>
+          <button class="btn" ng-click="save('approved')"><i class="icon-ok-sign"></i> Save as good</button>
+          <button class="btn" ng-click="save('new')"><i class="icon-question-sign"></i> Save, don't learn</button>
+          <button class="btn" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
         </div>
       </div>
       <div class="span4" id="right">
