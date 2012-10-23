@@ -25,6 +25,7 @@ import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JBool
 import net.liftweb.json.JsonAST.JObject
 import ws.kotonoha.server.mongodb.record.DelimitedStringList
+import ws.kotonoha.server.tools.JsonAstUtil
 
 object WordStatus extends Enumeration {
   type WordStatus = Value
@@ -106,6 +107,7 @@ object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with Named
       case JField("createdOn" | "status" | "_id", _) => !out
       case _ => false
     }
-    JNothing ++ (if (out) trimmed else filterExamples(trimmed))
+    val r = JNothing ++ (if (out) trimmed else filterExamples(trimmed))
+    JsonAstUtil.clean(r, saveArrays = true)
   }
 }

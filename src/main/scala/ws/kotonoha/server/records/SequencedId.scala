@@ -24,6 +24,7 @@ import net.liftweb.mongodb.Limit
 import net.liftweb.record.field.LongField
 import org.slf4j.LoggerFactory
 import io.Codec
+import collection.mutable
 
 /**
  * @author eiennohito
@@ -52,10 +53,28 @@ trait SequencedLongId[OwnerType <: MongoRecord[OwnerType]] { self: (MongoRecord[
     }
   }
 
-  private lazy val curId: AtomicLong = synchronized { new AtomicLong(resolveMaxId + 1) }
-  private def nextId = {
-    curId.getAndIncrement
-  }
+  override def defaultIdValue = LongIdService.getId(getClass, resolveMaxId)
+}
 
-  override def defaultIdValue = nextId
+class IdProvider {
+
+}
+
+object LongIdService {
+  val stored = new mutable.HashMap[String, Long]()
+
+  def getId[T](cls: Class[T], default: => Long) = synchronized {
+    val nm = cls.getName
+    stored.get(nm) match {
+      case Some(l) => {
+        stored(nm) = l + 1
+        l
+      }
+      case _ => {
+        val l = default + 1
+        stored(nm) = l + 1
+        l
+      }
+    }
+  }
 }

@@ -44,8 +44,7 @@ object Words extends KotonohaRest with ReleaseAkka {
     val rec = WordRecord where (_.id eqs (wid)) and (_.user eqs (user)) get()
     rec map (r => {
       val js = WordRecord.trimInternal(updated, out = false)
-      val clean = JsonAstUtil.clean(js, saveArrays = true)
-      val c = r.setFieldsFromJValue(clean)
+      val c = r.setFieldsFromJValue(js)
       //r.fields().map(_.validate)
       r.save
       OkResponse()

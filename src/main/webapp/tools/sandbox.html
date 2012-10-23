@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<html>
+<html xmlns:lift="http://liftweb.net">
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
   <head_merge>
@@ -28,9 +28,14 @@
   <script class="lift:cpres.js?src=jq.autoresize"></script>
   <div ng-controller="Model">
     <div>
+      <lift:comet type="TestActor"></lift:comet>
+    </div>
+    <div>
       <div>{{text}}</div>
+      <div>From actor content -- {{xlen}}</div>
       <input type="text" ng-model="text">
       <button ng-click="rtext()">Press me</button>
+      <button ng-click="toArms()">Send to Json</button>
     </div>
   </div>
   <div ng-controller="TestController">
@@ -46,7 +51,7 @@
       <table data-grid="smt" search="">
         <thead></thead>
         <tbody>
-          <tr ng-repeat=""></tr>
+          <!--<tr ng-repeat=""></tr>-->
         </tbody>
       </table>
     </div>

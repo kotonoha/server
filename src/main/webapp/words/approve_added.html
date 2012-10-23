@@ -19,41 +19,9 @@
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content full" xmlns:lift="lift-framework">
   <head_merge>
+    <script class="lift:cpres.js?src=jq.autoresize"></script>
+    <script class="lift:cpres.ng?src=word/approve-add"></script>
     <style>
-      .full {
-        min-width: 500px;
-      }
-
-      .center {
-        width: auto;
-        min-width: 250px;
-      }
-
-      .right {
-        margin-right: 15px;
-        float: right;
-        width: 40%;
-        min-width: 150px;
-      }
-
-      .counter {
-        min-width: 100px;
-      }
-
-      .fifty {
-        width: auto;
-        max-width: 50%;
-      }
-
-      .block {
-        display: block;
-      }
-
-      .dict-name {
-        margin-bottom: 10px;
-        font-weight: bold;
-        border-top: 1px dotted #a52a2a;
-      }
 
       .dict-entry {
         border: 1px solid transparent;
@@ -69,84 +37,89 @@
         width: 10%
       }
 
-      td.fifty {
-        width: 45%;
-        padding: 2px;
-        vertical-align: baseline;
-      }
-
-      td.fifty input {
-        height: 20px;
-      }
-
-      #button-pane span {
+      .button-pane span {
         margin: 10px;
       }
+
+      .ng-cloak { display: none; }
+      .tr { display: table-row; }
+      .tc {display: table-cell; }
     </style>
-    <script language="javascript">
-      function copyToWord(e) {
-        var chld = $(e).children();
-        $("#word-writing").val($(chld[0]).text());
-        var s2 = $(chld[1]).text();
-        var rd;
-        if (s2 == null || s2.length <= 2) {
-          rd = $(chld[0]).text();
-        } else {
-          rd = s2.substr(1, s2.length - 2);
-        }
-        $("#word-reading").val(rd);
-        $("#word-meaning").text($(chld[2]).text());
-      }
-    </script>
   </head_merge>
-  <div class="lift:AddWordActorSnippet">
+  <div class="lift:AddWordActorSnippet" ng-controller="AddWord">
     <div id="status">
-      <span id="counter" class="counter"></span>
-      <span id="status-string"><b>Please wait, loading...</b></span>
+      <span id="counter" class="counter ng-cloak">Showing {{cur + 1}} of {{total}}</span>
+      <span id="status-string" ng-show="waiting"><b>Please wait, loading...</b></span>
     </div>
-    <div class="row-fluid">
+    <h2>Word card</h2>
+    <div class="row-fluid" ng-show="cur != total">
       <div class="span8 center" id="left">
         <form id="main-form">
           <div id="word-card">
-            <table xmlns:word="word-display">
+            <table>
               <tbody>
               <tr>
                 <td>Writing</td>
-                <td class="nihongo">
-                  <word:writing></word:writing>
+                <td>
+                  <input class="nihongo" type="text" ng-model="word.writing">
                 </td>
               </tr>
               <tr>
                 <td>Reading</td>
-                <td class="nihongo">
-                  <word:reading></word:reading>
+                <td>
+                  <input class="nihongo" type="text" ng-model="word.reading">
                 </td>
               </tr>
               <tr>
                 <td>Meaning</td>
-                <td class="area nihongo">
-                  <word:meaning></word:meaning>
-                </td>
-              </tr>
-              <tr>
-                <td></td>
-                <td>
-                  <word:submit></word:submit>
+                <td class="nihongo autoresize">
+                  <textarea ng-model="word.meaning"></textarea>
                 </td>
               </tr>
               </tbody>
             </table>
           </div>
-          <div id="word-examples">
+          <div class="button-pane" ng-show="btns_visible">
+            <button ng-click="save('approved')">Save as good</button>
+            <button ng-click="save('new')">Save, don't learn</button>
+            <button ng-click="skip()">Skip word</button>
+          </div>
+          <h2>Examples</h2>
+          <div id="word-examples" style="display: table" ng-show="cur != total">
+            <div ng-repeat="ex in word.examples" class="tr">
+              <div class="tc span1">
+                <div class="ver-center">
+                  <input type="checkbox" ng-model="ex.selected">
+                </div>
+              </div>
+              <div class="tc span11">
+                <textarea class="span12 nihongo autoresize" ng-model="ex.example"></textarea>
+                <textarea class="span12 autoresize" ng-model="ex.translation"></textarea>
+              </div>
+            </div>
+            <button class="btn" ng-click="addExample()">Add new example</button>
           </div>
         </form>
-        <div id="button-pane">Buttons go here!</div>
+        <div class="button-pane" ng-show="btns_visible">
+          <button ng-click="save('approved')">Save as good</button>
+          <button ng-click="save('new')">Save, don't learn</button>
+          <button ng-click="skip()">Skip word</button>
+        </div>
       </div>
       <div class="span4" id="right">
         <span>Click a dictionary entry to fill word entries with it</span>
-
         <div id="dictionary-entries">
-
+          <div ng-repeat="dic in dics">
+            <hr/>
+            <b class="dict-name">{{dic.name}}</b>
+            <div class="dict-entry" ng-repeat="de in dic.data">
+              <div>
+                <span class="nihongo" ng-click="copyDicEntry(de)">{{de.writing}}({{de.reading}})</span>
+                <button href="#" ng-click="addFromDic(de, $event)" class="btn btn-mini"><i class="icon-plus" ></i> this too</button>
+              </div>
+              <div ng-click="copyDicEntry(de)">{{de.meaning}}</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
