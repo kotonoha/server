@@ -39,6 +39,7 @@ import akka.dispatch.{Promise, Future}
 import ws.kotonoha.server.actors.interop.ParseSentence
 import ws.kotonoha.akane.ParsedQuery
 import ws.kotonoha.server.util.DateTimeUtils
+import ws.kotonoha.akane.juman.JumanUtil
 
 
 /**
@@ -244,14 +245,18 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
 
   def renderExample(exs: ExampleForSelection, word: WordRecord): Future[JValue] = {
     val ex = exs.ex
+
     def selected: Future[Boolean] = {
       val res = word.reading.is.exists { rd => ex.contains(rd) } ||
                 word.writing.is.exists { wr => ex.contains(wr) }
       if (res) Promise.successful(true)
       else {
+        val wrs = word.writing.is.toSet
         val f = (root ? ParseSentence(ex)).mapTo[ParsedQuery]
         f map (lst => {
-          lst.inner.exists { je => word.writing.is.exists { wr => je.dictForm.equals(wr) }}
+          val jwr = lst.inner.flatMap{ i => i.writing :: i.dictForm :: JumanUtil.daihyouWriting(i).writing :: Nil }.toSet
+          val opt = jwr.exists(wrs.contains(_))
+          opt
         })
       }
     }

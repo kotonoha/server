@@ -127,10 +127,10 @@ class WordCreateActor extends Actor with RootActor with ActorLogging {
     val rec = WordRecord.createRecord
     rec.user(UserRecord.currentId).status(WordStatus.New).createdOn(now)
 
-    val exs = examples.map { e =>
-      ExampleRecord.createRecord.id(e.id).example(e.ex).translation(e.translation.openOr(""))
-    }
-    rec.examples(exs)
+//    val exs = examples.map { e =>
+//      ExampleRecord.createRecord.id(e.id).example(e.ex).translation(e.translation.openOr(""))
+//    }
+//    rec.examples(exs)
 
     val data = dictData.flatMap(d => d.data).headOption
     data match {
