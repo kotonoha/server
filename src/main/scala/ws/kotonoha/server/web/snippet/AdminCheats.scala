@@ -39,7 +39,7 @@ object AdminCheats {
 
     val item = SHtml.text("", changeId)
 
-    <form>
+    <form action="debug">
       <b>User Id</b>
       {item}
       <input type="submit"></input>
