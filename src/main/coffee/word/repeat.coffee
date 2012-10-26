@@ -122,8 +122,11 @@ $(document).ready -> (
         if (event.which == 32) then display_next()
     return
 
-  for i in [1..5]
-    $("#mark#{i}").click -> mark_displayed(i); false
+  $("#mark1").click -> mark_displayed(1)
+  $("#mark2").click -> mark_displayed(2)
+  $("#mark3").click -> mark_displayed(3)
+  $("#mark4").click -> mark_displayed(4)
+  $("#mark5").click -> mark_displayed(5)
 
   $("#show-next").click( -> display_next(); false )
   $("#show-answer").click( -> show_answer(); false )
