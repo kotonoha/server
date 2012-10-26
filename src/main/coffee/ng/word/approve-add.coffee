@@ -66,6 +66,7 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
         nextItems.push(obj)
         if ($scope.waiting) then $scope.$apply -> display()
       when "update-indices" then $scope.$apply -> updateIndices(obj)
-      when "no-items" then return 0
+      when "no-items"
+        $scope.waiting = false;
 
 )
