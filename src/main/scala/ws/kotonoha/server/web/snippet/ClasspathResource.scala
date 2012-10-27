@@ -48,9 +48,9 @@ object ClasspathResource extends DispatchSnippet {
     js(min(nfo))
   }
 
-  val basepath = "/classpath/cpres/"
-  val ngpath = "/classpath/cpres/js/ng/"
-  val jspath = "/classpath/cpres/js/"
+  val basepath = "/static/"
+  val ngpath = "/static/ng/"
+  val jspath = "/static/"
 
   def script(path: String, minver: Boolean, in: NodeSeq) = {
     S.attr("src") match {

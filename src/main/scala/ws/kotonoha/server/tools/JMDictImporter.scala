@@ -17,7 +17,7 @@
 package ws.kotonoha.server.tools
 
 import ws.kotonoha.server.dict.JMDictParser
-import java.io.{FileInputStream, File}
+import java.io.FileInputStream
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.dictionary.JMDictRecord
 import com.mongodb.BasicDBObject

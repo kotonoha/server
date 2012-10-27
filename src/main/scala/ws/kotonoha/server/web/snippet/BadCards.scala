@@ -81,7 +81,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
       }
     }
     val ns = SHtml.untrustedSelect(ents, Full(maxRecs.is.toString), onSubmit)
-    ("select" #> ns) (in)
+    ("select" #> ns).apply(in)
   }
 
   def surround(in: NodeSeq): NodeSeq = {
@@ -110,7 +110,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
     val wds = asRows(res.words)
     val ns = rowsToTable(wds)
 
-    ("table *" #> ns) (in)
+    ("table *" #> ns).apply(in)
   }
 
   trait CellRenderer {

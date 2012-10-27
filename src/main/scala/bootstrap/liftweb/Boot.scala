@@ -135,29 +135,29 @@ class Boot extends Logging {
     )
 
     //transform njs to ws/kotonoha/script/angular
-    ResourceServer.rewrite({
-      case "njs" :: xs => ".." :: "ws" :: "kotonoha" :: "script" :: "angular" :: xs
-      case "cpres" :: xs => ".." :: xs
-      case x if x.last.startsWith("glyphicons-halflings") => x
-    })
-
-    LiftRules.getResource = name => {
-      val r = LiftRules.defaultGetResource(name)
-      r or (try {
-        val uri = new URI(name)
-        val path = uri.normalize().getPath
-        val x = LiftRules.getClass.getResource(path)
-        Box !! x
-      } catch {
-        case _ => Empty
-      })
-    }
-
-    //allow css, js and png from classpath
-    ResourceServer.allow({
-      case x if x.last.endsWith(".css") => true
-      case x if x.last.endsWith(".js") => true
-      case x if x.last.endsWith(".png") => true
-    })
+//    ResourceServer.rewrite({
+//      case "njs" :: xs => ".." :: "ws" :: "kotonoha" :: "script" :: "angular" :: xs
+//      case "cpres" :: xs => ".." :: xs
+//      case x if x.last.startsWith("glyphicons-halflings") => x
+//    })
+//
+//    LiftRules.getResource = name => {
+//      val r = LiftRules.defaultGetResource(name)
+//      r or (try {
+//        val uri = new URI(name)
+//        val path = uri.normalize().getPath
+//        val x = LiftRules.getClass.getResource(path)
+//        Box !! x
+//      } catch {
+//        case _ => Empty
+//      })
+//    }
+//
+//    //allow css, js and png from classpath
+//    ResourceServer.allow({
+//      case x if x.last.endsWith(".css") => true
+//      case x if x.last.endsWith(".js") => true
+//      case x if x.last.endsWith(".png") => true
+//    })
   }
 }

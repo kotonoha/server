@@ -1,8 +1,6 @@
 import sbt._
 import KotonohaBuild._
 
-seq(webSettings :_*)
-
 organization := "ws.kotonoha"
 
 name := "server"
@@ -15,19 +13,20 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "1.8" % "test"
 
 libraryDependencies ++=
 					Seq("org.scalaz" %% "scalaz-core" % "6.0.3",
-						"com.github.jsuereth.scala-arm" %% "scala-arm" % "1.0"
+						"com.jsuereth" %% "scala-arm" % "1.2",
+            "javax.transaction" % "jta" % "1.0.1B" % "provided"
 					)
 
-libraryDependencies += "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.0"
+libraryDependencies += "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.1"
 
-libraryDependencies +=  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.0"
+libraryDependencies +=  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.1"
 
 resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/"
 
 libraryDependencies += "fuku.eb4j" % "eb4j-tools" % "1.0.5"
 
 libraryDependencies ++= {
-  val liftVersion = "2.4" // Put the current/latest lift version here
+  val liftVersion = "2.5-M2" // Put the current/latest lift version here
   Seq(
     "net.liftweb" %% "lift-util" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),
     "net.liftweb" %% "lift-json-ext" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),
@@ -35,9 +34,9 @@ libraryDependencies ++= {
     "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-mongodb-record" % liftVersion exclude("org.mongodb", "mongo-java-driver"),
     "net.liftweb" %% "lift-json-scalaz" % liftVersion,
-    "net.liftweb" %% "lift-oauth" % (liftVersion + "-kotonoha"),
+    "net.liftweb" % "lift-oauth_2.9.1" % ("2.4-kotonoha"),
     "net.liftweb" %% "lift-testkit" % liftVersion % "test",
-	  "javax.servlet" % "servlet-api" % "2.5" % "provided->default")
+	"javax.servlet" % "servlet-api" % "2.5" % "provided->default")
 }
 
 libraryDependencies ++= {
@@ -59,11 +58,11 @@ libraryDependencies ++= {
 
 libraryDependencies +=  "org.mortbay.jetty" % "jetty" % "6.1.22" % "container"
 
-libraryDependencies += "com.foursquare" %% "rogue" % "1.1.8" intransitive()
+libraryDependencies += "com.foursquare" % "rogue_2.9.1" % "1.1.8" intransitive()
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.0" % "compile"
 
-libraryDependencies += "com.weiglewilczek.slf4s" %% "slf4s" % "1.0.7"
+libraryDependencies += "com.weiglewilczek.slf4s" % "slf4s_2.9.1" % "1.0.7"
 
 libraryDependencies += "com.j256.ormlite" % "ormlite-jdbc" % "4.33" % "test"
 
@@ -87,7 +86,7 @@ seq(buildInfoSettings: _*)
 
 sourceGenerators in Compile <+= buildInfo
 
-buildInfoKeys := Seq[Scoped](version, scalaVersion, sbtVersion, gitId, gitDate)
+buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, sbtVersion, gitId, gitDate)
 
 buildInfoPackage := "ws.kotonoha.server.util"
 
@@ -95,4 +94,3 @@ buildInfoObject  := "BuildInfo"
 
 scanInterval in Compile := 0
 
-seq(coffeeSettings: _*)

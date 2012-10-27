@@ -14,20 +14,21 @@
 * limitations under the License.
 */
 
-import com.github.siasia.Container
+import coffeescript.Plugin.CoffeeKeys
 import java.util.Date
-import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import sbt._
+import inc.Analysis
 import Keys._
+import com.github.siasia.{PluginKeys => WPK, WebPlugin}
 
 
 object Settings {
 
-  val ourScalaVer = "2.9.1"
+  val ourScalaVer = "2.9.2"
 
-  val buildOrganization = "org.eiennohito"
+  val buildOrganization = "ws.kotonoha"
 
   val buildSettings = Defaults.defaultSettings ++ Seq (
     organization := buildOrganization,
@@ -53,12 +54,22 @@ object GitData {
   }
 }
 
+object JarExtraction {
+
+}
+
 
 object KotonohaBuild extends Build {
   import Settings._
 
   val gitId = TaskKey[String]("gitId", "Git commit id")
   val gitDate = TaskKey[Long]("gitDate", "Git commit date")
+
+  val jsDir = SettingKey[File]("js-dir", "Javascript jar dir")
+  val scriptOut = SettingKey[File]("script-out", "dir to be included in webapp")
+  val scriptOutputDir = SettingKey[File]("sod", "dir to output js")
+  val unzipJars = TaskKey[Seq[File]]("unzip-jars", "Unzip jars with js files inside")
+  val compileJs = config("compilejs")
 
   val gitdata = {
     val (time, id) = GitData.gitVer
@@ -72,7 +83,25 @@ object KotonohaBuild extends Build {
   lazy val kotonoha = Project(
     id = "kotonoha",
     base = file("."),
-    settings = buildSettings ++ Seq(gitdata._1) ++ Seq(gitdata._2)
+    settings = buildSettings ++ Seq(gitdata._1) ++ Seq(gitdata._2) ++
+      coffeescript.Plugin.coffeeSettingsIn(compileJs) ++
+      WebPlugin.webSettings ++
+      Seq(
+      jsDir := file("jslib"),
+      scriptOut <<= (target in Compile).apply(_ / "javascript" ),
+      scriptOutputDir <<= scriptOut apply (_ / "static"),
+      (sourceDirectory in compileJs) <<= sourceDirectory in Compile,
+      (resourceManaged in (compileJs, CoffeeKeys.coffee)) <<= scriptOutputDir,
+      (WPK.webappResources in Compile) <+= scriptOut,
+      unzipJars <<= (jsDir, scriptOutputDir) map {
+        (jsd, so) =>
+          (jsd  * (GlobFilter("*.jar"))) flatMap { f => IO.unzip(f, so) } get
+      },
+      compile in compileJs := Analysis.Empty,
+      resourceGenerators in compileJs := Nil,
+      compile in Compile <<= (compile in Compile).dependsOn(CoffeeKeys.coffee in compileJs),
+      copyResources in Compile <<= (copyResources in Compile).dependsOn(unzipJars)
+    )
   ) dependsOn(model, akane)
 
   lazy val model = Project(
