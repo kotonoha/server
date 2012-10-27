@@ -44,6 +44,11 @@ class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with LongPk
   object mode extends IntField(this)
   object mark extends DoubleField(this)
   object time extends DoubleField(this)
+
+  object diff extends DoubleField(this) //my difficulty when learning
+  object interval extends DoubleField(this)
+  object lapse extends IntField(this)
+  object rep extends IntField(this)
 }
 
 object MarkEventRecord extends MarkEventRecord with MongoMetaRecord[MarkEventRecord] with NamedDatabase

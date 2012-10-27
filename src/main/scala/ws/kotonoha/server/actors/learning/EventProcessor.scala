@@ -5,7 +5,7 @@ import net.liftweb.common.{Failure, Empty, Full}
 import akka.util.Timeout
 import akka.dispatch.Future
 import akka.actor.{ActorRef, ActorLogging, Props, Actor}
-import ws.kotonoha.server.records.{ChangeWordStatusEventRecord, ItemLearningDataRecord, MarkEventRecord}
+import ws.kotonoha.server.records.{WordCardRecord, ChangeWordStatusEventRecord, ItemLearningDataRecord, MarkEventRecord}
 import ws.kotonoha.server.actors.model.{ChangeWordStatus, ChangeCardEnabled, SchedulePaired}
 import ws.kotonoha.server.actors._
 import ws.kotonoha.server.supermemo.{SMParentActor, SM6, ItemUpdate}
@@ -43,7 +43,8 @@ case class ProcessWordStatus(ev: ChangeWordStatusEventRecord) extends EventMessa
 
 
 class ChildProcessor extends Actor with ActorLogging with RootActor {
-  implicit val timeout = Timeout(500 milliseconds)    
+  import com.foursquare.rogue.Rogue._
+  implicit val timeout = Timeout(5000 milliseconds)
   
   var mongo : ActorRef = _
   var sched : ActorRef = _
@@ -66,15 +67,32 @@ class ChildProcessor extends Actor with ActorLogging with RootActor {
     }
   }
 
+  def saveMarkRecord(mr: MarkEventRecord, card: WordCardRecord) = {
+    val cl = card.learning.valueBox
+    cl match {
+      case Full(l) => {
+        mr.diff(l.difficulty.is)
+        mr.interval(l.intervalLength.is)
+        mr.rep(l.repetition.is)
+        mr.lapse(l.lapse.is)
+      }
+      case _ => {
+        mr.rep(0)
+        mr.lapse(0)
+      }
+    }
+    mongo ! SaveRecord(mr)
+  }
+
   def processMark(ev: MarkEventRecord) {
-    mongo ! SaveRecord(ev)
-    val obj = ev.card.obj
+    val obj = WordCardRecord where (_.user eqs(ev.user.is)) and (_.id eqs ev.card.is) get()
     obj match {
-      case Empty => {
+      case None => {
         log.debug("invalid mark event: {}", ev)
         sender ! 0
       }
-      case Full(card) => {
+      case Some(card) => {
+        saveMarkRecord(ev, card)
         val sc = sched ? SchedulePaired(card.word.is, card.cardMode.is)
         val it = ItemUpdate(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
         val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord].map(card.learning(_))
@@ -87,7 +105,6 @@ class ChildProcessor extends Actor with ActorLogging with RootActor {
           x => se ! 1
         }
       }
-      case Failure(msg, e, c) => log.error(e.openTheBox, msg); sender ! 0
     }
   }
 }
