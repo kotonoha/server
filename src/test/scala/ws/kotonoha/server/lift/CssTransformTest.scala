@@ -22,13 +22,6 @@ import xml.Text
 class CssTransformTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
   import net.liftweb.util.Helpers._
 
-  test("smt") {
-    val xml = <div><span id="what"><a>inner</a><b>whatever</b></span></div>
-    val transf = "#what *" #> { x => { println(x); Text("inner") }}
-    val obj = transf(xml)
-    println(obj)
-  }
-
   test("adding id") {
     val xml = <input></input>
     val tf = "input [id]" #> "some"

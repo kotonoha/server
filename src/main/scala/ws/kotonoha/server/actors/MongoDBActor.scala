@@ -31,7 +31,7 @@ case class RegisterMongo(mongo: ActorRef)
 class MongoDBActor extends Actor with ActorLogging {
   protected def receive = {
     case SaveRecord(rec) => rec.save; log.debug("saving object {}", rec); sender ! true
-    case UpdateRecord(rec) => rec.update; sender ! true
+    case UpdateRecord(rec) => rec.save; sender ! true
     case DeleteRecord(rec) => sender ! rec.delete_!
   }
 }

@@ -19,9 +19,9 @@ package ws.kotonoha.server.web.rest
 import net.liftweb.http.rest.RestHelper
 import net.liftweb.util.ThreadGlobal
 import ws.kotonoha.server.records.{NonceRecord, ClientRecord, UserTokenRecord}
-import net.liftweb.oauth.OAuthUtil.Parameter
+import net.liftmodules.oauth.OAuthUtil.Parameter
 import net.liftweb.common.{Empty, Full, Box}
-import net.liftweb.oauth.{HttpRequestMessage, OAuthAccessor, OAuthMessage, OAuthValidator}
+import net.liftmodules.oauth.{HttpRequestMessage, OAuthAccessor, OAuthMessage, OAuthValidator}
 import net.liftweb.http.{LiftResponse, ForbiddenResponse, Req}
 
 trait OauthRestHelper extends RestHelper {

@@ -19,7 +19,7 @@ package ws.kotonoha.server.util
 import ch.qos.logback.core.AppenderBase
 import org.joda.time.DateTime
 import ch.qos.logback.classic.spi.{IThrowableProxy, ILoggingEvent}
-import ws.kotonoha.server.mongodb.NamedDatabase
+import ws.kotonoha.server.mongodb.{MongoDbInit, NamedDatabase}
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord, BsonMetaRecord, BsonRecord}
 import net.liftweb.mongodb.record.field.{BsonRecordField, ObjectIdPk}
 import net.liftweb.record.field.{IntField, EnumField, StringField, DateTimeField}
@@ -77,6 +77,8 @@ class MongoAppender extends AppenderBase[ILoggingEvent] {
 
   def append(ev: ILoggingEvent) {
     import ws.kotonoha.server.util.DateTimeUtils._
+    if (!MongoDbInit.inited)
+      return
 
     val obj = LogRecord.createRecord.
       timestamp(new DateTime(ev.getTimeStamp)).

@@ -22,7 +22,7 @@ import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import net.liftweb.record.field.{DateTimeField, StringField}
 import ws.kotonoha.server.util.DateTimeUtils._
 import org.joda.time.DateTime
-import net.liftweb.oauth.{OAuthNonce, OAuthNonceMeta}
+import net.liftmodules.oauth.{OAuthNonce, OAuthNonceMeta}
 
 /**
  * @author eiennohito

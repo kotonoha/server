@@ -93,16 +93,19 @@ class ChildProcessor extends Actor with ActorLogging with RootActor {
       }
       case Some(card) => {
         saveMarkRecord(ev, card)
-        val sc = sched ? SchedulePaired(card.word.is, card.cardMode.is)
+        sched ! SchedulePaired(card.word.is, card.cardMode.is)
         val it = ItemUpdate(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
-        val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord].map(card.learning(_))
-        val ur = cardF.flatMap {
-          c => mongo ? UpdateRecord(c)
-        }
+        val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord]
+        val ur = cardF.map { l => {
+          val c = card.learning(l)
+          c.save
+        }}
         val se = sender
-        sc.zip(ur) foreach {
-          log.debug("processed event for cardid={}", card.id.is)
-          x => se ! 1
+        ur foreach {
+          x => {
+            log.debug("processed event for cardid={}", card.id.is)
+            se ! 1
+          }
         }
       }
     }

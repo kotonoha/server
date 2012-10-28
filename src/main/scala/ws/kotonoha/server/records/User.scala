@@ -2,13 +2,12 @@ package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.common.{Empty, Full}
+import net.liftweb.common.Full
 import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
 import net.liftweb.util.FieldError
-import net.liftweb.oauth.OAuthConsumer
+import net.liftmodules.oauth.OAuthConsumer
 import net.liftweb.record.field.{DateTimeField, EnumField, StringField}
 import ws.kotonoha.server.util.{UserUtil, DateTimeUtils}
-import java.util.Calendar
 import net.liftweb.http.S
 import net.liftweb.http.provider.HTTPCookie
 

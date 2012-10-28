@@ -34,9 +34,9 @@ libraryDependencies ++= {
     "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-mongodb-record" % liftVersion exclude("org.mongodb", "mongo-java-driver"),
     "net.liftweb" %% "lift-json-scalaz" % liftVersion,
-    "net.liftweb" % "lift-oauth_2.9.1" % ("2.4-kotonoha"),
+    "net.liftmodules" %% "oauth" % ("2.5-M2-1.1-kotonoha"),
     "net.liftweb" %% "lift-testkit" % liftVersion % "test",
-	"javax.servlet" % "servlet-api" % "2.5" % "provided->default")
+	  "javax.servlet" % "servlet-api" % "2.5" % "provided")
 }
 
 libraryDependencies ++= {
