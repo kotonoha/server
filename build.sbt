@@ -12,7 +12,7 @@ moduleName := "kotonoha"
 libraryDependencies += "org.scalatest" %% "scalatest" % "1.8" % "test"
 
 libraryDependencies ++=
-					Seq("org.scalaz" %% "scalaz-core" % "6.0.3",
+					Seq("org.scalaz" %% "scalaz-core" % "6.0.4",
 						"com.jsuereth" %% "scala-arm" % "1.2",
             "javax.transaction" % "jta" % "1.0.1B" % "provided"
 					)
@@ -33,7 +33,7 @@ libraryDependencies ++= {
     "net.liftweb" %% "lift-webkit" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-mongodb-record" % liftVersion exclude("org.mongodb", "mongo-java-driver"),
-    "net.liftweb" %% "lift-json-scalaz" % liftVersion,
+    "net.liftweb" %% "lift-json-scalaz" % liftVersion exclude("org.scalaz", "scalaz-core_2.9.1"),
     "net.liftmodules" %% "oauth" % ("2.5-M2-1.1-kotonoha"),
     "net.liftweb" %% "lift-testkit" % liftVersion % "test",
 	  "javax.servlet" % "servlet-api" % "2.5" % "provided")
@@ -94,3 +94,4 @@ buildInfoObject  := "BuildInfo"
 
 scanInterval in Compile := 0
 
+net.virtualvoid.sbt.graph.Plugin.graphSettings
