@@ -18,8 +18,8 @@ package ws.kotonoha.server.dict
 
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel.MapMode
-import ws.kotonoha.server.xml.CalculatingIterator
 import java.io.{Closeable, FileInputStream, File}
+import ws.kotonoha.akane.utils.CalculatingIterator
 
 /**
  * @author eiennohito

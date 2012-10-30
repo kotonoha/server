@@ -20,29 +20,8 @@ import javax.xml.stream.XMLEventReader
 import collection.mutable.Stack
 import javax.xml.stream.events._
 import scala.None
+import ws.kotonoha.akane.utils.CalculatingIterator
 
-/**
- * @author eiennohito
- * @since 14.04.12
- */
-
-trait CalculatingIterator[T] extends Iterator[T] with BufferedIterator[T] {
-  protected def calculate(): Option[T]
-
-  private var nextval = calculate()
-
-  def hasNext = !nextval.isEmpty
-
-  def next() = {
-    val v = nextval.get
-    nextval = calculate()
-    v
-  }
-
-  def head = nextval.get
-
-  def chead = nextval
-}
 
 trait XmlData {
   def data: String
