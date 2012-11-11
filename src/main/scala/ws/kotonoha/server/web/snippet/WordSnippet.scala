@@ -272,7 +272,8 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
   }
 
   def page = {
-    WordRecord.findAll(query, sortObj, Skip(curPage * itemsPerPage.toInt), Limit(itemsPerPage))
+    val toskip = curPage * itemsPerPage
+    WordRecord.findAll(query, sortObj, Skip(if (toskip >= count) 0 else toskip), Limit(itemsPerPage))
   }
 
   def renderPage(in: NodeSeq): NodeSeq = {
