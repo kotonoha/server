@@ -41,7 +41,7 @@ object TatoebaLinkParser {
 
 
   def main(args: Array[String]) = {
-    val fl = Path(args(0))
+    val fl = Path.fromString(args(0))
     val links = fl / "links.csv"
     val bin = fl / "links.bin"
     val map = parseCodes(fl / "sentences.csv")
@@ -76,9 +76,9 @@ object TatoebaImporter {
       val x : Any = line.split("\t") match {
         case Array(XLong(left), XLong(right)) => {
           val rec = ExampleLinkRecord.createRecord
-          rec.left(left).right(right).id(i).
+          rec.left(left).right(right).
             leftLang(ExampleSentenceRecord.langOf(left)).
-            rightLang(ExampleSentenceRecord.langOf(right))
+            rightLang(ExampleSentenceRecord.langOf(right)).id(i)
           i += 1
           rec.save
         }
@@ -111,8 +111,8 @@ object TatoebaSentenceImporter {
       val x : Any = line.split("\t") match {
         case Array(XLong(id), lang, sent) => {
           val tag = tags.get(id).getOrElse(Nil)
-          val s = ExampleSentenceRecord.createRecord.id(id).
-            tags(tag).lang(lang).content(sent)
+          val s = ExampleSentenceRecord.createRecord.
+            tags(tag).lang(lang).content(sent).id(id)
           s.save
         }
         case _ => println("line wasn't processed:" + line)
@@ -123,7 +123,7 @@ object TatoebaSentenceImporter {
   def main(args: Array[String]) = {
     MongoDbInit.init()
     val dir = args(0)
-    val path = Path(dir)
+    val path = Path.fromString(dir)
     val tags = path / "tags.csv"
     val map = loadTags(tags)
     load(path / "sentences.csv", map)
