@@ -1,6 +1,5 @@
 package ws.kotonoha.server.util
 
-import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.dictionary.JMDictRecord
 import ws.kotonoha.server.japanese._
 import xml.NodeSeq
