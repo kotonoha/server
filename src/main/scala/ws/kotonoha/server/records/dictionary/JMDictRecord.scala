@@ -17,19 +17,17 @@
 package ws.kotonoha.server.records.dictionary
 
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
-import net.liftweb.record.field.{StringField, EnumField}
+import net.liftweb.record.field.StringField
 import net.liftweb.mongodb.record.field.{MongoListField, MongoCaseClassListField, BsonRecordListField, LongPk}
 import ws.kotonoha.server.mongodb.DictDatabase
 import net.liftweb.json.JsonAST.JObject
-import net.liftweb.json._
 import net.liftweb.mongodb.Limit
+import ws.kotonoha.akane.dict.jmdict.{Priority, LocString}
 
 /**
  * @author eiennohito
  * @since 14.04.12
  */
-
-case class LocString(str: String, loc: String)
 
 class JMDictMeaning extends BsonRecord[JMDictMeaning] {
   def meta = JMDictMeaning
@@ -39,8 +37,6 @@ class JMDictMeaning extends BsonRecord[JMDictMeaning] {
 }
 
 object JMDictMeaning extends JMDictMeaning with BsonMetaRecord[JMDictMeaning]
-
-case class Priority(value: String)
 
 class JMString extends BsonRecord[JMString] {
   def meta = JMString

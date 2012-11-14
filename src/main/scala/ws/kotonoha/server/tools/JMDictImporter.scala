@@ -16,11 +16,11 @@
 
 package ws.kotonoha.server.tools
 
-import ws.kotonoha.server.dict.JMDictParser
 import java.io.FileInputStream
 import ws.kotonoha.server.mongodb.MongoDbInit
-import ws.kotonoha.server.records.dictionary.JMDictRecord
+import ws.kotonoha.server.records.dictionary.{JMString, JMDictMeaning, JMDictRecord}
 import com.mongodb.BasicDBObject
+import ws.kotonoha.akane.dict.jmdict.{JMDictParser, JMString => PJMS}
 
 /**
  * @author eiennohito
@@ -30,14 +30,31 @@ import com.mongodb.BasicDBObject
 object JMDictImporter {
   import resource._
 
+  def jmstring(in: PJMS): JMString = {
+    val jms = JMString.createRecord
+    jms.priority(in.priority)
+    jms.value(in.value)
+  }
+
   def main(args: Array[String]) = {
     val name = args(0)
     MongoDbInit.init()
     JMDictRecord.delete(new BasicDBObject()) //delete all
     for (input <- managed(new FileInputStream(name))) {
       val entries = JMDictParser.parse(input)
+      val enrecs = entries map (e => {
+        val rec = JMDictRecord.createRecord
+        rec.id(e.id)
+        rec.meaning(e.meaning.map(m => {
+          val mn = JMDictMeaning.createRecord
+          mn.info(m.info)
+          mn.vals(m.vals)
+        }))
+        rec.reading(e.reading.map(jmstring(_)))
+        rec.writing(e.writing.map(jmstring(_)))
+      })
       //val data = entries.slice(0, 20).toArray
-      entries.foreach(_.save)
+      enrecs.foreach(_.save)
     }
   }
 

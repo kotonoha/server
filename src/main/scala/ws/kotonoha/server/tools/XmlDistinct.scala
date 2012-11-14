@@ -18,8 +18,8 @@ package ws.kotonoha.server.tools
 
 import java.io.FileInputStream
 import javax.xml.stream.XMLInputFactory
-import ws.kotonoha.server.xml.{XmlERef, XmlText, XmlParser, WhitespaceFilter}
 import collection.immutable.HashSet
+import ws.kotonoha.akane.xml.{XmlParser, XmlERef, WhitespaceFilter}
 
 /**
  * @author eiennohito
