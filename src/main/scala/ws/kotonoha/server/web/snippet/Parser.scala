@@ -24,7 +24,7 @@ import java.util.{ArrayList => JList}
 import net.java.sen.dictionary.Token
 import scala.collection.JavaConversions._
 import xml.{Elem, NodeSeq}
-import ws.kotonoha.akane.mecab.MecabParser
+import ws.kotonoha.akane.mecab.{InfoExtractor, MecabParser}
 import ws.kotonoha.server.util.Strings
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.akane.ParsedQuery
@@ -55,9 +55,12 @@ object Parser extends Akka with ReleaseAkka {
     val items = p.parse(s)
     <tr><td colspan="6"><b>Mecab</b></td></tr> ++
     items.flatMap(i => {
+      val ai = InfoExtractor.parseInfo(i)
       <tr>
         <td>{i.surf}</td>
-        <td colspan="5">{Strings.substr(i.info, 60)}</td>
+        <td colspan="3">{Strings.substr(i.info, 60)}</td>
+        <td>{ai.dicReading.getOrElse("-")}</td>
+        <td>{ai.dicWriting.getOrElse("-")}</td>
       </tr>
     })
   }
