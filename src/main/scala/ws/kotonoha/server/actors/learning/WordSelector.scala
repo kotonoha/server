@@ -130,14 +130,21 @@ class WordSelector extends Actor with ActorLogging with RootActor {
       val dest = sender
       f onComplete {
         case Right(cards) =>
-          val wIds = cards map (_.word.is)
-          val words = WordRecord where (_.id in wIds) fetch()
-          dest ! WordsAndCards(words, cards)
+          dest ! createResult(cards)
         case Left(thr) =>
           log.error(thr, "Error in sending stuff")
           dest ! thr
       }
     }
+  }
+
+  def createResult(cards: List[WordCardRecord]): WordsAndCards = {
+    val wIds = cards map (_.word.is)
+    val words = WordRecord where (_.id in wIds) fetch()
+    val wids = words.map(_.id.is).toSet
+    val (present, absent) = cards.partition(c => wids.contains(c.word.is))
+    absent.foreach(_.delete_!)
+    WordsAndCards(words, present)
   }
 }
 
