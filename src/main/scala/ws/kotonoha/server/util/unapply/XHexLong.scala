@@ -14,30 +14,35 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.util
+package ws.kotonoha.server.util.unapply
+
+import net.liftweb.util.ControlHelpers._
+import ws.kotonoha.server.util.ParseUtil
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
- * @since 19.04.12
+ * @since 03.12.12 
  */
-
-package object unapply {
-  import net.liftweb.util.ControlHelpers.tryo
-
-  object XHexLong {
-    def unapply(s: String): Option[Long] = {
-      tryo {
-        ParseUtil.hexLong(s)
-      }
+object XHexLong {
+  def unapply(s: String): Option[Long] = {
+    tryo {
+      ParseUtil.hexLong(s)
     }
   }
+}
 
-  object XLong {
-    def unapply(s: String): Option[Long] = tryo { s.toLong }
+object XLong {
+  def unapply(s: String): Option[Long] = tryo { s.toLong }
+}
+
+object XInt {
+  def unapply(s: String): Option[Int] = tryo { s.toInt }
+}
+
+object XOid {
+  def unapply(s: String): Option[ObjectId] = {
+    if (ObjectId.isValid(s)) Some(new ObjectId(s))
+    else None
   }
-
-  object XInt {
-    def unapply(s: String): Option[Int] = tryo { s.toInt }
-  }
-
 }

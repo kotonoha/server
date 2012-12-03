@@ -6,28 +6,23 @@ package bootstrap.liftweb
  */
 
 import net.liftweb._
-import common.Full
-import http.Html5Properties
-import sitemap.Loc.If
 import util._
 import Helpers._
 
 import common._
 import http._
-import provider.HTTPCookie
 import sitemap._
 import Loc._
 import ws.kotonoha.server.actors.ReleaseAkkaMain
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.web.rest._
+import admin.OFHistory
 import model.Words
 import ws.kotonoha.server.actors.lift.Ping
 import com.weiglewilczek.slf4s.Logging
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import ws.kotonoha.server.web.snippet.ClasspathResource
-import java.net.URI
-import ws.kotonoha.akane.mecab.MecabInit
 import org.bridj.Pointer
 import mecab.MecabLibrary
 
@@ -62,7 +57,8 @@ class Boot extends Logging {
       Menu.i("Access list") / "admin" / "access",
       Menu.i("Configuration") / "admin" / "config",
       Menu.i("Debug") / "admin" / "debug",
-      Menu.i("Global learning") / "admin" / "learning"
+      Menu.i("Global learning") / "admin" / "learning",
+      Menu.i("OF history") / "admin" / "ofhistory"
     )
 
     def sitemap = {
@@ -105,18 +101,19 @@ class Boot extends Logging {
     // each page, just comment this line out.
     LiftRules.setSiteMapFunc(() => sitemapMutators(sitemap))
 
-    LiftRules.statelessDispatchTable.append(Learning)
-    LiftRules.statelessDispatchTable.append(QrRest)
-    LiftRules.statelessDispatchTable.append(new StatusApi)
+    LiftRules.statelessDispatch.append(Learning)
+    LiftRules.statelessDispatch.append(QrRest)
+    LiftRules.statelessDispatch.append(new StatusApi)
 
+    LiftRules.dispatch.append(Words)
     LiftRules.dispatch.append(Stats)
     LiftRules.dispatch.append(Grants)
     LiftRules.dispatch.append(Juman)
     LiftRules.dispatch.append(PersonalStats)
-    LiftRules.dispatch.append(Words)
+    LiftRules.dispatch.append(OFHistory)
 
     // Use jQuery 1.4
-    LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
+    LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQueryArtifacts
 
     //Show the spinny image when an Ajax call starts
     LiftRules.ajaxStart =
@@ -144,31 +141,5 @@ class Boot extends Logging {
     LiftRules.snippetDispatch.append(
       Map("cpres" -> ClasspathResource)
     )
-
-    //transform njs to ws/kotonoha/script/angular
-//    ResourceServer.rewrite({
-//      case "njs" :: xs => ".." :: "ws" :: "kotonoha" :: "script" :: "angular" :: xs
-//      case "cpres" :: xs => ".." :: xs
-//      case x if x.last.startsWith("glyphicons-halflings") => x
-//    })
-//
-//    LiftRules.getResource = name => {
-//      val r = LiftRules.defaultGetResource(name)
-//      r or (try {
-//        val uri = new URI(name)
-//        val path = uri.normalize().getPath
-//        val x = LiftRules.getClass.getResource(path)
-//        Box !! x
-//      } catch {
-//        case _ => Empty
-//      })
-//    }
-//
-//    //allow css, js and png from classpath
-//    ResourceServer.allow({
-//      case x if x.last.endsWith(".css") => true
-//      case x if x.last.endsWith(".js") => true
-//      case x if x.last.endsWith(".png") => true
-//    })
   }
 }

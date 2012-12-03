@@ -1,11 +1,10 @@
 package ws.kotonoha.server.util
 
-import net.liftweb.http.Req
 import net.liftweb.common.{Empty, Full}
+import unapply.XHexLong
 import ws.kotonoha.server.records.AppConfig
 import javax.crypto.KeyGenerator
 import net.liftweb.util.SecurityHelpers
-import ws.kotonoha.server.util.unapply.{XHexLong, XLong}
 
 /*
  * Copyright 2012 eiennohito
