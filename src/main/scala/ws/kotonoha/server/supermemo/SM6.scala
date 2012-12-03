@@ -173,7 +173,7 @@ class SM6(user: Long) extends Actor with ActorLogging {
     import akka.util.duration._
     val q = item.q
     val data = item.data
-    val mod = calculateMod(item.time, data.intervalStart.is, data.intervalEnd.is)
+    var mod = calculateMod(item.time, data.intervalStart.is, data.intervalEnd.is)
     val raw = if (q < 3.5) {
       data.lapse(data.lapse.is + 1)
       data.repetition(1)
@@ -183,6 +183,7 @@ class SM6(user: Long) extends Actor with ActorLogging {
       if (data.inertia.is < 1.0) {
         data.inertia(1.0)
         data.intervalLength(matrix(data.lapse.is, data.difficulty.is))
+        mod = 1.0
       }
       data.repetition(data.repetition.is + 1)
       val oldI = data.intervalLength.is
