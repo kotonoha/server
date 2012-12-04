@@ -39,6 +39,12 @@ object ResponseUtil {
       case _ => false
     }
   }
+
+  def stripLift(x: JValue) = {
+    x transform {
+      case JObject(JField("$dt" | "$oid", JString(s)) :: Nil) => JString(s)
+    }
+  }
   
   implicit def list2JList[T <: MongoRecord[T]](lst: List[T]) : JArray = {
     lst map { _.asJValue }

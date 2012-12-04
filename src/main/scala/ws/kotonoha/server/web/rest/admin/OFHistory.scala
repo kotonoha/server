@@ -25,6 +25,7 @@ import net.liftweb.common.{Empty, Full}
 import ws.kotonoha.server.util.unapply.XOid
 import ws.kotonoha.server.supermemo.MatrixDiffCalculator
 import net.liftweb.json.{DefaultFormats, Extraction}
+import ws.kotonoha.server.util.ResponseUtil
 
 /**
  * @author eiennohito
@@ -44,15 +45,25 @@ object OFHistory extends KotonohaRest with ReleaseAkka {
       val to = DateTime.now()
 
       val ents = OFArchiveRecord where (_.timestamp between(from, to)) select(_.user, _.id, _.timestamp)
-      val res = ents.orderAsc(_.user).andAsc(_.timestamp).fetch()
+      val oars = ents.orderAsc(_.user).andAsc(_.timestamp).fetch()
 
-      val data = res.map {
-        case (u, id, ts) => {
-          val dt: DateTime = ts
-          ("user" -> u) ~ ("time" -> ts.toDate) ~ ("id" -> id)
+      val nfo = oars.groupBy(_._1)
+
+      val uids = oars.map(_._1).distinct
+      val users = UserRecord where (_.id in (uids)) select(_.id, _.email) fetch()
+
+      val ujs = users map {
+        case (uid, email) => {
+          val data = nfo(uid).map {
+             case (_, id, ts) => {
+               ("time" -> ts.toDate) ~ ("id" -> id)
+             }
+           }
+          ("user" -> uid) ~ ("email" -> email) ~ ("data" -> data)
         }
       }
-      Full(JsonResponse(data))
+
+      Full(JsonResponse(ResponseUtil.stripLift(ujs)))
     }
     case "compare" :: Nil JsonGet req => {
       val l = req.param("l")

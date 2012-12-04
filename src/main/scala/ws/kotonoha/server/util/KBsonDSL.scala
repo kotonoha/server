@@ -40,11 +40,11 @@ trait KBsonDSL extends JsonDSL {
 
   lazy val dateSaver = ISODateTimeFormat.basicDateTime()
 
-  implicit def objectid2jvalue(oid: ObjectId): JValue = JString(oid.toString)
+  implicit def objectid2jvalue(oid: ObjectId): JValue = BsonDSL.objectid2jvalue(oid)
   implicit def pattern2jvalue(p: Pattern): JValue = BsonDSL.pattern2jvalue(p)
   implicit def regex2jvalue(r: Regex): JValue = BsonDSL.regex2jvalue(r)
-  implicit def date2jvalue(d: Date): JValue = datetime2jvalue(new DateTime(d))
-  implicit def datetime2jvalue(d: DateTime) = JString(dateSaver.print(d))
+  implicit def date2jvalue(d: Date): JValue = BsonDSL.date2jvalue(d)(formats)
+  implicit def datetime2jvalue(d: DateTime) = date2jvalue(d.toDate)
   implicit def pairToOptionAssoc[A <% JValue](pair: (String, A)) = new JsonOptionAssoc(pair)
   implicit def jobjToOptionAssoc(obj: JObject) = new JsonListOptionAssoc(obj)
   implicit def typedFieldToJobjAssoc[A <% JValue](pair: (String, TypedField[A])) = pair._2.valueBox match {
