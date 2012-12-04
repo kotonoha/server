@@ -3,10 +3,11 @@ package ws.kotonoha.server.supermemo
 import ws.kotonoha.server.math.MathUtil
 import ws.kotonoha.server.util.DateTimeUtils
 import org.joda.time.{Duration, DateTime}
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.{Props, ActorLogging, Actor}
 import ws.kotonoha.server.records._
-import com.weiglewilczek.slf4s.Logging
-import scala.Some
+import akka.pattern.ask
+import akka.dispatch.Await
+import akka.util.Timeout
 
 /*
  * Copyright 2012 eiennohito
@@ -30,111 +31,11 @@ import scala.Some
  */
 
 case class ItemUpdate(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long, card: Long)
-case class UpdateMatrixElement(rep: Int, diff: Double, v: Double)
-
-class OFMatrixHolder(user: Long) extends Logging {
-  import com.foursquare.rogue.Rogue._
-  import MathUtil.round
-  import DateTimeUtils._
-
-  case class MatrixCoordinate(rep: Int, diff: Double) {
-    def copyTo(in: OFElementRecord) = {
-      in.ef(diff).n(rep).matrix(matrix.id.is)
-    }
-  }
-
-  object Crd {
-    def apply(rep: Int, diff: Double) = new MatrixCoordinate(rep, round(diff, 1))
-  }
-
-  var lastSave = OFArchiveRecord where (_.user eqs user) orderDesc(_.timestamp) select(_.timestamp) get()
-
-  val matrix = OFMatrixRecord.forUser(user)
-
-  var elements: Map[MatrixCoordinate, OFElementRecord] = lookupElements(matrix)
-
-  def lookupElements(record: OFMatrixRecord) = {
-    val elems = OFElementRecord where (_.matrix eqs matrix.id.is) fetch()
-    elems.map{e => Crd(e.n.is, e.ef.is) -> e}.toMap
-  }
-
-  def apply(rep: Int, diff: Double) = {
-    elements.get(Crd(rep, diff)) match {
-      case Some(v) => v.value.is
-      case None => diff
-    }
-  }
-
-  def archive(): Unit = {
-    val items = elements map { case (p, v) => OFElement(p.rep, p.diff, v.value.is) }
-    val ofar = OFArchiveRecord.createRecord
-    ofar.elems(items.toList.sortBy(_.diff).sortBy(_.rep))
-    ofar.matrix(matrix.id.is)
-    ofar.user(user)
-    ofar.timestamp(now)
-    ofar.save
-    lastSave = Some(now)
-  }
-
-  def checkArchive(): Unit = {
-    lastSave match {
-      case None => archive()
-      case Some(t) => {
-        val d = new Duration(t, now)
-        if (d.getStandardDays != 0) {
-          archive()
-        }
-      }
-    }
-  }
-
-  def update(rep: Int, diff: Double, value: Double): Unit = {
-    checkArchive()
-    val mc = Crd(rep, diff)
-    logger.debug("updating OF matrix element (%d, %f) to %f".format(mc.rep, mc.diff, value))
-    elements.get(mc) match {
-      case Some(el) => {
-        el.value(value)
-        val q = OFElementRecord where (_.id eqs el.id.is) modify (_.value setTo(value))
-        q.updateOne()
-      }
-      case None => {
-        val el = mc.copyTo(OFElementRecord.createRecord)
-        el.value(value)
-        el.save
-        elements += mc -> el
-      }
-    }
-  }
-}
 
 class SM6(user: Long) extends Actor with ActorLogging {
   import DateTimeUtils._
 
-  lazy val matrix = new OFMatrixHolder(user)
-
-  def updateMatrix(item: ItemUpdate, oldEf: Double, n: Int, oldN : Int) {
-    val il = item.data.intervalLength.is
-    val of = matrix(n, item.data.difficulty.is)
-    val oldOf = matrix(oldN, oldEf)
-    val q = item.q
-    val mod5 = 1.05 max  (il + 1) / il
-    val mod2 = 0.75 min  (il - 1) / il
-    
-    val mod = if (q > 4) {
-      1 + (mod5 - 1)*(q - 4)
-    } else {
-      1 - (1 - mod2) / 2 * (4 - q)
-    }
-    
-    val newof = oldOf * mod
-    
-    val change = (q > 4 && newof > of) || (q < 4 && newof < of)
-    if (change) {
-      val change = 1.2 max (of * 0.9 + newof * 0.1)
-      self ! UpdateMatrixElement(n, item.data.difficulty.is, change)
-    }
-  }
+  lazy val mactor = context.actorOf(Props(new OFMatrixActor(user)))
 
   //F(0) = 0
   //F(0.25) = 0.5
@@ -169,8 +70,15 @@ class SM6(user: Long) extends Actor with ActorLogging {
     i * p
   }
 
+  import akka.util.duration._
+
+  def matrix(rep: Int, ef: Double): Double = {
+    implicit val timeout: Timeout = 5 seconds
+    val f = (mactor ? MatrixValue(rep, ef)).mapTo[ValueResponse]
+    Await.result(f, 5 seconds).v
+  }
+
   def updateLearningItem(item: ItemUpdate) {
-    import akka.util.duration._
     val q = item.q
     val data = item.data
     var mod = calculateMod(item.time, data.intervalStart.is, data.intervalEnd.is)
@@ -225,7 +133,7 @@ class SM6(user: Long) extends Actor with ActorLogging {
 
     data.difficulty(ef)
     val n = data.repetition.is
-    updateMatrix(item, oldEf, n, if (n <= 1) 1 else n - 1)
+    mactor ! UpdateMatrix(item.card, q, item.data.intervalLength.is, item.data.repetition.is, oldEf)
     updateLearningItem(item)
     updateDates(item)
     data
@@ -242,6 +150,5 @@ class SM6(user: Long) extends Actor with ActorLogging {
   protected def receive = {
     case i: ItemUpdate => sender ! printE { update(i) }
     case TerminateSM6 => context.stop(self)
-    case UpdateMatrixElement(rep, diff, v) => matrix.update(rep, diff, v)
   }
 }
