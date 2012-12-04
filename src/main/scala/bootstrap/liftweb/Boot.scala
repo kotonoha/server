@@ -36,10 +36,10 @@ class Boot extends Logging {
     MongoDbInit.init()
     RegisterJodaTimeConversionHelpers.register()
 
-    val c = Pointer.allocateByte()
+    /*val c = Pointer.allocateByte()
     c.set(0.toByte)
     val m = MecabLibrary.mecab_new2(c)
-    MecabLibrary.mecab_destroy(m)
+    MecabLibrary.mecab_destroy(m)*/
 
     //MecabInit.init()
     //LiftRules.unloadHooks.append(() => MecabInit.unload())

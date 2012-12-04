@@ -98,7 +98,7 @@ object Parser extends Akka with ReleaseAkka {
           "pos" -> w.getMorpheme.getPartOfSpeech
           )
         )
-        xml.reduce(_++_) ++ parseMecab(s) ++ parseJuman(s)
+        xml.reduce(_++_) /*++ parseMecab(s)*/ ++ parseJuman(s)
       }
       case _ => <br />
     }
