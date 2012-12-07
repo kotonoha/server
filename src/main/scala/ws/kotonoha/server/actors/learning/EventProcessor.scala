@@ -8,7 +8,7 @@ import akka.actor.{ActorRef, ActorLogging, Props, Actor}
 import ws.kotonoha.server.records.{WordCardRecord, ChangeWordStatusEventRecord, ItemLearningDataRecord, MarkEventRecord}
 import ws.kotonoha.server.actors.model.{ChangeWordStatus, ChangeCardEnabled, SchedulePaired}
 import ws.kotonoha.server.actors._
-import ws.kotonoha.server.supermemo.{SMParentActor, SM6, ItemUpdate}
+import ws.kotonoha.server.supermemo.{SMParentActor, SM6, ProcessMark}
 
 /*
  * Copyright 2012 eiennohito
@@ -94,7 +94,7 @@ class ChildProcessor extends Actor with ActorLogging with RootActor {
       case Some(card) => {
         saveMarkRecord(ev, card)
         sched ! SchedulePaired(card.word.is, card.cardMode.is)
-        val it = ItemUpdate(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
+        val it = ProcessMark(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
         val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord]
         val ur = cardF.map { l => {
           val c = card.learning(l)

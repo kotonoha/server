@@ -22,7 +22,7 @@ import ws.kotonoha.server.mongodb.MongoDbInit
 import net.liftweb.mongodb.record.MongoRecord
 import akka.testkit.{TestKit, TestActorRef}
 import akka.actor.ActorSystem
-import ws.kotonoha.server.supermemo.{ItemUpdate, SM6}
+import ws.kotonoha.server.supermemo.{ProcessMark, SM6}
 import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord}
 import akka.dispatch.Await
 import akka.util.Timeout
@@ -54,7 +54,7 @@ class SM6Test(syst: ActorSystem) extends TestKit(syst) with FreeSpec with Should
     val sm6 = TestActorRef(new SM6(-1L))
     "new cards are graded differently" in {
       withRec(WordCardRecord.createRecord) { card =>
-        val o = ItemUpdate(card.learning.is, 1.0, dtNow, -1, card.id.is)
+        val o = ProcessMark(card.learning.is, 1.0, dtNow, -1, card.id.is)
         val m = Await.result((sm6 ? o).mapTo[ItemLearningDataRecord], 5 seconds)
         m.difficulty.is should equal (1.96)
       }

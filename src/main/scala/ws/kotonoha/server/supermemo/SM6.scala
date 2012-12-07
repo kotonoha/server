@@ -30,12 +30,12 @@ import akka.util.Timeout
  * @since 30.01.12
  */
 
-case class ItemUpdate(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long, card: Long)
+case class ProcessMark(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long, card: Long)
 
 class SM6(user: Long) extends Actor with ActorLogging {
   import DateTimeUtils._
 
-  lazy val mactor = context.actorOf(Props(new OFMatrixActor(user)))
+  lazy val mactor = context.actorOf(Props(new OFMatrixActor(user, holder)))
 
   //F(0) = 0
   //F(0.25) = 0.5
@@ -72,13 +72,13 @@ class SM6(user: Long) extends Actor with ActorLogging {
 
   import akka.util.duration._
 
+  lazy val holder = new OFMatrixHolder(user)
+
   def matrix(rep: Int, ef: Double): Double = {
-    implicit val timeout: Timeout = 5 seconds
-    val f = (mactor ? MatrixValue(rep, ef)).mapTo[ValueResponse]
-    Await.result(f, 5 seconds).v
+    holder(rep, ef)
   }
 
-  def updateLearningItem(item: ItemUpdate) {
+  def updateLearningItem(item: ProcessMark) {
     val q = item.q
     val data = item.data
     var mod = calculateMod(item.time, data.intervalStart.is, data.intervalEnd.is)
@@ -104,7 +104,7 @@ class SM6(user: Long) extends Actor with ActorLogging {
     data.intervalLength(interval)
   }
 
-  def updateDates(item: ItemUpdate) {
+  def updateDates(item: ProcessMark) {
     val data = item.data
     val dur = MathUtil.dayToMillis (data.intervalLength.is)
     val begin = item.time
@@ -114,7 +114,7 @@ class SM6(user: Long) extends Actor with ActorLogging {
     data.intervalEnd(end)
   }
 
-  def update(item: ItemUpdate) : ItemLearningDataRecord = {
+  def update(item: ProcessMark) : ItemLearningDataRecord = {
     val q = item.q
     val data = item.data
     val oldEf = item.data.difficulty.is
@@ -133,7 +133,7 @@ class SM6(user: Long) extends Actor with ActorLogging {
 
     data.difficulty(ef)
     val n = data.repetition.is
-    mactor ! UpdateMatrix(item.card, q, item.data.intervalLength.is, item.data.repetition.is, oldEf)
+    mactor ! UpdateMatrix(item.card, q, item.data.intervalLength.is, n, oldEf)
     updateLearningItem(item)
     updateDates(item)
     data
@@ -148,7 +148,7 @@ class SM6(user: Long) extends Actor with ActorLogging {
   }
 
   protected def receive = {
-    case i: ItemUpdate => sender ! printE { update(i) }
+    case i: ProcessMark => sender ! printE { update(i) }
     case TerminateSM6 => context.stop(self)
   }
 }

@@ -92,7 +92,7 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
       val t = new Timer()
       val (json, req) = reqV
       async(userId) { id =>
-        val marks = json.children map (MarkEventRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox) map (_.user(id))
+        val marks = json.children flatMap (MarkEventRecord.fromJValue(_)) map (_.user(id))
         logger.info("posing %d marks for user %d".format(marks.length, id))
         val count = akkaServ.eventProcessor ? (ProcessMarkEvents(marks))
         count.mapTo[List[Int]] map {c => t.print(); Full(JsonResponse("values" -> Tr(c))) }
@@ -101,7 +101,7 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
 
     case List("add_words") JsonPost reqV => {
       val (json, req) = reqV
-      val add = json.children map (AddWordRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox) map (_.user(userId))
+      val add = json.children flatMap (AddWordRecord.fromJValue(_)) map (_.user(userId))
       JsonResponse("values" -> Tr(add.map {
         a => a.save
         1
@@ -110,7 +110,7 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
 
     case List("change_word_status") JsonPost reqV => {
       val (json, req) = reqV
-      val chs = json.children map (ChangeWordStatusEventRecord.fromJValue(_)) filterNot (_.isEmpty) map (_.openTheBox) map (_.user(userId))
+      val chs = json.children flatMap (ChangeWordStatusEventRecord.fromJValue(_)) map (_.user(userId))
       async(userId) { id =>
         val f = (akkaServ ? ProcessWordStatusEvent(chs)).mapTo[List[Int]]
         f.map {o => Full(JsonResponse("values" -> Tr(o)))}

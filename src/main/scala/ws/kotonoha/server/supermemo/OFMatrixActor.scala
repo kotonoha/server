@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.supermemo
 
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.{ActorRef, ActorLogging, Actor}
 import com.weiglewilczek.slf4s.Logging
 import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.server.records._
@@ -31,19 +31,14 @@ import ws.kotonoha.server.math.MathUtil
 
 
 
-case class DeferredUpdate(rep: Int, diff: Double, v: Double)
+case class MatrixElementUpdate(rep: Int, diff: Double, v: Double)
 case class UpdateMatrix(card: Long, mark: Double, interval: Double, curRep: Int, ef: Double)
-case class MatrixValue(rep: Int, ef: Double)
-case class ValueResponse(v: Double)
 
-class OFMatrixActor(user: Long) extends Actor with ActorLogging {
+class OFMatrixActor(user: Long, matrix: OFMatrixHolder) extends Actor with ActorLogging {
   protected def receive = {
-    case DeferredUpdate(rep, diff, v) => matrix.update(rep, diff, v)
+    case MatrixElementUpdate(rep, diff, v) => matrix.update(rep, diff, v)
     case o: UpdateMatrix => updateMatrix(o)
-    case MatrixValue(rep, ef) => sender ! ValueResponse(matrix(rep, ef))
   }
-
-  lazy val matrix = new OFMatrixHolder(user)
 
   import com.foursquare.rogue.Rogue._
 
@@ -112,7 +107,7 @@ class OFMatrixHolder(user: Long) extends Logging {
 
   val matrix = OFMatrixRecord.forUser(user)
 
-  var elements: Map[MatrixCoordinate, OFElementRecord] = lookupElements(matrix)
+  @volatile var elements: Map[MatrixCoordinate, OFElementRecord] = lookupElements(matrix)
 
   def lookupElements(record: OFMatrixRecord) = {
     val elems = OFElementRecord where (_.matrix eqs matrix.id.is) fetch()
@@ -155,7 +150,10 @@ class OFMatrixHolder(user: Long) extends Logging {
     logger.debug("updating OF matrix element (%d, %f) to %f".format(mc.rep, mc.diff, value))
     elements.get(mc) match {
       case Some(el) => {
-        el.value(value)
+        val dbo = el.asDBObject
+        val newinst = OFElementRecord.createRecord
+        newinst.setFieldsFromDBObject(dbo)
+        elements = elements.updated(mc, newinst)
         val q = OFElementRecord where (_.id eqs el.id.is) modify (_.value setTo(value))
         q.updateOne()
       }

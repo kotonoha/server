@@ -30,7 +30,7 @@ trait KotonohaRest extends RestHelper with Logging with Akka {
   import duration._
 
   lazy implicit val scheduler = akkaServ.context
-  lazy implicit val timeout = Timeout(5 seconds)
+  lazy implicit val timeout = Timeout(20 seconds)
 
   def async[Obj](param: Future[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
     RestContinuation.async({
@@ -42,7 +42,7 @@ trait KotonohaRest extends RestHelper with Logging with Akka {
           }
           case Right(v) => {
             val fut = f(v)
-            val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 10 seconds)
+            val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 20 seconds)
 
             fut onSuccess {
               case Full(r) => tCancel.cancel(); resp(r)
@@ -63,7 +63,7 @@ trait KotonohaRest extends RestHelper with Logging with Akka {
           }
           case Full(v) => {
             val fut = f(v)
-            val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 10 seconds)
+            val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 20 seconds)
 
             fut onSuccess {
               case Full(r) => tCancel.cancel(); resp(r)

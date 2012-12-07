@@ -51,10 +51,10 @@ class SMParentActor extends Actor {
 
   def time = System.currentTimeMillis()
 
-  val interval = (5 minutes).getMillis
+  val interval = (10 minutes).getMillis
 
   protected def receive = {
-    case i: ItemUpdate => {
+    case i: ProcessMark => {
       active.get(i.userId).getOrElse(createChildFor(i.userId)) forward (i)
       useTime += i.userId -> System.currentTimeMillis()
     }
