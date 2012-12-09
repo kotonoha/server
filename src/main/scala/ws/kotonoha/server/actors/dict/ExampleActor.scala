@@ -51,7 +51,11 @@ class ExampleActor extends Actor {
     case LoadExamples(eids) =>  {
       val ids = (eids flatMap (ei => List(ei.jap) ++ ei.other.map(_.right))).distinct
       val recs = (ExampleSentenceRecord where (_.id in ids) fetch() map (r => r.id.is -> r)).toMap
-      val objs = eids map { r => ExampleEntry(recs(r.jap), r.other.map(t => recs(t.right))) }
+      val objs = eids.flatMap( r => {
+        val exr = recs.get(r.jap)
+        val o = r.other.flatMap(t => recs.get(t.right))
+        exr.map(e => ExampleEntry(e, o))
+      })
       sender ! objs
     }
     case TranslationsWithLangs(ids, lang) => {
