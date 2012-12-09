@@ -20,7 +20,7 @@ import ws.kotonoha.server.web.rest.KotonohaRest
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import net.liftweb.http.{BadResponse, JsonResponse, ForbiddenResponse, Req}
 import ws.kotonoha.server.records.{MarkEventRecord, OFArchiveRecord, UserRecord}
-import org.joda.time.DateTime
+import org.joda.time.{Duration, DateTime}
 import net.liftweb.common.{Empty, Full}
 import ws.kotonoha.server.util.unapply.XOid
 import ws.kotonoha.server.supermemo.MatrixDiffCalculator
@@ -41,8 +41,8 @@ object OFHistory extends KotonohaRest with ReleaseAkka {
 
   serve(("api" / "admin" / "ofhistory") prefix {
     case Nil JsonGet r => {
-      val from = new DateTime(2012, 1, 1, 0, 0)
       val to = DateTime.now()
+      val from = now.minus(Duration.standardDays(40))
 
       val ents = OFArchiveRecord where (_.timestamp between(from, to)) select(_.user, _.id, _.timestamp)
       val oars = ents.orderAsc(_.user).andAsc(_.timestamp).fetch()
