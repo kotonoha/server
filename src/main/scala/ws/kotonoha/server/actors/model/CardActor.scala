@@ -25,14 +25,15 @@ import net.liftweb.common.Empty
 import ws.kotonoha.server.actors.{SaveRecord, RootActor, KotonohaMessage}
 import akka.util.Timeout
 import org.joda.time.ReadableDuration
+import org.bson.types.ObjectId
 
 trait CardMessage extends KotonohaMessage
-case class SchedulePaired(wordId: Long, cardType: Int) extends CardMessage
-case class ChangeCardEnabled(wordId: Long, status: Boolean) extends CardMessage
-case class RegisterCard(word: Long, userId: Long, cardMode: Int) extends CardMessage
-case class ClearNotBefore(card: Long) extends CardMessage
-case class ScheduleLater(card: Long, duration: ReadableDuration) extends CardMessage
-case class DeleteCardsForWord(word: Long)
+case class SchedulePaired(wordId: ObjectId, cardType: Int) extends CardMessage
+case class ChangeCardEnabled(wordId: ObjectId, status: Boolean) extends CardMessage
+case class RegisterCard(word: ObjectId, userId: ObjectId, cardMode: Int) extends CardMessage
+case class ClearNotBefore(card: ObjectId) extends CardMessage
+case class ScheduleLater(card: ObjectId, duration: ReadableDuration) extends CardMessage
+case class DeleteCardsForWord(word: ObjectId)
 
 class CardActor extends Actor with ActorLogging with RootActor {
   import akka.util.duration._

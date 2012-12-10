@@ -1,6 +1,6 @@
 package ws.kotonoha.server.mongodb.mapreduce
 
-import org.bson.types.Code
+import org.bson.types.{ObjectId, Code}
 import ws.kotonoha.server.util.DateTimeUtils
 import com.mongodb.{DBCollection, MapReduceCommand}
 import com.mongodb.MapReduceCommand.OutputType
@@ -57,7 +57,7 @@ class DateCounter {
     map
   }
 
-  def command(db: DBCollection, uid: Option[Long] = None) = {
+  def command(db: DBCollection, uid: Option[ObjectId] = None) = {
     implicit val formats = DefaultFormats
     import ws.kotonoha.server.util.KBsonDSL._
     val date = d(now.plus(10 days))

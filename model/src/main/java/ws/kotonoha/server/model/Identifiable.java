@@ -22,16 +22,16 @@ import com.j256.ormlite.field.DatabaseField;
  * @author eiennohito
  * @since 07.02.12
  */
-public class Identifiable {
+public abstract class Identifiable {
   @SerializedName("_id")
   @DatabaseField(id = true)
-  private long id;
+  private String id = Oid.createId();
 
-  public long getId() {
+  public String getId() {
     return id;
   }
 
-  public void setId(long id) {
+  public void setId(String id) {
     this.id = id;
   }
 }

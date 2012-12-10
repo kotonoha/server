@@ -8,6 +8,7 @@ import ws.kotonoha.server.records._
 import akka.pattern.ask
 import akka.dispatch.Await
 import akka.util.Timeout
+import org.bson.types.ObjectId
 
 /*
  * Copyright 2012 eiennohito
@@ -30,9 +31,9 @@ import akka.util.Timeout
  * @since 30.01.12
  */
 
-case class ProcessMark(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: Long, card: Long)
+case class ProcessMark(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: ObjectId, card: ObjectId)
 
-class SM6(user: Long) extends Actor with ActorLogging {
+class SM6(user: ObjectId) extends Actor with ActorLogging {
   import DateTimeUtils._
 
   lazy val mactor = context.actorOf(Props(new OFMatrixActor(user, holder)))

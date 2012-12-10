@@ -19,7 +19,7 @@ package ws.kotonoha.server.actors.learning
 import com.foursquare.rogue.Rogue
 import org.joda.time.DateTime
 import util.Random
-import ws.kotonoha.server.util.{ObjectRenderer, DateTimeUtils}
+import ws.kotonoha.server.util.DateTimeUtils
 import Rogue._
 import akka.pattern._
 import akka.util.duration._
@@ -28,9 +28,9 @@ import akka.actor.{ActorLogging, Props, Actor}
 import ws.kotonoha.server.records.{WordRecord, WordCardRecord}
 import ws.kotonoha.server.actors._
 import model.SchedulePaired
-import net.liftweb.json.JsonAST.{JValue, JObject}
+import net.liftweb.json.JsonAST.JObject
 import DateTimeUtils._
-import net.liftweb.mongodb.Limit
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -65,7 +65,7 @@ class WordSelector extends Actor with ActorLogging with RootActor {
   val loaderSched = context.actorOf(Props[CardLoader])
   val loaderNew = context.actorOf(Props[CardLoader])
 
-  def loadNewCards(userId: Long, max: Int, now: DateTime) = {
+  def loadNewCards(userId: ObjectId, max: Int, now: DateTime) = {
     if (max == 0) {
       Nil
     }
@@ -84,7 +84,7 @@ class WordSelector extends Actor with ActorLogging with RootActor {
     listF map {ls => selectCards(ls, max)}
   }
 
-  def forUser(userId: Long, max: Int) = {
+  def forUser(userId: ObjectId, max: Int) = {
     val now = new DateTime()
     val valid = WordCardRecord.enabledFor(userId) and
       (_.learning.subfield(_.intervalEnd) before now) and (_.notBefore before now) orderAsc
@@ -99,7 +99,7 @@ class WordSelector extends Actor with ActorLogging with RootActor {
     loadNewCards(userId, max - len, now) map (valid ++ _)
   }
 
-  def loadReviewList(user: Long, max: Int) {
+  def loadReviewList(user: ObjectId, max: Int) {
     import ws.kotonoha.server.util.KBsonDSL._
 
     val filter: JObject = ("notBefore" -> ("$lt" -> d(now))) ~
@@ -126,7 +126,7 @@ class WordSelector extends Actor with ActorLogging with RootActor {
       forUser(user, max) map (dest ! _)
     }
     case LoadWords(user, max) => {
-      val f = ask(self, LoadCards(user, max))(1 second).mapTo[List[WordCardRecord]]
+      val f = ask(self, LoadCards(user, max))(10 seconds).mapTo[List[WordCardRecord]]
       val dest = sender
       f onComplete {
         case Right(cards) =>
@@ -148,13 +148,13 @@ class WordSelector extends Actor with ActorLogging with RootActor {
   }
 }
 
-case class LoadScheduled(userId: Long, maxSched: Int)
-case class LoadNewCards(userId: Long, maxNew: Int)
-case class LoadCards(userId: Long, max: Int) extends SelectWordsMessage
-case class LoadWords(userId: Long, max: Int) extends SelectWordsMessage
+case class LoadScheduled(userId: ObjectId, maxSched: Int)
+case class LoadNewCards(userId: ObjectId, maxNew: Int)
+case class LoadCards(userId: ObjectId, max: Int) extends SelectWordsMessage
+case class LoadWords(userId: ObjectId, max: Int) extends SelectWordsMessage
 case class WordsAndCards(words: List[WordRecord], cards: List[WordCardRecord])
 
-case class LoadReviewList(userId: Long, max: Int) extends SelectWordsMessage
+case class LoadReviewList(userId: ObjectId, max: Int) extends SelectWordsMessage
 
 class CardLoader extends Actor {
   protected def receive = {

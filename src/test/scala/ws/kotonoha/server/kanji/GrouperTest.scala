@@ -33,7 +33,7 @@ class GrouperTest extends FunSuite with ShouldMatchers {
     println(res.oldKanji)
   }
 
-  test("tag bake") {
+  ignore("tag bake") {
     val path = "e:\\books\\no-tech\\japanese\\bakemonogatari\\[20070627] Bakemonogatari - 1\\text.txt"
     val inp = new FileInputStream(path)
     val r = new InputStreamReader(inp, "utf8")

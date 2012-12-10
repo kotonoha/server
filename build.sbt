@@ -64,13 +64,13 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.0" % "compile
 
 libraryDependencies += "com.weiglewilczek.slf4s" % "slf4s_2.9.1" % "1.0.7"
 
-libraryDependencies += "com.j256.ormlite" % "ormlite-jdbc" % "4.33" % "test"
+libraryDependencies += "com.j256.ormlite" % "ormlite-jdbc" % "4.42" % "test"
+
+libraryDependencies += "org.xerial" % "sqlite-jdbc" % "3.6.16" % "test"
 
 resolvers += "some weird japanese repo" at "http://dev.mwsoft.jp/repo/"
 
 libraryDependencies += "net.java.sen" % "lucene-gosen" % "2.1" exclude ("org.slf4j", "slf4j-jdk14")
-
-libraryDependencies += "com.h2database" % "h2" % "1.3.163" % "test"
 
 libraryDependencies += "com.google.zxing" % "javase" % "2.0"
 

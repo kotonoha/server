@@ -4,7 +4,7 @@ import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import ws.kotonoha.server.model.EventTypes
 import net.liftweb.record.field._
-import net.liftweb.mongodb.record.field.{MongoListField, LongRefField, LongPk}
+import net.liftweb.mongodb.record.field._
 
 /*
  * Copyright 2012 eiennohito
@@ -27,20 +27,20 @@ import net.liftweb.mongodb.record.field.{MongoListField, LongRefField, LongPk}
  * @since 30.01.12
  */
 
-trait EventRecord[OwnerType <: MongoRecord[OwnerType]] extends LongPk[OwnerType] { self : OwnerType =>
+trait EventRecord[OwnerType <: MongoRecord[OwnerType]] extends ObjectIdPk[OwnerType] { self : OwnerType =>
   protected def myType: Int
 
   object eventType extends IntField(this.asInstanceOf[OwnerType], myType)
   object datetime extends DateTimeField(this.asInstanceOf[OwnerType]) with DateJsonFormat
-  object user extends LongRefField(this.asInstanceOf[OwnerType], UserRecord)
+  object user extends ObjectIdRefField(this.asInstanceOf[OwnerType], UserRecord)
 }
 
-class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with LongPk[MarkEventRecord] with EventRecord[MarkEventRecord] {
+class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with ObjectIdPk[MarkEventRecord] with EventRecord[MarkEventRecord] {
   def meta = MarkEventRecord
 
   protected def myType = EventTypes.MARK
 
-  object card extends LongRefField(this, WordCardRecord)
+  object card extends ObjectIdRefField(this, WordCardRecord)
   object mode extends IntField(this)
   object mark extends DoubleField(this)
   object time extends DoubleField(this)
@@ -53,7 +53,7 @@ class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with LongPk
 
 object MarkEventRecord extends MarkEventRecord with MongoMetaRecord[MarkEventRecord] with NamedDatabase
 
-class AddWordRecord private() extends MongoRecord[AddWordRecord] with LongPk[AddWordRecord] with EventRecord[AddWordRecord] {
+class AddWordRecord private() extends MongoRecord[AddWordRecord] with ObjectIdPk[AddWordRecord] with EventRecord[AddWordRecord] {
   def meta = AddWordRecord
 
   protected def myType = EventTypes.ADD
@@ -67,11 +67,11 @@ class AddWordRecord private() extends MongoRecord[AddWordRecord] with LongPk[Add
 
 object AddWordRecord extends AddWordRecord with MongoMetaRecord[AddWordRecord] with NamedDatabase
 
-class ChangeWordStatusEventRecord private() extends MongoRecord[ChangeWordStatusEventRecord] with LongPk[ChangeWordStatusEventRecord] with EventRecord[ChangeWordStatusEventRecord] {
+class ChangeWordStatusEventRecord private() extends MongoRecord[ChangeWordStatusEventRecord] with ObjectIdPk[ChangeWordStatusEventRecord] with EventRecord[ChangeWordStatusEventRecord] {
   def meta = ChangeWordStatusEventRecord
 
   protected def myType = EventTypes.CHANGE_WORD_STATUS
-  object word extends LongRefField(this, WordRecord)
+  object word extends ObjectIdRefField(this, WordRecord)
   object toStatus extends EnumField(this, WordStatus)
 }
 

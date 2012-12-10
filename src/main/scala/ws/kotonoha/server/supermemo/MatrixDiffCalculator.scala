@@ -18,6 +18,7 @@ package ws.kotonoha.server.supermemo
 
 import ws.kotonoha.server.records.{MarkEventRecord, OFArchiveRecord}
 import org.joda.time.DateTime
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -45,7 +46,7 @@ object MatrixDiffCalculator {
     }}
   }
 
-  private def count(user: Long, beg: DateTime, end: DateTime) = {
+  private def count(user: ObjectId, beg: DateTime, end: DateTime) = {
     val marks = MarkEventRecord where (_.user eqs user) and (_.datetime between(beg, end))
     var map = Map[Crd, Array[Int]]().withDefault(c => new Array[Int](5))
     marks.foreach(m => {

@@ -5,7 +5,8 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource
 import com.j256.ormlite.dao.{Dao, DaoManager}
 import ws.kotonoha.server.util.DateTimeUtils
 import com.j256.ormlite.table.TableUtils
-import ws.kotonoha.server.model.learning.{ItemLearning, WordCard, Word}
+import ws.kotonoha.server.model.learning.{Example, ItemLearning, WordCard, Word}
+import com.j256.ormlite.db.SqliteDatabaseType
 
 /*
  * Copyright 2012 eiennohito
@@ -26,28 +27,26 @@ import ws.kotonoha.server.model.learning.{ItemLearning, WordCard, Word}
 
 class ModelOrmTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers with BeforeAndAfterAll {
   
-  val dbUrl = "jdbc:h2:mem:account"
-  val connSrc = new JdbcConnectionSource(dbUrl)  
-  val wordDao = DaoManager.createDao(connSrc, classOf[Word]).asInstanceOf[Dao[Word, Long]]
-  val cardDao = DaoManager.createDao(connSrc, classOf[WordCard]).asInstanceOf[Dao[Word, Long]]
+  val dbUrl = "jdbc:sqlite::memory:"
+  val connSrc = new JdbcConnectionSource(dbUrl, new SqliteDatabaseType)
+  val wordDao = DaoManager.createDao(connSrc, classOf[Word]).asInstanceOf[Dao[Word, String]]
+  val cardDao = DaoManager.createDao(connSrc, classOf[WordCard]).asInstanceOf[Dao[Word, String]]
   
   override def beforeAll {
     TableUtils.createTable(connSrc, classOf[Word])
     TableUtils.createTable(connSrc, classOf[WordCard])
     TableUtils.createTable(connSrc, classOf[ItemLearning])
+    TableUtils.createTable(connSrc, classOf[Example])
   }
   
   
   test("Word saves to db") {
-    
-
     val w = new Word
     w.setCreatedOn(DateTimeUtils.now)
-    w.setId(5)
     w.setMeaning("mean")
     wordDao.create(w)
 
-    val w2 = wordDao.queryForId(5)
+    val w2 = wordDao.queryForId(w.getId)
     w2.getMeaning should equal ("mean")
   }
 }

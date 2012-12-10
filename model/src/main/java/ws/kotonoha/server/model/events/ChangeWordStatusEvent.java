@@ -33,7 +33,7 @@ public class ChangeWordStatusEvent extends Event {
     super();
   }
 
-  ChangeWordStatusEvent(Long id, int status) {
+  ChangeWordStatusEvent(String id, int status) {
     this();
     wordId = id;
     toStatus = status;
@@ -45,7 +45,7 @@ public class ChangeWordStatusEvent extends Event {
 
   @DatabaseField
   @SerializedName("word")
-  private Long wordId;
+  private String wordId;
 
   @DatabaseField
   private Integer toStatus;
@@ -56,7 +56,7 @@ public class ChangeWordStatusEvent extends Event {
     return EventTypes.CHANGE_WORD_STATUS;
   }
 
-  public void setWordId(Long wordId) {
+  public void setWordId(String wordId) {
     this.wordId = wordId;
   }
 
@@ -64,7 +64,7 @@ public class ChangeWordStatusEvent extends Event {
     this.toStatus = toStatus;
   }
 
-  public Long getWordId() {
+  public String getWordId() {
     return wordId;
   }
 
@@ -72,7 +72,7 @@ public class ChangeWordStatusEvent extends Event {
     return toStatus;
   }
 
-  public static ChangeWordStatusEvent checkWord(Long id) {
+  public static ChangeWordStatusEvent checkWord(String id) {
     return new ChangeWordStatusEvent(id, STATUS_CHECK_WORD);
   }
 

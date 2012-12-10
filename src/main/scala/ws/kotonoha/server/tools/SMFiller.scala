@@ -28,6 +28,8 @@ import akka.util.duration._
 import akka.dispatch.{Future, Await}
 import akka.util.Timeout
 import ws.kotonoha.server.mongodb.MongoDbInit
+import org.bson.types.ObjectId
+import java.util
 
 /**
  * @author eiennohito
@@ -36,7 +38,7 @@ import ws.kotonoha.server.mongodb.MongoDbInit
 
 object SMFiller {
   import ws.kotonoha.server.util.DateTimeUtils._
-  val userId = -9059552006999633207L
+  val userId = new ObjectId(new util.Date(30), 50, 20)
 
   val akka = ReleaseAkkaMain
 

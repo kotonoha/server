@@ -23,6 +23,8 @@ import ws.kotonoha.server.records._
 import org.joda.time.Duration
 import scala.Some
 import ws.kotonoha.server.math.MathUtil
+import org.bson.types.ObjectId
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * @author eiennohito
@@ -32,9 +34,9 @@ import ws.kotonoha.server.math.MathUtil
 
 
 case class MatrixElementUpdate(rep: Int, diff: Double, v: Double)
-case class UpdateMatrix(card: Long, mark: Double, interval: Double, curRep: Int, ef: Double)
+case class UpdateMatrix(card: ObjectId, mark: Double, interval: Double, curRep: Int, ef: Double)
 
-class OFMatrixActor(user: Long, matrix: OFMatrixHolder) extends Actor with ActorLogging {
+class OFMatrixActor(user: ObjectId, matrix: OFMatrixHolder) extends Actor with ActorLogging {
   protected def receive = {
     case MatrixElementUpdate(rep, diff, v) => matrix.update(rep, diff, v)
     case o: UpdateMatrix => updateMatrix(o)
@@ -89,7 +91,7 @@ class OFMatrixActor(user: Long, matrix: OFMatrixHolder) extends Actor with Actor
   }
 }
 
-class OFMatrixHolder(user: Long) extends Logging {
+class OFMatrixHolder(user: ObjectId) extends Logging {
   import com.foursquare.rogue.Rogue._
   import DateTimeUtils._
 

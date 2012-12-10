@@ -11,7 +11,7 @@ libraryDependencies := Seq(
 
 libraryDependencies += "com.google.code.gson" % "gson" % "2.1" % "compile"
 
-libraryDependencies += "com.j256.ormlite" % "ormlite-core" % "4.33"
+libraryDependencies += "com.j256.ormlite" % "ormlite-core" % "4.42"
 
 libraryDependencies += "org.scribe" % "scribe" % "1.3.0"
 

@@ -30,7 +30,7 @@ import ws.kotonoha.server.records.{AuthCode, UserTokenRecord, ClientRecord}
 import com.google.gson.Gson
 import ws.kotonoha.server.rest.{AuthObject, KotonohaApi}
 import net.liftweb.json.{DefaultFormats, Printer, JsonAST, Extraction}
-
+import org.bson.types.ObjectId
 
 
 object OAuthBasedService extends OauthRestHelper {
@@ -130,9 +130,11 @@ class AuthTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     clnt.name("Test client").apiPrivate(randomHex()).apiPublic(randomHex())
   }
 
+  val oid = new ObjectId(12, 13, 14)
+
   val token = {
     val tok = UserTokenRecord.createRecord
-    tok.label("Test token").user(50L).tokenPublic(randomHex()).tokenSecret(randomHex())
+    tok.label("Test token").user(oid).tokenPublic(randomHex()).tokenSecret(randomHex())
   }
 
   override protected def beforeAll() {

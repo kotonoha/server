@@ -34,6 +34,7 @@ import ws.kotonoha.server.util.unapply.XHexLong
 import xml.{Text, NodeSeq, Node, Utility}
 import net.liftweb.json.JsonAST.{JField, JObject, JValue}
 import net.liftweb.http.js.JsCmds.SetHtml
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -41,14 +42,14 @@ import net.liftweb.http.js.JsCmds.SetHtml
  */
 
 case class RecieveJson(obj: JValue)
-case class RepeatUser(id: Long)
+case class RepeatUser(id: ObjectId)
 case class WebMark(card: String, mode: Int, time: Double, mark: Int, remaining: Int)
 case object UpdateNum
 
 trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   def self = this
   val root = akkaServ.root
-  var userId: Long = -1
+  var userId: ObjectId = null
   var count = 0
 
   def render = {
@@ -99,8 +100,8 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
       val addInfo = processWord(w.writing.stris, Some(w.reading.stris))
       val procInfo = addInfo map {nsString(_)} getOrElse ""
       ("writing" -> w.writing.stris) ~ ("reading" -> w.reading.stris) ~ ("meaning" -> w.meaning) ~
-      ("cid" -> c.id.is.toHexString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
-      ("additional" -> procInfo) ~ ("wid" -> c.word.is.toHexString)
+      ("cid" -> c.id.is.toString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
+      ("additional" -> procInfo) ~ ("wid" -> c.word.is.toString)
     })
     partialUpdate(Call("publish_new", jc(jr(data))).cmd)
   }
@@ -111,7 +112,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
       root ! LoadWords(userId, 15)
     }
     val me = MarkEventRecord.createRecord
-    val XHexLong(cid) = mark.card
+    val cid = new ObjectId(mark.card)
     me.card(cid).mark(mark.mark).mode(mark.mode).time(mark.time)
     me.user(userId)
     me.datetime(now)

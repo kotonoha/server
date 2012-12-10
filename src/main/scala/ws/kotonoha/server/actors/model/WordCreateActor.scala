@@ -39,6 +39,7 @@ import ws.kotonoha.server.actors.dict.ExampleIds
 import ws.kotonoha.server.actors.dict.SearchResult
 import ws.kotonoha.server.actors.dict.ExampleEntry
 import ws.kotonoha.akane.unicode.{KanaUtil, UnicodeUtil}
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -101,7 +102,7 @@ class WordCreateActor extends Actor with RootActor with ActorLogging {
         val onSave = new DefaultPromise[WordData]()
         val d: Duration = (15 minutes)
         context.system.scheduler.scheduleOnce(d)(() => onSave.tryComplete(Left(new TimeoutException)))
-        WordData(dicts, ex, createWord(dicts, ex), onSave)
+        WordData(dicts, ex, createWord(rec.user.is, dicts, ex), onSave)
       }
     }
   }
@@ -123,9 +124,9 @@ class WordCreateActor extends Actor with RootActor with ActorLogging {
     )
   }
 
-  def createWord(dictData: List[DictData], examples: List[ExampleForSelection]): WordRecord = {
+  def createWord(user: ObjectId, dictData: List[DictData], examples: List[ExampleForSelection]): WordRecord = {
     val rec = WordRecord.createRecord
-    rec.user(UserRecord.currentId).status(WordStatus.New).createdOn(now)
+    rec.user(user).status(WordStatus.New).createdOn(now)
 
 //    val exs = examples.map { e =>
 //      ExampleRecord.createRecord.id(e.id).example(e.ex).translation(e.translation.openOr(""))

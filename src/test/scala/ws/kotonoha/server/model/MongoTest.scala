@@ -29,6 +29,7 @@ import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.server.actors.ReleaseAkkaMain
 import ws.kotonoha.server.actors.model.{SchedulePaired, CardActor, RegisterWord}
 import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadWords, LoadCards}
+import org.bson.types.ObjectId
 
 
 trait MongoDb {
@@ -50,7 +51,6 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
 
   override def beforeAll() {
     user = UserRecord.createRecord.save
-    val l = Random.nextLong()
     WordCardRecord.createRecord
     WordRecord.createRecord
   }
@@ -91,7 +91,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     rec.learning(l)
     rec.save
 
-    val rec2 = WordCardRecord.find(rec.id.is).openTheBox
+    val rec2 = WordCardRecord.find(rec.id.is).openOrThrowException("Babah!")
     rec2.learning.valueBox.isEmpty should be (false)
   }
   
@@ -105,14 +105,14 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   }
   
   def saveWordAsync = {
-    implicit val timeout = Timeout(500 millis)
+    implicit val timeout = Timeout(2500 millis)
     val fut = ReleaseAkkaMain.root ? RegisterWord(createWord)
-    fut.mapTo[Long]
+    fut.mapTo[ObjectId]
   }
   
   def saveWord = {
     val fut = saveWordAsync
-    Await.result(fut, 500 milli)
+    Await.result(fut, 2500 milli)
   }
 
   test("word is being saved all right") {

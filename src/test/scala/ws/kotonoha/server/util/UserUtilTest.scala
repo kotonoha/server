@@ -21,6 +21,7 @@ import org.scalatest.FreeSpec
 import javax.crypto.KeyGenerator
 import ws.kotonoha.server.records.AppConfig
 import net.liftweb.common.Full
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -49,9 +50,10 @@ class UserUtilTest extends FreeSpec with ShouldMatchers {
     }
 
     "encrypts and decrypts uid" in {
-      val s = uu.cookieAuthFor(50L, "Firefox")
+      val oid = new ObjectId()
+      val s = uu.cookieAuthFor(oid, "Firefox")
       val id = uu.authByCookie(s, "Firefox")
-      id should equal (Full(50L))
+      id should equal (Full(oid))
     }
   }
 }

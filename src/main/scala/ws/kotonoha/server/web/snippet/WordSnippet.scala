@@ -32,7 +32,9 @@ import ws.kotonoha.server.model.CardMode
 import org.joda.time.Period
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.actors.model.{MarkForDeletion, ChangeWordStatus}
-import ws.kotonoha.server.util.unapply.XHexLong
+import ws.kotonoha.server.util.unapply.{XOid, XHexLong}
+import org.bson.types.ObjectId
+import net.liftweb.util.ControlHelpers.tryo
 
 /**
  * @author eiennohito
@@ -41,8 +43,8 @@ import ws.kotonoha.server.util.unapply.XHexLong
 
 object WordSnippet extends Akka with ReleaseAkka {
 
-  def wordId: Box[Long] = {
-    S.param("w") map (ParseUtil.hexLong(_))
+  def wordId: Box[ObjectId] = {
+    S.param("w") flatMap  (x => tryo { new ObjectId(x) })
   }
 
   object word extends RequestVar[Box[WordRecord]](wordId flatMap {WordRecord.find(_)})
@@ -205,7 +207,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
   def findIds(s: String) = {
     s.split('&') flatMap {
       _.split('=') match {
-        case Array(XHexLong(id), _) => Some(id)
+        case Array(XOid(id), _) => Some(id)
         case _ => None
       }
     }
@@ -216,21 +218,21 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
     def handler(s: String): JsCmd = {
       val ids = findIds(s)
       ids foreach { akkaServ ! ChangeWordStatus(_, WordStatus.ReviewWord) }
-      val data = JArray(ids.toList.map{ l => JString(l.toHexString) } )
+      val data = JArray(ids.toList.map{ l => JString(l.toString) } )
       val x = compact(render(data))
       JE.Call("update_data", JE.JsRaw(x), JE.Str("ReviewWord") ).cmd
     }
     def handler_delete(s: String): JsCmd = {
       val ids = findIds(s)
       ids foreach { akkaServ ! MarkForDeletion(_) }
-      val data = JArray(ids.toList.map{ l => JString(l.toHexString) } )
+      val data = JArray(ids.toList.map{ l => JString(l.toString) } )
       val x = compact(render(data))
       JE.Call("update_data", JE.JsRaw(x), JE.Str("Deleting") ).cmd
     }
     def handler_approveall(s: String): JsCmd = {
       val ids = findIds(s)
       ids foreach { akkaServ ! ChangeWordStatus(_, WordStatus.Approved) }
-      val data = JArray(ids.toList map { i => JString(i.toHexString) } )
+      val data = JArray(ids.toList map { i => JString(i.toString) } )
       val x = compact(render(data))
       JE.Call("update_data", JE.JsRaw(x), JE.Str("Approved")).cmd
     }
@@ -246,7 +248,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
   }
 
   def query : JObject = {
-    val init = ("user" -> UserRecord.currentId.openTheBox)
+    val init = ("user" -> UserRecord.currentId.openOrThrowException("Should never be empty here"))
     searchQuery match {
       case "" => init
       case q => {
@@ -280,18 +282,18 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
     import BindHelpers._
     import ws.kotonoha.server.util.DateTimeUtils._
 
-    def v(id: Long) =  {
-      val link = "row-%s".format(id.toHexString)
+    def v(id: ObjectId) =  {
+      val link = "row-%s".format(id.toString)
       AttrBindParam("row", Text(link), "id")
     }
 
     page.flatMap {i =>
       bind("word", in,
         v(i.id.is),
-        "selected" -> <input type="checkbox" name={i.id.is.toHexString} /> ,
+        "selected" -> <input type="checkbox" name={i.id.is.toString} /> ,
         "addeddate" -> Formatting.format(i.createdOn.is),
         "reading" -> i.reading.stris,
-        "writing" -> <a href={"detail?w="+ i.id.is.toHexString}>{i.writing.stris}</a>,
+        "writing" -> <a href={"detail?w="+ i.id.is.toString}>{i.writing.stris}</a>,
         "meaning" -> Strings.substr(i.meaning.is, 50),
         "status" -> i.status.is.toString
       )

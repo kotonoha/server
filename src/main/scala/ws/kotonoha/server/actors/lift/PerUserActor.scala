@@ -20,6 +20,7 @@ import akka.actor.{Actor, ActorRef}
 import akka.pattern.{ask, pipe}
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometMessage
 import net.liftweb.http.js.JsCmd
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -27,16 +28,16 @@ import net.liftweb.http.js.JsCmd
  */
 
 trait PerUserMessage extends NamedCometMessage
-case class RegisterPerUserActor(user: Long, actor: ActorRef) extends PerUserMessage
-case class DestroyActor(user: Long) extends PerUserMessage
-case class ForUser(user: Long, cmd: JsCmd) extends PerUserMessage
+case class RegisterPerUserActor(user: ObjectId, actor: ActorRef) extends PerUserMessage
+case class DestroyActor(user: ObjectId) extends PerUserMessage
+case class ForUser(user: ObjectId, cmd: JsCmd) extends PerUserMessage
 case class Bcast(cmd: JsCmd) extends PerUserMessage
 
 case class ExecJs(cmd: JsCmd)
 
 class PerUserActorSvc extends Actor {
 
-  val storage = new collection.mutable.HashMap[Long, ActorRef]
+  val storage = new collection.mutable.HashMap[ObjectId, ActorRef]
 
   protected def receive = {
     case RegisterPerUserActor(user, actor) => storage += user -> actor

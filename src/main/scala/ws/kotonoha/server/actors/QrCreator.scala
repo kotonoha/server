@@ -20,6 +20,7 @@ import ws.kotonoha.server.qr.QrRenderer
 import akka.actor.{ActorRef, Actor}
 import ws.kotonoha.server.records.QrEntry
 import akka.util.FiniteDuration
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -27,12 +28,12 @@ import akka.util.FiniteDuration
  */
 trait QrMessage extends KotonohaMessage
 
-case class CreateQr(user: Long, data: String) extends QrMessage
-case class CreateQrWithLifetime(user: Long, data: String, lifetime: FiniteDuration) extends QrMessage
+case class CreateQr(user: ObjectId, data: String) extends QrMessage
+case class CreateQrWithLifetime(user: ObjectId, data: String, lifetime: FiniteDuration) extends QrMessage
 
 
 class QrCreator extends Actor with RootActor {
-  def registerObj(s: String, user: Long): QrEntry = {
+  def registerObj(s: String, user: ObjectId): QrEntry = {
     val rend = new QrRenderer(s)
     val data = rend.toStream.toByteArray
     val obj = QrEntry.createRecord.user(user).content(s).binary(data)
@@ -40,12 +41,12 @@ class QrCreator extends Actor with RootActor {
     obj
   }
 
-  def createQr(user: Long, s: String) {
+  def createQr(user: ObjectId, s: String) {
     val obj: QrEntry = registerObj(s, user)
     sender ! obj
   }
 
-  def createQr(user: Long, s: String, period: FiniteDuration) {
+  def createQr(user: ObjectId, s: String, period: FiniteDuration) {
       val obj = registerObj(s, user)
       root ! RegisterLifetime(obj, period)
       sender ! obj

@@ -36,6 +36,7 @@ import ws.kotonoha.server.util.{Strings, LangUtil}
 import ws.kotonoha.server.util.parsing.AddStringParser
 import util.parsing.input.CharSequenceReader
 import ws.kotonoha.akane.unicode.UnicodeUtil
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -91,12 +92,17 @@ object AddWord extends Logging with Akka with ReleaseAkka {
   }
 
   def addField(in: NodeSeq): NodeSeq = {
+    val uid = UserRecord.currentId
     def process(d: List[Candidate]) = {
       logger.debug("trying to add words from " + d)
-      val opid = Random.nextLong()
+      val opid = uid.map(x => {
+        val lp = new ObjectId().getTimeSecond.toLong << 32
+        val rp = x.getInc ^ x.getTimeSecond ^ x.getMachine
+        lp | rp
+      }) getOrElse Random.nextLong()
       val recs = d.map(d => {
         val rec = AddWordRecord.createRecord
-        rec.writing(d.writing).meaning(d.meaning).reading(d.reading).processed(false).group(opid).user(UserRecord.currentId)
+        rec.writing(d.writing).meaning(d.meaning).reading(d.reading).processed(false).group(opid).user(uid)
         rec.save
       })
 

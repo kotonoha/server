@@ -23,6 +23,7 @@ import akka.util.duration._
 import akka.pattern.ask
 import akka.dispatch.{Future, Await}
 import ws.kotonoha.server.security.{Roles, GrantRecord}
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -31,10 +32,10 @@ import ws.kotonoha.server.security.{Roles, GrantRecord}
 
 trait SecurityMessage extends KotonohaMessage
 case object GetSecurityActor extends SecurityMessage
-case class CheckGrant(user: Long, role: String) extends SecurityMessage
-case class GrantStatus(user: Long, role: String, status: Boolean)
-case class GrantRole(user: Long, role: String) extends SecurityMessage
-case class RevokeRole(user: Long, role: String) extends SecurityMessage
+case class CheckGrant(user: ObjectId, role: String) extends SecurityMessage
+case class GrantStatus(user: ObjectId, role: String, status: Boolean)
+case class GrantRole(user: ObjectId, role: String) extends SecurityMessage
+case class RevokeRole(user: ObjectId, role: String) extends SecurityMessage
 
 class SecurityActor extends Actor {
   protected def receive = {
@@ -62,24 +63,24 @@ object GrantManager extends Akka with ReleaseAkka {
 
   implicit val timeout: Timeout = 5 seconds
 
-  def checkRole(user: Long, role: Roles.Role): Boolean = checkRole(user, role.toString)
+  def checkRole(user: ObjectId, role: Roles.Role): Boolean = checkRole(user, role.toString)
 
-  def checkRole(user: Long, role: String): Boolean = {
+  def checkRole(user: ObjectId, role: String): Boolean = {
     val f = checkRoleAsync(user, role)
     Await.result(f, 5 seconds)
   }
 
-  def checkRoleAsync(user: Long, role: String): Future[Boolean] = {
+  def checkRoleAsync(user: ObjectId, role: String): Future[Boolean] = {
     (actor ? CheckGrant(user, role)).mapTo[GrantStatus].map {
       _.status
     }
   }
 
-  def grantRole(user: Long, role: Roles.Role) = {
+  def grantRole(user: ObjectId, role: Roles.Role) = {
     actor ! GrantRole(user, role.toString)
   }
 
-  def revokeRole(user: Long, role: Roles.Role) = {
+  def revokeRole(user: ObjectId, role: Roles.Role) = {
     actor ! RevokeRole(user, role.toString)
   }
 }

@@ -93,7 +93,7 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
       val (json, req) = reqV
       async(userId) { id =>
         val marks = json.children flatMap (MarkEventRecord.fromJValue(_)) map (_.user(id))
-        logger.info("posing %d marks for user %d".format(marks.length, id))
+        logger.info("posing %d marks for user %s".format(marks.length, id))
         val count = akkaServ.eventProcessor ? (ProcessMarkEvents(marks))
         count.mapTo[List[Int]] map {c => t.print(); Full(JsonResponse("values" -> Tr(c))) }
       }      

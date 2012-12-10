@@ -17,7 +17,7 @@
 package ws.kotonoha.server.records
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.mongodb.record.field.{LongRefField, BsonRecordListField, MongoListField, LongPk}
+import net.liftweb.mongodb.record.field._
 import net.liftweb.record.field.{EnumField, DateTimeField, StringField}
 import net.liftweb.json.JsonAST._
 import ws.kotonoha.server.mongodb.NamedDatabase
@@ -26,6 +26,9 @@ import net.liftweb.json.JsonAST.JBool
 import net.liftweb.json.JsonAST.JObject
 import ws.kotonoha.server.mongodb.record.DelimitedStringList
 import ws.kotonoha.server.tools.JsonAstUtil
+import net.liftweb.json.JsonAST.JField
+import net.liftweb.json.JsonAST.JBool
+import net.liftweb.json.JsonAST.JObject
 
 object WordStatus extends Enumeration {
   type WordStatus = Value
@@ -41,7 +44,7 @@ object WordStatus extends Enumeration {
  * @author eiennohito
  * @since 18.10.12 
  */
-class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecord] with SequencedLongId[WordRecord] {
+class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordRecord] {
   def meta = WordRecord
 
   object writing extends DelimitedStringList(this, ",、･")
@@ -52,7 +55,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with LongPk[WordRecor
   object tags extends MongoListField[WordRecord, String](this)
 
   object examples extends BsonRecordListField(this, ExampleRecord)
-  object user extends LongRefField(this, UserRecord)
+  object user extends ObjectIdRefField(this, UserRecord)
 
   def stripped: JValue = {
     WordRecord.trimInternal(asJValue)
@@ -80,7 +83,7 @@ object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with Named
   }
 
   def myAll = {
-    WordRecord where (_.user eqs UserRecord.currentId.openTheBox)
+    WordRecord where (_.user eqs UserRecord.currentId.openOrThrowException("Impossible"))
   }
 
   def filterExamples(value: JValue) = {

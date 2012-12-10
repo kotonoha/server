@@ -17,7 +17,7 @@
 package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.field.LongPk
+import net.liftweb.mongodb.record.field.{ObjectIdPk, LongPk}
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import net.liftweb.record.field.{DateTimeField, StringField}
 import ws.kotonoha.server.util.DateTimeUtils._
@@ -29,7 +29,7 @@ import net.liftmodules.oauth.{OAuthNonce, OAuthNonceMeta}
  * @since 31.03.12
  */
 
-class NonceRecord private() extends MongoRecord[NonceRecord] with LongPk[NonceRecord] {
+class NonceRecord private() extends MongoRecord[NonceRecord] with ObjectIdPk[NonceRecord] {
   def meta = NonceRecord
 
   object consumerKey extends StringField(this, 32)

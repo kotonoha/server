@@ -16,25 +16,15 @@
 package ws.kotonoha.server.model.events;
 
 import com.j256.ormlite.field.DatabaseField;
-import ws.kotonoha.server.model.ormlite.DateTimePersister;
 import org.joda.time.DateTime;
+import ws.kotonoha.server.model.Identifiable;
+import ws.kotonoha.server.model.ormlite.DateTimePersister;
 
 /**
  * @author eiennohito
  * @since 07.02.12
  */
-public abstract class Event {
-
-  @DatabaseField(generatedId = true, columnDefinition = "INTEGER PRIMARY KEY AUTOINCREMENT")
-  private transient long id;
-
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
+public abstract class Event extends Identifiable {
   @DatabaseField(persisterClass = DateTimePersister.class)
   private DateTime datetime;
 

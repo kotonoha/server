@@ -44,7 +44,7 @@ object Common {
 object GlobalComet extends InsertNamedComet {
   def cometClass = "GlobalActor"
 
-  override def messages = ActorUser(UserRecord.currentId.openOr(0)) :: Nil
+  override def messages = UserRecord.currentId.map(p => ActorUser(p)).toList
 
   override def name = UserRecord.currentId map {u => "user"+u} openOr(super.name)
 }

@@ -34,12 +34,13 @@ import ws.kotonoha.server.actors.{SaveRecord, UpdateRecord}
 import net.liftweb.common.Full
 import scala.Right
 import ws.kotonoha.server.actors.model.WordData
-import net.liftweb.json.{Extraction, NoTypeHints, Serialization}
-import akka.dispatch.{Promise, Future}
+import net.liftweb.json.{DefaultFormats, Extraction, NoTypeHints, Serialization}
+import akka.dispatch.{ExecutionContext, Promise, Future}
 import ws.kotonoha.server.actors.interop.ParseSentence
 import ws.kotonoha.akane.ParsedQuery
 import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.akane.juman.JumanUtil
+import net.liftweb.json.ext.JodaTimeSerializers
 
 
 /**
@@ -69,6 +70,8 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
   private implicit val timeout = Timeout(10 seconds)
   private var list: Box[WordList] = Empty
   private var selector: WordDataCalculator = _
+
+  implicit val ec: ExecutionContext = akkaServ.context
 
   lazy val wordCreator = createActor(Props[WordCreateActor])
 
@@ -190,7 +193,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
       case _ => WordStatus.ReviewWord
     }
     val wid = jobj \ "_id" match {
-      case JInt(i) => i.toString(16)
+      case JString(id) => id
       case _ => ""
     }
     val wi = displaying.get(wid)
@@ -211,6 +214,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
   }
 
   def process(js: JValue): Unit = {
+    implicit val formats = DefaultFormats ++ JodaTimeSerializers.all
     (js \ "cmd") match {
       case JString("save") => {
         ((js \ "word"), (js \ "status")) match {
@@ -220,7 +224,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
       }
       case JString("skip") => {
         (js \ "wid") match {
-          case JInt(wid) => skipWord(wid.toString(16))
+          case JString(wid) => skipWord(wid)
           case _ => logger.info("Invalid skip command"); self ! PublishNext
         }
       }
@@ -268,10 +272,8 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
     }
   }
 
-  implicit val ec = akkaServ.context
-
   def renderAndPush(data: WordData) = {
-    val hid = data.word.id.is.toHexString
+    val hid = data.word.id.is.toString
     displaying = displaying + (hid -> data)
     data.onSave.onComplete { x => self ! RemoveItem(hid) }
 

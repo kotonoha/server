@@ -23,9 +23,10 @@ import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.security.{Roles, GrantRecord}
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.mongodb.{Skip, Limit}
-import ws.kotonoha.server.util.unapply.{XLong, XInt}
+import ws.kotonoha.server.util.unapply.{XOid, XLong, XInt}
 import ws.kotonoha.server.actors.GrantManager
 import ws.kotonoha.server.util.{SecurityUtil, UserUtil}
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -36,7 +37,7 @@ object Grants extends KotonohaRest with ReleaseAkka {
   import com.foursquare.rogue.Rogue._
   import ws.kotonoha.server.util.KBsonDSL._
 
-  def mergeRoles(user: Long, roles: String): Unit = {
+  def mergeRoles(user: ObjectId, roles: String): Unit = {
     val present =
       GrantRecord where (_.user eqs (user)) select (_.role) fetch() flatMap (Roles.safeRole(_)) toSet
     val got = roles split(",") map (_.trim) flatMap ( Roles.safeRole(_) ) toSet
@@ -71,7 +72,7 @@ object Grants extends KotonohaRest with ReleaseAkka {
       val uids = users map (_.id.is)
       val grants = GrantRecord where (_.user in (uids)) fetch()
 
-      def gnames(u: Long) = grants filter { _.user.is == u } map {_.role.is} mkString(",")
+      def gnames(u: ObjectId) = grants filter { _.user.is == u } map {_.role.is} mkString(",")
 
       val list = users map (u => {
         ("name" -> u.shortName) ~ ("roles" -> gnames(u.id.is)) ~ ("code" -> createModFn(u))
@@ -88,7 +89,7 @@ object Grants extends KotonohaRest with ReleaseAkka {
         case (Full(r), Full(c)) => {
           val key = UserUtil.serverKey
           val ids = SecurityUtil.decryptAes(c, key)
-          XLong.unapply(ids) foreach (mergeRoles(_, r))
+          XOid.unapply(ids) foreach (mergeRoles(_, r))
         }
         case _ => ///
       }

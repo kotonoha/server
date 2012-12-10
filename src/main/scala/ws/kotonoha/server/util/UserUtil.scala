@@ -1,10 +1,11 @@
 package ws.kotonoha.server.util
 
 import net.liftweb.common.{Empty, Full}
-import unapply.XHexLong
+import unapply.{XOid, XHexLong}
 import ws.kotonoha.server.records.AppConfig
 import javax.crypto.KeyGenerator
 import net.liftweb.util.SecurityHelpers
+import org.bson.types.ObjectId
 
 /*
  * Copyright 2012 eiennohito
@@ -33,7 +34,7 @@ trait UserUtilT {
   def authByCookie(encrypted: String, userAgent: String) = {
     val str = SecurityUtil.decryptAes(encrypted, serverKey)
     str.split("\\|") match {
-      case Array(XHexLong(time), XHexLong(uid), ua) => {
+      case Array(XHexLong(time), XOid(uid), ua) => {
         val iua = SecurityHelpers.md5(userAgent)
         if (time > System.currentTimeMillis() && ua.equals(iua))
           Full(uid)
@@ -43,10 +44,10 @@ trait UserUtilT {
     }
   }
 
-  def cookieAuthFor(uid: Long, userAgent: String) = {
+  def cookieAuthFor(uid: ObjectId, userAgent: String) = {
     val date = DateTimeUtils.now.plusMonths(1).getMillis
     val ua = SecurityHelpers.md5(userAgent)
-    val s = "%x|%x|%s".format(date, uid, ua)
+    val s = "%x|%s|%s".format(date, uid.toString, ua)
     SecurityUtil.encryptAes(s, serverKey)
   }
 

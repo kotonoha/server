@@ -1,7 +1,7 @@
 package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.field.LongPk
+import net.liftweb.mongodb.record.field.{ObjectIdPk, LongPk}
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import net.liftweb.record.field.StringField
 
@@ -25,7 +25,7 @@ import net.liftweb.record.field.StringField
  * @since 21.02.12
  */
 
-class InviteRecord private() extends MongoRecord[InviteRecord] with LongPk[InviteRecord] {
+class InviteRecord private() extends MongoRecord[InviteRecord] with ObjectIdPk[InviteRecord] {
   def meta = InviteRecord
 
   object key extends StringField(this, 32)

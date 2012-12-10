@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.records
 
-import net.liftweb.mongodb.record.field.LongPk
+import net.liftweb.mongodb.record.field.{ObjectIdPk, LongPk}
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import ws.kotonoha.server.actors.LifetimeObjects
@@ -27,7 +27,7 @@ import net.liftweb.record.field.{DateTimeField, EnumField, LongField}
  * @since 24.03.12
  */
 
-class LifetimeObj private() extends MongoRecord[LifetimeObj] with LongPk[LifetimeObj] {
+class LifetimeObj private() extends MongoRecord[LifetimeObj] with ObjectIdPk[LifetimeObj] {
   def meta = LifetimeObj
 
   object obj extends LongField(this)

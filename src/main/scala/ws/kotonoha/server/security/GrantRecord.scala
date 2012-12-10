@@ -18,9 +18,10 @@ package ws.kotonoha.server.security
 
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.mongodb.record.field.LongPk
+import net.liftweb.mongodb.record.field.{ObjectIdField, LongPk}
 import net.liftweb.record.field.{StringField, LongField}
 import com.mongodb.casbah.commons.MongoDBObject
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -30,17 +31,17 @@ import com.mongodb.casbah.commons.MongoDBObject
 class GrantRecord private() extends MongoRecord[GrantRecord] with LongPk[GrantRecord] {
   def meta = GrantRecord
 
-  object user extends LongField[GrantRecord](this)
+  object user extends ObjectIdField(this)
   object role extends StringField(this, 50)
 }
 
 object GrantRecord extends GrantRecord with MongoMetaRecord[GrantRecord] with NamedDatabase {
   import com.foursquare.rogue.Rogue._
-  def revokeRole(user: Long, role: String): Unit = {
+  def revokeRole(user: ObjectId, role: String): Unit = {
     GrantRecord where (_.user eqs (user)) and (_.role eqs (role)) bulkDelete_!!()
   }
 
-  def haveGrant(user: Long, role: String) = {
+  def haveGrant(user: ObjectId, role: String) = {
     val cnt = GrantRecord where (_.user eqs (user)) and (_.role eqs (role)) count()
     cnt != 0
   }

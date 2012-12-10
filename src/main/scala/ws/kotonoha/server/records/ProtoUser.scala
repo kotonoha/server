@@ -32,7 +32,7 @@ import net.liftweb.mongodb.record.{MongoRecord, MongoId, MongoMetaRecord}
 import _root_.net.liftweb.json.JsonDSL._
 
 import net.liftweb.record.field._
-import net.liftweb.mongodb.record.field.{LongPk, MongoPasswordField}
+import net.liftweb.mongodb.record.field.{ObjectIdPk, LongPk, MongoPasswordField}
 
 trait UserIdAsString {
   def userIdAsString: String
@@ -41,7 +41,7 @@ trait UserIdAsString {
  * ProtoUser is a base class that gives you a "User" that has a first name,
  * last name, email, etc.
  */
-trait ProtoUser[T <: ProtoUser[T]] extends MongoRecord[T] with UserIdAsString with LongPk[T] {
+trait ProtoUser[T <: ProtoUser[T]] extends MongoRecord[T] with UserIdAsString with ObjectIdPk[T] {
   self: T =>
 
   /**

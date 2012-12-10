@@ -36,8 +36,8 @@ public class WordCard extends Identifiable {
   @DatabaseField(persisterClass = DateTimePersister.class)
   private transient DateTime gotOn;
   @DatabaseField
-  private long word;
-  @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true)
+  private String word;
+  @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true, canBeNull = false)
   private ItemLearning learning;
   @DatabaseField
   private transient int status = 0;
@@ -75,11 +75,11 @@ public class WordCard extends Identifiable {
     this.learning = learning;
   }
 
-  public long getWord() {
+  public String getWord() {
     return word;
   }
 
-  public void setWord(long word) {
+  public void setWord(String word) {
     this.word = word;
   }
 

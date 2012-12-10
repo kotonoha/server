@@ -34,7 +34,7 @@ object Repeat extends Akka with ReleaseAkka {
 object RepeatActorSnippet extends InsertNamedComet {
   def cometClass = "RepeatActor"
 
-  override def messages = RepeatUser(UserRecord.currentId.getOrElse(-1L)) :: Nil
+  override def messages = RepeatUser(UserRecord.currentId.openOrThrowException("No logged in user")) :: Nil
 
   override def name = UserRecord.currentUserId openOr(Helpers.nextFuncName)
 }

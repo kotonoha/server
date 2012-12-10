@@ -20,18 +20,19 @@ import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import ws.kotonoha.server.actors.lift.{ExecJs, DestroyActor, RegisterPerUserActor, AkkaInterop}
 import com.weiglewilczek.slf4s.Logging
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
  * @since 11.07.12
  */
 
-case class ActorUser(user: Long)
+case class ActorUser(user: ObjectId)
 
 class GlobalActor extends NamedCometActor with AkkaInterop with Logging with ReleaseAkka {
   def render = defaultHtml
 
-  var user = 0L
+  var user = new ObjectId()
 
   override def localShutdown {
     if (user != 0L) {

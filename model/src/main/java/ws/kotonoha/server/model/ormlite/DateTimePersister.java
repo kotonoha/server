@@ -43,7 +43,13 @@ public class DateTimePersister extends BaseDataType {
 	public Object parseDefaultString(FieldType fieldType, String defaultStr) throws SQLException {
 		throw new SQLException("Default string doesn't work");
 	}
-	@Override
+
+  @Override
+  public Object resultToSqlArg(FieldType fieldType, DatabaseResults results, int columnPos) throws SQLException {
+    return results.getLong(columnPos);
+  }
+
+  @Override
 	public Object resultToJava(FieldType fieldType, DatabaseResults results, int columnPos) throws SQLException {
 		Long value = results.getLong(columnPos);
 		return sqlArgToJava(fieldType, value, columnPos);

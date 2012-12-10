@@ -14,6 +14,7 @@ import net.liftweb.json.JsonAST.JObject
 import net.liftweb.common.Full
 import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JBool
+import org.bson.types.ObjectId
 
 /*
 * Copyright 2012 eiennohito
@@ -67,15 +68,15 @@ trait TextAreaHtml {
 
 }
 
-class WordCardRecord private() extends MongoRecord[WordCardRecord] with LongPk[WordCardRecord] {
+class WordCardRecord private() extends MongoRecord[WordCardRecord] with ObjectIdPk[WordCardRecord] {
   def meta = WordCardRecord
 
   object cardMode extends IntField(this)
-  object word extends LongRefField(this, WordRecord)
+  object word extends ObjectIdRefField(this, WordRecord)
   object learning extends BsonRecordField(this, ItemLearningDataRecord, Empty) {
     override def required_? = false
   }
-  object user extends LongRefField(this, UserRecord)
+  object user extends ObjectIdRefField(this, UserRecord)
   object createdOn extends DateTimeField(this) with DateJsonFormat
   object notBefore extends OptionalDateTimeField(this, Empty) with DateJsonFormat
   object enabled extends BooleanField(this, true)
@@ -84,7 +85,7 @@ class WordCardRecord private() extends MongoRecord[WordCardRecord] with LongPk[W
 object WordCardRecord extends WordCardRecord with MongoMetaRecord[WordCardRecord] with NamedDatabase {
   import com.foursquare.rogue.Rogue._
 
-  def enabledFor(id: Long) = {
+  def enabledFor(id: ObjectId) = {
     this where (_.user eqs id) and (_.enabled eqs true)
   }
 }

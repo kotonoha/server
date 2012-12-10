@@ -19,19 +19,20 @@ package ws.kotonoha.server.actors
 import akka.actor.Actor
 import ws.kotonoha.server.records.UserTokenRecord
 import ws.kotonoha.server.util.SecurityUtil
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
  * @since 25.03.12
  */
 
-case class CreateTokenForUser(user: Long, label: String) extends TokenMessage
+case class CreateTokenForUser(user: ObjectId, label: String) extends TokenMessage
 
 class UserTokenActor extends Actor with RootActor {
 
   def randomHex(bytes: Int = 16) = SecurityUtil.randomHex(bytes)
 
-  def createToken(user: Long, label: String) {
+  def createToken(user: ObjectId, label: String) {
     val token = UserTokenRecord.createRecord.
         user(user).label(label)
     val tokenPrivate = randomHex(16)

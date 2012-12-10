@@ -3,13 +3,15 @@ package ws.kotonoha.server.records
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import net.liftweb.common.Full
-import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
+import net.liftweb.mongodb.record.field._
 import net.liftweb.util.FieldError
 import net.liftmodules.oauth.OAuthConsumer
 import net.liftweb.record.field.{DateTimeField, EnumField, StringField}
 import ws.kotonoha.server.util.{UserUtil, DateTimeUtils}
 import net.liftweb.http.S
 import net.liftweb.http.provider.HTTPCookie
+import org.bson.types.ObjectId
+import net.liftweb.common.Full
 
 /*
  * Copyright 2012 eiennohito
@@ -46,6 +48,9 @@ class UserRecord private() extends MegaProtoUser[UserRecord] {
   object username extends StringField(this, 50) {
     override def uniqueFieldId = Full("username")
   }
+
+  object regDate extends DateTimeField(this) with DateJsonFormat
+
   object apiPublicKey extends StringField(this, 32)
   object apiPrivateKey extends StringField(this, 32)
   object invite extends StringField(this, 32) {
@@ -82,14 +87,15 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
 
   override def skipEmailValidation = true
 
-  def currentId = currentUserId map {_.toLong}
+  def currentId = currentUserId map { new ObjectId(_) }
 
   override protected def userFromStringId(id: String) = currentId.flatMap(find(_))
 
   private val authCookie = "koto-auth"
 
   private def deleteCookie() {
-    val cook = HTTPCookie(authCookie, "").setPath(S.contextPath)
+    val p = if (S.contextPath == "") "/" else S.contextPath
+    val cook = HTTPCookie(authCookie, "").setPath(p)
     S.deleteCookie(cook)
   }
 
@@ -115,9 +121,10 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
     updateCookie(u.id.is)
   })
 
-  def updateCookie(id: Long) {
+  def updateCookie(id: ObjectId) {
     val s = UserUtil.cookieAuthFor(id, S.request.flatMap(_.userAgent).openOr("none"))
-    S.addCookie(HTTPCookie(authCookie, s).setMaxAge(60 * 24 * 30 * 1000).setPath(S.contextPath))
+    val p = if (S.contextPath == "") "/" else S.contextPath
+    S.addCookie(HTTPCookie(authCookie, s).setMaxAge(60 * 24 * 30 * 1000).setPath(p))
   }
 }
 
@@ -127,7 +134,7 @@ object ClientStatus extends Enumeration {
   val Active = Value
 }
 
-class ClientRecord private() extends MongoRecord[ClientRecord] with LongPk[ClientRecord] with OAuthConsumer {
+class ClientRecord private() extends MongoRecord[ClientRecord] with ObjectIdPk[ClientRecord] with OAuthConsumer {
   import DateTimeUtils._
   def meta = ClientRecord
 
@@ -161,7 +168,7 @@ class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with LongPk
   def meta = UserTokenRecord
   import DateTimeUtils._
 
-  object user extends LongRefField(this, UserRecord)
+  object user extends ObjectIdRefField(this, UserRecord)
   object label extends StringField(this, 100)
   object tokenPublic extends StringField(this, 32)
   object tokenSecret extends StringField(this, 32)

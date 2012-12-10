@@ -21,17 +21,23 @@ import com.mongodb.casbah.query.Imports._
 import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
 import ws.kotonoha.server.mongodb.{ProjectOperator, MatchOperator, GroupOperator}
 import org.joda.time.DateTime
-import net.liftweb.json.JsonAST.{JValue, JArray}
+import net.liftweb.json.JsonAST._
 import net.liftweb.mongodb.JObjectParser
 import net.liftweb.json.{Extraction, DefaultFormats}
 import net.liftweb.json.ext.JodaTimeSerializers
+import net.liftweb.json.scalaz.JsonScalaz._
+import scalaz.{Failure, Success}
+import scala.Some
+import net.liftweb.json.JsonAST.JArray
+import net.liftweb.json.JsonAST.JField
+import net.liftweb.json.JsonAST.JString
 
 /**
  * @author eiennohito
  * @since 21.07.12
  */
 
-case class RepeatStat(user: Long, date: DateTime, avgMark: Double, total: Long)
+case class RepeatStat(user: ObjectId, date: DateTime, avgMark: Double, total: Long)
 
 object LearningStats extends GroupOperator with MatchOperator with ProjectOperator {
   import ws.kotonoha.server.util.DateTimeUtils._
@@ -59,6 +65,14 @@ object LearningStats extends GroupOperator with MatchOperator with ProjectOperat
     MarkEventRecord.useDb {db => {
       db.command(dbo.result())
     }}
+  }
+
+  implicit val objectIdJson = new JSONR[ObjectId] {
+    def read(jv: JValue) = jv match {
+      case JString(id) => Success(new ObjectId(id))
+      case JObject(JField("$oid", JString(id)) :: Nil) => Success(new ObjectId(id))
+      case _ => Fail("oid", "This is not ObjectId")
+    }
   }
 
   def recent(top: Int) = {
@@ -89,7 +103,7 @@ object LearningStats extends GroupOperator with MatchOperator with ProjectOperat
       }
     }
 
-    val ua = field[Long]("user")(id)
+    val ua = field[ObjectId]("user")(id)
     val da = field[Int]("day")(id) flatMap (date _)
     val ma = field[Double]("mark")(in)
     val mt = field[Long]("total")(in)

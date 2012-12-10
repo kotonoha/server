@@ -27,7 +27,7 @@ import ws.kotonoha.server.model.EventTypes;
 public class MarkEvent extends Event {
 
   @DatabaseField
-  private long card;
+  private String card;
   @DatabaseField
   private int mode;
   @DatabaseField
@@ -40,11 +40,11 @@ public class MarkEvent extends Event {
     return EventTypes.MARK;
   }
 
-  public long getCard() {
+  public String getCard() {
     return card;
   }
 
-  public void setCard(long card) {
+  public void setCard(String card) {
     this.card = card;
   }
 

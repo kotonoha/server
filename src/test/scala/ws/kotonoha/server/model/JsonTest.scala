@@ -12,6 +12,7 @@ import ws.kotonoha.server.util.{DateTimeUtils, ResponseUtil}
 import ws.kotonoha.server.records.{MarkEventRecord, WordCardRecord, ExampleRecord, WordRecord}
 import java.io.InputStreamReader
 import java.nio.charset.Charset
+import org.bson.types.ObjectId
 
 
 /*
@@ -42,13 +43,16 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     gb.registerTypeAdapter(classOf[DateTime], new DateTimeTypeConverter)    
     gb.create()
   }
+
+  val wid = new ObjectId(10, 11, 12)
+  val cid = new ObjectId(10, 11, 13)
   
-  def card = WordCardRecord.createRecord.word(5).cardMode(CardMode.READING)
+  def card = WordCardRecord.createRecord.word(wid).cardMode(CardMode.READING)
   
   def word = {
     val ex1 = ExampleRecord.createRecord.example("ex").translation("tr")
     val rec = WordRecord.createRecord
-    rec.writing("wr").reading("re").meaning("me").examples(List(ex1)).id(5)
+    rec.writing("wr").reading("re").meaning("me").examples(List(ex1)).id(wid)
     rec
   }
   
@@ -77,7 +81,7 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
 
     val obj = gson.fromJson(str, classOf[WordCard])
     obj.getCardMode should equal (CardMode.READING)
-    obj.getWord should equal (5)
+    obj.getWord should equal (wid.toString)
   }
   
   test("container is being parsed") {
@@ -93,8 +97,10 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
   
   test("word mark event goes from java to scala world") {
     val event = new MarkEvent()
-    event.setCard(5); event.setMark(5.0); event.setMode(CardMode.READING);
-    event.setTime(1.0);
+    event.setCard(cid.toString)
+    event.setMark(5.0)
+    event.setMode(CardMode.READING)
+    event.setTime(1.0)
     val dt = DateTimeUtils.now
     event.setDatetime(dt)
     
@@ -103,10 +109,10 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     val rec = MarkEventRecord.createRecord
     rec.setFieldsFromJValue(jv)
     
-    rec.card.is should equal (5)
+    rec.card.is should equal (cid)
     rec.mark.is should equal (5.0)
     rec.mode.is should equal (CardMode.READING)
-    rec.datetime.is should equal (dt)
+    rec.datetime.is.getTimeInMillis should equal (dt.getMillis)
   }
 
   import scala.collection.JavaConversions._

@@ -17,17 +17,18 @@
 package ws.kotonoha.server.records
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.mongodb.record.field.LongPk
+import net.liftweb.mongodb.record.field.{ObjectIdPk, LongPk}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.record.field.IntField
 import net.liftweb.http.SessionVar
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
  * @since 06.07.12
  */
 
-class UserSettings private() extends MongoRecord[UserSettings] with LongPk[UserSettings] {
+class UserSettings private() extends MongoRecord[UserSettings] with ObjectIdPk[UserSettings] {
   def meta = UserSettings
 
   object badCount extends IntField(this, 20)
@@ -35,11 +36,11 @@ class UserSettings private() extends MongoRecord[UserSettings] with LongPk[UserS
 
 object UserSettings extends UserSettings with MongoMetaRecord[UserSettings] with NamedDatabase {
   private object cached extends SessionVar[UserSettings](
-    UserRecord.currentId map { forUser(_) } openTheBox
+    UserRecord.currentId map { forUser(_) } openOrThrowException("Will create new thing")
   )
 
   def current = cached.is
 
-  def forUser(id: Long): UserSettings = find(id).openOr(UserSettings.createRecord.id(id).save)
+  def forUser(id: ObjectId): UserSettings = find(id).openOr(UserSettings.createRecord.id(id).save)
 }
 

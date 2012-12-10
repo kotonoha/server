@@ -18,7 +18,7 @@ package ws.kotonoha.server.web.rest.model
 
 import ws.kotonoha.server.web.rest.KotonohaRest
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import ws.kotonoha.server.util.unapply.XHexLong
+import ws.kotonoha.server.util.unapply.{XOid, XHexLong}
 import ws.kotonoha.server.records.{WordStatus, WordRecord, UserRecord}
 import net.liftweb.http._
 import net.liftweb.common.{Failure, Box, Full}
@@ -31,6 +31,7 @@ import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JString
 import net.liftweb.json.JsonAST.JInt
 import ws.kotonoha.server.actors.model.MarkForDeletion
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -40,7 +41,7 @@ import ws.kotonoha.server.actors.model.MarkForDeletion
 object Words extends KotonohaRest with ReleaseAkka {
   import com.foursquare.rogue.Rogue._
 
-  def updateWord(updated: JValue, user: Long, wid: Long): Box[LiftResponse] = {
+  def updateWord(updated: JValue, user: ObjectId, wid: ObjectId): Box[LiftResponse] = {
     val rec = WordRecord where (_.id eqs (wid)) and (_.user eqs (user)) get()
     rec map (r => {
       val js = WordRecord.trimInternal(updated, out = false)
@@ -52,7 +53,7 @@ object Words extends KotonohaRest with ReleaseAkka {
   }
 
   serve("api" / "model" / "words" prefix {
-    case XHexLong(id) :: Nil JsonGet req => {
+    case XOid(id) :: Nil JsonGet req => {
       val uid = UserRecord.currentId
       val jv = uid.flatMap(user => {
         WordRecord where (_.id eqs(id)) and (_.user eqs (user)) get()
@@ -62,7 +63,7 @@ object Words extends KotonohaRest with ReleaseAkka {
       }}
       jv.map {j => JsonResponse(j)} ~> (401)
     }
-    case XHexLong(wid) :: Nil JsonPost reqV => {
+    case XOid(wid) :: Nil JsonPost reqV => {
       val (obj, req) = reqV
       val uid = UserRecord.currentId
       val res = obj \ "command" match {
@@ -80,9 +81,9 @@ object Words extends KotonohaRest with ReleaseAkka {
       }
       (res ~> 401)
     }
-    case XHexLong(wid) :: Nil Delete req => {
+    case XOid(wid) :: Nil Delete req => {
       val uid = UserRecord.currentId
-      val cnt = WordRecord where (_.id eqs wid) and (_.user eqs uid.openOr(0)) count()
+      val cnt = WordRecord where (_.id eqs wid) and (_.user eqs uid.openOrThrowException("")) count()
       if (cnt == 1) {
         akkaServ ! MarkForDeletion(wid)
         OkResponse()

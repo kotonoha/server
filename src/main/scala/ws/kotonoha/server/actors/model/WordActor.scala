@@ -29,12 +29,13 @@ import net.liftweb.common.Empty
 import ws.kotonoha.server.learning.ProcessMarkEvents
 import net.liftweb.json.JsonAST.JObject
 import ws.kotonoha.akane.unicode.KanaUtil
+import org.bson.types.ObjectId
 
 trait WordMessage extends KotonohaMessage
 case class RegisterWord(word: WordRecord, state: WordStatus.Value = WordStatus.Approved) extends WordMessage
-case class ChangeWordStatus(word: Long, status: WordStatus.Value) extends WordMessage
-case class MarkAllWordCards(word: Long, mark: Int) extends WordMessage
-case class MarkForDeletion(word: Long) extends WordMessage
+case class ChangeWordStatus(word: ObjectId, status: WordStatus.Value) extends WordMessage
+case class MarkAllWordCards(word: ObjectId, mark: Int) extends WordMessage
+case class MarkForDeletion(word: ObjectId) extends WordMessage
 case object DeleteReadyWords
 
 class WordActor extends Actor with ActorLogging with RootActor {

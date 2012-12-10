@@ -18,6 +18,7 @@ package ws.kotonoha.server.supermemo
 
 import akka.actor.{Props, ActorRef, Actor}
 import org.joda.time.Duration
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -33,10 +34,10 @@ case object TerminateSM6
 class SMParentActor extends Actor {
   import akka.util.duration._
   import ws.kotonoha.server.util.DateTimeUtils._
-  private var active: Map[Long, ActorRef] = Map()
-  private var useTime: Map[Long, Long] = Map()
+  private var active: Map[ObjectId, ActorRef] = Map()
+  private var useTime: Map[ObjectId, Long] = Map()
 
-  def createChildFor(userId: Long): ActorRef = {
+  def createChildFor(userId: ObjectId): ActorRef = {
     val actor = context.actorOf(Props(new SM6(userId)))
     active += userId -> actor
     actor
@@ -60,7 +61,7 @@ class SMParentActor extends Actor {
     }
     case TimeoutSM6 => {
       val t = time
-      val stale = useTime.filter{ case (_, ts) => (ts - t) >= interval }.map{ case (id, _) => id }.toSet[Long]
+      val stale = useTime.filter{ case (_, ts) => (ts - t) >= interval }.map{ case (id, _) => id }.toSet[ObjectId]
       stale map { active.get(_) } foreach  { _ map { _ ! TerminateSM6 } }
 
       useTime = useTime filter (s => stale.contains(s._1))

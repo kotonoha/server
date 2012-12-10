@@ -1,10 +1,11 @@
 package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.field.{LongRefField, LongPk}
+import net.liftweb.mongodb.record.field.{ObjectIdPk, ObjectIdRefField, LongRefField, LongPk}
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
 import net.liftweb.record.field.{DateTimeField, IntField, DoubleField}
 import ws.kotonoha.server.math.MathUtil
+import org.bson.types.ObjectId
 
 /*
  * Copyright 2012 eiennohito
@@ -45,13 +46,13 @@ class ItemLearningDataRecord private() extends BsonRecord[ItemLearningDataRecord
 
 object ItemLearningDataRecord extends ItemLearningDataRecord with BsonMetaRecord[ItemLearningDataRecord]
 
-class OFMatrixRecord private() extends MongoRecord[OFMatrixRecord] with LongPk[OFMatrixRecord] with UserRef {
+class OFMatrixRecord private() extends MongoRecord[OFMatrixRecord] with ObjectIdPk[OFMatrixRecord] with UserRef {
   def meta = OFMatrixRecord
-  object user extends LongRefField(this, UserRecord)
+  object user extends ObjectIdRefField(this, UserRecord)
 }
 
 object OFMatrixRecord extends OFMatrixRecord with MongoMetaRecord[OFMatrixRecord] with NamedDatabase {
-  def forUser(userId: Long) =  {
+  def forUser(userId: ObjectId) =  {
     val m = OFMatrixRecord where (_.user eqs userId) get()
     m match {
       case Some(mat) => mat
@@ -65,14 +66,14 @@ object OFMatrixRecord extends OFMatrixRecord with MongoMetaRecord[OFMatrixRecord
   }
 }
 
-class OFElementRecord private() extends MongoRecord[OFElementRecord] with LongPk[OFElementRecord] {
+class OFElementRecord private() extends MongoRecord[OFElementRecord] with ObjectIdPk[OFElementRecord] {
   def meta = OFElementRecord
 
   object n extends IntField(this)
   object ef extends DoubleField(this)
   object value extends DoubleField(this)
   
-  object matrix extends LongRefField(this, OFMatrixRecord)
+  object matrix extends ObjectIdRefField(this, OFMatrixRecord)
 }
 
 object OFElementRecord extends OFElementRecord with MongoMetaRecord[OFElementRecord] with NamedDatabase {  

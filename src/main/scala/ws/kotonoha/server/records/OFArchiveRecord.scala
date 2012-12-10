@@ -17,7 +17,7 @@
 package ws.kotonoha.server.records
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.mongodb.record.field.{MongoJsonObjectListField, ObjectIdPk, LongPk}
+import net.liftweb.mongodb.record.field.{ObjectIdField, MongoJsonObjectListField, ObjectIdPk, LongPk}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.record.field.{LongField, DateTimeField}
 import net.liftweb.mongodb.{JsonObject, JsonObjectMeta}
@@ -37,8 +37,8 @@ class OFArchiveRecord private() extends MongoRecord[OFArchiveRecord] with Object
 
   object timestamp extends DateTimeField(this) with DateJsonFormat
   object elems extends MongoJsonObjectListField[OFArchiveRecord, OFElement](this, OFElement)
-  object user extends LongField(this)
-  object matrix extends LongField(this)
+  object user extends ObjectIdField(this)
+  object matrix extends ObjectIdField(this)
 }
 
 object OFArchiveRecord extends OFArchiveRecord with MongoMetaRecord[OFArchiveRecord] with NamedDatabase
