@@ -41,11 +41,10 @@ class ConfigRecord private() extends MongoRecord[ConfigRecord] with LongPk[Confi
 }
 
 object ConfigRecord extends ConfigRecord with MongoMetaRecord[ConfigRecord] with NamedDatabase {
-  private lazy val instance = synchronized { find(0L) openOr (createRecord) }
-  def apply = instance
+  lazy val instance = synchronized { find(0L) openOr (createRecord) }
 }
 
 object AppConfig {
-  def apply() = ConfigRecord.apply
+  def apply() = ConfigRecord.instance
   def save = apply().save
 }

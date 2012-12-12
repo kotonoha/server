@@ -20,6 +20,9 @@ import akka.actor.Actor
 import ws.kotonoha.server.records.UserTokenRecord
 import ws.kotonoha.server.util.SecurityUtil
 import org.bson.types.ObjectId
+import akka.dispatch.Await
+import net.liftweb.json
+import json.{DefaultFormats, Extraction}
 
 /**
  * @author eiennohito
@@ -27,22 +30,40 @@ import org.bson.types.ObjectId
  */
 
 case class CreateTokenForUser(user: ObjectId, label: String) extends TokenMessage
+case class EncryptedTokenString(req: CreateTokenForUser, key: String) extends TokenMessage
 
-class UserTokenActor extends Actor with RootActor {
+class UserTokenActor extends Actor {
+  import ws.kotonoha.server.util.DateTimeUtils._
 
   def randomHex(bytes: Int = 16) = SecurityUtil.randomHex(bytes)
 
   def createToken(user: ObjectId, label: String) {
+    sender ! makeToken(user, label)
+  }
+
+
+  def makeToken(user: ObjectId, label: String): UserTokenRecord = {
     val token = UserTokenRecord.createRecord.
-        user(user).label(label)
+      user(user).label(label).createdOn(now)
     val tokenPrivate = randomHex(16)
     val tokenPublic = randomHex(16)
     token.tokenPublic(tokenPublic).tokenSecret(tokenPrivate)
-    root ! SaveRecord(token)
-    sender ! token
+    token.save
+    token
+  }
+
+
+  implicit val formats = DefaultFormats
+  def createEncryptedString(req: CreateTokenForUser, key: String) = {
+    val data = makeToken(req.user, req.label)
+    val raw = json.compact(json.render(Extraction.decompose(data.auth)))
+    val encKey = SecurityUtil.makeArray(key)
+    val obj = SecurityUtil.uriAesEncrypt(raw, encKey)
+    sender ! obj
   }
 
   protected def receive = {
     case CreateTokenForUser(user, label) => createToken(user, label)
+    case EncryptedTokenString(req, key) => createEncryptedString(req, key)
   }
 }

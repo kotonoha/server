@@ -24,6 +24,8 @@ import org.bouncycastle.crypto.engines.AESFastEngine
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher
 import org.bouncycastle.crypto.InvalidCipherTextException
+import org.apache.commons.lang.StringUtils
+import org.bouncycastle.crypto.modes.CFBBlockCipher
 
 /**
  * @author eiennohito
@@ -31,6 +33,16 @@ import org.bouncycastle.crypto.InvalidCipherTextException
  */
 
 object SecurityUtil {
+
+  def makeArray(s: String) = {
+    Hex.decodeHex(StringUtils.leftPad(s, 32, '0').toCharArray.slice(0, 32))
+  }
+
+  def uriAesEncrypt(s: String, k: Array[Byte]) = {
+    val c = rawAesEncrypt(s, k)
+    SecurityHelpers.base64EncodeURLSafe(c)
+  }
+
 
   val rng = new SecureRandom()
 
@@ -41,19 +53,25 @@ object SecurityUtil {
   }
 
   def encryptAes(s: String, key: Array[Byte]) = {
-    val aes = new PaddedBufferedBlockCipher(new AESFastEngine())
+    val processed: Array[Byte] = rawAesEncrypt(s, key)
+    SecurityHelpers.base64Encode(processed)
+  }
+
+
+  def rawAesEncrypt(s: String, key: Array[Byte]): Array[Byte] = {
+    val aes = new PaddedBufferedBlockCipher(new CFBBlockCipher(new AESFastEngine(), 8))
     val kp = new KeyParameter(key)
     aes.init(true, kp)
     val bytes = s.getBytes("UTF-8")
     val processed = new Array[Byte](aes.getOutputSize(bytes.length))
     val pos = aes.processBytes(bytes, 0, bytes.length, processed, 0)
     aes.doFinal(processed, pos)
-    SecurityHelpers.base64Encode(processed)
+    processed
   }
 
   def decryptAes(enc: String, key: Array[Byte]) = {
     try {
-      val aes = new PaddedBufferedBlockCipher(new AESFastEngine())
+      val aes = new PaddedBufferedBlockCipher(new CFBBlockCipher(new AESFastEngine(), 8))
       val kp = new KeyParameter(key)
       aes.init(false, kp)
       val bytes = SecurityHelpers.base64Decode(enc)

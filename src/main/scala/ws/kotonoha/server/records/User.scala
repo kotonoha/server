@@ -2,7 +2,7 @@ package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.common.Full
+import net.liftweb.common.{Empty, Box, Full}
 import net.liftweb.mongodb.record.field._
 import net.liftweb.util.FieldError
 import net.liftmodules.oauth.OAuthConsumer
@@ -11,7 +11,6 @@ import ws.kotonoha.server.util.{UserUtil, DateTimeUtils}
 import net.liftweb.http.S
 import net.liftweb.http.provider.HTTPCookie
 import org.bson.types.ObjectId
-import net.liftweb.common.Full
 
 /*
  * Copyright 2012 eiennohito
@@ -121,6 +120,18 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
     updateCookie(u.id.is)
   })
 
+  override def findUserByUserName(email: String) = {
+    super.findUserByUserName(email)
+  }
+
+  def checkUser(email: Box[String], pwd: Box[String]) = {
+    val u = email.flatMap(findUserByUserName)
+    u.map(_.testPassword(pwd)) match {
+      case Full(true) => u
+      case _ => Empty
+    }
+  }
+
   def updateCookie(id: ObjectId) {
     val s = UserUtil.cookieAuthFor(id, S.request.flatMap(_.userAgent).openOr("none"))
     val p = if (S.contextPath == "") "/" else S.contextPath
@@ -164,7 +175,7 @@ class ClientRecord private() extends MongoRecord[ClientRecord] with ObjectIdPk[C
 
 object ClientRecord extends ClientRecord with MongoMetaRecord[ClientRecord] with NamedDatabase
 
-class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with LongPk[UserTokenRecord] {
+class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with ObjectIdPk[UserTokenRecord] {
   def meta = UserTokenRecord
   import DateTimeUtils._
 
@@ -172,7 +183,7 @@ class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with LongPk
   object label extends StringField(this, 100)
   object tokenPublic extends StringField(this, 32)
   object tokenSecret extends StringField(this, 32)
-  object createdOn extends DateTimeField(this, now)
+  object createdOn extends DateTimeField(this, now) with DateJsonFormat
 
   def auth = AuthCode(AppConfig().baseUri.is, tokenPublic.is, tokenSecret.is)
 }

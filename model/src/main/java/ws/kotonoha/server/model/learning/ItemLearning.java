@@ -26,7 +26,7 @@ import org.joda.time.DateTime;
  */
 @DatabaseTable
 public class ItemLearning {
-  @DatabaseField(generatedId = true, columnDefinition = "INTEGER PRIMARY KEY AUTOINCREMENT")
+  @DatabaseField(id = true)
   private transient long id;
   @DatabaseField(persisterClass = DateTimePersister.class)
   private DateTime intervalStart;
@@ -87,5 +87,13 @@ public class ItemLearning {
 
   public void setRepetition(int repetition) {
     this.repetition = repetition;
+  }
+
+  public long getId() {
+    return id;
+  }
+
+  public void setId(long id) {
+    this.id = id;
   }
 }
