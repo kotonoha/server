@@ -25,7 +25,7 @@ import com.mongodb.casbah.Imports._
 
 object IdMigration {
   val conn = MongoConnection()
-  val db = conn("kotonoha")
+  val db = conn("kotonoha_prod")
 
   def l2o(l: Long): ObjectId = {
     val i1 = l.toInt
