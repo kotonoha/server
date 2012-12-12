@@ -5,7 +5,7 @@ organization := "ws.kotonoha"
 
 name := "server"
 
-version := "0.1-SNAPSHOT"
+version := "0.1-121212"
 
 moduleName := "kotonoha"
 
