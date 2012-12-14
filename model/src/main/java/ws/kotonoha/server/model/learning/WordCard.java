@@ -37,7 +37,7 @@ public class WordCard extends Identifiable {
   private transient DateTime gotOn;
   @DatabaseField
   private String word;
-  @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true, canBeNull = false)
+  @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true, canBeNull = true)
   private ItemLearning learning;
   @DatabaseField
   private transient int status = 0;
