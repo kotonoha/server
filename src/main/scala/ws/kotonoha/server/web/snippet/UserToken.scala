@@ -54,7 +54,7 @@ trait UserToken extends Akka {
         (akkaServ ? CreateQrWithLifetime(uid, authStr, 1 minute)).mapTo[QrEntry]
       }
       val qr = Await.result(qrFut, 5 seconds)
-      val code =  qr.id.is.toHexString
+      val code =  qr.id.is.toString
       val uri = "/iqr/" + code
       SetHtml("qrcode",
         <span>

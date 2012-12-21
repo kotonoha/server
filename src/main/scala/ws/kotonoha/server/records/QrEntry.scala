@@ -18,7 +18,7 @@ package ws.kotonoha.server.records
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.field.{ObjectIdRefField, ObjectIdField, LongRefField, LongPk}
+import net.liftweb.mongodb.record.field._
 
 import ws.kotonoha.server.actors.LifetimeObjects
 import net.liftweb.record.field.{LongField, TextareaField, BinaryField}
@@ -30,7 +30,7 @@ import net.liftweb.record.field.{LongField, TextareaField, BinaryField}
 
 trait Lifetime { self : MongoRecord[_] =>
   def record[T <: MongoRecord[T]] = self.asInstanceOf[MongoRecord[T]]
-  def recid = self.id.asInstanceOf[LongField[_]].is
+  def recid = self.id.asInstanceOf[ObjectIdField[_]].is
   def lifetimeObj: LifetimeObjects.LiftetimeObjects
 }
 
@@ -38,7 +38,7 @@ trait UserRef {
   def user : ObjectIdRefField[_, UserRecord]
 }
 
-class QrEntry private() extends MongoRecord[QrEntry] with LongPk[QrEntry] with Lifetime with UserRef {
+class QrEntry private() extends MongoRecord[QrEntry] with ObjectIdPk[QrEntry] with Lifetime with UserRef {
   def meta = QrEntry
 
   object user extends ObjectIdRefField(this, UserRecord)

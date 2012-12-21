@@ -17,7 +17,7 @@
 package ws.kotonoha.server.records
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.mongodb.record.field.{ObjectIdPk, LongPk}
+import net.liftweb.mongodb.record.field.{MongoListField, ObjectIdPk, LongPk}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.record.field.IntField
 import net.liftweb.http.SessionVar
@@ -32,6 +32,7 @@ class UserSettings private() extends MongoRecord[UserSettings] with ObjectIdPk[U
   def meta = UserSettings
 
   object badCount extends IntField(this, 20)
+  object lastTags extends MongoListField[UserSettings, String](this)
 }
 
 object UserSettings extends UserSettings with MongoMetaRecord[UserSettings] with NamedDatabase {

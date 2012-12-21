@@ -20,6 +20,7 @@ import akka.actor.{Actor, ActorRef}
 import net.liftweb.common.Box
 import akka.util.FiniteDuration
 import ws.kotonoha.server.records.{LifetimeObj, QrEntry, Lifetime}
+import org.bson.types.ObjectId
 
 case class RegisterLifetime[T <: Lifetime](obj: T, duration: FiniteDuration) extends LifetimeMessage
 case object FindStaleLifetimeObjs extends LifetimeMessage
@@ -48,7 +49,7 @@ class LifetimeActor extends Actor with RootActor {
 
 
   override def preStart() {
-    context.system.scheduler.schedule(10 seconds, 10 seconds, self, FindStaleLifetimeObjs)
+    context.system.scheduler.schedule(1 minute, 5 minutes, self, FindStaleLifetimeObjs)
   }
 
   protected def receive = {
@@ -62,7 +63,7 @@ object LifetimeObjects extends Enumeration {
   type LiftetimeObjects = LifetimeObjects.Value
   val QrEnt = Value
 
-  def finderFor(v: LifetimeObjects.LiftetimeObjects): (Long => Box[Lifetime]) = v match {
+  def finderFor(v: LifetimeObjects.LiftetimeObjects): (ObjectId => Box[Lifetime]) = v match {
     case QrEnt => QrEntry.find
   }
 }

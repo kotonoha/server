@@ -100,14 +100,7 @@ class WordSelector extends Actor with ActorLogging with RootActor {
   }
 
   def loadReviewList(user: ObjectId, max: Int) {
-    import ws.kotonoha.server.util.KBsonDSL._
-
-    val filter: JObject = ("notBefore" -> ("$lt" -> d(now))) ~
-      ("learning.intervalEnd" -> ("$lt" -> d(now.plus(2 days))))
-    val order: JObject = ("learning.lapse" -> -1)
-    val flds: JObject = ("word" -> 1)
-    //val ids = WordCardRecord.findAll(filter, flds, Some(order), Limit(max)) map { _.word.is }
-    val q = WordCardRecord.enabledFor(user) and (_.notBefore before now) and
+    val q = WordCardRecord.enabledFor(user) and (_.notBefore before now.plus(1 day)) and
       (_.learning.subfield(_.repetition) eqs (1)) and
       (_.learning.subfield(_.lapse) neqs (1)) and
       (_.learning.subfield(_.intervalEnd) before (now.plus(2 days)))

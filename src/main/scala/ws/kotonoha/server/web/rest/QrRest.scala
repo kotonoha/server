@@ -18,13 +18,11 @@ package ws.kotonoha.server.web.rest
 
 import ws.kotonoha.server.qr.QrRenderer
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.util.BasicTypesHelpers.AsLong
-import java.io.{File, FileInputStream, InputStream}
 import org.apache.commons.io.IOUtils
-import net.liftweb.http.{LiftRules, InMemoryResponse, StreamingResponse, OutputStreamResponse}
+import net.liftweb.http.{LiftRules, InMemoryResponse, OutputStreamResponse}
 import ws.kotonoha.server.records.QrEntry
-import ws.kotonoha.server.util.ParseUtil
-import ws.kotonoha.server.util.unapply.XHexLong
+import ws.kotonoha.server.util.unapply.XOid
+import net.liftweb.common.Box
 
 
 /**
@@ -38,7 +36,7 @@ trait QrRest extends KotonohaRest {
 
   lazy val invalidQr = LiftRules.doWithResource("/images/invalid_qr.png") {
           IOUtils.toByteArray(_)
-        }
+        } ?~ ("Can't find invalid qr")
 
   serve {
     case "qr" :: code :: Nil Get req => {
@@ -46,10 +44,10 @@ trait QrRest extends KotonohaRest {
       OutputStreamResponse(s => renderer.toStream(s), -1, List("Content-Type" -> "image/png"))
     }
 
-    case "iqr" :: XHexLong(code) :: Nil Get req => {
-      val entry = QrEntry where (_.id eqs code) get()
-      val arr = entry.map(_.binary.is).getOrElse(invalidQr.openTheBox)
-      InMemoryResponse(arr, List("Content-Type" -> "image/png"), Nil, 200)
+    case "iqr" :: XOid(code) :: Nil Get req => {
+      val entry: Box[QrEntry] = QrEntry where (_.id eqs code) get()
+      val arr = entry.map(_.binary.is).or(invalidQr)
+      arr map (InMemoryResponse(_, List("Content-Type" -> "image/png"), Nil, 200))
     }
   }
 

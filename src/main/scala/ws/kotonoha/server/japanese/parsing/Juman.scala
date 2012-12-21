@@ -30,7 +30,13 @@ object Juman {
     Props.get("juman.path", "juman") //call from $PATH by default
   }
 
+  lazy val jumanArgs: List[String] = {
+    Props.get("juman.args")
+  }.toList.flatMap(_.split(" ").map(_.trim))
+
+  lazy val jumanEncoding: Option[String] = Props.get("juman.encoding")
+
   def pipeExecutor = {
-    new PipeExecutor(jumanPath)
+    new PipeExecutor(jumanPath, jumanArgs, jumanEncoding)
   }
 }

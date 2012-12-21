@@ -18,7 +18,7 @@ package ws.kotonoha.server.web.snippet
 
 import xml.NodeSeq
 import net.liftweb.http.SHtml
-import ws.kotonoha.server.util.unapply.XLong
+import ws.kotonoha.server.util.unapply.{XOid, XLong}
 import ws.kotonoha.server.records.UserRecord
 
 /**
@@ -31,8 +31,8 @@ object AdminCheats {
   def impersonForm(in: NodeSeq) = {
 
     def changeId(s: String) = {
-      s match {
-        case XLong(id) => UserRecord.logUserIdIn(s)
+      s.trim match {
+        case XOid(id) => UserRecord.logUserIdIn(id.toString)
         case _ => //
       }
     }
