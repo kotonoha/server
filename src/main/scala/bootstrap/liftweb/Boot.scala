@@ -17,14 +17,12 @@ import ws.kotonoha.server.actors.ReleaseAkkaMain
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.web.rest._
-import admin.OFHistory
+import admin.{Stats, OFHistory}
 import model.Words
 import ws.kotonoha.server.actors.lift.Ping
 import com.weiglewilczek.slf4s.Logging
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import ws.kotonoha.server.web.snippet.ClasspathResource
-import org.bridj.Pointer
-import mecab.MecabLibrary
 
 
 /**
@@ -113,6 +111,7 @@ class Boot extends Logging {
     LiftRules.dispatch.append(Grants)
     LiftRules.dispatch.append(Juman)
     LiftRules.dispatch.append(PersonalStats)
+
     LiftRules.dispatch.append(OFHistory)
 
     // Use jQuery 1.4

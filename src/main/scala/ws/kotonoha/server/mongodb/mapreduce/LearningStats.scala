@@ -31,6 +31,8 @@ import scala.Some
 import net.liftweb.json.JsonAST.JArray
 import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JString
+import org.bson.types.{Code, CodeWScope}
+import com.mongodb.casbah.map_reduce.MapReduceCommand
 
 /**
  * @author eiennohito
@@ -112,5 +114,82 @@ object LearningStats extends GroupOperator with MatchOperator with ProjectOperat
       case Success(c) => List(c)
       case _ => Nil
     }
+  }
+
+  def recentLearningMR(days: Int) = {
+    val map = """
+        function Map() {
+         var u = this.user;
+         var dist = Math.floor((now - this.datetime) / 1000 / 60 / 60 / 24);
+         var marr = [0, 0, 0, 0, 0];
+         marr[this.mark - 1] = 1;
+         var o = {}
+         o[dist] = marr;
+         emit(u, o);
+        }
+              """
+
+    val reduce =
+      """
+        function(key, vals) {
+          var obj = vals[0];
+          var i = 1, len = vals.length;
+          for (; i < len; ++i) {
+            var entry = vals[i];
+            for (var objkey in entry) {
+              var tmp = obj[objkey];
+              if (tmp === undefined || tmp === null) {
+                tmp = [0, 0, 0, 0, 0];
+              }
+              var data = entry[objkey];
+              var pos = 0;
+              for (; pos < 5; ++pos)
+              {
+                tmp[pos] += data[pos];
+              }
+              obj[objkey] = tmp;
+            }
+          }
+          return obj;
+        }
+      """
+
+    val midnight = now.toDateMidnight
+    val date = midnight.minusDays(days).toDate
+    val scope = DBObject("now" -> midnight.plusDays(1).getMillis)
+    val mapF = new CodeWScope(map, scope)
+    val reduceF = new CodeWScope(reduce, DBObject())
+    val q = "datetime" $gt date
+    val cmd = DBObject(
+      "mapReduce" -> MarkEventRecord.collectionName,
+      "map" -> mapF,
+      "reduce" -> reduceF,
+      "query" -> q,
+      "out" -> DBObject("inline" -> true)
+    )
+    val res = MarkEventRecord.useColl(c => {
+      c.mapReduce(cmd)
+    })
+    import scala.collection.JavaConversions._
+    res.results().map(s => JObjectParser.serialize(s)).toList
+  }
+
+  case class UserMarks(user: ObjectId, reps: Map[Int, List[Int]])
+
+
+  def transformMrData(in: List[JValue]) = {
+    import scalaz._
+    import Scalaz._
+    //val ids = (in \\ "_id").
+    implicit val formats = DefaultFormats
+    def inner(in: JValue) = {
+      //Extraction.extract[List[HiLvl]](in)
+      val id = field[String]("_id")(in) map( new ObjectId(_) )
+      val mp = field[Map[String, List[Double]]]("value")(in) map {o => o.map{
+        case (i, j) => i.toInt -> j.map(_.toInt)
+      }}
+      (id |@| mp) { UserMarks }
+    }
+    in map inner flatMap(_.toOption)
   }
 }
