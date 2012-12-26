@@ -18,20 +18,23 @@ package ws.kotonoha.server.web.rest
 
 import net.liftweb.http.rest.RestHelper
 import net.liftweb.util.ThreadGlobal
-import ws.kotonoha.server.records.{NonceRecord, ClientRecord, UserTokenRecord}
+import ws.kotonoha.server.records.{UserRecord, NonceRecord, ClientRecord, UserTokenRecord}
 import net.liftmodules.oauth.OAuthUtil.Parameter
 import net.liftweb.common.{Empty, Full, Box}
 import net.liftmodules.oauth.{HttpRequestMessage, OAuthAccessor, OAuthMessage, OAuthValidator}
-import net.liftweb.http.{LiftResponse, ForbiddenResponse, Req}
+import net.liftweb.http._
+import net.liftmodules.oauth.OAuthUtil.Parameter
+import net.liftmodules.oauth.OAuthAccessor
+import net.liftweb.common.Full
 
 trait OauthRestHelper extends RestHelper {
 
   import com.foursquare.rogue.Rogue._
 
-  object restUser extends ThreadGlobal[Box[UserTokenRecord]]
-  object restClient extends ThreadGlobal[Box[ClientRecord]]
+  private object restUser extends ThreadGlobal[Box[UserTokenRecord]]
+  private object restClient extends ThreadGlobal[Box[ClientRecord]]
 
-  def userId = restUser.value map (_.user.is)
+  private def userId = restUser.value map (_.user.is)
 
   private val validator = new OAuthValidator {
     protected def oauthNonceMeta = NonceRecord
@@ -62,7 +65,13 @@ trait OauthRestHelper extends RestHelper {
     !validated.isEmpty
   }
 
+  def needAuth = true
+
   override def apply(in: Req) : () => Box[LiftResponse] = {
+    if (in.header("Authorization").isEmpty && !needAuth) {
+      return super.apply(in)
+    }
+
     val msg = new HttpRequestMessage(in)
     val key = msg.getConsumerKey
     val tok = msg.getToken
@@ -71,7 +80,18 @@ trait OauthRestHelper extends RestHelper {
       if (!process(key, tok) || !check(msg)) {
         () => Full(ForbiddenResponse("Invalid OAuth"))
       } else {
-        super.apply(in)
+        val user = userId.flatMap(UserRecord.find(_))
+        if (!S.inStatefulScope_?) {
+          S.init(in, LiftSession.apply(in)) {
+            UserRecord.doWithUser(user) {
+              super.apply(in)
+            }
+          }
+        } else {
+          UserRecord.doWithUser(user) {
+            super.apply(in)
+          }
+        }
       }
     } finally {
       restClient(Empty)

@@ -22,15 +22,21 @@ import ws.kotonoha.server.actors.ioc.Akka
 import akka.util.{Timeout, duration}
 import akka.dispatch.{KeptPromise, Future}
 import net.liftweb.common._
-import net.liftweb.http.{JsonResponse, PlainTextResponse, LiftResponse}
+import net.liftweb.http._
 import net.liftweb.common.Full
+import scala.Left
+import net.liftweb.common.Full
+import scala.Right
+import ws.kotonoha.server.records.UserRecord
 
-trait KotonohaRest extends RestHelper with Logging with Akka {
+trait KotonohaRest extends OauthRestHelper with Logging with Akka {
 
   import duration._
 
+  def root = akkaServ.root
+
   lazy implicit val scheduler = akkaServ.context
-  lazy implicit val timeout = Timeout(20 seconds)
+  lazy implicit val timeout: Timeout = 20 seconds
 
   def async[Obj](param: Future[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
     RestContinuation.async({
@@ -73,6 +79,9 @@ trait KotonohaRest extends RestHelper with Logging with Akka {
         }
     })
   }
+
+  override def needAuth = !(S.inStatefulScope_? && UserRecord.currentUserId.isDefined)
+
 
   def kept[T <% LiftResponse](obj: T) = {
     new KeptPromise[Box[LiftResponse]](Right(Full(obj)))(akkaServ.system.dispatcher)

@@ -4,6 +4,7 @@ import ws.kotonoha.server.actors.learning.WordsAndCards
 import net.liftweb.json.JsonAST._
 import net.liftweb.mongodb.record.MongoRecord
 import net.liftweb.json.JsonDSL
+import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
 
 /*
  * Copyright 2012 eiennohito
@@ -51,6 +52,6 @@ object ResponseUtil {
   }
 
   def jsonResponse(data: WordsAndCards): JValue = {
-    ("cards" -> Tr(data.cards)) ~ ("words" -> Tr(data.words))
+    ("cards" -> Tr(data.cards)) ~ ("words" -> Tr(data.words.map(w => WordRecord.trimInternal(w.asJValue))))
   }
 }

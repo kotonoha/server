@@ -31,7 +31,7 @@ trait StatusTrait extends KotonohaRest with OauthRestHelper {
   import ws.kotonoha.server.util.DateTimeUtils._
   serve {
     case "api" :: "status" :: Nil Get req => {
-      userId match {
+      UserRecord.currentId match {
         case Full(id) => {
           val user = UserRecord.find(id).openTheBox
           val cards = WordCardRecord where (_.user eqs id) and (_.notBefore before now) and

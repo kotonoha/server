@@ -11,7 +11,7 @@ import ws.kotonoha.server.actors.ioc.{ReleaseAkka, Akka}
 import akka.dispatch.Future
 import net.liftweb.json.JsonAST.{JField, JObject, JString}
 import ws.kotonoha.server.util.{DateTimeUtils, ResponseUtil, UserUtil}
-import ws.kotonoha.server.records.{ChangeWordStatusEventRecord, AddWordRecord, MarkEventRecord}
+import ws.kotonoha.server.records.{UserRecord, ChangeWordStatusEventRecord, AddWordRecord, MarkEventRecord}
 import ws.kotonoha.server.learning.{ProcessWordStatusEvent, ProcessMarkEvents}
 
 
@@ -63,6 +63,8 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
 //     }
 //   }
 
+  def userId = UserRecord.currentId
+
   
   serve ( "api" / "words" prefix {
     case "scheduled" :: AsInt(max) :: Nil JsonGet req => {
@@ -70,7 +72,7 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
       if (max > 50) ForbiddenResponse("number is too big")
       else async(userId) { id =>
         val f = ask(akkaServ.wordSelector, LoadWords(id, max)).mapTo[WordsAndCards]
-        f map { wc => t.print(); Full(JsonResponse(deuser(jsonResponse(wc)))) }
+        f map { wc => t.print(); Full(JsonResponse(jsonResponse(wc))) }
       }
     }
 
@@ -79,7 +81,7 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
       if (max > 50) ForbiddenResponse("number is too big")
       else async(userId) { id =>
         val f = ask(akkaServ.wordSelector, LoadReviewList(id, max)).mapTo[WordsAndCards]
-        f map { wc => t.print(); Full(JsonResponse(deuser(jsonResponse(wc)))) }
+        f map { wc => t.print(); Full(JsonResponse(jsonResponse(wc))) }
       }
     }
   })

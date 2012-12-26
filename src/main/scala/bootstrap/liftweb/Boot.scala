@@ -102,9 +102,9 @@ class Boot extends Logging {
     // each page, just comment this line out.
     LiftRules.setSiteMapFunc(() => sitemapMutators(sitemap))
 
-    LiftRules.statelessDispatch.append(Learning)
-    LiftRules.statelessDispatch.append(QrRest)
-    LiftRules.statelessDispatch.append(new StatusApi)
+    LiftRules.dispatch.append(Learning)
+    LiftRules.dispatch.append(QrRest)
+    LiftRules.dispatch.append(new StatusApi)
 
     LiftRules.dispatch.append(Words)
     LiftRules.dispatch.append(Stats)

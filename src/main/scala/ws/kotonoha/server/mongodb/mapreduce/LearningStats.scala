@@ -170,6 +170,7 @@ object LearningStats extends GroupOperator with MatchOperator with ProjectOperat
     val res = MarkEventRecord.useColl(c => {
       c.mapReduce(cmd)
     })
+    implicit val formats = DefaultFormats
     import scala.collection.JavaConversions._
     res.results().map(s => JObjectParser.serialize(s)).toList
   }
