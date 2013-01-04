@@ -1,6 +1,8 @@
 tens = (start) ->
   ({name: i, tens: i * 10} for i in [start..start+10])
 
+module = angular.module('kotonoha', ['taglist'])
+
 window.Model = ($scope, testSvc) ->
   $scope.start = 23
   $scope.regenerate = -> $scope.items = tens($scope.start)
@@ -20,7 +22,7 @@ window.Model = ($scope, testSvc) ->
       $scope.$apply ->
         $scope.xlen = o.length
 
-angular.module('kotonoha', []).directive 'dataGrid', ($injector) ->
+module.directive 'dataGrid', ($injector) ->
   restrict: 'A'
   transclude: false
   scope:
@@ -30,3 +32,31 @@ angular.module('kotonoha', []).directive 'dataGrid', ($injector) ->
     {}
   compile: (el, attrs, trans) ->
     return
+
+
+
+window.TC2 = ($scope) ->
+  $scope.objs = [
+    { name: 'x', id: 1, gr: 'last'}
+    { name: 'y', id: 2, gr: 'last'}
+    { name: 'z', id: 3, gr: 'last'}
+    { name: 'a', id: 4, gr: 'fst'}
+    { name: 'b', id: 5, gr: 'fst'}
+  ]
+  $scope.whatever = ["tag1", {add: "tag2"}, {remove: "tag3"}, {rename: "tag4", to: "tag5"}]
+
+
+module.directive 'chosen', ->
+  linker = (scope, elem, attr) ->
+    elem.chosen()
+    chosen = elem.data('chosen')
+    scope.$watch attr['chosen'], ->
+      elem.trigger('liszt:updated')
+      return
+    return
+
+  {
+    restrict: 'A',
+    link: linker
+    priority: 20
+  }

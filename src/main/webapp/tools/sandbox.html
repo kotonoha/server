@@ -23,9 +23,12 @@
       .ng-dirty { background: #808080; }
     </style>
   </head_merge>
-  <script class="lift:cpres.ng?src=test"></script>
   <script class="lift:cpres.ng?src=dir/editable-span"></script>
   <script class="lift:cpres.js?src=jq.autoresize"></script>
+  <link rel="stylesheet" class="lift:cpres.css?src=chosen">
+  <script class="lift:cpres.js?src=chosen"></script>
+  <script class="lift:cpres.js?src=taglist"></script>
+  <script class="lift:cpres.ng?src=test"></script>
   <div ng-controller="Model">
     <div>
       <lift:comet type="TestActor"></lift:comet>
@@ -54,6 +57,22 @@
           <!--<tr ng-repeat=""></tr>-->
         </tbody>
       </table>
+    </div>
+    <div ng-controller="TC2">
+      <hr>
+      <span>
+        <select multiple chosen="objs" ng-model="sel" ng-options="c.name group by c.gr for c in objs">
+      </select>
+      </span>
+      <span>
+        <select multiple chosen="objs" ng-model="sel" ng-options="c.id as c.name group by c.gr for c in objs">
+        </select>
+      </span>
+      <span>
+        <select multiple ng-model="sel" ng-options="c.name group by c.gr for c in objs">
+        </select>
+      </span>
+      <div taglist="true" data="whatever" style="width: 300pt"></div>
     </div>
   </div>
 </div>
