@@ -9,7 +9,7 @@ module.directive 'tagop', ->
     obj = scope.obj
     inner =
       if typeof(obj) == "string"
-        link = $ "<a href='#' class='btn-tiny'><i class='icon-remove'/></a>"
+        link = $ "<a href='javascript:void(0);' onclick='return false;' class='btn-tiny'><i class='icon-remove'/></a>"
         link.click ->
           taglist.remove_for(obj)
         elem.addClass('tag-entry tag-noop')
@@ -33,7 +33,7 @@ module.directive 'tagop', ->
         else
           text = "Error!!!!" + obj
 
-        link = $ "<a href='#' class='btn-tiny'><i class='icon-remove'></a>"
+        link = $ "<a href='javascript:void(0);' onclick='return false;' class='btn-tiny'><i class='icon-remove'></a>"
         span = $ "<span> #{text} </span>"
         elem.addClass(cl) for cl in classes
         icon = $ "<i class='#{icon}'/>"

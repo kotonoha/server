@@ -116,7 +116,7 @@
             <div class="dict-entry" ng-repeat="de in dic.data">
               <div>
                 <span class="nihongo" ng-click="copyDicEntry(de)">{{de.writing}}({{de.reading}})</span>
-                <button href="#" ng-click="addFromDic(de, $event)" class="btn btn-mini"><i class="icon-plus" ></i> this too</button>
+                <button href="javascript:void(0)" ng-click="addFromDic(de, $event)" class="btn btn-mini"><i class="icon-plus" ></i> this too</button>
               </div>
               <div ng-click="copyDicEntry(de)">{{de.meaning}}</div>
             </div>
