@@ -105,14 +105,6 @@ module.directive 'taglist', ($compile) ->
       ibot = top + p.top + sel.height()
       step = cont.height() - sel.height() / 2
       ns = top
-
-      console.log(
-              top: top
-              bot: top + hgt
-              itop: itop
-              ibot: ibot
-            )
-
       if (npos > pos) #going down
         ns += step while ibot > (ns + hgt)
       else
@@ -168,7 +160,6 @@ module.directive 'taglist', ($compile) ->
 
     inp_keypress = (evt) ->
       curtext = inpel.val()
-      console.log(press: evt.which)
       if (curtext == "")
         if evt.which == 8
           return false
@@ -204,7 +195,6 @@ module.directive 'taglist', ($compile) ->
       return true
 
     inp_keydown = (evt) ->
-      console.log(down: evt.which)
       curtext = inpel.val()
       if (curtext == "" && evt.which == 8)
         if mode == 'to'
