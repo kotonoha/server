@@ -93,12 +93,38 @@ module.directive 'taglist', ($compile) ->
       pos = 0 if (pos == -1)
       npos = (len + pos + hm) % len
       items.removeClass('tag-ac-sel-def tag-ac-sel')
-      $(items.get(npos)).addClass('tag-ac-sel')
+      elm = $(items.get(npos))
+      elm.addClass('tag-ac-sel')
       sel_active = true
+      #scrolling
+      p = elm.position()
+      cont = $ 'div.taglist-ac-container', $element
+      top = cont.scrollTop()
+      hgt = cont.height()
+      itop = top + p.top
+      ibot = top + p.top + sel.height()
+      step = cont.height() - sel.height() / 2
+      ns = top
+
+      console.log(
+              top: top
+              bot: top + hgt
+              itop: itop
+              ibot: ibot
+            )
+
+      if (npos > pos) #going down
+        ns += step while ibot > (ns + hgt)
+      else
+        ns -= step while itop < ns
+
+      cont.scrollTop(ns) if ns != top
+
 
     fixup_selection = ->
       work = ->
         if $('li.tag-ac-sel, li.tag-ac-sel-def', $element).size() == 0
+          move(0)
           $('li.tag-ac-entry', $element).removeClass('tag-ac-sel-def').first().addClass('tag-ac-sel-def')
           sel_active = false
       setTimeout(work, 100)
@@ -288,6 +314,8 @@ module.directive 'taglist', ($compile) ->
 
     input.keypress contr.input_keypress
     input.keydown contr.input_keydown
+
+    acCont.scroll -> input.focus()
 
     scope.tag_select = (tag, elem) ->
       contr.select_tag_from_ac(tag, elem)
