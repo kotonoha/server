@@ -50,6 +50,8 @@ module.directive 'tagop', ->
 module.directive 'taglist', ($compile) ->
   restrict: 'A'
   controller: ($scope, $element) ->
+    active = false
+    sel_active = true
     mode = null
     old = ""
     inpel = $('.taginput input', $element)
@@ -62,6 +64,7 @@ module.directive 'taglist', ($compile) ->
       $scope.$apply ->
         $scope.data.push(obj)
         $scope.padding = ''
+        $scope.input = null
       mode = null
       inpel.val('')
       inputMode('')
@@ -82,6 +85,60 @@ module.directive 'taglist', ($compile) ->
     showError = ->
       return 0
 
+    move = (hm) ->
+      items = $('li.tag-ac-entry', $element)
+      sel = $('li.tag-ac-sel', $element)
+      pos = items.index(sel)
+      len = items.size()
+      pos = 0 if (pos == -1)
+      npos = (len + pos + hm) % len
+      items.removeClass('tag-ac-sel-def tag-ac-sel')
+      $(items.get(npos)).addClass('tag-ac-sel')
+      sel_active = true
+
+    fixup_selection = ->
+      work = ->
+        if $('li.tag-ac-sel, li.tag-ac-sel-def', $element).size() == 0
+          $('li.tag-ac-entry', $element).removeClass('tag-ac-sel-def').first().addClass('tag-ac-sel-def')
+          sel_active = false
+      setTimeout(work, 100)
+
+    rename_1st_part = (curtext) ->
+      old = curtext
+      mode = 'to'
+      $scope.$apply ->
+        $scope.padding = "#{old} ↦ "
+        $scope.input = null
+      inpel.val("")
+
+    select_candidate = ->
+      $('li.tag-ac-sel, li.tag-ac-sel-def', $element).click()
+
+    pending_remove = false
+    exp_removing = null
+
+    remove_last = ->
+      if (pending_remove && exp_removing?)
+        pending_remove = false
+        $('a', exp_removing).click()
+        exp_removing = null
+
+    prepare_to_remove = ->
+      d = $scope.data
+      if (d.length == 0)
+        return false
+      last = d[d.length - 1]
+      if typeof last == 'string'
+        return false
+      exp_removing = $('.tag-item', $element).last()
+      exp_removing.addClass('tag-prep-rm')
+      pending_remove = true
+
+    cleanup_remove = ->
+      if (pending_remove)
+        exp_removing.removeClass('tag-prep-rm')
+        exp_removing = null
+        pending_remove = false
 
     inp_keypress = (evt) ->
       curtext = inpel.val()
@@ -96,26 +153,28 @@ module.directive 'taglist', ($compile) ->
           else if evt.which == 47 # /
             mode = 'rename'
             inputMode('icon-pencil')
+          else if sel_active && (evt.which == 13 || evt.which == 44 || evt.which == 59)
+            select_candidate()
           else
             mode = 'add'
             inputMode('icon-plus')
+            fixup_selection()
             return true
           return false
       if mode == 'rename' && evt.which == 47 #second slash
-          old = curtext
-          mode = 'to'
-          $scope.$apply ->
-            $scope.padding = "#{old} ↦ "
-          inpel.val("")
+          rename_1st_part(curtext)
           return false
       switch evt.which
         #enter, comma, semicolon
         when 13, 44, 59
-          if (!resolveInput(curtext))
+          if sel_active
+            select_candidate()
+          else if (!resolveInput(curtext))
             showError()
           return false
         else
-          return true
+          #do nothing
+      fixup_selection()
       return true
 
     inp_keydown = (evt) ->
@@ -129,10 +188,35 @@ module.directive 'taglist', ($compile) ->
             mode = 'rename'
             inpel.val(pad.substring(0, pad.length - 3))
           return false
+        if (mode == null)
+          if pending_remove then remove_last() else prepare_to_remove()
         mode = null
         inputMode('')
         return false
+      else if evt.which == 38 #up arrow
+        if active then move(-1); return false
+        else return true
+      else if evt.which == 40 #down arrow
+        if active then move(1); return false
+        else return true
+      else if evt.which == 9
+        if active
+          select_candidate()
+          cleanup_remove()
+          return false
+      cleanup_remove()
       return true
+
+    select_tag = (tag, elem) ->
+      if mode == null
+        mode = 'add'
+      if mode == 'rename'
+        rename_1st_part(tag.name)
+      else
+        resolveInput(tag.name)
+      $('li.tag-ac-sel', $element).removeClass('tag-ac-sel')
+      fixup_selection()
+      return false
 
 
     remove_for: (x) -> $scope.$apply $scope.data.push({remove: x})
@@ -142,26 +226,81 @@ module.directive 'taglist', ($compile) ->
         $scope.$apply $scope.data.splice(idx, 1)
     input_keypress: inp_keypress
     input_keydown: inp_keydown
+    select_tag_from_ac: (o1, o2) ->
+      f = -> select_tag(o1, o2)
+      setTimeout(f, 0)
+    focused: ->
+      active = true
+      fixup_selection()
+    blurred: ->
+      active = false
+      $('li.tag-ac-entry', $element).removeClass('tag-ac-sel tag-ac-sel-def')
 
 
 
   template: """
-            <ul class='tag-container'>
-              <li class='tagop tag-item' ng-repeat='obj in data'></li>
-              <li class='taginput'><i/><span class='tagpadding'>{{padding}}</span><input></li>
-            </ul>
+            <div class='taglist'>
+              <ul class='tag-container'>
+                <li class='tagop tag-item' ng-repeat='obj in data'></li>
+                <li class='taginput'><i/><span class='tagpadding'>{{padding}}</span><input ng-model='input.name'></li>
+              </ul>
+              <div class='taglist-ac-container'>
+                <ul>
+                  <li class='tag-group' ng-repeat='gr in tagnfo | groupNotEmpty:input'>
+                    <span class='tag-group-label'>{{gr.group}}</span>
+                    <ul>
+                      <li
+                        class='tag-ac-entry'
+                        ng-click='tag_select(tag, this)'
+                        ng-repeat='tag in gr.tags | filter:input'>{{tag.name}}: {{tag.descr}}</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </div>
             """
   scope:
     data: "="
+    tagnfo: "="
   link: (scope, elem, attrs, contr) ->
 
     input = $('input', elem)
-    input.focus -> elem.addClass('tag-container-active')
-    input.blur -> elem.removeClass('tag-container-active')
+    cont = $ '.tag-container', elem
+
+    acCont = $ '.taglist-ac-container', elem
+    acCont.css({width: (cont.width() + 10) + "px"})
+
+    should_hide = true
+
+    input.focus ->
+      contr.focused()
+      cont.addClass('tag-container-active')
+      should_hide = false
+      acCont.show()
+    input.blur ->
+      contr.blurred()
+      should_hide = true
+      hideFn = ->
+        if should_hide
+          acCont.hide()
+      setTimeout(hideFn, 250)
+      cont.removeClass('tag-container-active')
 
     input.keypress contr.input_keypress
     input.keydown contr.input_keydown
 
-    elem.click -> input.focus()
+    scope.tag_select = (tag, elem) ->
+      contr.select_tag_from_ac(tag, elem)
+      input.focus()
 
+    cont.click -> input.focus()
+
+module.filter 'groupNotEmpty', ($filter) ->
+  (grps, obj) ->
+    arr = []
+    flt = $filter('filter')
+    for gr in grps
+      ot = flt(gr.tags, obj)
+      arr.push(gr) if (ot.length > 0)
+    arr
 

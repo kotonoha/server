@@ -45,6 +45,29 @@ window.TC2 = ($scope) ->
   ]
   $scope.whatever = ["tag1", {add: "tag2"}, {remove: "tag3"}, {rename: "tag4", to: "tag5"}]
 
+  $scope.tagNfo = [
+    { group: 'User tags', tags: [
+      { name: 'tag1', descr: 'tag number 1, a great tag'}
+      { name: 'n', descr: 'Regular noun (Futsuumeishi — 普通名詞)'}
+    ]},
+    { group: 'System tags', tags: [
+      { name: 'exp', descr: 'Expression'}
+      { name: '4j', descr: 'Yojijukugo'}
+    ]},
+    { group: "Test tags", tags: [
+      { name: 't1', descr: 't2'}
+      { name: 't1', descr: 't2'}
+      { name: 't1', descr: 't2'}
+      { name: 't1', descr: 't2'}
+      { name: 't1', descr: 't2'}
+      { name: 't1', descr: 't2'}
+      { name: 't1', descr: 't2'}
+      { name: 't1', descr: 't2'}
+      { name: 't1', descr: 't2'}
+      { name: 't1', descr: 't2'}
+    ]}
+  ]
+
 
 module.directive 'chosen', ->
   linker = (scope, elem, attr) ->
