@@ -95,7 +95,10 @@ module.directive 'taglist', ($compile) ->
       items.removeClass('tag-ac-sel-def tag-ac-sel')
       elm = $(items.get(npos))
       elm.addClass('tag-ac-sel')
-      sel_active = true
+      if hm != 0
+        sel_active = true
+      else
+        return
       #scrolling
       p = elm.position()
       cont = $ 'div.taglist-ac-container', $element
