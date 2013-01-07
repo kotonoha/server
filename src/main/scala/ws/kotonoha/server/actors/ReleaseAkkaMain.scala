@@ -8,6 +8,7 @@ import akka.actor._
 import akka.pattern.ask
 import akka.dispatch.{Await, ExecutionContext}
 import akka.util.{Timeout, Duration}
+import org.bson.types.ObjectId
 
 
 /*
@@ -32,15 +33,12 @@ import akka.util.{Timeout, Duration}
  */
 
 trait AkkaMain {
-  def ! (x : AnyRef) = root ! x
-  def ? (x: AnyRef) = ask(root, x)(5 seconds)
+  def ! (x : AnyRef) = global ! x
+  def ? (x: AnyRef) = ask(global, x)(15 seconds)
 
   def system: ActorSystem
 
-  def root: ActorRef
-
-  def wordSelector: ActorRef
-  def eventProcessor: ActorRef
+  def global: ActorRef
 
   def context = ExecutionContext.defaultExecutionContext(system)
 
@@ -56,26 +54,26 @@ trait AkkaMain {
   def shutdown() {
     system.shutdown()
   }
+
+  def userActorF(uid: ObjectId) = {
+    (this ? UserActor(uid)).mapTo[ActorRef]
+  }
+
+  def userActor(uid: ObjectId) = {
+    Await.result(userActorF(uid), 15 seconds)
+  }
 }
-
-case object TopLevelActors
-
-trait RootActor { this: Actor =>
-  lazy val root = context.actorFor("/user/root")
-}
-
-trait MongoActor { this: Actor =>
-  lazy val mongo = context.actorFor("/user/root/mongo")
-}
-
 
 object ReleaseAkkaMain extends AkkaMain {
-  val system = ActorSystem("kot")
-  
-  lazy val root = system.actorOf(Props[RestartActor], "root")
-  private val f = ask(root, TopLevelActors)(10 seconds).mapTo[(ActorRef, ActorRef)]
-  private val x = Await.result(f, 10 seconds)
+  val system = ActorSystem("k")
 
-  val wordSelector = x._1
-  val eventProcessor = x._2
+  lazy val global = system.actorOf(Props[GlobalActor], GlobalActor.globalName)
+
+  system.eventStream.subscribe(
+    system.actorOf(Props(new Actor with ActorLogging {
+      override def receive = {
+        case d: DeadLetter => log.info("Got a " + d)
+      }
+    })), classOf[DeadLetter]
+  )
 }

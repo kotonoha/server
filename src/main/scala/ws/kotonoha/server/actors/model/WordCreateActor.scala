@@ -21,7 +21,7 @@ import ws.kotonoha.server.records._
 import akka.dispatch.{ExecutionContext, DefaultPromise, Future, Promise}
 import net.liftweb.common.{Empty, Box}
 import ws.kotonoha.server.actors.dict.DictType._
-import ws.kotonoha.server.actors.RootActor
+import ws.kotonoha.server.actors.{UserScopedActor, RootActor, SearchQuery}
 import ws.kotonoha.server.web.comet.TimeoutException
 import akka.util.{Timeout, Duration}
 import ws.kotonoha.server.actors.dict._
@@ -34,7 +34,6 @@ import ws.kotonoha.server.actors.dict.DictQuery
 import ws.kotonoha.server.actors.dict.TranslationsWithLangs
 import scala.Some
 import ws.kotonoha.server.actors.dict.LoadExamples
-import ws.kotonoha.server.actors.SearchQuery
 import ws.kotonoha.server.actors.dict.ExampleIds
 import ws.kotonoha.server.actors.dict.SearchResult
 import ws.kotonoha.server.actors.dict.ExampleEntry
@@ -64,28 +63,27 @@ object DictCard {
 
 case class CreateWordData(in: AddWordRecord)
 
-class WordCreateActor extends Actor with RootActor with ActorLogging {
+class WordCreateActor extends UserScopedActor with ActorLogging {
   import DateTimeUtils._
   implicit val timeout: Timeout = 10 seconds
-  implicit val ec: ExecutionContext = context.system.dispatcher
 
   def prepareWord(rec: AddWordRecord): Future[WordData] = {
     val wr = rec.writing.is
     val rd: Option[String] = rec.reading.valueBox
-    val jf = (root ? DictQuery(jmdict, wr, rd, 5)).mapTo[SearchResult]
-    val wf = (root ? DictQuery(warodai, wr, rd, 5)).mapTo[SearchResult]
+    val jf = (userActor ? DictQuery(jmdict, wr, rd, 5)).mapTo[SearchResult]
+    val wf = (userActor ? DictQuery(warodai, wr, rd, 5)).mapTo[SearchResult]
     val exs = jf.flatMap { jmen => {
       val idsf = jmen.entries match {
         case Nil => { //don't have such word in dictionary
-          root ? SearchQuery(wr)
+          services ? SearchQuery(wr)
         }
         case x :: _ => {
-          root ? SearchQuery(wr + " " + x.readings.head)
+          services ? SearchQuery(wr + " " + x.readings.head)
         }
       }
       idsf.mapTo[List[Long]].map(_.distinct).flatMap { exIds => {
-        val trsid = (root ? TranslationsWithLangs(exIds, LangUtil.langs)).mapTo[List[ExampleIds]]
-        val exs = trsid.flatMap(root ? LoadExamples(_)).mapTo[List[ExampleEntry]]
+        val trsid = (userActor ? TranslationsWithLangs(exIds, LangUtil.langs)).mapTo[List[ExampleIds]]
+        val exs = trsid.flatMap(userActor ? LoadExamples(_)).mapTo[List[ExampleEntry]]
         exs.map (_.map{ e => {
            ExampleForSelection(e.jap.content.is, e.other match {
              case x :: _ => x.content.valueBox

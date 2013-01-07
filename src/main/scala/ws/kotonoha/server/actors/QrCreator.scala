@@ -27,18 +27,16 @@ import org.bson.types.ObjectId
  * @since 24.03.12
  */
 trait QrMessage extends KotonohaMessage
+case class CreateQr(data: String) extends QrMessage
+case class CreateQrWithLifetime(data: String, lifetime: FiniteDuration) extends QrMessage
 
-case class CreateQr(user: ObjectId, data: String) extends QrMessage
-case class CreateQrWithLifetime(user: ObjectId, data: String, lifetime: FiniteDuration) extends QrMessage
 
-
-class QrCreator extends Actor with RootActor {
+class QrCreator extends UserScopedActor {
   def registerObj(s: String, user: ObjectId): QrEntry = {
     val rend = new QrRenderer(s)
     val data = rend.toStream.toByteArray
     val obj = QrEntry.createRecord.user(user).content(s).binary(data)
-    root ! SaveRecord(obj)
-    obj
+    obj.save
   }
 
   def createQr(user: ObjectId, s: String) {
@@ -48,14 +46,12 @@ class QrCreator extends Actor with RootActor {
 
   def createQr(user: ObjectId, s: String, period: FiniteDuration) {
       val obj = registerObj(s, user)
-      root ! RegisterLifetime(obj, period)
+      services ! RegisterLifetime(obj, period)
       sender ! obj
     }
 
-  var mongo : ActorRef = _
-
   protected def receive = {
-    case CreateQr(user, data) => createQr(user, data)
-    case CreateQrWithLifetime(user, data, period) => createQr(user, data, period)
+    case CreateQr(data) => createQr(uid, data)
+    case CreateQrWithLifetime(data, period) => createQr(uid, data, period)
   }
 }

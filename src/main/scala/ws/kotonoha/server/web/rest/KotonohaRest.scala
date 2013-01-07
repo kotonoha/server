@@ -20,7 +20,7 @@ import net.liftweb.http.rest.{RestContinuation, RestHelper}
 import com.weiglewilczek.slf4s.Logging
 import ws.kotonoha.server.actors.ioc.Akka
 import akka.util.{Timeout, duration}
-import akka.dispatch.{KeptPromise, Future}
+import akka.dispatch.{Promise, KeptPromise, Future}
 import net.liftweb.common._
 import net.liftweb.http._
 import net.liftweb.common.Full
@@ -28,15 +28,28 @@ import scala.Left
 import net.liftweb.common.Full
 import scala.Right
 import ws.kotonoha.server.records.UserRecord
+import org.bson.types.ObjectId
+
+class EmptyUserException extends Exception("No user present")
 
 trait KotonohaRest extends OauthRestHelper with Logging with Akka {
 
   import duration._
-
-  def root = akkaServ.root
+  import akka.pattern.ask
 
   lazy implicit val scheduler = akkaServ.context
   lazy implicit val timeout: Timeout = 20 seconds
+
+  def userId = UserRecord.currentId
+
+  def userAsk[T](uid: Box[ObjectId], msg: AnyRef)(implicit m: Manifest[T]): Future[T] =  userId match {
+    case Full(uid) => userAsk[T](uid, msg)(m)
+    case _ => Promise[T].failure(new EmptyUserException)
+  }
+  def userAsk[T](msg: AnyRef)(implicit m: Manifest[T]): Future[T] = userAsk[T](userId, msg)(m)
+  def userAsk[T](uid: ObjectId, msg: AnyRef)(implicit m: Manifest[T]): Future[T] = {
+    akkaServ.userActorF(uid).flatMap{ a => a ? msg }.mapTo[T]
+  }
 
   def async[Obj](param: Future[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
     RestContinuation.async({
@@ -71,8 +84,9 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
             val fut = f(v)
             val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 20 seconds)
 
-            fut onSuccess {
-              case Full(r) => tCancel.cancel(); resp(r)
+            fut onComplete {
+              case Right(Full(r)) => tCancel.cancel(); resp(r)
+              case Left(e) => logger.error("Error in executing rest:", e)
               case x@_ => logger.debug("found something: " + x)
             }
           }

@@ -16,16 +16,15 @@
 
 package ws.kotonoha.server.actors
 
-import akka.actor.{Actor, ActorRef}
-import akka.pattern.{ask, pipe}
-
 /**
  * @author eiennohito
- * @since 19.04.12
+ * @since 07.01.13 
  */
 
-class ExampleMongoQuerier extends Actor {
-  protected def receive = {
-    case "a" =>
-  }
-}
+trait KotonohaMessage
+trait DbMessage extends KotonohaMessage
+trait LifetimeMessage extends KotonohaMessage
+trait ClientMessage extends KotonohaMessage
+trait TokenMessage extends KotonohaMessage
+trait DictionaryMessage extends KotonohaMessage
+trait SelectWordsMessage extends KotonohaMessage

@@ -5,7 +5,7 @@ import net.liftweb.http.S
 import ws.kotonoha.server.records.{UserRecord, ClientRecord}
 import net.liftweb.common.Full
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
-import ws.kotonoha.server.actors.{EncryptedTokenString, CreateTokenForUser}
+import ws.kotonoha.server.actors.{EncryptedTokenString, CreateToken}
 import org.joda.time.format.DateTimeFormat
 import ws.kotonoha.server.util.Formatting
 import akka.dispatch.Await
@@ -67,7 +67,7 @@ object OauthRequest extends Akka with ReleaseAkka {
 
   def makeAuthString(uid: ObjectId, cl: ClientRecord): String = {
     val name = dateRenderer.print(System.currentTimeMillis())
-    val f = (akkaServ ? EncryptedTokenString(CreateTokenForUser(uid, name), cl.apiPrivate.is))
+    val f = (akkaServ ? EncryptedTokenString(CreateToken(uid, name), cl.apiPrivate.is))
       .mapTo[String]
     val str = Await.result(f, 1 minute)
     str

@@ -20,7 +20,7 @@ import akka.actor.Actor
 import ws.kotonoha.server.records.ClientRecord
 import akka.pattern.{ask}
 import akka.util.duration._
-import ws.kotonoha.server.actors.{ClientMessage, SaveRecord, RootActor}
+import ws.kotonoha.server.actors.{KotonohaActor, ClientMessage, SaveRecord, RootActor}
 
 /**
  * @author eiennohito
@@ -29,13 +29,13 @@ import ws.kotonoha.server.actors.{ClientMessage, SaveRecord, RootActor}
 
 case class AddClient(name: ClientRecord) extends ClientMessage
 
-class ClientRegistry extends Actor with RootActor {
+class ClientRegistry extends KotonohaActor {
   import ws.kotonoha.server.util.SecurityUtil._
 
   def addClient(rec: ClientRecord) = {
     val r1 = rec.apiPrivate(randomHex()).apiPublic(randomHex())
     val s = sender
-    ask(root, SaveRecord(r1))(1 second) foreach {x => s ! r1}
+    ask(services, SaveRecord(r1))(5 seconds) foreach {x => s ! r1}
   }
 
   protected def receive = {

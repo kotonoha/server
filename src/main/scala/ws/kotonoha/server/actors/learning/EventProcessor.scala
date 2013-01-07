@@ -8,7 +8,7 @@ import akka.actor.{ActorRef, ActorLogging, Props, Actor}
 import ws.kotonoha.server.records.{WordCardRecord, ChangeWordStatusEventRecord, ItemLearningDataRecord, MarkEventRecord}
 import ws.kotonoha.server.actors.model.{ChangeWordStatus, ChangeCardEnabled, SchedulePaired}
 import ws.kotonoha.server.actors._
-import ws.kotonoha.server.supermemo.{SMParentActor, SM6, ProcessMark}
+import ws.kotonoha.server.supermemo.{SM6, ProcessMark}
 
 /*
  * Copyright 2012 eiennohito
@@ -42,29 +42,23 @@ case class ProcessWordStatusEvent(ev: List[ChangeWordStatusEventRecord]) extends
 case class ProcessWordStatus(ev: ChangeWordStatusEventRecord) extends EventMessage
 
 
-class ChildProcessor extends Actor with ActorLogging with RootActor {
+class ChildProcessor extends UserScopedActor with ActorLogging {
   import com.foursquare.rogue.Rogue._
   implicit val timeout = Timeout(5000 milliseconds)
   
-  var mongo : ActorRef = _
-  var sched : ActorRef = _
-  var sm6 : ActorRef = context.actorOf(Props[SMParentActor])
+  var mongo : ActorRef = context.actorFor(guardActorPath / "mongo")
+  var sm6 : ActorRef = context.actorOf(Props[SM6], "sm6")
 
   def processWs(ws: ChangeWordStatusEventRecord) = {
     mongo ! SaveRecord(ws)
-    root ! ChangeCardEnabled(ws.word.is, false)
-    root ! ChangeWordStatus(ws.word.is, ws.toStatus.is)
+    userActor ! ChangeCardEnabled(ws.word.is, false)
+    userActor ! ChangeWordStatus(ws.word.is, ws.toStatus.is)
     sender ! 1
   }
 
   protected def receive = {
     case ProcessMarkEvent(ev) => processMark(ev)
     case ProcessWordStatus(ev) => processWs(ev)
-
-    case x: RegisterServices => {
-      mongo = x.mong
-      sched = x.sched
-    }
   }
 
   def saveMarkRecord(mr: MarkEventRecord, card: WordCardRecord) = {
@@ -93,7 +87,7 @@ class ChildProcessor extends Actor with ActorLogging with RootActor {
       }
       case Some(card) => {
         saveMarkRecord(ev, card)
-        sched ! SchedulePaired(card.word.is, card.cardMode.is)
+        userActor ! SchedulePaired(card.word.is, card.cardMode.is)
         val it = ProcessMark(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
         val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord]
         val ur = cardF.map { l => {
@@ -114,13 +108,11 @@ class ChildProcessor extends Actor with ActorLogging with RootActor {
 
 
 
-class EventProcessor extends Actor with ActorLogging with MongoActor with RootActor {
+class EventProcessor extends UserScopedActor with ActorLogging {
   implicit val dispatcher = context.dispatcher
-  lazy val children = context.actorOf(Props[ChildProcessor])
+  lazy val children = context.actorOf(Props[ChildProcessor], "child")
 
-  override def preStart() {
-    children ! RegisterServices(mongo, root)
-  }
+
   protected def receive = {
     case p : ProcessMarkEvent => children.forward(p)
     case ProcessMarkEvents(evs) => {

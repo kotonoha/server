@@ -21,7 +21,7 @@ import akka.testkit.TestActorRef
 import akka.actor.{Actor, ActorSystem}
 import net.liftweb.mockweb.MockWeb
 import net.liftweb.util.LiftFlowOfControlException
-import ws.kotonoha.server.actors.{RestartActor, AkkaMain}
+import ws.kotonoha.server.actors.{UserGuardActor, AkkaMain}
 
 
 /**
@@ -52,7 +52,7 @@ object MockAkka extends AkkaMain {
     }
   })
 
-  val root = TestActorRef(new RestartActor)
+  val root = TestActorRef(new UserGuardActor)
 }
 
 class LearningTest extends FunSuite with ShouldMatchers {

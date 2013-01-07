@@ -19,7 +19,7 @@ package ws.kotonoha.server.actors.model
 import org.scalatest.{BeforeAndAfterAll, FreeSpec}
 import org.scalatest.matchers.ShouldMatchers
 import akka.actor.{ActorRef, Props, ActorSystem}
-import ws.kotonoha.server.actors.RestartActor
+import ws.kotonoha.server.actors.UserGuardActor
 import akka.testkit.TestActorRef
 import ws.kotonoha.server.actors.dict.{DictionaryEntry, SearchResult}
 import akka.util.Timeout
@@ -37,7 +37,7 @@ class WordCreateActorTest extends FreeSpec with ShouldMatchers with BeforeAndAft
 
   override def beforeAll() {
     MongoDbInit.init()
-    root = system.actorOf(Props[RestartActor], "root")
+    root = system.actorOf(Props[UserGuardActor], "root")
   }
 
   override def afterAll() {

@@ -22,7 +22,7 @@ import ws.kotonoha.server.math.MathUtil
 import ws.kotonoha.server.records.WordCardRecord
 import ws.kotonoha.server.util.DateTimeUtils
 import net.liftweb.common.Empty
-import ws.kotonoha.server.actors.{SaveRecord, RootActor, KotonohaMessage}
+import ws.kotonoha.server.actors.{UserScopedActor, SaveRecord, RootActor, KotonohaMessage}
 import akka.util.Timeout
 import org.joda.time.ReadableDuration
 import org.bson.types.ObjectId
@@ -30,18 +30,20 @@ import org.bson.types.ObjectId
 trait CardMessage extends KotonohaMessage
 case class SchedulePaired(wordId: ObjectId, cardType: Int) extends CardMessage
 case class ChangeCardEnabled(wordId: ObjectId, status: Boolean) extends CardMessage
-case class RegisterCard(word: ObjectId, userId: ObjectId, cardMode: Int) extends CardMessage
+case class RegisterCard(word: ObjectId, cardMode: Int) extends CardMessage
 case class ClearNotBefore(card: ObjectId) extends CardMessage
 case class ScheduleLater(card: ObjectId, duration: ReadableDuration) extends CardMessage
-case class DeleteCardsForWord(word: ObjectId)
+case class DeleteCardsForWord(word: ObjectId) extends CardMessage
 
-class CardActor extends Actor with ActorLogging with RootActor {
+class CardActor extends UserScopedActor with ActorLogging {
   import akka.util.duration._
   import akka.pattern.{ask, pipe}
   import com.foursquare.rogue.Rogue._
   import DateTimeUtils._
 
   implicit val timeout: Timeout = 1 second
+
+  val mongo = scoped("mongo")
 
   protected def receive = {
     case SchedulePaired(word, cardMode) => {
@@ -57,11 +59,11 @@ class CardActor extends Actor with ActorLogging with RootActor {
       q.updateMulti()
       sender ! true
     }
-    case RegisterCard(word, user, mode) => {
+    case RegisterCard(word, mode) => {
       val card = WordCardRecord.createRecord
-      card.user(user).word(word).cardMode(mode).learning(Empty).notBefore(now)
+      card.user(uid).word(word).cardMode(mode).learning(Empty).notBefore(now)
       val s = sender
-      ask(root, SaveRecord(card)) pipeTo (s)
+      ask(mongo, SaveRecord(card)) pipeTo (s)
     }
     case ClearNotBefore(card) => {
       log.debug("Clearning not before for card id {}", card)

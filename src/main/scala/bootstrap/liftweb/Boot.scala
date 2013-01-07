@@ -13,7 +13,7 @@ import common._
 import http._
 import sitemap._
 import Loc._
-import ws.kotonoha.server.actors.ReleaseAkkaMain
+import ws.kotonoha.server.actors.{InitUsers, ReleaseAkkaMain}
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.web.rest._
@@ -43,7 +43,8 @@ class Boot extends Logging {
     //LiftRules.unloadHooks.append(() => MecabInit.unload())
 
     //Bootstrap lazy akka
-    ReleaseAkkaMain.root ! Ping
+    ReleaseAkkaMain.global ! Ping
+    ReleaseAkkaMain.global ! InitUsers
 
     // where to search snippet
     LiftRules.addToPackages("ws.kotonoha.server.web")

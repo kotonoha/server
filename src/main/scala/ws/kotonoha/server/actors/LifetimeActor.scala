@@ -16,7 +16,6 @@
 
 package ws.kotonoha.server.actors
 
-import akka.actor.{Actor, ActorRef}
 import net.liftweb.common.Box
 import akka.util.FiniteDuration
 import ws.kotonoha.server.records.{LifetimeObj, QrEntry, Lifetime}
@@ -25,7 +24,7 @@ import org.bson.types.ObjectId
 case class RegisterLifetime[T <: Lifetime](obj: T, duration: FiniteDuration) extends LifetimeMessage
 case object FindStaleLifetimeObjs extends LifetimeMessage
 
-class LifetimeActor extends Actor with RootActor {
+class LifetimeActor extends KotonohaActor {
   import akka.util.duration._
   import com.foursquare.rogue.Rogue._
   import ws.kotonoha.server.util.DateTimeUtils._
@@ -33,7 +32,7 @@ class LifetimeActor extends Actor with RootActor {
   def registerLifetime(value: Lifetime, duration: FiniteDuration) = {
     val rec = LifetimeObj.createRecord
     rec.obj(value.recid).objtype(value.lifetimeObj).deadline(now.plus(duration))
-    root ! SaveRecord(rec)
+    services ! SaveRecord(rec)
   }
 
   def findStale = {
@@ -44,7 +43,7 @@ class LifetimeActor extends Actor with RootActor {
       finder(o.obj.is)
     }
     objs.map(_.record).map {case o =>  o.delete_! }
-    stale.foreach(root ! DeleteRecord(_))
+    stale.foreach(services ! DeleteRecord(_))
   }
 
 

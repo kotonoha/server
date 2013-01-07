@@ -40,7 +40,7 @@ trait AkkaInterop extends CometActor with Akka {
   import akka.util.duration._
 
   private def createBridge(): ActorRef = {
-    val f = apa(akkaServ.root, BindLiftActor(this))(5 seconds)
+    val f = apa(akkaServ.global, BindLiftActor(this))(5 seconds)
     Await.result(f.mapTo[ActorRef], 5 seconds)
   }
 
@@ -56,9 +56,9 @@ trait AkkaInterop extends CometActor with Akka {
     super.localShutdown()
   }
 
-  def createActor(p: Props, name: String = "") = {
-    val f = apa(sender, CreateActor(p, name))(5 seconds).mapTo[ActorRef]
-    Await.result(f, 5 seconds)
+  def createActor(p: Props, name: String = "", parent: ActorRef = sender) = {
+    val f = apa(parent, CreateActor(p, name))(30 seconds).mapTo[ActorRef]
+    Await.result(f, 30 seconds)
   }
 }
 

@@ -30,7 +30,7 @@ import org.bson.types.ObjectId
 trait PerUserMessage extends NamedCometMessage
 case class RegisterPerUserActor(user: ObjectId, actor: ActorRef) extends PerUserMessage
 case class DestroyActor(user: ObjectId) extends PerUserMessage
-case class ForUser(user: ObjectId, cmd: JsCmd) extends PerUserMessage
+case class CmdForUser(user: ObjectId, cmd: JsCmd) extends PerUserMessage
 case class Bcast(cmd: JsCmd) extends PerUserMessage
 
 case class ExecJs(cmd: JsCmd)
@@ -42,7 +42,7 @@ class PerUserActorSvc extends Actor {
   protected def receive = {
     case RegisterPerUserActor(user, actor) => storage += user -> actor
     case DestroyActor(user) => storage -= user
-    case ForUser(user, cmd) => storage.get(user) map {a => a.forward(ExecJs(cmd))}
+    case CmdForUser(user, cmd) => storage.get(user) map {a => a.forward(ExecJs(cmd))}
     case Bcast(cmd) => storage.foreach {case (_, a) => a.forward(ExecJs(cmd))}
   }
 }

@@ -35,6 +35,7 @@ import xml.{Text, NodeSeq, Node, Utility}
 import net.liftweb.json.JsonAST.{JField, JObject, JValue}
 import net.liftweb.http.js.JsCmds.SetHtml
 import org.bson.types.ObjectId
+import akka.actor.ActorRef
 
 /**
  * @author eiennohito
@@ -48,8 +49,8 @@ case object UpdateNum
 
 trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   def self = this
-  val root = akkaServ.root
   var userId: ObjectId = null
+  var uact: ActorRef = _
   var count = 0
 
   def render = {
@@ -109,20 +110,21 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   def processMark(mark: WebMark): Unit = {
     import DateTimeUtils._
     if (mark.remaining < 5) {
-      root ! LoadWords(userId, 15)
+      uact ! LoadWords(15)
     }
     val me = MarkEventRecord.createRecord
     val cid = new ObjectId(mark.card)
     me.card(cid).mark(mark.mark).mode(mark.mode).time(mark.time)
     me.user(userId)
     me.datetime(now)
-    root ! ProcessMarkEvent(me)
+    uact ! ProcessMarkEvent(me)
   }
 
   override def lowPriority = {
     case RepeatUser(id) =>  {
       userId = id
-      root ! LoadWords(id, 15)
+      uact = akkaServ.userActor(userId)
+      uact ! LoadWords(15)
     }
     case RecieveJson(o) => processJson(o)
     case WordsAndCards(words, cards) => publish(words, cards)

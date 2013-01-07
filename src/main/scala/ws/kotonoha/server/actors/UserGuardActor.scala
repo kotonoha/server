@@ -22,7 +22,7 @@ import auth.ClientRegistry
 import dict.{ExampleMessage, ExampleActor, DictionaryActor}
 import interop.{JumanRouter, JumanMessage, JumanPipeActor}
 import learning._
-import lift.{LiftMessage, LiftActorService}
+import lift.{CreateActor, LiftMessage, LiftActorService}
 import model.{CardMessage, WordMessage, CardActor, WordActor}
 import net.liftweb.http.CometMessage
 import com.fmpwizard.cometactor.pertab.namedactor.{NamedCometMessage, PertabCometManager}
@@ -34,62 +34,43 @@ import akka.routing.RoundRobinRouter
  * @since 25.04.12
  */
 
-trait KotonohaMessage
-trait DbMessage extends KotonohaMessage
-trait LifetimeMessage extends KotonohaMessage
-trait ClientMessage extends KotonohaMessage
-trait TokenMessage extends KotonohaMessage
-trait DictionaryMessage extends KotonohaMessage
-trait SelectWordsMessage extends KotonohaMessage
-
-class RestartActor extends Actor with ActorLogging {
+class UserGuardActor extends UserScopedActor with ActorLogging {
   import SupervisorStrategy._
   import akka.util.duration._
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 1500, withinTimeRange = 1 day) {
-    case e: Exception => log.error(e, "Caught an exception in root actor"); Restart
+    case e: Exception => log.error(e, "Caught an exception in guard actor"); Restart
   }
 
   val mongo = context.actorOf(Props[MongoDBActor], "mongo")
-  lazy val wordSelector = context.actorOf(Props[WordSelector])
-  lazy val markProcessor = context.actorOf(Props[EventProcessor])
-  lazy val lifetime = context.actorOf(Props[LifetimeActor])
-  lazy val qractor = context.actorOf(Props[QrCreator])
-  lazy val clientActor = context.actorOf(Props[ClientRegistry])
-  lazy val userToken = context.actorOf(Props[UserTokenActor])
-  lazy val luceneActor = context.actorOf(Props[ExampleSearchActor])
-  lazy val wordActor = context.actorOf(Props[WordActor])
-  lazy val cardActor = context.actorOf(Props[CardActor])
-  lazy val liftActor = context.actorOf(Props[LiftActorService])
-  lazy val dictActor = context.actorOf(Props[DictionaryActor])
-  lazy val exampleActor = context.actorOf(Props[ExampleActor])
-  lazy val cometActor = context.actorOf(Props[PertabCometManager])
-  lazy val securityActor = context.actorOf(Props[SecurityActor])
-  lazy val jumanActor = context.actorOf(Props[JumanRouter])
-
+  val wordSelector = context.actorOf(Props[WordSelector], "wordSelector")
+  val markProcessor = context.actorOf(Props[EventProcessor], "markProc")
+  val qractor = context.actorOf(Props[QrCreator], "qr")
+  val userToken = context.actorOf(Props[UserTokenActor], "token")
+  val wordActor = context.actorOf(Props[WordActor], "word")
+  val cardActor = context.actorOf(Props[CardActor], "card")
+  val dictActor = context.actorOf(Props[DictionaryActor], "dict")
+  val exampleActor = context.actorOf(Props[ExampleActor], "example")
 
   def dispatch(msg: KotonohaMessage) {
+    users ! PingUser(uid)
     msg match {
       case _: SelectWordsMessage => wordSelector.forward(msg)
       case _: EventMessage => markProcessor.forward(msg)
       case _: DbMessage => mongo.forward(msg)
-      case _: LifetimeMessage => lifetime.forward(msg)
       case _: QrMessage => qractor.forward(msg)
-      case _: ClientMessage => clientActor.forward(msg)
       case _: TokenMessage => userToken.forward(msg)
-      case _: SearchMessage => luceneActor.forward(msg)
       case _: WordMessage => wordActor.forward(msg)
       case _: CardMessage => cardActor.forward(msg)
-      case _: LiftMessage => liftActor.forward(msg)
       case _: DictionaryMessage => dictActor.forward(msg)
       case _: ExampleMessage => exampleActor.forward(msg)
-      case _: NamedCometMessage => cometActor.forward(msg)
-      case _: SecurityMessage => securityActor.forward(msg)
-      case _: JumanMessage => jumanActor.forward(msg)
     }
   }
 
   protected def receive = {
-    case TopLevelActors => sender ! (wordSelector, markProcessor)
+    case CreateActor(p, name) => name match {
+      case null | "" => sender ! context.actorOf(p)
+      case _ => sender ! context.actorOf(p, name)
+    }
     case msg : KotonohaMessage => dispatch(msg)
   }
 }

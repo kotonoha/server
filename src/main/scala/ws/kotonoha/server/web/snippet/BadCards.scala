@@ -16,30 +16,70 @@
 
 package ws.kotonoha.server.web.snippet
 
-import xml.{Text, NodeSeq}
+import xml.NodeSeq
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.records.{UserSettings, WordRecord, UserRecord}
-import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadReviewList}
-import akka.dispatch.Await
-import net.liftweb.util.CssSel
-import net.liftweb.http.{SHtml, RequestVar, S, DispatchSnippet}
-import net.liftweb.common.Full
+import akka.dispatch.{Promise, Future, Await}
+import net.liftweb.http._
 import ws.kotonoha.server.util.unapply.XInt
-import ws.kotonoha.server.actors.{UpdateRecord, SaveRecord}
 import ws.kotonoha.akane.unicode.UnicodeUtil
 import ws.kotonoha.server.util.StrokeType
 import collection.mutable.ListBuffer
-import annotation.tailrec
+import akka.actor.ActorRef
+import ws.kotonoha.server.actors.UpdateRecord
+import net.liftweb.common.Full
+import scala.Some
+import ws.kotonoha.server.actors.learning.LoadReviewList
+import ws.kotonoha.server.actors.learning.WordsAndCards
+import ws.kotonoha.server.web.rest.EmptyUserException
+import akka.util.Timeout
+import com.weiglewilczek.slf4s.Logging
 
 /**
  * @author eiennohito
  * @since 27.06.12
  */
 
-object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
+trait UserActor extends Logging { self: Akka =>
+  import akka.pattern.ask
+  import akka.util.duration._
+  implicit val ec = akkaServ.context
+
+  implicit val timeout: Timeout = 10 seconds
+
+  private object userActorS extends SessionVar[Future[ActorRef]](create)
+
+  def userActor = {
+    val p = Promise[ActorRef]()
+    userActorS.is.onComplete {
+      case Right(af) => p.complete(Right(af))
+      case Left(ex) => {
+        logger.warn("Can't get user actor", ex)
+        p.completeWith(create).foreach { _ => userActorS.set(p) }
+      }
+    }
+    p
+  }
+
+  private def create: Future[ActorRef] = {
+    UserRecord.currentId match {
+      case Full(as) => akkaServ.userActorF(as)
+      case _ => Promise[ActorRef].failure(new EmptyUserException)
+    }
+  }
+
+  def userAsk[T](msg: AnyRef)(implicit m: Manifest[T]): Future[T] = {
+    userActor.flatMap { ar => ar ? msg}.mapTo[T]
+  }
+
+  def userTell(msg: AnyRef): Unit = {
+    userActor.foreach( _ ! msg )
+  }
+}
+
+object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActor  {
   import net.liftweb.util.Helpers._
   import akka.util.duration._
-
 
   def dispatch = {
     case "surround" => surround
@@ -74,7 +114,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
         case XInt(c1) => {
           val c = c1 min 75
           val cur = UserSettings.current.badCount(c)
-          akkaServ ! UpdateRecord(cur)
+          userTell(UpdateRecord(cur))
           maxRecs.set(c)
         }
         case _ => ///
@@ -104,7 +144,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka  {
 
   def words(in: NodeSeq): NodeSeq = {
     val uid = UserRecord.currentId.openTheBox
-    val obj = (akkaServ ? LoadReviewList(uid, maxRecs.is)).mapTo[WordsAndCards]
+    val obj = userAsk[WordsAndCards](LoadReviewList(maxRecs.is))
     val res = Await.result(obj, 5.0 seconds)
 
     val wds = asRows(res.words)

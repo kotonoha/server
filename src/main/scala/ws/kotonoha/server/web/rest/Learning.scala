@@ -46,32 +46,17 @@ class Timer extends Logging {
   }
 }
 
-trait LearningRest extends KotonohaRest with OauthRestHelper {
+trait LearningRest extends KotonohaRest {
 
   import ResponseUtil._
   import akka.pattern.ask
 
-//  def async[Obj](box: Box[Obj])(f : (Obj, ( => LiftResponse) => Unit) => Unit) = {
-//     RestContinuation.async { req =>      
-//       Schedule.schedule(() => req(PlainTextResponse("Sevice timeouted", 500)), ts(10 seconds))
-//       
-//       box match {
-//         case Full(o) => f(o, req)
-//         case smt : EmptyBox => emptyToResp(smt) map { req(_) }
-//         case x @ _ => logger.debug("found this shit in async response: %s".format(x))
-//       }
-//     }
-//   }
-
-  def userId = UserRecord.currentId
-
-  
   serve ( "api" / "words" prefix {
     case "scheduled" :: AsInt(max) :: Nil JsonGet req => {
       val t = new Timer
       if (max > 50) ForbiddenResponse("number is too big")
       else async(userId) { id =>
-        val f = ask(akkaServ.wordSelector, LoadWords(id, max)).mapTo[WordsAndCards]
+        val f = userAsk[WordsAndCards](id, LoadWords(max))
         f map { wc => t.print(); Full(JsonResponse(jsonResponse(wc))) }
       }
     }
@@ -80,7 +65,7 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
       val t = new Timer
       if (max > 50) ForbiddenResponse("number is too big")
       else async(userId) { id =>
-        val f = ask(akkaServ.wordSelector, LoadReviewList(id, max)).mapTo[WordsAndCards]
+        val f = userAsk[WordsAndCards](id, LoadReviewList(max))
         f map { wc => t.print(); Full(JsonResponse(jsonResponse(wc))) }
       }
     }
@@ -96,7 +81,7 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
       async(userId) { id =>
         val marks = json.children flatMap (MarkEventRecord.fromJValue(_)) map (_.user(id))
         logger.info("posing %d marks for user %s".format(marks.length, id))
-        val count = akkaServ.eventProcessor ? (ProcessMarkEvents(marks))
+        val count = userAsk(id, ProcessMarkEvents(marks))
         count.mapTo[List[Int]] map {c => t.print(); Full(JsonResponse("values" -> Tr(c))) }
       }      
     }
@@ -114,7 +99,7 @@ trait LearningRest extends KotonohaRest with OauthRestHelper {
       val (json, req) = reqV
       val chs = json.children flatMap (ChangeWordStatusEventRecord.fromJValue(_)) map (_.user(userId))
       async(userId) { id =>
-        val f = (akkaServ ? ProcessWordStatusEvent(chs)).mapTo[List[Int]]
+        val f = userAsk[List[Int]](id, ProcessWordStatusEvent(chs))
         f.map {o => Full(JsonResponse("values" -> Tr(o)))}
       }
     }

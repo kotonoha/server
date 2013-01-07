@@ -81,7 +81,7 @@ object SMFiller {
       rec.id.is
     )
   }
-
+/*
   def main(args: Array[String]): Unit = {
     implicit val timeout: Timeout = 5 seconds
     implicit val context = akka.system.dispatcher
@@ -101,4 +101,6 @@ object SMFiller {
     akka.shutdown()
     akka.system.awaitTermination()
   }
+
+  */
 }

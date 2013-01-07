@@ -60,8 +60,10 @@ case object Cleanup
 class TimeoutException extends RuntimeException
 
 trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop with Logging {
-  lazy val root = akkaServ.root
+  lazy val root = akkaServ.global
   val self = this
+  private val uid = UserRecord.currentId.get
+  lazy val uact = akkaServ.userActor(uid)
   import akka.util.duration._
   import akka.pattern.ask
   import com.foursquare.rogue.Rogue._
@@ -73,7 +75,11 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
 
   implicit val ec: ExecutionContext = akkaServ.context
 
-  lazy val wordCreator = createActor(Props[WordCreateActor])
+  lazy val wordCreator = {
+    val a = createActor(Props[WordCreateActor], parent = uact)
+    logger.info("Word creator actor created successfully")
+    a
+  }
 
   override def localShutdown {
     wordCreator ! PoisonPill
@@ -97,7 +103,6 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
 
   private class WordDataCalculator extends Logging {
     import DateTimeUtils._
-    private val uid = UserRecord.currentId.get
 
     private def q = list match {
       case Full(l) => {
@@ -134,7 +139,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
       item.reading.valueBox map {r => w.word.reading(r) }
       item.meaning.valueBox map {m => w.word.meaning(m) }
       w.onSave foreach {
-        i => root ! UpdateRecord(item.processed(true))
+        i => uact ! UpdateRecord(item.processed(true))
       }
       w
     })
@@ -149,7 +154,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
       awr.meaning(wc.meaning)
       total_ += 1
       items = awr :: items
-      root ! SaveRecord(awr)
+      uact ! SaveRecord(awr)
       updateIndices(cur, total)
     }
   }
@@ -202,7 +207,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
       val wd = w.word
       val filtered = WordRecord.trimInternal(jobj, out = false)
       wd.setFieldsFromJValue(filtered)
-      w.onSave.foreach { x => root ! RegisterWord(wd, st) }
+      w.onSave.foreach { x => uact ! RegisterWord(wd, st) }
       w.onSave.tryComplete(Right(w))
     }
     self ! PublishNext
@@ -298,6 +303,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
     case ProcessJson(js) => process(js)
     case DoRenderAndDisplay(wd) => renderAndPush(wd)
     case RemoveItem(hid) => displaying -= hid
+    case Boolean => // do nothing
   }
 
   override def highPriority = {

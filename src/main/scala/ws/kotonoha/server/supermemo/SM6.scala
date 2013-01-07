@@ -9,6 +9,7 @@ import akka.pattern.ask
 import akka.dispatch.Await
 import akka.util.Timeout
 import org.bson.types.ObjectId
+import ws.kotonoha.server.actors.UserScopedActor
 
 /*
  * Copyright 2012 eiennohito
@@ -33,10 +34,10 @@ import org.bson.types.ObjectId
 
 case class ProcessMark(data: ItemLearningDataRecord, q: Double, time: DateTime, userId: ObjectId, card: ObjectId)
 
-class SM6(user: ObjectId) extends Actor with ActorLogging {
+class SM6 extends UserScopedActor with ActorLogging {
   import DateTimeUtils._
 
-  lazy val mactor = context.actorOf(Props(new OFMatrixActor(user, holder)))
+  lazy val mactor = context.actorOf(Props(new OFMatrixActor(uid, holder)))
 
   //F(0) = 0
   //F(0.25) = 0.5
@@ -73,7 +74,7 @@ class SM6(user: ObjectId) extends Actor with ActorLogging {
 
   import akka.util.duration._
 
-  lazy val holder = new OFMatrixHolder(user)
+  lazy val holder = new OFMatrixHolder(uid)
 
   def matrix(rep: Int, ef: Double): Double = {
     holder(rep, ef)
@@ -150,6 +151,5 @@ class SM6(user: ObjectId) extends Actor with ActorLogging {
 
   protected def receive = {
     case i: ProcessMark => sender ! printE { update(i) }
-    case TerminateSM6 => context.stop(self)
   }
 }

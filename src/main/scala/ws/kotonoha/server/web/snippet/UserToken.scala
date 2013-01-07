@@ -28,7 +28,7 @@ import net.liftweb.json
 import net.liftweb.json.{DefaultFormats, Extraction}
 import ws.kotonoha.server.records.{QrEntry, UserTokenRecord, UserRecord}
 import net.liftweb.http.js.JsCmds.SetHtml
-import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateQr, CreateTokenForUser}
+import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateQr, CreateToken}
 
 
 /**
@@ -40,18 +40,20 @@ trait UserToken extends Akka {
   import Helpers._
   import com.foursquare.rogue.Rogue._
   import ws.kotonoha.server.util.DateTimeUtils._
+  import ws.kotonoha.server.actors.UserSupport._
 
   implicit val formats = DefaultFormats
+
 
   def create(in: NodeSeq) : NodeSeq = {
     var name: String = ""
     val uid = UserRecord.currentId.get
 
     def save(): JsCmd = {
-      val fut = (akkaServ ? CreateTokenForUser(uid, name)).mapTo[UserTokenRecord]
+      val fut = (akkaServ ? CreateToken(uid, name).forUser(uid)).mapTo[UserTokenRecord]
       val qrFut = fut flatMap { x =>
         val authStr = json.pretty(json.render(Extraction.decompose(x.auth)))
-        (akkaServ ? CreateQrWithLifetime(uid, authStr, 1 minute)).mapTo[QrEntry]
+        (akkaServ ? CreateQrWithLifetime(authStr, 1 minute)).mapTo[QrEntry]
       }
       val qr = Await.result(qrFut, 5 seconds)
       val code =  qr.id.is.toString

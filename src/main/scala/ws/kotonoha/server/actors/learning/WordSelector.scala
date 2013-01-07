@@ -37,7 +37,7 @@ import org.bson.types.ObjectId
  * @since 31.01.12
  */
 
-class WordSelector extends Actor with ActorLogging with RootActor {
+class WordSelector extends UserScopedActor with ActorLogging {
   def calculateMax(maxInt: Int, firstPerc: Double, overMax: Double) = {
     def ceil(x: Double): Int = math.round(math.ceil(x)).asInstanceOf[Int]
     val max = maxInt * (1 + overMax)
@@ -53,7 +53,7 @@ class WordSelector extends Actor with ActorLogging with RootActor {
         case v :: Nil => col += v
         case v :: vs =>  {
           col += v 
-          vs.foreach {c => root ! SchedulePaired(c.word.is, c.cardMode.is)}
+          vs.foreach {c => userActor ! SchedulePaired(c.word.is, c.cardMode.is)}
         }
         case _ =>
       }
@@ -91,7 +91,7 @@ class WordSelector extends Actor with ActorLogging with RootActor {
       (_.learning.subfield(_.intervalEnd)) fetch (max)
 
     for (v <- valid) {
-      root ! SchedulePaired(v.word.is, v.cardMode.is)
+      userActor ! SchedulePaired(v.word.is, v.cardMode.is)
     }
 
     val len = valid.length
@@ -113,13 +113,13 @@ class WordSelector extends Actor with ActorLogging with RootActor {
   }
 
   protected def receive = {
-    case LoadReviewList(user, max) => loadReviewList(user, max)
-    case LoadCards(user, max) => {
+    case LoadReviewList(max) => loadReviewList(uid, max)
+    case LoadCards(max) => {
       val dest = sender
-      forUser(user, max) map (dest ! _)
+      forUser(uid, max) map (dest ! _)
     }
-    case LoadWords(user, max) => {
-      val f = ask(self, LoadCards(user, max))(10 seconds).mapTo[List[WordCardRecord]]
+    case LoadWords(max) => {
+      val f = ask(self, LoadCards(max))(10 seconds).mapTo[List[WordCardRecord]]
       val dest = sender
       f onComplete {
         case Right(cards) =>
@@ -141,23 +141,24 @@ class WordSelector extends Actor with ActorLogging with RootActor {
   }
 }
 
-case class LoadScheduled(userId: ObjectId, maxSched: Int)
-case class LoadNewCards(userId: ObjectId, maxNew: Int)
-case class LoadCards(userId: ObjectId, max: Int) extends SelectWordsMessage
-case class LoadWords(userId: ObjectId, max: Int) extends SelectWordsMessage
+case class LoadCards(max: Int) extends SelectWordsMessage
+case class LoadWords(max: Int) extends SelectWordsMessage
+case class LoadReviewList(max: Int) extends SelectWordsMessage
+
 case class WordsAndCards(words: List[WordRecord], cards: List[WordCardRecord])
 
-case class LoadReviewList(userId: ObjectId, max: Int) extends SelectWordsMessage
+case class LoadScheduled(uid: ObjectId, maxSched: Int)
+case class LoadNewCards(uid: ObjectId, maxNew: Int)
 
-class CardLoader extends Actor {
+class CardLoader extends KotonohaActor {
   protected def receive = {
-    case LoadScheduled(user, max) => {
-      val scheduled = WordCardRecord.enabledFor(user) and (_.learning exists false) and
+    case LoadScheduled(uid, max) => {
+      val scheduled = WordCardRecord.enabledFor(uid) and (_.learning exists false) and
         (_.notBefore before now) fetch (max)
       sender ! scheduled
     }
-    case LoadNewCards(user, max) => {
-      val newCards = WordCardRecord.enabledFor(user) and (_.learning exists false) and
+    case LoadNewCards(uid, max) => {
+      val newCards = WordCardRecord.enabledFor(uid) and (_.learning exists false) and
         (_.notBefore exists false) orderAsc (_.createdOn) fetch (max)
       sender ! newCards
     }

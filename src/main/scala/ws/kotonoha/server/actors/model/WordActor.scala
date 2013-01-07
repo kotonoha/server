@@ -22,7 +22,7 @@ package ws.kotonoha.server.actors.model
 import akka.util.Timeout
 import akka.actor.{ActorLogging, Actor}
 import ws.kotonoha.server.model.CardMode
-import ws.kotonoha.server.actors.{KotonohaMessage, SaveRecord, RootActor}
+import ws.kotonoha.server.actors.{UserScopedActor, KotonohaMessage, SaveRecord, RootActor}
 import akka.dispatch.{ExecutionContext, Future}
 import ws.kotonoha.server.records.{MarkEventRecord, WordCardRecord, WordStatus, WordRecord}
 import net.liftweb.common.Empty
@@ -38,7 +38,7 @@ case class MarkAllWordCards(word: ObjectId, mark: Int) extends WordMessage
 case class MarkForDeletion(word: ObjectId) extends WordMessage
 case object DeleteReadyWords
 
-class WordActor extends Actor with ActorLogging with RootActor {
+class WordActor extends UserScopedActor with ActorLogging {
   import akka.util.duration._
   import akka.pattern.ask
   import com.foursquare.rogue.Rogue._
@@ -59,15 +59,17 @@ class WordActor extends Actor with ActorLogging with RootActor {
     }
   }
 
+  val mongo = context.actorFor(guardActorPath / "mongo")
+  val card = context.actorFor(guardActorPath / "card")
+
   protected def receive = {
     case RegisterWord(word, st) => {
-      val userId = word.user.is
       val wordid = word.id.is
-      var fl = List(ask(root, SaveRecord(word)))
+      var fl = List(ask(mongo, SaveRecord(word)))
       if (checkReadingWriting(word)) {
-        fl ::= root ? RegisterCard(wordid, userId, CardMode.READING)
+        fl ::= card ? RegisterCard(wordid, CardMode.READING)
       }
-      fl ::= root ? RegisterCard(wordid, userId, CardMode.WRITING)
+      fl ::= card ? RegisterCard(wordid, CardMode.WRITING)
 
       val toReply = sender
       val s = Future.sequence(fl.map(_.mapTo[Boolean])).flatMap(_ => self ? ChangeWordStatus(wordid, st))
@@ -82,8 +84,8 @@ class WordActor extends Actor with ActorLogging with RootActor {
       val uq: JObject = "$set" -> ("status" -> stat.id)
       WordRecord.update(sq, uq)
       val f = stat match {
-        case WordStatus.Approved => root ? ChangeCardEnabled(word, true)
-        case _ => root ? ChangeCardEnabled(word, false)
+        case WordStatus.Approved => card ? ChangeCardEnabled(word, true)
+        case _ => card ? ChangeCardEnabled(word, false)
       }
 
       val s = sender
@@ -101,8 +103,8 @@ class WordActor extends Actor with ActorLogging with RootActor {
         r.user(c.user.valueBox)
         r
       }}
-      (root ? ProcessMarkEvents(data)) andThen {case _ =>
-        data map { d => root ! ClearNotBefore(d.card.is) }
+      (userActor ? ProcessMarkEvents(data)) andThen {case _ =>
+        data map { d => card ! ClearNotBefore(d.card.is) }
       }
     }
     case MarkForDeletion(word) => {
@@ -112,7 +114,7 @@ class WordActor extends Actor with ActorLogging with RootActor {
     case DeleteReadyWords => {
       val time = now
       val q = WordRecord where (_.deleteOn before time) and (_.status eqs WordStatus.Deleting)
-      q foreach { w => { root ! DeleteCardsForWord(w.id.is) } }
+      q foreach { w => { card ! DeleteCardsForWord(w.id.is) } }
       q bulkDelete_!!()
       context.system.scheduler.scheduleOnce(3 hours, self, DeleteReadyWords)
     }

@@ -36,7 +36,8 @@ case class ExampleIds(jap: Long, other: List[TatoebaLink])
 case class ExampleEntry(jap: ExampleSentenceRecord, other: List[ExampleSentenceRecord])
 class ExampleActor extends Actor {
 
-  val exampleSearcher = new TatoebaLinks(new File(LP.get("example.index").get))
+  val exampleSearcher = //new TatoebaLinks(new File(LP.get("example.index").get))
+        ExampleSearcher
 
 
 
@@ -66,3 +67,5 @@ class ExampleActor extends Actor {
     }
   }
 }
+
+object ExampleSearcher extends TatoebaLinks(new File(LP.get("example.index").get))

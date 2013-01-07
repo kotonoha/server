@@ -29,8 +29,8 @@ import json.{DefaultFormats, Extraction}
  * @since 25.03.12
  */
 
-case class CreateTokenForUser(user: ObjectId, label: String) extends TokenMessage
-case class EncryptedTokenString(req: CreateTokenForUser, key: String) extends TokenMessage
+case class CreateToken(user: ObjectId, label: String) extends TokenMessage
+case class EncryptedTokenString(req: CreateToken, key: String) extends TokenMessage
 
 class UserTokenActor extends Actor {
   import ws.kotonoha.server.util.DateTimeUtils._
@@ -54,7 +54,7 @@ class UserTokenActor extends Actor {
 
 
   implicit val formats = DefaultFormats
-  def createEncryptedString(req: CreateTokenForUser, key: String) = {
+  def createEncryptedString(req: CreateToken, key: String) = {
     val data = makeToken(req.user, req.label)
     val raw = json.compact(json.render(Extraction.decompose(data.auth)))
     val encKey = SecurityUtil.makeArray(key)
@@ -63,7 +63,7 @@ class UserTokenActor extends Actor {
   }
 
   protected def receive = {
-    case CreateTokenForUser(user, label) => createToken(user, label)
+    case CreateToken(user, label) => createToken(user, label)
     case EncryptedTokenString(req, key) => createEncryptedString(req, key)
   }
 }
