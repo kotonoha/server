@@ -16,18 +16,11 @@
 
 package ws.kotonoha.server.actors
 
-import akka.pattern.{ask, pipe}
 import akka.actor._
-import auth.ClientRegistry
 import dict.{ExampleMessage, ExampleActor, DictionaryActor}
-import interop.{JumanRouter, JumanMessage, JumanPipeActor}
 import learning._
-import lift.{CreateActor, LiftMessage, LiftActorService}
 import model.{CardMessage, WordMessage, CardActor, WordActor}
-import net.liftweb.http.CometMessage
-import com.fmpwizard.cometactor.pertab.namedactor.{NamedCometMessage, PertabCometManager}
 import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
-import akka.routing.RoundRobinRouter
 
 /**
  * @author eiennohito

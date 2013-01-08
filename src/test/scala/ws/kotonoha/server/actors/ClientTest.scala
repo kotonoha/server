@@ -16,21 +16,21 @@
 
 package ws.kotonoha.server.actors
 
-import ws.kotonoha.server.model.MongoDb
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.records.ClientRecord
 import ws.kotonoha.server.actors.auth.AddClient
 import akka.dispatch.Await
 import akka.util.duration._
+import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.FunSuite
+import ws.kotonoha.server.test.TestWithAkka
 
-class ClientTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers with MongoDb with Akka with ReleaseAkka {
-
+class ClientTest extends TestWithAkka with FunSuite with ShouldMatchers {
   test("clients creates and deletes") {
     val client = ClientRecord.name("test")
-    Await.result(akkaServ ? AddClient(client), 2 seconds)
+    Await.result(kta ? AddClient(client), 2 seconds)
     val fromdb = ClientRecord.find(client.id.is)
     fromdb.isEmpty should be (false)
     client.delete_!
   }
-
 }

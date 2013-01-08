@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.actors
+package ws.kotonoha.server.test
 
-import akka.actor.Props
+import ws.kotonoha.server.mongodb.MongoDbInit
 
 /**
  * @author eiennohito
- * @since 07.01.13 
+ * @since 08.01.13 
  */
-
-trait KotonohaMessage
-trait DbMessage extends KotonohaMessage
-trait LifetimeMessage extends KotonohaMessage
-trait ClientMessage extends KotonohaMessage
-trait TokenMessage extends KotonohaMessage
-trait DictionaryMessage extends KotonohaMessage
-trait SelectWordsMessage extends KotonohaMessage
-
-
-case class CreateActor(props: Props, name: String) extends KotonohaMessage
+trait MongoDb {
+  MongoDbInit.init()
+}

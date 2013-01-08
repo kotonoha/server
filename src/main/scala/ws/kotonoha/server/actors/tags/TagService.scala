@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.actors
+package ws.kotonoha.server.actors.tags
 
-import akka.actor.Props
+import akka.actor.{Actor, ActorRef}
+import akka.pattern.{ask, pipe}
+import ws.kotonoha.server.actors.KotonohaActor
 
 /**
  * @author eiennohito
  * @since 07.01.13 
  */
 
-trait KotonohaMessage
-trait DbMessage extends KotonohaMessage
-trait LifetimeMessage extends KotonohaMessage
-trait ClientMessage extends KotonohaMessage
-trait TokenMessage extends KotonohaMessage
-trait DictionaryMessage extends KotonohaMessage
-trait SelectWordsMessage extends KotonohaMessage
-
-
-case class CreateActor(props: Props, name: String) extends KotonohaMessage
+class TagService extends KotonohaActor {
+  protected def receive = {
+    case ServiceActor => sender ! self
+  }
+}

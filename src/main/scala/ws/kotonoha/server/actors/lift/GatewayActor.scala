@@ -19,10 +19,9 @@ package ws.kotonoha.server.actors.lift
 import akka.pattern.{ask => apa}
 import net.liftweb.http.CometActor
 import ws.kotonoha.server.actors.ioc.Akka
-import ws.kotonoha.server.actors.KotonohaMessage
+import ws.kotonoha.server.actors.{CreateActor, KotonohaMessage}
 import akka.dispatch.Await
 import akka.actor._
-import akka.util.Duration
 
 /**
  * @author eiennohito
@@ -34,7 +33,6 @@ case class BindLiftActor(actor: CometActor) extends LiftMessage
 case class UnbindLiftActor(actor: CometActor) extends LiftMessage
 case object Ping extends LiftMessage
 case object Shutdown extends LiftMessage
-case class CreateActor(props: Props, name: String)
 
 trait AkkaInterop extends CometActor with Akka {
   import akka.util.duration._

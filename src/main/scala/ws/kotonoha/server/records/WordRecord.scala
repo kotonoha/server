@@ -29,6 +29,7 @@ import ws.kotonoha.server.tools.JsonAstUtil
 import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JBool
 import net.liftweb.json.JsonAST.JObject
+import ws.kotonoha.server.actors.tags.Taggable
 
 object WordStatus extends Enumeration {
   type WordStatus = Value
@@ -44,7 +45,7 @@ object WordStatus extends Enumeration {
  * @author eiennohito
  * @since 18.10.12 
  */
-class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordRecord] {
+class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordRecord] with Taggable {
   def meta = WordRecord
 
   object writing extends DelimitedStringList(this, ",、･")
@@ -61,6 +62,12 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
     WordRecord.trimInternal(asJValue)
   }
 
+
+  def curTags = tags.is
+
+  def writeTags(tags: List[String]) {
+    this.tags(tags)
+  }
 
   override def asJValue = {
     val v = super.asJValue
@@ -107,7 +114,7 @@ object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with Named
   def trimInternal(in: JValue, out: Boolean = true) = {
     val trimmed = in remove {
       case JField("user" | "deleteOn", _) => true
-      case JField("createdOn" | "status" | "_id", _) => !out
+      case JField("createdOn" | "status" | "_id" | "tags", _) => !out
       case _ => false
     }
     val r = JNothing ++ (if (out) trimmed else filterExamples(trimmed))

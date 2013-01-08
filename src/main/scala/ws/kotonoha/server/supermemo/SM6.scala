@@ -37,7 +37,7 @@ case class ProcessMark(data: ItemLearningDataRecord, q: Double, time: DateTime, 
 class SM6 extends UserScopedActor with ActorLogging {
   import DateTimeUtils._
 
-  lazy val mactor = context.actorOf(Props(new OFMatrixActor(uid, holder)))
+  lazy val mactor = context.actorOf(Props(new OFMatrixActor(uid, holder)), "ofmatrix")
 
   //F(0) = 0
   //F(0.25) = 0.5

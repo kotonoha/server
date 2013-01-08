@@ -24,13 +24,13 @@ import org.scribe.services.TimestampServiceImpl
 import net.liftweb.http._
 import net.liftweb.common.Full
 import org.scalatest.BeforeAndAfterAll
-import ws.kotonoha.server.model.MongoDb
 import org.apache.commons.httpclient.util.EncodingUtil
 import ws.kotonoha.server.records.{AuthCode, UserTokenRecord, ClientRecord}
 import com.google.gson.Gson
 import ws.kotonoha.server.rest.{AuthObject, KotonohaApi}
 import net.liftweb.json.{DefaultFormats, Printer, JsonAST, Extraction}
 import org.bson.types.ObjectId
+import ws.kotonoha.server.test.MongoDb
 
 
 object OAuthBasedService extends OauthRestHelper {

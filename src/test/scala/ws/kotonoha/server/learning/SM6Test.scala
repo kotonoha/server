@@ -21,12 +21,13 @@ import org.scalatest.matchers.ShouldMatchers
 import ws.kotonoha.server.mongodb.MongoDbInit
 import net.liftweb.mongodb.record.MongoRecord
 import akka.testkit.{TestKit, TestActorRef}
-import akka.actor.ActorSystem
+import akka.actor.{Props, ActorSystem}
 import ws.kotonoha.server.supermemo.{ProcessMark, SM6}
 import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord}
 import akka.dispatch.Await
 import akka.util.Timeout
 import org.bson.types.ObjectId
+import ws.kotonoha.server.test.{KotonohaTestAkka, TestWithAkka}
 
 /**
  * @author eiennohito
@@ -37,23 +38,10 @@ import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow}
 import akka.util.duration._
 import akka.pattern.ask
 
-class SM6Test(syst: ActorSystem) extends TestKit(syst) with FreeSpec with ShouldMatchers {
-
-  MongoDbInit.init()
-  implicit val timeout: Timeout = 5 minutes
-
-  def this() = this(ActorSystem("test"))
-
-  def withRec[T <: MongoRecord[T]](fact: => T)(f: T => Unit): Unit = {
-    val rec = fact
-    rec.save
-    f(rec)
-    rec.delete_!
-  }
-
+class SM6Test extends TestWithAkka with FreeSpec with ShouldMatchers {
   "First time learning" - {
     val id = new ObjectId()
-    val sm6 = TestActorRef(new SM6(id))
+    val sm6 = kta.userContext(id).userActor(Props[SM6], "sm6")
     "new cards are graded differently" in {
       withRec(WordCardRecord.createRecord) { card =>
         val o = ProcessMark(card.learning.is, 1.0, dtNow, id, card.id.is)

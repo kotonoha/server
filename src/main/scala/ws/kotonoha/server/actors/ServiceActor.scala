@@ -22,6 +22,7 @@ import interop.{JumanMessage, JumanRouter}
 import lift.{LiftMessage, LiftActorService}
 import com.fmpwizard.cometactor.pertab.namedactor.{NamedCometMessage, PertabCometManager}
 import akka.actor.SupervisorStrategy.Restart
+import tags.TagService
 
 /**
  * @author eiennohito
@@ -38,6 +39,7 @@ class ServiceActor extends Actor with ActorLogging {
   lazy val lifetime = context.actorOf(Props[LifetimeActor], "lifetime")
   lazy val cometActor = context.actorOf(Props[PertabCometManager], "comet")
   lazy val clientActor = context.actorOf(Props[ClientRegistry], "clients")
+  lazy val tagSvc = context.actorOf(Props[TagService], "tags")
 
   protected def receive = {
     case msg: DbMessage => mongo.forward(msg)

@@ -74,8 +74,7 @@ class WordActor extends UserScopedActor with ActorLogging {
       val toReply = sender
       val s = Future.sequence(fl.map(_.mapTo[Boolean])).flatMap(_ => self ? ChangeWordStatus(wordid, st))
       s foreach {
-        list =>
-          toReply ! word.id.is
+        _ => toReply ! word.id.is
       }
     }
     case ChangeWordStatus(word, stat) => {

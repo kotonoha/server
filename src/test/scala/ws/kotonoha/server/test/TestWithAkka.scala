@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.actors
+package ws.kotonoha.server.test
 
-import akka.actor.Props
+import akka.testkit.TestKit
+import akka.util.Timeout
+import net.liftweb.mongodb.record.MongoRecord
+import akka.util.duration._
 
 /**
  * @author eiennohito
- * @since 07.01.13 
+ * @since 08.01.13 
  */
+class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) extends TestKit(kta.system) with MongoDb {
+  implicit val timeout: Timeout = 5 minutes
 
-trait KotonohaMessage
-trait DbMessage extends KotonohaMessage
-trait LifetimeMessage extends KotonohaMessage
-trait ClientMessage extends KotonohaMessage
-trait TokenMessage extends KotonohaMessage
-trait DictionaryMessage extends KotonohaMessage
-trait SelectWordsMessage extends KotonohaMessage
-
-
-case class CreateActor(props: Props, name: String) extends KotonohaMessage
+  def withRec[T <: MongoRecord[T]](fact: => T)(f: T => Unit): Unit = {
+    val rec = fact
+    rec.save
+    f(rec)
+    rec.delete_!
+  }
+}

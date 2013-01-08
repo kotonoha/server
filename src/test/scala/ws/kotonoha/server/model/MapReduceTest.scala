@@ -3,13 +3,14 @@ package ws.kotonoha.server.model
 import com.mongodb.MapReduceCommand.OutputType
 import net.liftweb.mongodb.JObjectParser
 import net.liftweb.json.DefaultFormats
-import collection.JavaConversions
-import ws.kotonoha.server.records.{WordCardRecord, WordRecord, UserRecord}
+import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
 import com.mongodb.MapReduceCommand
 import java.util.HashMap
 import org.bson.types.Code
 import ws.kotonoha.server.mongodb.mapreduce.DateCounter
 import net.liftweb.json.JsonAST._
+import ws.kotonoha.server.test.MongoDb
+import collection.JavaConversions
 
 /*
  * Copyright 2012 eiennohito

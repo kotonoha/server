@@ -80,6 +80,7 @@ class WordCardRecord private() extends MongoRecord[WordCardRecord] with ObjectId
   object createdOn extends DateTimeField(this) with DateJsonFormat
   object notBefore extends OptionalDateTimeField(this, Empty) with DateJsonFormat
   object enabled extends BooleanField(this, true)
+  object priority extends IntField(this, 0)
 }
 
 object WordCardRecord extends WordCardRecord with MongoMetaRecord[WordCardRecord] with NamedDatabase {

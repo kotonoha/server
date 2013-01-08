@@ -15,29 +15,26 @@
  */
 package ws.kotonoha.server.model
 
-import ws.kotonoha.server.mongodb.MongoDbInit
 import com.foursquare.rogue.Rogue
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfter}
+import org.scalatest.{FunSuite, BeforeAndAfterAll, BeforeAndAfter}
 import net.liftweb.common.Empty
 import akka.util.Timeout
 import akka.dispatch.{Future, Await}
-import akka.testkit.TestActorRef
 import java.util.Calendar
-import util.Random
 import ws.kotonoha.server.learning.{ProcessMarkEvent, ProcessMarkEvents}
 import ws.kotonoha.server.util.DateTimeUtils
-import ws.kotonoha.server.actors.ReleaseAkkaMain
+import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow}
 import ws.kotonoha.server.actors.model.{SchedulePaired, CardActor, RegisterWord}
 import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadWords, LoadCards}
 import org.bson.types.ObjectId
+import org.scalatest.matchers.ShouldMatchers
+import ws.kotonoha.server.test.TestWithAkka
+import akka.actor.Props
+import akka.testkit.CallingThreadDispatcher
 
 
-trait MongoDb {
-  MongoDbInit.init()
-}
-
-class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers with BeforeAndAfter
-  with BeforeAndAfterAll with MongoDb {
+class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with BeforeAndAfter
+  with BeforeAndAfterAll {
   import akka.pattern._
   import akka.util.duration._
   import ws.kotonoha.server.records._
@@ -47,7 +44,8 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   
   def userId = user.id.is
 
-  implicit val executor = ReleaseAkkaMain.context
+  lazy val ucont = kta.userContext(userId)
+  implicit val executor = kta.context
 
   override def beforeAll() {
     user = UserRecord.createRecord.save
@@ -57,7 +55,6 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
 
   override def afterAll() {
     user.delete_!
-    ReleaseAkkaMain.shutdown()
   }
 
   after {
@@ -106,7 +103,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   
   def saveWordAsync = {
     implicit val timeout = Timeout(2500 millis)
-    val fut = ReleaseAkkaMain.root ? RegisterWord(createWord)
+    val fut = ucont.actor ? RegisterWord(createWord)
     fut.mapTo[ObjectId]
   }
   
@@ -129,14 +126,13 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   }
 
   test ("paired card is being postproned") {
-    implicit val system = ReleaseAkkaMain.system
-    val id = saveWord    
-    val sched = TestActorRef[CardActor]
-
+    val id = saveWord
     val cards = WordCardRecord where (_.word eqs id) fetch()
+
     cards.length should equal (2)
     val card = cards.head
 
+    val sched = ucont.userActor(Props[CardActor].withDispatcher(CallingThreadDispatcher.Id), "ca")
     sched.receive(SchedulePaired(id, card.cardMode.is))
     val cid = cards.last.id.is
     
@@ -146,7 +142,6 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
   }
   
   test("getting new cards and words") {
-    implicit val timeout = Timeout(1 second)
     val fs = Future.sequence(1 to 5 map { x => saveWordAsync })
     Await.ready(fs, 5 seconds)
 
@@ -155,7 +150,7 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
     val clen = WordCardRecord where (_.user eqs userId) count()
     clen should equal (10)
     
-    val sel = ask(ReleaseAkkaMain.wordSelector, LoadCards(userId, 6)).mapTo[List[WordCardRecord]]
+    val sel = ask(ucont.actor, LoadCards(6)).mapTo[List[WordCardRecord]]
     val words = Await.result(sel, 1 second)
     words.length should be <= (5)
     val groups = words groupBy { w => w.word.is }
@@ -163,59 +158,61 @@ class MongoTest extends org.scalatest.FunSuite with org.scalatest.matchers.Shoul
       gr should have length (1)
     }
 
-    val wicF = ask(ReleaseAkkaMain.wordSelector, LoadWords(userId, 6)).mapTo[WordsAndCards]
+    val wicF = ask(ucont.actor, LoadWords(6)).mapTo[WordsAndCards]
     val wic = Await.result(wicF, 2 seconds)
     wic.cards.length should be <= (5)
   }
 
   test("full work cycle") {
-    implicit val timeout : Timeout = 1 minute
     val fs = Future.sequence(1 to 5 map { x => saveWordAsync })
     Await.ready(fs, 150 milli)
 
-    val wicF = ask(ReleaseAkkaMain.wordSelector, LoadWords(userId, 5)).mapTo[WordsAndCards]
+    val wicF = ask(ucont.actor, LoadWords(5)).mapTo[WordsAndCards]
     val wic = Await.result(wicF, 5 seconds)
 
     val card = wic.cards.head
     val event = MarkEventRecord.createRecord
     event.card(card.id.is).mark(5.0).mode(card.cardMode.is).time(2.3142)
 
-    val proc = ReleaseAkkaMain.eventProcessor
-    Await.result(ask(proc, ProcessMarkEvents(List(event))), 5 seconds)
+    Await.ready(ask(ucont.actor, ProcessMarkEvents(List(event))), 5 seconds)
     val updatedCard = WordCardRecord.find(card.id.is).get
     updatedCard.learning.valueBox.isEmpty should be (false)
   }
   
   test("Multiple marks for word") {
     import DateTimeUtils._
-    implicit val system = ReleaseAkkaMain.system
     implicit val timeout = Timeout(2 seconds)
     val fs = Future.sequence(1 to 2 map { x => saveWordAsync })
     Await.ready(fs, 150 milli)
 
-    val wicF = ask(ReleaseAkkaMain.wordSelector, LoadWords(userId, 5)).mapTo[WordsAndCards]
+    val wicF = ask(ucont.actor, LoadWords(5)).mapTo[WordsAndCards]
     val wic = Await.result(wicF, 1 day)
 
     val card = wic.cards.head
     val event = MarkEventRecord.createRecord
     val cid = card.id.is
-    event.card(cid).mark(5.0).mode(card.cardMode.is).datetime(now.withDurationAdded(1 day, 1))
+    event.card(cid).mark(5.0).mode(card.cardMode.is).datetime(dtNow.withDurationAdded(1 day, 1))
+    event.user(userId)
+
 
     val ev2 = MarkEventRecord.createRecord
-    ev2.card(cid).mark(5.0).mode(card.cardMode.is).datetime(now.withDurationAdded(1 day, 2))
+    ev2.card(cid).mark(5.0).mode(card.cardMode.is).datetime(dtNow.withDurationAdded(1 day, 2))
+    ev2.user(userId)
 
     val ev3 = MarkEventRecord.createRecord
-    ev3.card(cid).mark(5.0).mode(card.cardMode.is).datetime(now.withDurationAdded(1 day, 9))
+    ev3.card(cid).mark(5.0).mode(card.cardMode.is).datetime(dtNow.withDurationAdded(1 day, 9))
+    ev3.user(userId)
 
     val ev4 = MarkEventRecord.createRecord
-    ev4.card(cid).mark(1.0).mode(card.cardMode.is).datetime(now.withDurationAdded(1 day, 14))
+    ev4.card(cid).mark(1.0).mode(card.cardMode.is).datetime(dtNow.withDurationAdded(1 day, 14))
+    ev4.user(userId)
 
 
-    val proc = ReleaseAkkaMain.eventProcessor
-    Await.ready(ask(proc, ProcessMarkEvent(event)), 1 second)
-    Await.ready(ask(proc, ProcessMarkEvent(ev2)), 1 second)
-    Await.ready(ask(proc, ProcessMarkEvent(ev3)), 1 second)
-    Await.ready(ask(proc, ProcessMarkEvent(ev4)), 1 second)
+    val proc = ucont.actor
+    Await.ready(ask(proc, ProcessMarkEvent(event)), 10 minutes)
+    Await.ready(ask(proc, ProcessMarkEvent(ev2)), 10 minutes)
+    Await.ready(ask(proc, ProcessMarkEvent(ev3)), 10 minutes)
+    Await.ready(ask(proc, ProcessMarkEvent(ev4)), 10 minutes)
 
     val updatedCard = WordCardRecord.find(cid).get
     updatedCard.learning.valueBox.isEmpty should be (false)

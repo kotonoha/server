@@ -91,8 +91,7 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
         val it = ProcessMark(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
         val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord]
         val ur = cardF.map { l => {
-          val c = card.learning(l)
-          c.save
+          WordCardRecord where (_.id eqs (ev.card.is)) modify(_.learning setTo(l)) updateOne()
         }}
         val se = sender
         ur foreach {
