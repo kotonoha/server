@@ -39,7 +39,7 @@ class PerUserActorSvc extends Actor {
 
   val storage = new collection.mutable.HashMap[ObjectId, ActorRef]
 
-  protected def receive = {
+  override def receive = {
     case RegisterPerUserActor(user, actor) => storage += user -> actor
     case DestroyActor(user) => storage -= user
     case CmdForUser(user, cmd) => storage.get(user) map {a => a.forward(ExecJs(cmd))}

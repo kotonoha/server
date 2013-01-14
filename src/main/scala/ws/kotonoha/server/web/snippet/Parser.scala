@@ -28,10 +28,10 @@ import ws.kotonoha.akane.mecab.{InfoExtractor, MecabParser}
 import ws.kotonoha.server.util.Strings
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.akane.ParsedQuery
-import akka.dispatch.Await
-import akka.util.Duration
+import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
 import ws.kotonoha.server.actors.interop.ParseSentence
+import concurrent.duration.Duration
 
 /**
  * @author eiennohito

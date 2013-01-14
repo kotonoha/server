@@ -34,7 +34,7 @@ import org.bson.types.ObjectId
  */
 
 object Grants extends KotonohaRest with ReleaseAkka {
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.KBsonDSL._
 
   def mergeRoles(user: ObjectId, roles: String): Unit = {

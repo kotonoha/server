@@ -19,9 +19,10 @@ package ws.kotonoha.server.actors
 import org.bson.types.ObjectId
 import akka.actor._
 import org.joda.time.DateTime
-import akka.util.duration._
+import concurrent.duration._
 import scala.Some
 import akka.actor.SupervisorStrategy.Restart
+import concurrent.ExecutionContext
 
 /**
  * @author eiennohito
@@ -58,12 +59,14 @@ class UserActorManager extends Actor with ActorLogging {
     stale.foreach { case (_, a) => a ! PoisonPill }
   }
 
+  implicit val ec: ExecutionContext = context.system.dispatcher
+
 
   override def preStart() {
     context.system.scheduler.schedule(15 minutes, 5 minutes, self, Ping)
   }
 
-  protected def receive = {
+  override def receive = {
     case Ping => checkLife()
     case PingUser(uid) => lifetime.get(uid) foreach( lifetime += uid -> _ )
     case UserActor(uid) => sender ! userActor(uid)

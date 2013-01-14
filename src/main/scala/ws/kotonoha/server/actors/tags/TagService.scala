@@ -26,7 +26,7 @@ import ws.kotonoha.server.actors.KotonohaActor
  */
 
 class TagService extends KotonohaActor {
-  protected def receive = {
+  override def receive = {
     case ServiceActor => sender ! self
   }
 }

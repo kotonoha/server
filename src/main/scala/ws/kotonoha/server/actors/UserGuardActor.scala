@@ -29,7 +29,7 @@ import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
 
 class UserGuardActor extends UserScopedActor with ActorLogging {
   import SupervisorStrategy._
-  import akka.util.duration._
+  import concurrent.duration._
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 1500, withinTimeRange = 1 day) {
     case e: Exception => log.error(e, "Caught an exception in guard actor"); Restart
   }
@@ -59,7 +59,7 @@ class UserGuardActor extends UserScopedActor with ActorLogging {
     }
   }
 
-  protected def receive = {
+  override def receive = {
     case CreateActor(p, name) => name match {
       case null | "" => sender ! context.actorOf(p)
       case _ => sender ! context.actorOf(p, name)

@@ -26,7 +26,7 @@ import com.github.siasia.{PluginKeys => WPK, WebPlugin}
 
 object Settings {
 
-  val ourScalaVer = "2.9.2"
+  val ourScalaVer = "2.10.0"
 
   val buildOrganization = "ws.kotonoha"
 

@@ -39,11 +39,11 @@ object ScheduledCount {
     Script(AllJsonHandler.is.jsCmd & callbackFn(callbackName))
 
   def cntScheduled(in: NodeSeq) : NodeSeq = {
-    import com.foursquare.rogue.Rogue._
-    val uid = UserRecord.currentId
+    import com.foursquare.rogue.LiftRogue._
+    val uid = UserRecord.currentId.openOrThrowException("Should work")
     val now = DateTimeUtils.now
 
-    val q = WordCardRecord where(_.user eqs uid.open_!) and (_.notBefore before now) and
+    val q = WordCardRecord where(_.user eqs uid) and (_.notBefore lt now) and
       (_.learning.subfield(_.intervalEnd) before now)
 
     val cnt = q.count()

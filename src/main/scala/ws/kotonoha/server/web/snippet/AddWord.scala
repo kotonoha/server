@@ -24,7 +24,6 @@ import net.liftweb.common.Full
 import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
 import ws.kotonoha.server.util.unapply.XLong
 import util.Random
-import com.weiglewilczek.slf4s.Logging
 import ws.kotonoha.server.web.comet.{Cleanup, PrepareWords, WordList}
 import ws.kotonoha.server.records.{WordRecord, AddWordRecord, UserRecord}
 import net.liftweb.json.JsonAST.{JObject, JValue}
@@ -37,6 +36,7 @@ import ws.kotonoha.server.util.parsing.AddStringParser
 import util.parsing.input.CharSequenceReader
 import ws.kotonoha.akane.unicode.UnicodeUtil
 import org.bson.types.ObjectId
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author eiennohito

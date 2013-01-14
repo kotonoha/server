@@ -21,9 +21,6 @@ import net.liftweb.mongodb.record.field._
 import net.liftweb.record.field.{EnumField, DateTimeField, StringField}
 import net.liftweb.json.JsonAST._
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.json.JsonAST.JField
-import net.liftweb.json.JsonAST.JBool
-import net.liftweb.json.JsonAST.JObject
 import ws.kotonoha.server.mongodb.record.DelimitedStringList
 import ws.kotonoha.server.tools.JsonAstUtil
 import net.liftweb.json.JsonAST.JField
@@ -51,7 +48,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
   object writing extends DelimitedStringList(this, ",、･")
   object reading extends DelimitedStringList(this, ",、･")
   object meaning extends StringField(this, 1000) with TextAreaHtml
-  object createdOn extends DateTimeField(this) with DateJsonFormat
+  object createdOn extends JodaDateField(this)
   object status extends EnumField(this, WordStatus, WordStatus.New)
   object tags extends MongoListField[WordRecord, String](this)
 
@@ -80,11 +77,11 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
     tfed.asInstanceOf[JObject]
   }
 
-  object deleteOn extends DateTimeField(this) with DateJsonFormat
+  object deleteOn extends JodaDateField(this)
 }
 
-object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with NamedDatabase {
-  import com.foursquare.rogue.Rogue._
+object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with KotonohaMongoRecord[WordRecord] with NamedDatabase {
+  import com.foursquare.rogue.LiftRogue._
   def myApproved = {
     myAll and (_.status eqs WordStatus.Approved)
   }

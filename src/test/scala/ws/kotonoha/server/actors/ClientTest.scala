@@ -19,8 +19,8 @@ package ws.kotonoha.server.actors
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.records.ClientRecord
 import ws.kotonoha.server.actors.auth.AddClient
-import akka.dispatch.Await
-import akka.util.duration._
+import scala.concurrent.Await
+import concurrent.duration._
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FunSuite
 import ws.kotonoha.server.test.TestWithAkka

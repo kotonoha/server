@@ -1,20 +1,21 @@
 package com.fmpwizard.cometactor.pertab
 package namedactor
 
-import net.liftweb._
-import common.{Full, Logger}
-import http.CometActor
+import net.liftweb.common.{Full, Logger}
 import ws.kotonoha.server.actors.lift.AkkaInterop
 import akka.actor.ActorRef
 import akka.util.Timeout
-import akka.util.duration._
+import concurrent.duration._
 import ws.kotonoha.server.util.DateTimeUtils._
+import net.liftweb.http.CometActor
+import concurrent.ExecutionContext
 
 
 trait NamedCometActor extends CometActor with Logger with AkkaInterop {
 
   private val namedComet = NamedComet(this.getClass.getName, name)
   private implicit val timeout: Timeout = 1 second
+  private implicit val ec: ExecutionContext = akkaServ.context
 
   /**
    * First thing we do is registering this comet actor

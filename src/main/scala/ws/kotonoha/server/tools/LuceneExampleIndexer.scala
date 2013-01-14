@@ -55,7 +55,7 @@ object LuceneExampleIndexer {
   }
 
   def docs(f: Document => Unit) = {
-    import com.foursquare.rogue.Rogue._
+    import com.foursquare.rogue.LiftRogue._
     ExampleSentenceRecord where (_.lang eqs "jpn") foreach {r => f(makeDoc(r))}
   }
 }

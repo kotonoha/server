@@ -17,10 +17,9 @@
 package ws.kotonoha.server.actors
 
 import ws.kotonoha.server.qr.QrRenderer
-import akka.actor.{ActorRef, Actor}
 import ws.kotonoha.server.records.QrEntry
-import akka.util.FiniteDuration
 import org.bson.types.ObjectId
+import concurrent.duration.FiniteDuration
 
 /**
  * @author eiennohito
@@ -50,7 +49,7 @@ class QrCreator extends UserScopedActor {
       sender ! obj
     }
 
-  protected def receive = {
+  override def receive = {
     case CreateQr(data) => createQr(uid, data)
     case CreateQrWithLifetime(data, period) => createQr(uid, data, period)
   }

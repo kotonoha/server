@@ -48,7 +48,7 @@ class UserRecord private() extends MegaProtoUser[UserRecord] {
     override def uniqueFieldId = Full("username")
   }
 
-  object regDate extends DateTimeField(this) with DateJsonFormat
+  object regDate extends JodaDateField(this)
 
   object apiPublicKey extends StringField(this, 32)
   object apiPrivateKey extends StringField(this, 32)
@@ -152,7 +152,7 @@ class ClientRecord private() extends MongoRecord[ClientRecord] with ObjectIdPk[C
   object name extends StringField(this, 50)
   object apiPublic extends StringField(this, 32)
   object apiPrivate extends StringField(this, 32)
-  object registeredDate extends DateTimeField(this) with DateJsonFormat
+  object registeredDate extends JodaDateField(this)
 
   def reset {}
 
@@ -183,7 +183,7 @@ class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with Object
   object label extends StringField(this, 100)
   object tokenPublic extends StringField(this, 32)
   object tokenSecret extends StringField(this, 32)
-  object createdOn extends DateTimeField(this, now) with DateJsonFormat
+  object createdOn extends JodaDateField(this)
 
   def auth = AuthCode(AppConfig().baseUri.is, tokenPublic.is, tokenSecret.is)
 }

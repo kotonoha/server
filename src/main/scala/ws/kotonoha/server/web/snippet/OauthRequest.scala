@@ -8,7 +8,7 @@ import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.actors.{EncryptedTokenString, CreateToken}
 import org.joda.time.format.DateTimeFormat
 import ws.kotonoha.server.util.Formatting
-import akka.dispatch.Await
+import scala.concurrent.Await
 import org.bson.types.ObjectId
 
 /**
@@ -17,8 +17,8 @@ import org.bson.types.ObjectId
  */
 
 object OauthRequest extends Akka with ReleaseAkka {
-  import com.foursquare.rogue.Rogue._
-  import akka.util.duration._
+  import com.foursquare.rogue.LiftRogue._
+  import concurrent.duration._
 
   def dateRenderer = {
     val r = DateTimeFormat.forPattern("'browser request on 'yyyy.MM.dd HH:mm")

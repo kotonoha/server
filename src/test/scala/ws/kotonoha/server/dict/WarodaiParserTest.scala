@@ -21,6 +21,7 @@ import util.parsing.input.CharSequenceReader
 class WarodaiParserTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
 
   import WarodaiParser._
+  import language.implicitConversions
 
   implicit def str2charseqreader(in: String) = new CharSequenceReader(in)
 

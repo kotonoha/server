@@ -29,7 +29,7 @@ import tags.TagService
  * @since 07.01.13 
  */
 class ServiceActor extends Actor with ActorLogging {
-  import akka.util.duration._
+  import concurrent.duration._
 
   val mongo = context.actorOf(Props[MongoDBActor], "mongo")
   lazy val jumanActor = context.actorOf(Props[JumanRouter], "juman")
@@ -41,7 +41,7 @@ class ServiceActor extends Actor with ActorLogging {
   lazy val clientActor = context.actorOf(Props[ClientRegistry], "clients")
   lazy val tagSvc = context.actorOf(Props[TagService], "tags")
 
-  protected def receive = {
+  override def receive = {
     case msg: DbMessage => mongo.forward(msg)
     case msg: JumanMessage => jumanActor.forward(msg)
     case msg: SecurityMessage => securityActor.forward(msg)

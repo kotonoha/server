@@ -54,7 +54,7 @@ object AllJsonHandler extends SessionVar[JsonHandler](
     }
 
     def loadOFMatrix: JsExp = {
-      import com.foursquare.rogue.Rogue._
+      import com.foursquare.rogue.LiftRogue._
       import ws.kotonoha.server.util.KBsonDSL._
       val matId = OFMatrixRecord.forUser(UserRecord.currentId.open_!).id.is
       val items = OFElementRecord where (_.matrix eqs matId) fetch()

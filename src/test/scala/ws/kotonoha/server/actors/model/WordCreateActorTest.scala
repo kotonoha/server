@@ -31,7 +31,7 @@ import ws.kotonoha.server.mongodb.MongoDbInit
  */
 
 class WordCreateActorTest extends FreeSpec with ShouldMatchers with BeforeAndAfterAll {
-  import akka.util.duration._
+  import concurrent.duration._
   implicit val system = ActorSystem()
   var root: ActorRef = _
 

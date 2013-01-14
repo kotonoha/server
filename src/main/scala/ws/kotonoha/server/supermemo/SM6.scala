@@ -3,11 +3,8 @@ package ws.kotonoha.server.supermemo
 import ws.kotonoha.server.math.MathUtil
 import ws.kotonoha.server.util.DateTimeUtils
 import org.joda.time.{Duration, DateTime}
-import akka.actor.{Props, ActorLogging, Actor}
+import akka.actor.{Props, ActorLogging}
 import ws.kotonoha.server.records._
-import akka.pattern.ask
-import akka.dispatch.Await
-import akka.util.Timeout
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.UserScopedActor
 
@@ -72,7 +69,7 @@ class SM6 extends UserScopedActor with ActorLogging {
     i * p
   }
 
-  import akka.util.duration._
+  import concurrent.duration._
 
   lazy val holder = new OFMatrixHolder(uid)
 
@@ -149,7 +146,7 @@ class SM6 extends UserScopedActor with ActorLogging {
     }
   }
 
-  protected def receive = {
+  override def receive = {
     case i: ProcessMark => sender ! printE { update(i) }
   }
 }

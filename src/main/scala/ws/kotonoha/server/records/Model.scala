@@ -77,14 +77,14 @@ class WordCardRecord private() extends MongoRecord[WordCardRecord] with ObjectId
     override def required_? = false
   }
   object user extends ObjectIdRefField(this, UserRecord)
-  object createdOn extends DateTimeField(this) with DateJsonFormat
-  object notBefore extends OptionalDateTimeField(this, Empty) with DateJsonFormat
+  object createdOn extends JodaDateField(this)
+  object notBefore extends OptionalJodaDateField(this, Empty)
   object enabled extends BooleanField(this, true)
   object priority extends IntField(this, 0)
 }
 
-object WordCardRecord extends WordCardRecord with MongoMetaRecord[WordCardRecord] with NamedDatabase {
-  import com.foursquare.rogue.Rogue._
+object WordCardRecord extends WordCardRecord with KotonohaMongoRecord[WordCardRecord] with MongoMetaRecord[WordCardRecord] with NamedDatabase {
+  import com.foursquare.rogue.LiftRogue._
 
   def enabledFor(id: ObjectId) = {
     this where (_.user eqs id) and (_.enabled eqs true)

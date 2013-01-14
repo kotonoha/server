@@ -20,7 +20,7 @@ import akka.pattern.{ask => apa}
 import net.liftweb.http.CometActor
 import ws.kotonoha.server.actors.ioc.Akka
 import ws.kotonoha.server.actors.{CreateActor, KotonohaMessage}
-import akka.dispatch.Await
+import scala.concurrent.Await
 import akka.actor._
 
 /**
@@ -35,7 +35,7 @@ case object Ping extends LiftMessage
 case object Shutdown extends LiftMessage
 
 trait AkkaInterop extends CometActor with Akka {
-  import akka.util.duration._
+  import concurrent.duration._
 
   private def createBridge(): ActorRef = {
     val f = apa(akkaServ.global, BindLiftActor(this))(5 seconds)
@@ -45,12 +45,12 @@ trait AkkaInterop extends CometActor with Akka {
   lazy implicit protected val sender: ActorRef = createBridge()
 
   override protected def localSetup() = {
-    sender.tell(Ping) //compute lazy parameter
+    sender ! Ping //compute lazy parameter
     super.localSetup()
   }
 
   override protected def localShutdown() = {
-    sender.tell(Shutdown)
+    sender ! Shutdown
     super.localShutdown()
   }
 
@@ -63,7 +63,7 @@ trait AkkaInterop extends CometActor with Akka {
 case class ToAkka(actor: ActorRef, in: Any)
 
 class LiftBridge(svc: ActorRef, lift: CometActor) extends Actor {
-  protected def receive = {
+  override def receive = {
     case ToAkka(ar, msg) => ar ! msg
     case Ping => //do nothing
     case CreateActor(p, name) => {
@@ -83,7 +83,7 @@ class LiftBridge(svc: ActorRef, lift: CometActor) extends Actor {
 class LiftActorService extends Actor {
   val actors = new collection.mutable.HashMap[CometActor, ActorRef]
 
-  protected def receive = {
+  override def receive = {
     case BindLiftActor(lift) => {
       val ar = context.actorOf(Props(new LiftBridge(self, lift)))
       actors += (lift -> ar)

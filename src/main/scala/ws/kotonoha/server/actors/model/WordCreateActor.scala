@@ -16,20 +16,17 @@
 
 package ws.kotonoha.server.actors.model
 
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.ActorLogging
 import ws.kotonoha.server.records._
-import akka.dispatch.{ExecutionContext, DefaultPromise, Future, Promise}
 import net.liftweb.common.{Empty, Box}
 import ws.kotonoha.server.actors.dict.DictType._
-import ws.kotonoha.server.actors.{UserScopedActor, RootActor, SearchQuery}
+import ws.kotonoha.server.actors.{UserScopedActor, SearchQuery}
 import ws.kotonoha.server.web.comet.TimeoutException
-import akka.util.{Timeout, Duration}
+import akka.util.Timeout
 import ws.kotonoha.server.actors.dict._
 import ws.kotonoha.server.util.{DateTimeUtils, LangUtil}
-
-import akka.pattern.{ask, pipe}
-import akka.util.duration._
-import scala.Left
+import akka.pattern.ask
+import concurrent.duration._
 import ws.kotonoha.server.actors.dict.DictQuery
 import ws.kotonoha.server.actors.dict.TranslationsWithLangs
 import scala.Some
@@ -39,6 +36,7 @@ import ws.kotonoha.server.actors.dict.SearchResult
 import ws.kotonoha.server.actors.dict.ExampleEntry
 import ws.kotonoha.akane.unicode.{KanaUtil, UnicodeUtil}
 import org.bson.types.ObjectId
+import concurrent.{Future, Promise}
 
 /**
  * @author eiennohito
@@ -65,6 +63,7 @@ case class CreateWordData(in: AddWordRecord)
 
 class WordCreateActor extends UserScopedActor with ActorLogging {
   import DateTimeUtils._
+  import akka.pattern.pipe
   implicit val timeout: Timeout = 10 seconds
 
   def prepareWord(rec: AddWordRecord): Future[WordData] = {
@@ -97,9 +96,8 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
       case ((sr1, sr2), ex) => {
         val dicts = List(collapse(sr1, "JMDict"), collapse(sr2, "Warodai"))
         log.debug("Calculated word data")
-        val onSave = new DefaultPromise[WordData]()
-        val d: Duration = (15 minutes)
-        context.system.scheduler.scheduleOnce(d)(() => onSave.tryComplete(Left(new TimeoutException)))
+        val onSave = Promise[WordData]()
+        context.system.scheduler.scheduleOnce(15 minutes)(() => onSave.tryComplete(util.Failure(new TimeoutException)))
         WordData(dicts, ex, createWord(rec.user.is, dicts, ex), onSave)
       }
     }
@@ -144,7 +142,7 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
     item pipeTo sender
   }
 
-  protected def receive = {
+  override def receive = {
     case CreateWordData(awr) => createWordData(awr)
   }
 }

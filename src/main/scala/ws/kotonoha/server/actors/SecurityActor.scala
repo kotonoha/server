@@ -19,11 +19,11 @@ package ws.kotonoha.server.actors
 import akka.actor.{ActorRef, Actor}
 import ioc.{ReleaseAkka, Akka}
 import akka.util.Timeout
-import akka.util.duration._
+import concurrent.duration._
 import akka.pattern.ask
-import akka.dispatch.{Future, Await}
 import ws.kotonoha.server.security.{Roles, GrantRecord}
 import org.bson.types.ObjectId
+import concurrent.{Future, Await}
 
 /**
  * @author eiennohito
@@ -38,7 +38,7 @@ case class GrantRole(user: ObjectId, role: String) extends SecurityMessage
 case class RevokeRole(user: ObjectId, role: String) extends SecurityMessage
 
 class SecurityActor extends Actor {
-  protected def receive = {
+  override def receive = {
     case GetSecurityActor => sender ! self
     case CheckGrant(u, r) => {
       val grant = GrantRecord.haveGrant(u, r)
@@ -62,6 +62,8 @@ object GrantManager extends Akka with ReleaseAkka {
   }
 
   implicit val timeout: Timeout = 5 seconds
+
+  implicit val ec = akkaServ.context
 
   def checkRole(user: ObjectId, role: Roles.Role): Boolean = checkRole(user, role.toString)
 

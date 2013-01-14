@@ -32,7 +32,7 @@ import net.liftweb.common.Box
 
 
 trait QrRest extends KotonohaRest {
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
 
   lazy val invalidQr = LiftRules.doWithResource("/images/invalid_qr.png") {
           IOUtils.toByteArray(_)

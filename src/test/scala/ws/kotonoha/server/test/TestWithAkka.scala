@@ -16,10 +16,10 @@
 
 package ws.kotonoha.server.test
 
-import akka.testkit.TestKit
+import akka.testkit.{TestProbe, TestKit}
 import akka.util.Timeout
 import net.liftweb.mongodb.record.MongoRecord
-import akka.util.duration._
+import concurrent.duration._
 
 /**
  * @author eiennohito
@@ -28,10 +28,13 @@ import akka.util.duration._
 class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) extends TestKit(kta.system) with MongoDb {
   implicit val timeout: Timeout = 5 minutes
 
+
   def withRec[T <: MongoRecord[T]](fact: => T)(f: T => Unit): Unit = {
     val rec = fact
     rec.save
     f(rec)
     rec.delete_!
   }
+
+  def probe = TestProbe()(kta.system)
 }

@@ -41,7 +41,7 @@ case class DictQuery(dict: DictType.DictType, writing: String, reading: Option[S
 private case class Query(writing: String, reading: Option[String], max: Int)
 
 class DictionaryActor extends Actor {
-  protected def receive = {
+  override def receive = {
     case DictQuery(DictType.jmdict, w, r, max) => context.actorOf(Props[JMDictQActor]).forward(Query(w, r, max))
     case DictQuery(DictType.warodai, w, r, max) => context.actorOf(Props[WarodaiQActor]).forward(Query(w, r, max))
   }
@@ -65,7 +65,7 @@ class JMDictQActor extends Actor {
     SearchResult(entrs)
   }
 
-  protected def receive = {
+  override def receive = {
     case Query(w, r, max) => {
       sender ! process(w, r, max)
       context.stop(self)
@@ -95,7 +95,7 @@ class WarodaiQActor extends Actor {
     SearchResult(entrs)
   }
 
-  protected def receive = {
+  override def receive = {
     case Query(w, r, max) => {
       sender ! process(w, r, max)
       context.stop(self)

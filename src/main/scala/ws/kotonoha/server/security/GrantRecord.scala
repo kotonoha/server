@@ -22,6 +22,7 @@ import net.liftweb.mongodb.record.field.{ObjectIdField, LongPk}
 import net.liftweb.record.field.{StringField, LongField}
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import com.mongodb.WriteConcern
 
 /**
  * @author eiennohito
@@ -36,9 +37,9 @@ class GrantRecord private() extends MongoRecord[GrantRecord] with LongPk[GrantRe
 }
 
 object GrantRecord extends GrantRecord with MongoMetaRecord[GrantRecord] with NamedDatabase {
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
   def revokeRole(user: ObjectId, role: String): Unit = {
-    GrantRecord where (_.user eqs (user)) and (_.role eqs (role)) bulkDelete_!!()
+    GrantRecord where (_.user eqs (user)) and (_.role eqs (role)) bulkDelete_!!(WriteConcern.NORMAL)
   }
 
   def haveGrant(user: ObjectId, role: String) = {

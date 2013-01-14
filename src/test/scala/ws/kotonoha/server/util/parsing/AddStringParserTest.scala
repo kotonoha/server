@@ -49,6 +49,7 @@ class AddStringParserTest extends FreeSpec with ShouldMatchers {
     def apply(left: ParseResult[_]) = MatchResult(left.successful,
       "Parse failed: " + left, "Parse not failed" + left)
   }
+  import language.implicitConversions
 
   implicit def str2charseqreader(in: String) = new CharSequenceReader(in)
 

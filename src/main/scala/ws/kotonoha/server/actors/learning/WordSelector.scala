@@ -16,21 +16,19 @@ package ws.kotonoha.server.actors.learning
  * limitations under the License.
  */
 
-import com.foursquare.rogue.Rogue
 import org.joda.time.DateTime
 import util.Random
 import ws.kotonoha.server.util.DateTimeUtils
-import Rogue._
 import akka.pattern._
-import akka.util.duration._
+import concurrent.duration._
 import akka.util.Timeout
-import akka.actor.{ActorLogging, Props, Actor}
+import akka.actor.{ActorLogging, Props}
 import ws.kotonoha.server.records.{WordRecord, WordCardRecord}
 import ws.kotonoha.server.actors._
 import model.SchedulePaired
-import net.liftweb.json.JsonAST.JObject
 import DateTimeUtils._
 import org.bson.types.ObjectId
+import akka.actor.Status.Failure
 
 /**
  * @author eiennohito
@@ -38,6 +36,8 @@ import org.bson.types.ObjectId
  */
 
 class WordSelector extends UserScopedActor with ActorLogging {
+  import com.foursquare.rogue.LiftRogue._
+
   def calculateMax(maxInt: Int, firstPerc: Double, overMax: Double) = {
     def ceil(x: Double): Int = math.round(math.ceil(x)).asInstanceOf[Int]
     val max = maxInt * (1 + overMax)
@@ -62,8 +62,8 @@ class WordSelector extends UserScopedActor with ActorLogging {
     res.toList
   }
 
-  val loaderSched = context.actorOf(Props[CardLoader])
-  val loaderNew = context.actorOf(Props[CardLoader])
+  val loaderSched = context.actorOf(Props[CardLoader], "scheduled")
+  val loaderNew = context.actorOf(Props[CardLoader], "new")
 
   def loadNewCards(userId: ObjectId, max: Int, now: DateTime) = {
     if (max == 0) {
@@ -85,9 +85,8 @@ class WordSelector extends UserScopedActor with ActorLogging {
   }
 
   def forUser(userId: ObjectId, max: Int) = {
-    val now = new DateTime()
     val valid = WordCardRecord.enabledFor(userId) and
-      (_.learning.subfield(_.intervalEnd) before now) and (_.notBefore before now) orderAsc
+      (_.learning.subfield(_.intervalEnd) before now) and (_.notBefore lt now) orderAsc
       (_.learning.subfield(_.intervalEnd)) fetch (max)
 
     for (v <- valid) {
@@ -100,7 +99,7 @@ class WordSelector extends UserScopedActor with ActorLogging {
   }
 
   def loadReviewList(user: ObjectId, max: Int) {
-    val q = WordCardRecord.enabledFor(user) and (_.notBefore before now.plus(1 day)) and
+    val q = WordCardRecord.enabledFor(user) and (_.notBefore lt now.plus(1 day)) and
       (_.learning.subfield(_.repetition) eqs (1)) and
       (_.learning.subfield(_.lapse) neqs (1)) and
       (_.learning.subfield(_.intervalEnd) before (now.plus(2 days)))
@@ -112,21 +111,20 @@ class WordSelector extends UserScopedActor with ActorLogging {
     sender ! WordsAndCards(ordered, Nil)
   }
 
-  protected def receive = {
+  override def receive = {
     case LoadReviewList(max) => loadReviewList(uid, max)
     case LoadCards(max) => {
-      val dest = sender
-      forUser(uid, max) map (dest ! _)
+      forUser(uid, max) pipeTo sender
     }
     case LoadWords(max) => {
       val f = ask(self, LoadCards(max))(10 seconds).mapTo[List[WordCardRecord]]
       val dest = sender
       f onComplete {
-        case Right(cards) =>
+        case util.Success(cards) =>
           dest ! createResult(cards)
-        case Left(thr) =>
-          log.error(thr, "Error in sending stuff")
-          dest ! thr
+        case util.Failure(thr) =>
+          log.error(thr, "There was unexpected error in loading cards")
+          dest ! Failure(thr)
       }
     }
   }
@@ -150,16 +148,21 @@ case class WordsAndCards(words: List[WordRecord], cards: List[WordCardRecord])
 case class LoadScheduled(uid: ObjectId, maxSched: Int)
 case class LoadNewCards(uid: ObjectId, maxNew: Int)
 
-class CardLoader extends KotonohaActor {
-  protected def receive = {
+class CardLoader extends UserScopedActor with ActorLogging {
+  import com.foursquare.rogue.LiftRogue._
+  override def receive = {
     case LoadScheduled(uid, max) => {
-      val scheduled = WordCardRecord.enabledFor(uid) and (_.learning exists false) and
-        (_.notBefore before now) fetch (max)
+      val query = WordCardRecord.enabledFor(uid) and (_.learning exists false) and
+        (_.notBefore lt now)
+      val scheduled = query fetch (max)
+      log.debug(s"Loading scheduled cards, got ${scheduled.size} of $max")
       sender ! scheduled
     }
     case LoadNewCards(uid, max) => {
-      val newCards = WordCardRecord.enabledFor(uid) and (_.learning exists false) and
-        (_.notBefore exists false) orderAsc (_.createdOn) fetch (max)
+      val query = WordCardRecord.enabledFor(uid) and (_.learning exists false) and
+        (_.notBefore exists false) orderAsc (_.createdOn)
+      val newCards = query fetch (max)
+      log.debug(s"Loading new cards: got ${newCards.size} of $max")
       sender ! newCards
     }
   }

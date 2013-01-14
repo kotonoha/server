@@ -16,7 +16,8 @@
 
 package ws.kotonoha.server.records.dictionary
 
-import com.weiglewilczek.slf4s.Logging
+import com.typesafe.scalalogging.slf4j.Logging
+
 
 /**
  * @author eiennohito

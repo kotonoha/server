@@ -112,7 +112,7 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     rec.card.is should equal (cid)
     rec.mark.is should equal (5.0)
     rec.mode.is should equal (CardMode.READING)
-    rec.datetime.is.getTimeInMillis should equal (dt.getMillis)
+    rec.datetime.is should equal (dt)
   }
 
   import scala.collection.JavaConversions._

@@ -24,7 +24,7 @@ import akka.testkit.{TestKit, TestActorRef}
 import akka.actor.{Props, ActorSystem}
 import ws.kotonoha.server.supermemo.{ProcessMark, SM6}
 import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord}
-import akka.dispatch.Await
+import scala.concurrent.Await
 import akka.util.Timeout
 import org.bson.types.ObjectId
 import ws.kotonoha.server.test.{KotonohaTestAkka, TestWithAkka}
@@ -35,7 +35,7 @@ import ws.kotonoha.server.test.{KotonohaTestAkka, TestWithAkka}
  */
 
 import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow}
-import akka.util.duration._
+import concurrent.duration._
 import akka.pattern.ask
 
 class SM6Test extends TestWithAkka with FreeSpec with ShouldMatchers {

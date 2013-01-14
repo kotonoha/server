@@ -20,9 +20,9 @@ import akka.actor.{Actor, ActorRef, Props, ActorSystem}
 import java.util.concurrent.atomic.AtomicInteger
 import org.bson.types.ObjectId
 import akka.util.Timeout
-import akka.util.duration._
+import concurrent.duration._
 import akka.pattern.ask
-import akka.dispatch.Await
+import scala.concurrent.Await
 import akka.testkit.TestActorRef
 import ws.kotonoha.server.actors.{CreateActor, UserScopedActor, GlobalActor, AkkaMain}
 
@@ -41,10 +41,12 @@ class KotonohaTestAkka extends AkkaMain {
   lazy val global = system.actorOf(Props[GlobalActor], GlobalActor.globalName)
 
   def userContext(uid: ObjectId) = new UserContext(this, uid)
+
+  private[test] val cnt = new AtomicInteger()
 }
 
 class SupervisorActor extends UserScopedActor {
-  protected def receive = {
+  override def receive = {
     case Nil => //
   }
 }
@@ -55,7 +57,8 @@ class UserContext(akka: KotonohaTestAkka, uid: ObjectId) {
   lazy val actor = akka.userActor(uid)
 
   private lazy val supervisor = {
-    Await.result((actor ? CreateActor(Props[SupervisorActor], "supervisor")).mapTo[ActorRef], 1 minute)
+    Await.result((actor ? CreateActor(Props[SupervisorActor], s"supervisor${akka.cnt.getAndAdd(1)}"))
+      .mapTo[ActorRef], 1 minute)
   }
 
   def userActor(props: Props, name: String) = {

@@ -11,13 +11,13 @@ import org.joda.time.DateTime
 
 object DuplicateMarkFinder {
   import ws.kotonoha.server.util.DateTimeUtils._
-  import akka.util.duration._
-  import com.foursquare.rogue.Rogue._
+  import concurrent.duration._
+  import com.foursquare.rogue.LiftRogue._
   def main(args: Array[String]) {
     MongoDbInit.init()
 
     val tendays = now minus (10 days)
-    val marks = MarkEventRecord where (_.datetime after (tendays)) fetch()
+    val marks = MarkEventRecord where (_.datetime gt (tendays)) fetch()
 
     val grps = marks.groupBy(_.datetime.is).map(x => x._1 -> x._2.toArray.sortBy(_.rep.is)).
       filter{x => x._2.length > 1}

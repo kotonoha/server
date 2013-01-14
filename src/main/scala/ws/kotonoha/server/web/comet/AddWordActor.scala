@@ -21,7 +21,6 @@ import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import akka.util.Timeout
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import ws.kotonoha.server.records._
-import com.weiglewilczek.slf4s.Logging
 import net.liftweb.common.{Empty, Box}
 import ws.kotonoha.server.actors.model._
 import net.liftweb.http.CometActor
@@ -35,12 +34,13 @@ import net.liftweb.common.Full
 import scala.Right
 import ws.kotonoha.server.actors.model.WordData
 import net.liftweb.json.{DefaultFormats, Extraction, NoTypeHints, Serialization}
-import akka.dispatch.{ExecutionContext, Promise, Future}
 import ws.kotonoha.server.actors.interop.ParseSentence
 import ws.kotonoha.akane.ParsedQuery
 import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.akane.juman.JumanUtil
 import net.liftweb.json.ext.JodaTimeSerializers
+import com.typesafe.scalalogging.slf4j.Logging
+import concurrent.{Promise, Future, ExecutionContext}
 
 
 /**
@@ -64,9 +64,9 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
   val self = this
   private val uid = UserRecord.currentId.get
   lazy val uact = akkaServ.userActor(uid)
-  import akka.util.duration._
-  import akka.pattern.ask
-  import com.foursquare.rogue.Rogue._
+  import concurrent.duration._
+  import akka.pattern.{ask => apa}
+  import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.KBsonDSL._
 
   private implicit val timeout = Timeout(10 seconds)
@@ -138,7 +138,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
       w.word.tags(item.tags.is).writing(item.writing.valueBox).user(item.user.valueBox)
       item.reading.valueBox map {r => w.word.reading(r) }
       item.meaning.valueBox map {m => w.word.meaning(m) }
-      w.onSave foreach {
+      w.onSave.future.foreach {
         i => uact ! UpdateRecord(item.processed(true))
       }
       w
@@ -181,8 +181,8 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
     n match {
       case Some(f) => {
         f.onComplete {
-          case Right(wd) => self ! DoRenderAndDisplay(wd)
-          case Left(e) => logger.error("Error in displaying word", e); self ! PublishNext
+          case util.Success(wd) => self ! DoRenderAndDisplay(wd)
+          case util.Failure(e) => logger.error("Error in displaying word", e); self ! PublishNext
         }
       }
       case None => {
@@ -207,14 +207,14 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
       val wd = w.word
       val filtered = WordRecord.trimInternal(jobj, out = false)
       wd.setFieldsFromJValue(filtered)
-      w.onSave.foreach { x => uact ! RegisterWord(wd, st) }
-      w.onSave.tryComplete(Right(w))
+      w.onSave.future.foreach { x => uact ! RegisterWord(wd, st) }
+      w.onSave.tryComplete(util.Success(w))
     }
     self ! PublishNext
   }
 
   def skipWord(wid: String): Unit = {
-    displaying.get(wid) map { w => w.onSave.tryComplete(Right(w)) }
+    displaying.get(wid) map { w => w.onSave.tryComplete(util.Success(w)) }
     self ! PublishNext
   }
 
@@ -258,7 +258,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
     def selected: Future[Boolean] = {
       val res = word.reading.is.exists { rd => ex.contains(rd) } ||
                 word.writing.is.exists { wr => ex.contains(wr) }
-      if (res) Promise.successful(true)
+      if (res) Promise.successful(true).future
       else {
         val wrs = word.writing.is.toSet
         val f = (root ? ParseSentence(ex)).mapTo[ParsedQuery]
@@ -280,7 +280,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
   def renderAndPush(data: WordData) = {
     val hid = data.word.id.is.toString
     displaying = displaying + (hid -> data)
-    data.onSave.onComplete { x => self ! RemoveItem(hid) }
+    data.onSave.future.onComplete { x => self ! RemoveItem(hid) }
 
     val dicts = Extraction.decompose(data.dicts)
 

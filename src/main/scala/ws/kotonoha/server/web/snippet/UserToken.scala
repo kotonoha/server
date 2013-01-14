@@ -22,13 +22,13 @@ import ws.kotonoha.server.util.Formatting
 import xml.{Text, NodeSeq}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.jquery.JqJsCmds.FadeOut
-import akka.dispatch.Await
-import net.liftweb.http.{S, SHtml}
+import scala.concurrent.Await
+import net.liftweb.http.SHtml
 import net.liftweb.json
 import net.liftweb.json.{DefaultFormats, Extraction}
 import ws.kotonoha.server.records.{QrEntry, UserTokenRecord, UserRecord}
 import net.liftweb.http.js.JsCmds.SetHtml
-import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateQr, CreateToken}
+import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateToken}
 
 
 /**
@@ -38,11 +38,12 @@ import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateQr, CreateToken}
 
 trait UserToken extends Akka {
   import Helpers._
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
   import ws.kotonoha.server.actors.UserSupport._
 
   implicit val formats = DefaultFormats
+  implicit val ec = akkaServ.context
 
 
   def create(in: NodeSeq) : NodeSeq = {

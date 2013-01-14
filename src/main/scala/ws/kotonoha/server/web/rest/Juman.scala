@@ -22,8 +22,8 @@ import net.liftweb.common.{Empty, Failure, Full}
 import ws.kotonoha.akane.statistics.UniqueWordsExtractor
 import ws.kotonoha.server.actors.interop.JumanActor
 import akka.actor.ActorRef
-import akka.dispatch.Await
-import akka.util.duration._
+import scala.concurrent.Await
+import concurrent.duration._
 import ws.kotonoha.akane.parser.{AozoraStringInput, AozoraParser}
 import ws.kotonoha.akane.juman.JumanDaihyou
 import ws.kotonoha.server.japanese.Stopwords

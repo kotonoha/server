@@ -2,12 +2,12 @@ package ws.kotonoha.server.util
 
 import java.util.Calendar
 
-import akka.util.FiniteDuration
 import net.liftweb.util.Helpers.TimeSpan
 import org.joda.time.{Duration => JodaDuration, _}
 import ws.kotonoha.server.records.UserRecord
 import java.util.concurrent.TimeUnit
 import scala.Some
+import concurrent.duration.FiniteDuration
 
 /*
  * Copyright 2012 eiennohito
@@ -34,7 +34,14 @@ class MultipliableDuration(val dur: JodaDuration) {
   def * (times: Int) = new JodaDuration(dur.getMillis * times)
 }
 
+
+
 object DateTimeUtils {
+  import language.implicitConversions
+
+  implicit class DateTimeComparable(val t: DateTime) extends AnyVal with Ordered[DateTime] {
+    def compare(that: DateTime) = t.compareTo(that)
+  }
 
   implicit def dateTime2Calendar(dt: DateTime) : Calendar = dt.toCalendar(null)
   implicit def akkaToJodaDurations(dur: FiniteDuration): JodaDuration = new JodaDuration(dur.toMillis)

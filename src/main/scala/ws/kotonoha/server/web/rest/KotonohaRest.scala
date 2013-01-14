@@ -16,19 +16,18 @@
 
 package ws.kotonoha.server.web.rest
 
-import net.liftweb.http.rest.{RestContinuation, RestHelper}
-import com.weiglewilczek.slf4s.Logging
+import net.liftweb.http.rest.RestContinuation
 import ws.kotonoha.server.actors.ioc.Akka
-import akka.util.{Timeout, duration}
-import akka.dispatch.{Promise, KeptPromise, Future}
 import net.liftweb.common._
 import net.liftweb.http._
-import net.liftweb.common.Full
 import scala.Left
 import net.liftweb.common.Full
 import scala.Right
 import ws.kotonoha.server.records.UserRecord
 import org.bson.types.ObjectId
+import com.typesafe.scalalogging.slf4j.Logging
+import akka.util.Timeout
+import concurrent.{duration, Promise, Future}
 
 class EmptyUserException extends Exception("No user present")
 
@@ -44,7 +43,7 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
 
   def userAsk[T](uid: Box[ObjectId], msg: AnyRef)(implicit m: Manifest[T]): Future[T] =  userId match {
     case Full(uid) => userAsk[T](uid, msg)(m)
-    case _ => Promise[T].failure(new EmptyUserException)
+    case _ => Promise[T].failure(new EmptyUserException).future
   }
   def userAsk[T](msg: AnyRef)(implicit m: Manifest[T]): Future[T] = userAsk[T](userId, msg)(m)
   def userAsk[T](uid: ObjectId, msg: AnyRef)(implicit m: Manifest[T]): Future[T] = {
@@ -55,11 +54,11 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
     RestContinuation.async({
       case resp =>
         param onComplete {
-          case Left(ex) => {
+          case util.Failure(ex) => {
             logger.error("Error in getting parameter", ex)
             resp(PlainTextResponse("Internal server error", 500))
           }
-          case Right(v) => {
+          case util.Success(v) => {
             val fut = f(v)
             val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 20 seconds)
 
@@ -85,8 +84,8 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
             val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 20 seconds)
 
             fut onComplete {
-              case Right(Full(r)) => tCancel.cancel(); resp(r)
-              case Left(e) => logger.error("Error in executing rest:", e)
+              case util.Success(Full(r)) => tCancel.cancel(); resp(r)
+              case util.Failure(e) => logger.error("Error in executing rest:", e)
               case x@_ => logger.debug("found something: " + x)
             }
           }
@@ -98,6 +97,6 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
 
 
   def kept[T <% LiftResponse](obj: T) = {
-    new KeptPromise[Box[LiftResponse]](Right(Full(obj)))(akkaServ.system.dispatcher)
+    Promise[Box[LiftResponse]].success(Full(obj))
   }
 }

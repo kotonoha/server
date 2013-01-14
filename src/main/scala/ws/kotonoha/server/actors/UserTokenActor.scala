@@ -20,7 +20,6 @@ import akka.actor.Actor
 import ws.kotonoha.server.records.UserTokenRecord
 import ws.kotonoha.server.util.SecurityUtil
 import org.bson.types.ObjectId
-import akka.dispatch.Await
 import net.liftweb.json
 import json.{DefaultFormats, Extraction}
 
@@ -62,7 +61,7 @@ class UserTokenActor extends Actor {
     sender ! obj
   }
 
-  protected def receive = {
+  override def receive = {
     case CreateToken(user, label) => createToken(user, label)
     case EncryptedTokenString(req, key) => createEncryptedString(req, key)
   }

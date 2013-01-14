@@ -4,15 +4,11 @@ import ws.kotonoha.server.actors.learning.{LoadReviewList, WordsAndCards, LoadWo
 import net.liftweb.common._
 import net.liftweb.util.BasicTypesHelpers.AsInt
 import net.liftweb.http._
-import net.liftweb.http.rest._
-import com.weiglewilczek.slf4s.Logging
-import akka.util.{Timeout, duration}
-import ws.kotonoha.server.actors.ioc.{ReleaseAkka, Akka}
-import akka.dispatch.Future
-import net.liftweb.json.JsonAST.{JField, JObject, JString}
-import ws.kotonoha.server.util.{DateTimeUtils, ResponseUtil, UserUtil}
-import ws.kotonoha.server.records.{UserRecord, ChangeWordStatusEventRecord, AddWordRecord, MarkEventRecord}
+import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import ws.kotonoha.server.util.ResponseUtil
+import ws.kotonoha.server.records.{ChangeWordStatusEventRecord, AddWordRecord, MarkEventRecord}
 import ws.kotonoha.server.learning.{ProcessWordStatusEvent, ProcessMarkEvents}
+import com.typesafe.scalalogging.slf4j.Logging
 
 
 /*
@@ -49,7 +45,6 @@ class Timer extends Logging {
 trait LearningRest extends KotonohaRest {
 
   import ResponseUtil._
-  import akka.pattern.ask
 
   serve ( "api" / "words" prefix {
     case "scheduled" :: AsInt(max) :: Nil JsonGet req => {

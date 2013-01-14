@@ -17,7 +17,7 @@
 package ws.kotonoha.server.actors
 
 import akka.actor.{ActorLogging, OneForOneStrategy, Props, Actor}
-import akka.util.duration._
+import concurrent.duration._
 import akka.actor.SupervisorStrategy.Restart
 
 /**
@@ -33,7 +33,7 @@ class GlobalActor extends Actor with ActorLogging {
   val svcs = context.actorOf(Props[ServiceActor], GlobalActor.svcName)
   val user = context.actorOf(Props[UserActorManager], GlobalActor.userName)
 
-  protected def receive = {
+  override def receive = {
     case x: ForUser => user.forward(x)
     case x: UserActor => user.forward(x)
     case x => svcs.forward(x)

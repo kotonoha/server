@@ -19,7 +19,7 @@ package ws.kotonoha.server.actors.auth
 import akka.actor.Actor
 import ws.kotonoha.server.records.ClientRecord
 import akka.pattern.{ask}
-import akka.util.duration._
+import concurrent.duration._
 import ws.kotonoha.server.actors.{KotonohaActor, ClientMessage, SaveRecord, RootActor}
 
 /**
@@ -38,7 +38,7 @@ class ClientRegistry extends KotonohaActor {
     ask(services, SaveRecord(r1))(5 seconds) foreach {x => s ! r1}
   }
 
-  protected def receive = {
+  override def receive = {
     case AddClient(cl) => addClient(cl)
   }
 }

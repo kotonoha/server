@@ -1,14 +1,10 @@
 package ws.kotonoha.server.actors
 
-import auth.ClientRegistry
-import learning.WordSelector
-import ws.kotonoha.server.learning.EventProcessor
-import akka.util.duration._
+import concurrent.duration._
 import akka.actor._
 import akka.pattern.ask
-import akka.dispatch.{Await, ExecutionContext}
-import akka.util.{Timeout, Duration}
 import org.bson.types.ObjectId
+import concurrent.{Await, ExecutionContext}
 
 
 /*
@@ -40,15 +36,15 @@ trait AkkaMain {
 
   def global: ActorRef
 
-  def context = ExecutionContext.defaultExecutionContext(system)
+  def context: ExecutionContext = system.dispatcher
 
-  def schedule(f: () => Unit, delay: Duration) = {
+  def schedule(f: () => Unit, delay: FiniteDuration) = {
     val runnable = new Runnable {
       def run() {
         f()
       }
     }
-    system.scheduler.scheduleOnce(delay, runnable)
+    system.scheduler.scheduleOnce(delay, runnable)(context)
   }
 
   def shutdown() {

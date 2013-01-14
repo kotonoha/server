@@ -3,7 +3,11 @@ package ws.kotonoha.server.mongodb
 import net.liftweb.util.Props
 import net.liftweb.mongodb.{MongoDB, MongoIdentifier, MongoMeta}
 import com.mongodb.{ServerAddress, Mongo}
-import com.weiglewilczek.slf4s.Logging
+import com.typesafe.scalalogging.slf4j.Logging
+import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
+import org.bson.{Transformer, BSON}
+import org.joda.time.DateTime
+import ws.kotonoha.server.util.DateTimeUtils
 
 /*
  * Copyright 2012 eiennohito
@@ -29,20 +33,45 @@ import com.weiglewilczek.slf4s.Logging
 object MongoDbInit extends Logging {
   var inited = false
 
-    def init() {
-      if (!inited) {
-        val server = Props.get("db.server").get
-        val dbname = Props.get("db.name").get
-        val dictname = Props.get("dict.name", "dict")
-
-        logger.info("using on server %s database %s".format(server, dbname))
-
-        val sa = new ServerAddress(server, Props.getInt("db.port", ServerAddress.defaultPort()))
-        MongoDB.defineDb(DbId, new Mongo(sa), dbname)
-        MongoDB.defineDb(DictId, new Mongo(sa), dictname)
-        inited = true;
+  private val dateFromMongo = new Transformer {
+    def transform(o: Any) = {
+      o match {
+        case x: java.util.Date => new DateTime(x, DateTimeUtils.UTC)
+        case x: DateTime => x
+        case x => x.asInstanceOf[AnyRef]
       }
     }
+  }
+
+  private val dateToMongo = new Transformer {
+    def transform(o: Any) = {
+      o match {
+        case x: DateTime => x.toDate
+        case _ => o.asInstanceOf[AnyRef]
+      }
+    }
+  }
+
+  def addHooks() {
+    BSON.addDecodingHook(classOf[DateTime], dateFromMongo)
+    BSON.addEncodingHook(classOf[DateTime], dateToMongo)
+  }
+
+  def init(): Unit = synchronized {
+    if (!inited) {
+      val server = Props.get("db.server").get
+      val dbname = Props.get("db.name").get
+      val dictname = Props.get("dict.name", "dict")
+
+      logger.info(s"using on server $server database $dbname")
+
+      val sa = new ServerAddress(server, Props.getInt("db.port", ServerAddress.defaultPort()))
+      MongoDB.defineDb(DbId, new Mongo(sa), dbname)
+      MongoDB.defineDb(DictId, new Mongo(sa), dictname)
+      addHooks()
+      inited = true
+    }
+  }
 }
 
 object DbId extends MongoIdentifier {

@@ -39,7 +39,7 @@ import org.bson.types.ObjectId
  */
 
 object Words extends KotonohaRest with ReleaseAkka {
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
 
   def updateWord(updated: JValue, user: ObjectId, wid: ObjectId): Box[LiftResponse] = {
     val rec = WordRecord where (_.id eqs (wid)) and (_.user eqs (user)) get()

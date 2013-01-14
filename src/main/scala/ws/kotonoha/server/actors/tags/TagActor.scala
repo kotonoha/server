@@ -19,9 +19,9 @@ package ws.kotonoha.server.actors.tags
 import akka.actor.{Actor, ActorRef}
 import akka.pattern.{ask, pipe}
 import ws.kotonoha.server.actors.UserScopedActor
-import akka.dispatch.Await
+import scala.concurrent.Await
 import akka.util.Timeout
-import akka.util.duration._
+import concurrent.duration._
 import net.liftweb.json.JsonAST._
 import collection.mutable.ListBuffer
 import net.liftweb.json.JsonAST.JObject
@@ -38,7 +38,7 @@ class TagActor extends UserScopedActor {
 
   lazy val svc = Await.result((services ? ServiceActor).mapTo[ActorRef], 10 seconds)
 
-  protected def receive = {
+  override def receive = {
     case Nil => //
   }
 }

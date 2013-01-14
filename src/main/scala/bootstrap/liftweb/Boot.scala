@@ -20,9 +20,9 @@ import ws.kotonoha.server.web.rest._
 import admin.{Stats, OFHistory}
 import model.Words
 import ws.kotonoha.server.actors.lift.Ping
-import com.weiglewilczek.slf4s.Logging
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import ws.kotonoha.server.web.snippet.ClasspathResource
+import com.typesafe.scalalogging.slf4j.Logging
 
 
 /**
@@ -32,7 +32,6 @@ import ws.kotonoha.server.web.snippet.ClasspathResource
 class Boot extends Logging {
   def boot {
     MongoDbInit.init()
-    RegisterJodaTimeConversionHelpers.register()
 
     /*val c = Pointer.allocateByte()
     c.set(0.toByte)

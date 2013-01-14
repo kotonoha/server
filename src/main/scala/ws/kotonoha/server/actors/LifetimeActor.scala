@@ -17,16 +17,16 @@
 package ws.kotonoha.server.actors
 
 import net.liftweb.common.Box
-import akka.util.FiniteDuration
 import ws.kotonoha.server.records.{LifetimeObj, QrEntry, Lifetime}
 import org.bson.types.ObjectId
+import concurrent.duration.FiniteDuration
 
 case class RegisterLifetime[T <: Lifetime](obj: T, duration: FiniteDuration) extends LifetimeMessage
 case object FindStaleLifetimeObjs extends LifetimeMessage
 
 class LifetimeActor extends KotonohaActor {
-  import akka.util.duration._
-  import com.foursquare.rogue.Rogue._
+  import concurrent.duration._
+  import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   def registerLifetime(value: Lifetime, duration: FiniteDuration) = {
@@ -36,7 +36,7 @@ class LifetimeActor extends KotonohaActor {
   }
 
   def findStale = {
-    val stale = LifetimeObj where (_.deadline before now) fetch()
+    val stale = LifetimeObj where (_.deadline lt now) fetch()
     val objs = stale flatMap { case o =>
       val i = o.objtype.is
       val finder = LifetimeObjects.finderFor(i)
@@ -51,7 +51,7 @@ class LifetimeActor extends KotonohaActor {
     context.system.scheduler.schedule(1 minute, 5 minutes, self, FindStaleLifetimeObjs)
   }
 
-  protected def receive = {
+  override def receive = {
     case RegisterLifetime(obj, lifetime) => registerLifetime(obj, lifetime)
     case FindStaleLifetimeObjs => findStale
   }

@@ -28,7 +28,7 @@ import ws.kotonoha.server.util.DateTimeUtils
 
 object LearningCommon {
   import net.liftweb.util.Helpers._
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
 
   def stats(in: NodeSeq):NodeSeq = {
     val uid = UserRecord.currentId
@@ -41,11 +41,11 @@ object LearningCommon {
         val nsq = q and (_.learning exists (false))
         val ns = nsq.count()
         val now = DateTimeUtils.now
-        val nsf = nsq and (_.notBefore after now) count()
-        val sf = lq and (_.notBefore after now) raw (f => f.add("$where", "this.notBefore < this.learning.intervalEnd")) count()
+        val nsf = nsq and (_.notBefore lt now) count()
+        val sf = lq and (_.notBefore gt now) raw (f => f.add("$where", "this.notBefore < this.learning.intervalEnd")) count()
 
-        val av_1 = lq where (_.learning subfield(_.intervalEnd) before now) and (_.notBefore before now) count()
-        val av_2 = nsq where (_.notBefore before now) count()
+        val av_1 = lq where (_.learning subfield(_.intervalEnd) before now) and (_.notBefore lt now) count()
+        val av_2 = nsq where (_.notBefore lt now) count()
         bind("st", in,
           "total" -> total,
           "learning" -> learning,

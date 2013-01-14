@@ -18,9 +18,9 @@ package ws.kotonoha.server.web.comet
 
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import ws.kotonoha.server.actors.lift.{ExecJs, DestroyActor, RegisterPerUserActor, AkkaInterop}
-import com.weiglewilczek.slf4s.Logging
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import org.bson.types.ObjectId
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author eiennohito

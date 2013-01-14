@@ -41,14 +41,14 @@ class ExampleActor extends Actor {
 
 
 
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
 
   override def postStop() {
     super.postStop()
     exampleSearcher.close()
   }
 
-  protected def receive = {
+  override def receive = {
     case LoadExamples(eids) =>  {
       val ids = (eids flatMap (ei => List(ei.jap) ++ ei.other.map(_.right))).distinct
       val recs = (ExampleSentenceRecord where (_.id in ids) fetch() map (r => r.id.is -> r)).toMap

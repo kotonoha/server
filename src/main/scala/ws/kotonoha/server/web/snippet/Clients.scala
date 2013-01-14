@@ -23,7 +23,7 @@ import ws.kotonoha.server.records.ClientRecord
 import ws.kotonoha.server.actors.ioc.{ReleaseAkka, Akka}
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds._Noop
-import akka.dispatch.Await
+import scala.concurrent.Await
 import ws.kotonoha.server.util.DateTimeUtils._
 import ws.kotonoha.server.actors.auth.AddClient
 

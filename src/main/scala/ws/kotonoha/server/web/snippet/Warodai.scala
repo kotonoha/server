@@ -19,10 +19,10 @@ package ws.kotonoha.server.web.snippet
 import ws.kotonoha.server.records.dictionary.WarodaiRecord
 import xml.NodeSeq
 import net.liftweb.http.S
-import com.weiglewilczek.slf4s.Logging
 import net.liftweb.common.{Full, Box}
 import ws.kotonoha.server.dict.WarodaiBodyParser
 import util.parsing.input.CharSequenceReader
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author eiennohito
@@ -38,7 +38,7 @@ object Warodai extends Logging {
       if (pr.successful) {
         pr.get.toNodeSeq
       } else {
-        logger.warn("couldn,t parse " + pr)
+        logger.warn("couldn't parse " + pr)
         <span></span>
       }
     }

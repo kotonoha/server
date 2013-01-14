@@ -19,7 +19,6 @@ package ws.kotonoha.server.web.snippet
 import xml.NodeSeq
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.records.{UserSettings, WordRecord, UserRecord}
-import akka.dispatch.{Promise, Future, Await}
 import net.liftweb.http._
 import ws.kotonoha.server.util.unapply.XInt
 import ws.kotonoha.akane.unicode.UnicodeUtil
@@ -33,7 +32,8 @@ import ws.kotonoha.server.actors.learning.LoadReviewList
 import ws.kotonoha.server.actors.learning.WordsAndCards
 import ws.kotonoha.server.web.rest.EmptyUserException
 import akka.util.Timeout
-import com.weiglewilczek.slf4s.Logging
+import com.typesafe.scalalogging.slf4j.Logging
+import concurrent.{Await, Promise, Future}
 
 /**
  * @author eiennohito
@@ -42,7 +42,7 @@ import com.weiglewilczek.slf4s.Logging
 
 trait UserActor extends Logging { self: Akka =>
   import akka.pattern.ask
-  import akka.util.duration._
+  import concurrent.duration._
   implicit val ec = akkaServ.context
 
   implicit val timeout: Timeout = 10 seconds
@@ -52,19 +52,19 @@ trait UserActor extends Logging { self: Akka =>
   def userActor = {
     val p = Promise[ActorRef]()
     userActorS.is.onComplete {
-      case Right(af) => p.complete(Right(af))
-      case Left(ex) => {
+      case util.Success(af) => p.complete(util.Success(af))
+      case util.Failure(ex) => {
         logger.warn("Can't get user actor", ex)
-        p.completeWith(create).foreach { _ => userActorS.set(p) }
+        p.completeWith(create).future.foreach { _ => userActorS.set(p.future) }
       }
     }
-    p
+    p.future
   }
 
   private def create: Future[ActorRef] = {
     UserRecord.currentId match {
       case Full(as) => akkaServ.userActorF(as)
-      case _ => Promise[ActorRef].failure(new EmptyUserException)
+      case _ => Promise[ActorRef].failure(new EmptyUserException).future
     }
   }
 
@@ -79,7 +79,7 @@ trait UserActor extends Logging { self: Akka =>
 
 object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActor  {
   import net.liftweb.util.Helpers._
-  import akka.util.duration._
+  import concurrent.duration._
 
   def dispatch = {
     case "surround" => surround

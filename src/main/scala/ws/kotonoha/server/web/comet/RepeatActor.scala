@@ -18,24 +18,23 @@ package ws.kotonoha.server.web.comet
 
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import ws.kotonoha.server.actors.lift.AkkaInterop
-import com.weiglewilczek.slf4s.Logging
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import net.liftweb.http.RenderOut
 import net.liftweb.common.{Empty, Full}
-import net.liftweb.http.js.{JsCmd, JsCmds}
-import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadWords, LoadCards}
+import net.liftweb.http.js.{JE, JsCmds}
+import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadWords}
 import util.Random
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import net.liftweb.json.DefaultFormats
 import ws.kotonoha.server.records._
 import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.server.learning.ProcessMarkEvent
-import ws.kotonoha.server.util.unapply.XHexLong
-import xml.{Text, NodeSeq, Node, Utility}
+import xml.{Text, NodeSeq, Utility}
 import net.liftweb.json.JsonAST.{JField, JObject, JValue}
 import net.liftweb.http.js.JsCmds.SetHtml
 import org.bson.types.ObjectId
 import akka.actor.ActorRef
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author eiennohito

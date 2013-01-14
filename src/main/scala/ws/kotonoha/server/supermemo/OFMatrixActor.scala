@@ -17,14 +17,13 @@
 package ws.kotonoha.server.supermemo
 
 import akka.actor.{ActorRef, ActorLogging, Actor}
-import com.weiglewilczek.slf4s.Logging
 import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.server.records._
 import org.joda.time.Duration
 import scala.Some
 import ws.kotonoha.server.math.MathUtil
 import org.bson.types.ObjectId
-import java.util.concurrent.atomic.AtomicReference
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author eiennohito
@@ -37,12 +36,12 @@ case class MatrixElementUpdate(rep: Int, diff: Double, v: Double)
 case class UpdateMatrix(card: ObjectId, mark: Double, interval: Double, curRep: Int, ef: Double)
 
 class OFMatrixActor(user: ObjectId, matrix: OFMatrixHolder) extends Actor with ActorLogging {
-  protected def receive = {
+  override def receive = {
     case MatrixElementUpdate(rep, diff, v) => matrix.update(rep, diff, v)
     case o: UpdateMatrix => updateMatrix(o)
   }
 
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
 
   def calcLastValues(records: List[MarkEventRecord], um: UpdateMatrix) = {
     val dr = (um.curRep - 1) max 1
@@ -92,7 +91,7 @@ class OFMatrixActor(user: ObjectId, matrix: OFMatrixHolder) extends Actor with A
 }
 
 class OFMatrixHolder(user: ObjectId) extends Logging {
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
   import DateTimeUtils._
 
   case class MatrixCoordinate(rep: Int, diff: Double) {

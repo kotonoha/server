@@ -17,12 +17,13 @@
 package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.field.{ObjectIdPk, LongPk}
+import net.liftweb.mongodb.record.field.ObjectIdPk
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.record.field.{DateTimeField, StringField}
+import net.liftweb.record.field.StringField
 import ws.kotonoha.server.util.DateTimeUtils._
 import org.joda.time.DateTime
 import net.liftmodules.oauth.{OAuthNonce, OAuthNonceMeta}
+import com.mongodb.WriteConcern
 
 /**
  * @author eiennohito
@@ -35,7 +36,7 @@ class NonceRecord private() extends MongoRecord[NonceRecord] with ObjectIdPk[Non
   object consumerKey extends StringField(this, 32)
   object token extends StringField(this, 32)
   object nonce extends StringField(this, 50)
-  object timestamp extends DateTimeField(this) with DateJsonFormat
+  object timestamp extends JodaDateField(this)
 
   def value = new OAuthNonce {
     def nonce = NonceRecord.this.nonce.is
@@ -52,7 +53,7 @@ class NonceRecord private() extends MongoRecord[NonceRecord] with ObjectIdPk[Non
 }
 
 object NonceRecord extends NonceRecord with MongoMetaRecord[NonceRecord] with NamedDatabase with OAuthNonceMeta {
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
   def create(consumerKey: String, token: String, timestamp: Long, nonce: String) {
     val rec = createRecord.
       consumerKey(consumerKey).token(token).timestamp(new DateTime(timestamp, UTC)).nonce(nonce)
@@ -69,7 +70,7 @@ object NonceRecord extends NonceRecord with MongoMetaRecord[NonceRecord] with Na
 
   def bulkDelete_!!(minTimestamp: Long) {
     val t = new DateTime(minTimestamp, UTC)
-    val q = this where (_.timestamp before t)
-    q.bulkDelete_!!()
+    val q = this where (_.timestamp lt t)
+    q.bulkDelete_!!(WriteConcern.NORMAL)
   }
 }

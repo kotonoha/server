@@ -51,7 +51,7 @@ class ExampleSearchActor extends Actor {
     docs.scoreDocs.map(d => searcher.doc(d.doc).get("id").toLong).toList
   }
 
-  protected def receive = {
+  override def receive = {
     case SearchQuery(q, max) => {
       val docs = if (q.length == 0) Nil else findDocs(q, max)
       sender ! docs

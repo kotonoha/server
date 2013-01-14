@@ -29,7 +29,7 @@ import net.liftweb.json.DefaultFormats
 
 class DateCounter {
   import DateTimeUtils._
-  import akka.util.duration._
+  import concurrent.duration._
   import scala.collection.JavaConversions.seqAsJavaList
 
   val map = """function map() {

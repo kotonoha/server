@@ -27,7 +27,7 @@ import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateQr}
  */
 
 object QrAuth extends Akka with ReleaseAkka {
-  import akka.util.duration._
+  import concurrent.duration._
   import akka.pattern.ask
 
   val duration = 1 second

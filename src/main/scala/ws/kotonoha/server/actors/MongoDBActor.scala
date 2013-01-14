@@ -2,6 +2,8 @@ package ws.kotonoha.server.actors
 
 import net.liftweb.mongodb.record.MongoRecord
 import akka.actor.{ActorLogging, ActorRef, Actor}
+import com.mongodb.casbah.WriteConcern
+import akka.actor.Status.Failure
 
 /*
  * Copyright 2012 eiennohito
@@ -29,8 +31,16 @@ case class DeleteRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMess
 case class RegisterMongo(mongo: ActorRef)
 
 class MongoDBActor extends Actor with ActorLogging {
-  protected def receive = {
-    case SaveRecord(rec) => rec.save; log.debug("saving object {}", rec); sender ! true
+  override def receive = {
+    case SaveRecord(rec) => {
+      log.debug("saving object {}", rec)
+      try {
+        rec.save(WriteConcern.Safe)
+        sender ! true
+      } catch {
+        case e: Throwable => log.error(e, "Cant' save X"); sender ! Failure(e)
+      }
+    }
     case UpdateRecord(rec) => rec.save; sender ! true
     case DeleteRecord(rec) => sender ! rec.delete_!
   }

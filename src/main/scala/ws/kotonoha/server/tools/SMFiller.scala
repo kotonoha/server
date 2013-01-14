@@ -20,14 +20,8 @@ import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord}
 import ws.kotonoha.server.actors.ReleaseAkkaMain
 import scala.util.Random
 import org.joda.time.DateTime
-import akka.actor.Props
-import ws.kotonoha.server.supermemo.{ProcessMark, SM6}
+import ws.kotonoha.server.supermemo.ProcessMark
 import net.liftweb.common.Full
-import akka.pattern.ask
-import akka.util.duration._
-import akka.dispatch.{Future, Await}
-import akka.util.Timeout
-import ws.kotonoha.server.mongodb.MongoDbInit
 import org.bson.types.ObjectId
 import java.util
 

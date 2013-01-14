@@ -27,14 +27,14 @@ import ws.kotonoha.server.records.{WordCardRecord, UserRecord}
  */
 
 trait StatusTrait extends KotonohaRest with OauthRestHelper {
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
   serve {
     case "api" :: "status" :: Nil Get req => {
       UserRecord.currentId match {
         case Full(id) => {
-          val user = UserRecord.find(id).openTheBox
-          val cards = WordCardRecord where (_.user eqs id) and (_.notBefore before now) and
+          val user = UserRecord.find(id).openOrThrowException("I am here?")
+          val cards = WordCardRecord where (_.user eqs id) and (_.notBefore lt now) and
             (_.learning subfield(_.intervalEnd) before now) count()
           PlainTextResponse("You are user " + user.username.is + " and have " + cards + " cards scheduled")
         }

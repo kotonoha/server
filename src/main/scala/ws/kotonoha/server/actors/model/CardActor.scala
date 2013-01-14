@@ -26,6 +26,7 @@ import ws.kotonoha.server.actors.{UserScopedActor, SaveRecord, RootActor, Kotono
 import akka.util.Timeout
 import org.joda.time.ReadableDuration
 import org.bson.types.ObjectId
+import com.mongodb.casbah.WriteConcern
 
 trait CardMessage extends KotonohaMessage
 case class SchedulePaired(wordId: ObjectId, cardType: Int) extends CardMessage
@@ -36,16 +37,16 @@ case class ScheduleLater(card: ObjectId, duration: ReadableDuration) extends Car
 case class DeleteCardsForWord(word: ObjectId) extends CardMessage
 
 class CardActor extends UserScopedActor with ActorLogging {
-  import akka.util.duration._
+  import concurrent.duration._
   import akka.pattern.{ask, pipe}
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
   import DateTimeUtils._
 
   implicit val timeout: Timeout = 1 second
 
   val mongo = scoped("mongo")
 
-  protected def receive = {
+  override def receive = {
     case SchedulePaired(word, cardMode) => {
       val cardType = if (cardMode == CardMode.READING) CardMode.WRITING else CardMode.READING
       val date = now plus ((3.2 * MathUtil.ofrandom) days)
@@ -61,20 +62,20 @@ class CardActor extends UserScopedActor with ActorLogging {
     }
     case RegisterCard(word, mode) => {
       val card = WordCardRecord.createRecord
-      card.user(uid).word(word).cardMode(mode).learning(Empty).notBefore(now)
+      card.user(uid).word(word).cardMode(mode).learning(Empty).notBefore(Empty)
       val s = sender
       ask(mongo, SaveRecord(card)) pipeTo (s)
     }
     case ClearNotBefore(card) => {
       log.debug("Clearning not before for card id {}", card)
-      WordCardRecord where (_.id eqs card) modify(_.notBefore setTo(now))
+      WordCardRecord where (_.id eqs card) modify(_.notBefore setTo(Empty))
     }
     case ScheduleLater(card, interval) => {
       val time = now plus (interval)
       WordCardRecord where(_.id eqs card) modify (_.notBefore setTo(time))
     }
     case DeleteCardsForWord(word) => {
-      WordCardRecord where (_.word eqs word) bulkDelete_!!()
+      WordCardRecord where (_.word eqs word) bulkDelete_!!(WriteConcern.Normal)
     }
   }
 }

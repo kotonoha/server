@@ -17,14 +17,14 @@
 package ws.kotonoha.server.akka
 
 import akka.actor.{ActorRef, ActorSystem, Props, Actor}
-import akka.dispatch.Await
+import scala.concurrent.Await
 
 
 case object A2
 
 class Actor1 extends Actor {
   lazy val act2 = context.actorOf(Props[Actor2], "a2")
-  protected def receive = {
+  override def receive = {
     case A2 => {
       sender ! act2
     }
@@ -32,14 +32,14 @@ class Actor1 extends Actor {
 }
 
 class Actor2 extends Actor {
-  protected def receive = {
+  override def receive = {
     case _ =>
   }
 }
 
 class AkkaTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
   import akka.pattern.ask
-  import akka.util.duration._
+  import concurrent.duration._
   test("Paths in actor systems resolve as is should") {
     val sys = ActorSystem("test")
     val a1 = sys.actorOf(Props[Actor1], "a1")

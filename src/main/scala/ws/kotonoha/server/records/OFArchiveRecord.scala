@@ -35,7 +35,7 @@ object OFElement extends JsonObjectMeta[OFElement]
 class OFArchiveRecord private() extends MongoRecord[OFArchiveRecord] with ObjectIdPk[OFArchiveRecord] {
   def meta = OFArchiveRecord
 
-  object timestamp extends DateTimeField(this) with DateJsonFormat
+  object timestamp extends JodaDateField(this)
   object elems extends MongoJsonObjectListField[OFArchiveRecord, OFElement](this, OFElement)
   object user extends ObjectIdField(this)
   object matrix extends ObjectIdField(this)

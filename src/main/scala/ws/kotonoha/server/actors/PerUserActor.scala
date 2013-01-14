@@ -19,9 +19,9 @@ package ws.kotonoha.server.actors
 import akka.actor._
 import akka.pattern.ask
 import org.bson.types.ObjectId
-import akka.util.duration._
-import akka.dispatch.{ExecutionContext, Await}
+import concurrent.duration._
 import akka.util.Timeout
+import concurrent.{Await, ExecutionContext}
 
 /**
  * @author eiennohito
@@ -31,7 +31,7 @@ import akka.util.Timeout
 class PerUserActor(oid: ObjectId) extends Actor {
   val guard = context.actorOf(Props[UserGuardActor], "guard")
 
-  protected def receive = {
+  override def receive = {
     case UserId => sender ! oid
     case x => guard.forward(x)
   }
@@ -91,11 +91,12 @@ trait UserScopedActor extends KotonohaActor {
   }
 }
 
-class RichAnyRef(o: AnyRef) {
-  def u(uid: ObjectId) = ForUser(uid, o)
-  def forUser(uid: ObjectId) = u(uid)
-}
+
 
 object UserSupport {
-  implicit def anyRef2RichSupport(o: AnyRef) = new RichAnyRef(o)
+  import language.implicitConversions
+  implicit class RichAnyRef(val o: AnyRef) extends AnyVal {
+    def u(uid: ObjectId) = ForUser(uid, o)
+    def forUser(uid: ObjectId) = u(uid)
+  }
 }

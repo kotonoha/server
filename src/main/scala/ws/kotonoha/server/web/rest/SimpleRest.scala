@@ -1,8 +1,8 @@
 package ws.kotonoha.server.web.rest
 
 import net.liftweb.http.rest.{RestContinuation, RestHelper}
-import akka.dispatch.{ExecutionContext, Future}
 import ws.kotonoha.server.actors.ReleaseAkkaMain
+import concurrent.Future
 
 
 /*

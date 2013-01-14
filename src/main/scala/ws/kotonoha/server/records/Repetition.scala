@@ -1,10 +1,9 @@
 package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.field.{ObjectIdPk, ObjectIdRefField, LongRefField, LongPk}
+import net.liftweb.mongodb.record.field.{ObjectIdPk, ObjectIdRefField}
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
-import net.liftweb.record.field.{DateTimeField, IntField, DoubleField}
-import ws.kotonoha.server.math.MathUtil
+import net.liftweb.record.field.{IntField, DoubleField}
 import org.bson.types.ObjectId
 
 /*
@@ -28,14 +27,14 @@ import org.bson.types.ObjectId
  * @since 29.01.12
  */
 
-import com.foursquare.rogue.Rogue._
+import com.foursquare.rogue.LiftRogue._
 
 
 class ItemLearningDataRecord private() extends BsonRecord[ItemLearningDataRecord] {
   def meta = ItemLearningDataRecord
 
-  object intervalStart extends DateTimeField(this) with DateJsonFormat
-  object intervalEnd extends DateTimeField(this) with DateJsonFormat
+  object intervalStart extends JodaDateField(this)
+  object intervalEnd extends JodaDateField(this)
   object intervalLength extends DoubleField(this)
 
   object difficulty extends DoubleField(this, 2.5)
@@ -44,7 +43,7 @@ class ItemLearningDataRecord private() extends BsonRecord[ItemLearningDataRecord
   object repetition extends IntField(this)
 }
 
-object ItemLearningDataRecord extends ItemLearningDataRecord with BsonMetaRecord[ItemLearningDataRecord]
+object ItemLearningDataRecord extends ItemLearningDataRecord with KotonohaMongoRecord[ItemLearningDataRecord] with BsonMetaRecord[ItemLearningDataRecord]
 
 class OFMatrixRecord private() extends MongoRecord[OFMatrixRecord] with ObjectIdPk[OFMatrixRecord] with UserRef {
   def meta = OFMatrixRecord

@@ -31,7 +31,7 @@ trait EventRecord[OwnerType <: MongoRecord[OwnerType]] extends ObjectIdPk[OwnerT
   protected def myType: Int
 
   object eventType extends IntField(this.asInstanceOf[OwnerType], myType)
-  object datetime extends DateTimeField(this.asInstanceOf[OwnerType]) with DateJsonFormat
+  object datetime extends JodaDateField(this.asInstanceOf[OwnerType])
   object user extends ObjectIdRefField(this.asInstanceOf[OwnerType], UserRecord)
 }
 

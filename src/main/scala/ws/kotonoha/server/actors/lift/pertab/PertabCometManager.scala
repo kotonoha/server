@@ -5,9 +5,9 @@ import net.liftweb.actor.LiftActor
 import net.liftweb.common.{Box, Logger}
 import akka.actor.{Props, ActorRef, Actor}
 import ws.kotonoha.server.actors.KotonohaMessage
-import akka.dispatch.Await
+import scala.concurrent.Await
 import akka.pattern.ask
-import akka.util.duration._
+import concurrent.duration._
 import ws.kotonoha.server.actors.lift.{PerUserMessage, PerUserActorSvc}
 
 
@@ -55,7 +55,7 @@ class PertabCometManager extends Actor with Logger {
     }
   }
 
-  protected def receive = {
+  override def receive = {
     case LookupNamedComet(nc) => sender ! listenerFor(nc)
     case FreeNamedComet(nc) => {
       listeners.get(nc).map ( a => {

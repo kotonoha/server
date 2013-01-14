@@ -32,7 +32,7 @@ class LifetimeObj private() extends MongoRecord[LifetimeObj] with ObjectIdPk[Lif
 
   object obj extends ObjectIdField(this)
   object objtype extends EnumField(this, LifetimeObjects)
-  object deadline extends DateTimeField(this) with DateJsonFormat
+  object deadline extends JodaDateField(this)
 }
 
 object LifetimeObj extends LifetimeObj with MongoMetaRecord[LifetimeObj] with NamedDatabase

@@ -22,7 +22,7 @@ import ws.kotonoha.server.actors.SearchQuery
 import net.liftweb.util.Helpers
 import net.liftweb.http.{SHtml, S, RequestVar}
 import ws.kotonoha.server.util.LangUtil
-import akka.dispatch.Await
+import scala.concurrent.Await
 import ws.kotonoha.server.actors.dict.{ExampleEntry, LoadExamples, ExampleIds, TranslationsWithLangs}
 
 
@@ -32,6 +32,9 @@ import ws.kotonoha.server.actors.dict.{ExampleEntry, LoadExamples, ExampleIds, T
  */
 
 trait ExampleDisplay extends Akka {
+
+  implicit val ec = akkaServ.context
+
   object query extends RequestVar[String](S.param("query").openOr(""))
   import Helpers._
   import ws.kotonoha.server.util.DateTimeUtils._

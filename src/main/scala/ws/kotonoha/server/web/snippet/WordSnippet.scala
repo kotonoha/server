@@ -175,7 +175,7 @@ object WordSnippet extends Akka with ReleaseAkka {
 
   def renderCards(in: NodeSeq): NodeSeq = {
     import Helpers._
-    import Rogue._
+    import com.foursquare.rogue.LiftRogue._
     val cards = WordCardRecord where (_.word eqs wordId.get) orderAsc (_.cardMode) fetch()
     cards.flatMap { c =>
       bind("wc", in,

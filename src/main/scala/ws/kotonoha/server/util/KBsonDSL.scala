@@ -35,6 +35,7 @@ import java.io.Writer
  */
 
 trait KBsonDSL extends JsonDSL {
+  import scala.language.implicitConversions
 
   val formats = DefaultFormats // ++ JodaTimeSerializers.all
 

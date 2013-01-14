@@ -17,7 +17,7 @@ class CometDispatcher(nm: NamedComet, listener: ActorRef) extends Actor with Log
   private var toUpdate = new collection.mutable.HashSet[CometActor]
 
 
-  protected def receive = {
+  override def receive = {
     /**
      * if we do not have this actor in the list, add it (register it)
      */

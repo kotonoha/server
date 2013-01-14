@@ -2,10 +2,6 @@ package ws.kotonoha.server.web.snippet
 
 import xml.NodeSeq
 import net.liftweb.http.S
-import net.liftweb.common.Full
-import ws.kotonoha.server.util.LangUtil
-import com.weiglewilczek.slf4s.Logging
-import ws.kotonoha.server.records.dictionary.{JMDictAnnotations, JMDictMeaning, JMString, JMDictRecord}
 
 import ws.kotonoha.server.util.WordUtils.processWord
 

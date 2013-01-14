@@ -31,7 +31,7 @@ import scala.collection.JavaConversions._
  */
 
 object PersonalStats extends KotonohaRest with ReleaseAkka {
-  import com.foursquare.rogue.Rogue._
+  import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.KBsonDSL._
   serve("api" / "stats" / "personal" prefix {
     case List("ofmatrix") Get req => {
@@ -56,7 +56,7 @@ object PersonalStats extends KotonohaRest with ReleaseAkka {
             case JField("value", x) => JField("count", x \ "count")
             case JField("_id", y: JDouble) => JField("idx", JInt(y.values.toInt))
           }
-          kept(res)
+          kept(res).future
         })
       }}
     }
