@@ -15,25 +15,21 @@
  */
 package ws.kotonoha.server.model
 
-import com.foursquare.rogue.Rogue
 import org.scalatest.{FunSuite, BeforeAndAfterAll, BeforeAndAfter}
-import net.liftweb.common.{Full, Empty}
+import net.liftweb.common.Empty
 import akka.util.Timeout
-import java.util.Calendar
-import ws.kotonoha.server.learning.{ProcessMarkEvent, ProcessMarkEvents}
 import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow}
-import ws.kotonoha.server.actors.model.{SchedulePaired, CardActor, RegisterWord}
+import ws.kotonoha.server.actors.model.CardActor
 import ws.kotonoha.server.actors.learning._
 import org.bson.types.ObjectId
 import org.scalatest.matchers.ShouldMatchers
 import ws.kotonoha.server.test.TestWithAkka
-import akka.actor.{ActorRef, Props}
+import akka.actor.Props
 import akka.testkit.CallingThreadDispatcher
 import com.mongodb.WriteConcern
 import concurrent.{Future, Await}
 import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import ws.kotonoha.server.actors.learning.LoadWords
 import ws.kotonoha.server.learning.ProcessMarkEvents
 import net.liftweb.common.Full
@@ -42,7 +38,6 @@ import ws.kotonoha.server.actors.model.SchedulePaired
 import ws.kotonoha.server.actors.learning.LoadCards
 import ws.kotonoha.server.actors.learning.WordsAndCards
 import ws.kotonoha.server.actors.model.RegisterWord
-import org.bson.BSON
 import ws.kotonoha.server.actors.PingUser
 
 
