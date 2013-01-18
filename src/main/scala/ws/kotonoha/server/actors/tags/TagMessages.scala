@@ -17,6 +17,7 @@
 package ws.kotonoha.server.actors.tags
 
 import ws.kotonoha.server.actors.KotonohaMessage
+import ws.kotonoha.server.records.WordRecord
 
 /**
  * @author eiennohito
@@ -24,4 +25,17 @@ import ws.kotonoha.server.actors.KotonohaMessage
  */
 
 trait TagMessage extends KotonohaMessage
+
+//peruser messages
+case class TagWord(rec: WordRecord, ops: List[TagOp]) extends TagMessage
+
+//service messages
 case object ServiceActor extends TagMessage
+
+case class GlobalTagWritingStat(writ: String, tag: String, cnt: Int) extends TagMessage
+
+case class GlobalUsage(tag: String, cnt: Int) extends TagMessage
+
+case class AddTagAlias(from: String, to: String) extends TagMessage
+
+case class RemoveTagAlias(from: String) extends TagMessage

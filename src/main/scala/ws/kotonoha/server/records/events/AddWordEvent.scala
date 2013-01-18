@@ -21,6 +21,7 @@ import net.liftweb.mongodb.record.field.{MongoListField, ObjectIdPk}
 import ws.kotonoha.server.model.EventTypes
 import net.liftweb.record.field.{LongField, OptionalStringField, StringField, BooleanField}
 import ws.kotonoha.server.mongodb.NamedDatabase
+import ws.kotonoha.server.records.KotonohaMongoRecord
 
 /**
  * @author eiennohito
@@ -47,4 +48,5 @@ class AddWordRecord private() extends MongoRecord[AddWordRecord] with ObjectIdPk
 }
 
 object AddWordRecord extends AddWordRecord with MongoMetaRecord[AddWordRecord] with NamedDatabase
+with KotonohaMongoRecord[AddWordRecord]
 

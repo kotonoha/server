@@ -21,7 +21,7 @@ import net.liftweb.mongodb.record.field.{ObjectIdRefField, ObjectIdPk}
 import ws.kotonoha.server.model.EventTypes
 import net.liftweb.record.field.{DoubleField, IntField}
 import ws.kotonoha.server.mongodb.NamedDatabase
-import ws.kotonoha.server.records.WordCardRecord
+import ws.kotonoha.server.records.{KotonohaMongoRecord, WordCardRecord}
 
 /**
  * @author eiennohito
@@ -52,4 +52,4 @@ class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with Object
 
 }
 
-object MarkEventRecord extends MarkEventRecord with MongoMetaRecord[MarkEventRecord] with NamedDatabase
+object MarkEventRecord extends MarkEventRecord with KotonohaMongoRecord[MarkEventRecord] with MongoMetaRecord[MarkEventRecord] with NamedDatabase

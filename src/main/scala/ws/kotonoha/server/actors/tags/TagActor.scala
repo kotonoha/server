@@ -22,11 +22,9 @@ import ws.kotonoha.server.actors.UserScopedActor
 import scala.concurrent.Await
 import akka.util.Timeout
 import concurrent.duration._
-import net.liftweb.json.JsonAST._
+import ws.kotonoha.server.records.{WordTagInfo, UserTagInfo, WordRecord}
 import collection.mutable.ListBuffer
-import net.liftweb.json.JsonAST.JObject
-import net.liftweb.json.JsonAST.JString
-import net.liftweb.json.JsonAST.JArray
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito
@@ -34,72 +32,67 @@ import net.liftweb.json.JsonAST.JArray
  */
 
 class TagActor extends UserScopedActor {
+
+  import com.foursquare.rogue.LiftRogue._
+
   implicit val timeout: Timeout = 10 seconds
 
   lazy val svc = Await.result((services ? ServiceActor).mapTo[ActorRef], 10 seconds)
 
-  override def receive = {
-    case Nil => //
-  }
-}
-
-case class TagData(tags: List[String], ops: List[TagOp])
-
-sealed trait TagOp {
-  def transform(tags: List[String]): List[String]
-}
-case class AddTag(tag: String) extends TagOp {
-  def transform(tags: List[String]) = tags ++ List(tag)
-}
-
-case class RemoveTag(tag: String) extends TagOp {
-  def transform(tags: List[String]) = tags.filterNot(_.equals(tag))
-}
-
-case class RenameTag(from: String, to: String) extends TagOp {
-  def transform(tags: List[String]) = tags.map {
-    case s if s.equals(from) => to
-    case s => s
-  }
-}
-
-
-object TagParser {
-
-  def parseObj(jv: JValue): AnyRef = jv match {
-    case JString(s) => s
-    case JObject(JField("add", JString(s)) :: _) => AddTag(s)
-    case JObject(JField("remove", JString(s)) :: _) => RemoveTag(s)
-    case JObject(JField("rename", JString(from)) :: JField("to", JString(to)) :: _) => RenameTag(from, to)
-    case JObject(JField("to", JString(from)) :: JField("rename", JString(to)) :: _) => RenameTag(from, to)
-    case _ => TagParser
+  def handleWritingStat(writ: String, tag: String, cnt: Int): Unit = {
+    svc ! GlobalTagWritingStat(writ, tag, cnt)
+    Tags.handleWritingStat(writ, tag, cnt, uid)
   }
 
-  def parseArr(vals: List[JValue]): TagData = {
-    val tags = new ListBuffer[String]
-    val ops = new ListBuffer[TagOp]
-    vals foreach {
-      parseObj(_) match {
-        case s: String => tags += s
-        case o: TagOp => ops += o
-        case _ => //
+  def handleUsage(tag: String, count: Int): Unit = {
+    svc ! GlobalUsage(tag, count)
+    val res = UserTagInfo.where(u => objectIdFieldToObjectIdQueryField(u.user).eqs(uid)).and(_.tag eqs tag).findAndModify(_.usage inc count) updateOne (false)
+    res match {
+      case None if count > 0 => UserTagInfo.createRecord.user(uid).tag(tag).usage(count).save
+      case _ =>
+    }
+  }
+
+  def handleTagWrit(rawTag: String, writings: List[String], cnt: Int) = {
+    val tag = Tags.aliases(rawTag)
+    writings.foreach {
+      w => handleWritingStat(w, tag, cnt)
+    }
+    handleUsage(tag, cnt)
+  }
+
+  def tagWord(rec: WordRecord, ops: List[TagOp]) {
+    val wrs = rec.writing.is
+    var cur = new ListBuffer() ++ rec.tags.is
+    ops.foreach {
+      case AddTag(tag) => {
+        cur += tag
+        handleTagWrit(tag, wrs, 1)
+      }
+      case RemoveTag(tag) if cur.contains(tag) => {
+        val cnt = cur.count(_ == tag)
+        cur = cur.filterNot(_ == tag)
+        handleTagWrit(tag, wrs, -cnt)
+      }
+      case RenameTag(from, to) if cur.contains(from) => {
+        val cnt = cur.count(_ == from)
+        cur = (cur.filterNot(_ == from) += to)
+        handleTagWrit(from, wrs, -cnt)
+        handleTagWrit(to, wrs, 1)
       }
     }
-    TagData(tags.result(), ops.result())
+    WordRecord where (_.id eqs rec.id.is) modify (_.tags setTo cur.result()) updateOne()
   }
 
-  def parseOps(jv: JValue): TagData = jv match {
-    case JArray(arr) => parseArr(arr)
-    case _ => TagData(Nil, Nil)
-  }
-
-  def performTransform(jv: JValue) = {
-    val data = parseOps(jv)
-    data.ops.foldLeft(data.tags){ (t, o) => o.transform(t) }
+  override def receive = {
+    case TagWord(wr, ops) => tagWord(wr, ops)
   }
 }
 
 trait Taggable {
   def curTags: List[String]
+
   def writeTags(tags: List[String])
 }
+
+
