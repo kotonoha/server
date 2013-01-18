@@ -27,6 +27,7 @@ import util.Random
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import net.liftweb.json.DefaultFormats
 import ws.kotonoha.server.records._
+import events.MarkEventRecord
 import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.server.learning.ProcessMarkEvent
 import xml.{Text, NodeSeq, Utility}
@@ -42,12 +43,16 @@ import com.typesafe.scalalogging.slf4j.Logging
  */
 
 case class RecieveJson(obj: JValue)
+
 case class RepeatUser(id: ObjectId)
+
 case class WebMark(card: String, mode: Int, time: Double, mark: Int, remaining: Int)
+
 case object UpdateNum
 
 trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   def self = this
+
   var userId: ObjectId = null
   var uact: ActorRef = _
   var count = 0
@@ -90,18 +95,24 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     val wm = words.map(w => (w.id.is, w)).toMap
     def getExamples(in: List[ExampleRecord], max: Int) = {
       val selected = Random.shuffle(in).take(max)
-      val html = selected flatMap(e =>
-        <div class="nihongo">{e.example.is}</div>
-        <div>{e.translation.is}</div>)
+      val html = selected flatMap (e =>
+        <div class="nihongo">
+          {e.example.is}
+        </div>
+          <div>
+            {e.translation.is}
+          </div>)
       nsString(html)
     }
     val data: JValue = cards map (c => {
       val w = wm(c.word.is)
       val addInfo = processWord(w.writing.stris, Some(w.reading.stris))
-      val procInfo = addInfo map {nsString(_)} getOrElse ""
+      val procInfo = addInfo map {
+        nsString(_)
+      } getOrElse ""
       ("writing" -> w.writing.stris) ~ ("reading" -> w.reading.stris) ~ ("meaning" -> w.meaning) ~
-      ("cid" -> c.id.is.toString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
-      ("additional" -> procInfo) ~ ("wid" -> c.word.is.toString)
+        ("cid" -> c.id.is.toString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
+        ("additional" -> procInfo) ~ ("wid" -> c.word.is.toString)
     })
     partialUpdate(Call("publish_new", jc(jr(data))).cmd)
   }
@@ -120,7 +131,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   }
 
   override def lowPriority = {
-    case RepeatUser(id) =>  {
+    case RepeatUser(id) => {
       userId = id
       uact = akkaServ.userActor(userId)
       uact ! LoadWords(15)

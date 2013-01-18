@@ -1,8 +1,9 @@
 package ws.kotonoha.server.tools.quickfixes
 
 import ws.kotonoha.server.mongodb.MongoDbInit
-import ws.kotonoha.server.records.{WordCardRecord, MarkEventRecord}
+import ws.kotonoha.server.records.{WordCardRecord}
 import org.joda.time.DateTime
+import ws.kotonoha.server.records.events.MarkEventRecord
 
 /**
  * @author eiennohito
@@ -10,9 +11,11 @@ import org.joda.time.DateTime
  */
 
 object DuplicateMarkFinder {
+
   import ws.kotonoha.server.util.DateTimeUtils._
   import concurrent.duration._
   import com.foursquare.rogue.LiftRogue._
+
   def main(args: Array[String]) {
     MongoDbInit.init()
 
@@ -20,12 +23,14 @@ object DuplicateMarkFinder {
     val marks = MarkEventRecord where (_.datetime gt (tendays)) fetch()
 
     val grps = marks.groupBy(_.datetime.is).map(x => x._1 -> x._2.toArray.sortBy(_.rep.is)).
-      filter{x => x._2.length > 1}
+      filter {
+      x => x._2.length > 1
+    }
 
     val toFix = grps.map(x => x._2(0)).filter(x => x.mark.is > 3.9)
 
     toFix.foreach(mer => {
-      WordCardRecord.find(mer.card.is) foreach(c => {
+      WordCardRecord.find(mer.card.is) foreach (c => {
         val l = c.learning.is
         l.difficulty(mer.diff.is)
         l.repetition(mer.rep.is)

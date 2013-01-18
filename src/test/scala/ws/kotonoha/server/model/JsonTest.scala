@@ -9,10 +9,11 @@ import org.joda.time.DateTime
 import net.liftweb.json.JsonAST.JObject
 import ws.kotonoha.server.actors.learning.WordsAndCards
 import ws.kotonoha.server.util.{DateTimeUtils, ResponseUtil}
-import ws.kotonoha.server.records.{MarkEventRecord, WordCardRecord, ExampleRecord, WordRecord}
+import ws.kotonoha.server.records.{WordCardRecord, ExampleRecord, WordRecord}
 import java.io.InputStreamReader
 import java.nio.charset.Charset
 import org.bson.types.ObjectId
+import ws.kotonoha.server.records.events.MarkEventRecord
 
 
 /*
@@ -37,53 +38,53 @@ import org.bson.types.ObjectId
  */
 
 class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
-  
+
   val gson = {
     val gb = new GsonBuilder
-    gb.registerTypeAdapter(classOf[DateTime], new DateTimeTypeConverter)    
+    gb.registerTypeAdapter(classOf[DateTime], new DateTimeTypeConverter)
     gb.create()
   }
 
   val wid = new ObjectId(10, 11, 12)
   val cid = new ObjectId(10, 11, 13)
-  
+
   def card = WordCardRecord.createRecord.word(wid).cardMode(CardMode.READING)
-  
+
   def word = {
     val ex1 = ExampleRecord.createRecord.example("ex").translation("tr")
     val rec = WordRecord.createRecord
     rec.writing("wr").reading("re").meaning("me").examples(List(ex1)).id(wid)
     rec
   }
-  
+
   test("word record becomes nice json") {
     val rec = WordRecord.createRecord
     rec.writing("hey" :: "pal" :: Nil).reading("guys")
-    
+
     val js = rec.asJSON.toString()
     val rec2 = WordRecord.createRecord
     rec2.setFieldsFromJSON(js)
-    rec.writing.is should equal (rec2.writing.is)
-    rec.reading.is should equal (rec2.reading.is)
+    rec.writing.is should equal(rec2.writing.is)
+    rec.reading.is should equal(rec2.reading.is)
   }
-  
+
   test("word record translates to java model") {
     val jv: JObject = word.asJValue
     val str = Printer.pretty(JsonAST.render(ResponseUtil.deuser(jv)))
 
     val obj = gson.fromJson(str, classOf[Word])
-    obj.getMeaning should equal ("me")
+    obj.getMeaning should equal("me")
   }
-  
+
   test("word card saves all right") {
     val jv = card.asJValue
     val str = Printer.compact(JsonAST.render(ResponseUtil.deuser(jv)))
 
     val obj = gson.fromJson(str, classOf[WordCard])
-    obj.getCardMode should equal (CardMode.READING)
-    obj.getWord should equal (wid.toString)
+    obj.getCardMode should equal(CardMode.READING)
+    obj.getWord should equal(wid.toString)
   }
-  
+
   test("container is being parsed") {
     val words = List(word, word)
     val cards = List(card, card)
@@ -91,10 +92,10 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     val jv = ResponseUtil.jsonResponse(WordsAndCards(words, cards))
     val str = Printer.compact(JsonAST.render(ResponseUtil.deuser(jv)))
     val obj = gson.fromJson(str, classOf[Container])
-    obj.getWords.size() should be (2)
-    obj.getCards.size() should be (2)
+    obj.getWords.size() should be(2)
+    obj.getCards.size() should be(2)
   }
-  
+
   test("word mark event goes from java to scala world") {
     val event = new MarkEvent()
     event.setCard(cid.toString)
@@ -103,26 +104,27 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     event.setTime(1.0)
     val dt = DateTimeUtils.now
     event.setDatetime(dt)
-    
+
     val str = gson.toJson(event)
     val jv = net.liftweb.json.parse(str)
     val rec = MarkEventRecord.createRecord
     rec.setFieldsFromJValue(jv)
-    
-    rec.card.is should equal (cid)
-    rec.mark.is should equal (5.0)
-    rec.mode.is should equal (CardMode.READING)
-    rec.datetime.is should equal (dt)
+
+    rec.card.is should equal(cid)
+    rec.mark.is should equal(5.0)
+    rec.mode.is should equal(CardMode.READING)
+    rec.datetime.is should equal(dt)
   }
 
   import scala.collection.JavaConversions._
+
   test("loading json from file") {
     val str = getClass.getClassLoader.getResourceAsStream("json/scheduled.json")
     val src = new InputStreamReader(str, Charset.forName("UTF-8"))
     val obj = gson.fromJson(src, classOf[Container])
     val l2 = obj.getCards.map(_.getWord).toList.distinct.length
     val l3 = obj.getCards.map(_.getId).toList.distinct.length
-    
-    l2 should equal (l3)
+
+    l2 should equal(l3)
   }
 }

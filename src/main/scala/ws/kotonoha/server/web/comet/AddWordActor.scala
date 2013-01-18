@@ -21,6 +21,7 @@ import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import akka.util.Timeout
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import ws.kotonoha.server.records._
+import events.AddWordRecord
 import net.liftweb.common.{Empty, Box}
 import ws.kotonoha.server.actors.model._
 import net.liftweb.http.CometActor
@@ -49,12 +50,16 @@ import concurrent.{Promise, Future, ExecutionContext}
  */
 
 
-
 case class WordList(id: Long)
+
 case object PrepareWords
+
 case object PublishNext
+
 case class WordCount(current: Int, total: Int)
+
 case class DoRenderAndDisplay(wd: WordData)
+
 case object Cleanup
 
 class TimeoutException extends RuntimeException
@@ -64,6 +69,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
   val self = this
   private val uid = UserRecord.currentId.get
   lazy val uact = akkaServ.userActor(uid)
+
   import concurrent.duration._
   import akka.pattern.{ask => apa}
   import com.foursquare.rogue.LiftRogue._
@@ -102,6 +108,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
   var displaying: Map[String, WordData] = Map()
 
   private class WordDataCalculator extends Logging {
+
     import DateTimeUtils._
 
     private def q = list match {
@@ -115,6 +122,7 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
 
     private var items = q.fetch()
     private var cur_ = 0
+
     def cur = cur_
 
     private var total_ = items.size
@@ -134,21 +142,27 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
     }
 
     protected def calculate(item: AddWordRecord) =
-    prepareWord(item) map (w => {
-      w.word.tags(item.tags.is).writing(item.writing.valueBox).user(item.user.valueBox)
-      item.reading.valueBox map {r => w.word.reading(r) }
-      item.meaning.valueBox map {m => w.word.meaning(m) }
-      w.onSave.future.foreach {
-        i => uact ! UpdateRecord(item.processed(true))
-      }
-      w
-    })
+      prepareWord(item) map (w => {
+        w.word.tags(item.tags.is).writing(item.writing.valueBox).user(item.user.valueBox)
+        item.reading.valueBox map {
+          r => w.word.reading(r)
+        }
+        item.meaning.valueBox map {
+          m => w.word.meaning(m)
+        }
+        w.onSave.future.foreach {
+          i => uact ! UpdateRecord(item.processed(true))
+        }
+        w
+      })
 
     def addWordCandidate(wc: DictCard) = {
       val awr = AddWordRecord.createRecord
       awr.user(uid)
       awr.datetime(now)
-      awr.group(list map {_.id})
+      awr.group(list map {
+        _.id
+      })
       awr.writing(wc.writing)
       awr.reading(wc.reading)
       awr.meaning(wc.meaning)
@@ -162,8 +176,8 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
   def updateIndices(cur: Int, total: Int): Unit = {
     ngMessage(
       ("cmd" -> "update-indices") ~
-      ("total" -> total) ~
-      ("cur" -> cur)
+        ("total" -> total) ~
+        ("cur" -> cur)
     )
   }
 
@@ -207,14 +221,18 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
       val wd = w.word
       val filtered = WordRecord.trimInternal(jobj, out = false)
       wd.setFieldsFromJValue(filtered)
-      w.onSave.future.foreach { x => uact ! RegisterWord(wd, st) }
+      w.onSave.future.foreach {
+        x => uact ! RegisterWord(wd, st)
+      }
       w.onSave.tryComplete(util.Success(w))
     }
     self ! PublishNext
   }
 
   def skipWord(wid: String): Unit = {
-    displaying.get(wid) map { w => w.onSave.tryComplete(util.Success(w)) }
+    displaying.get(wid) map {
+      w => w.onSave.tryComplete(util.Success(w))
+    }
     self ! PublishNext
   }
 
@@ -256,44 +274,57 @@ trait AddWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop wi
     val ex = exs.ex
 
     def selected: Future[Boolean] = {
-      val res = word.reading.is.exists { rd => ex.contains(rd) } ||
-                word.writing.is.exists { wr => ex.contains(wr) }
+      val res = word.reading.is.exists {
+        rd => ex.contains(rd)
+      } ||
+        word.writing.is.exists {
+          wr => ex.contains(wr)
+        }
       if (res) Promise.successful(true).future
       else {
         val wrs = word.writing.is.toSet
         val f = (root ? ParseSentence(ex)).mapTo[ParsedQuery]
         f map (lst => {
-          val jwr = lst.inner.flatMap{ i => i.writing :: i.dictForm :: JumanUtil.daihyouWriting(i).writing :: Nil }.toSet
+          val jwr = lst.inner.flatMap {
+            i => i.writing :: i.dictForm :: JumanUtil.daihyouWriting(i).writing :: Nil
+          }.toSet
           val opt = jwr.exists(wrs.contains(_))
           opt
         })
       }
     }
-    selected map { s =>
-      ("example" -> ex) ~
-      ("translation" -> exs.translation.openOr("")) ~
-      ("id" -> exs.id) ~
-      ("selected" -> s)
+    selected map {
+      s =>
+        ("example" -> ex) ~
+          ("translation" -> exs.translation.openOr("")) ~
+          ("id" -> exs.id) ~
+          ("selected" -> s)
     }
   }
 
   def renderAndPush(data: WordData) = {
     val hid = data.word.id.is.toString
     displaying = displaying + (hid -> data)
-    data.onSave.future.onComplete { x => self ! RemoveItem(hid) }
+    data.onSave.future.onComplete {
+      x => self ! RemoveItem(hid)
+    }
 
     val dicts = Extraction.decompose(data.dicts)
 
     val jv = ("word" -> data.word.stripped) ~
-             ("dics" -> dicts) ~
-             ("cmd" -> "word") ~
-             ("total" -> selector.total) ~
-             ("cur" -> selector.cur)
+      ("dics" -> dicts) ~
+      ("cmd" -> "word") ~
+      ("total" -> selector.total) ~
+      ("cur" -> selector.cur)
 
     val fexs = data.examples.map(renderExample(_, data.word))
     val jvsf = Future.sequence(fexs)
-    val exjs: Future[JValue] = jvsf map {jv =>  "word" -> ("examples" -> jv) }
-    exjs foreach { d => ngMessage(jv.merge(d)) }
+    val exjs: Future[JValue] = jvsf map {
+      jv => "word" -> ("examples" -> jv)
+    }
+    exjs foreach {
+      d => ngMessage(jv.merge(d))
+    }
   }
 
   override def lowPriority = {

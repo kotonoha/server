@@ -39,18 +39,20 @@ import ws.kotonoha.server.actors.learning.LoadCards
 import ws.kotonoha.server.actors.learning.WordsAndCards
 import ws.kotonoha.server.actors.model.RegisterWord
 import ws.kotonoha.server.actors.PingUser
+import ws.kotonoha.server.records.events.MarkEventRecord
 
 
 class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with BeforeAndAfter
-  with BeforeAndAfterAll {
+with BeforeAndAfterAll {
+
   import akka.pattern._
   import concurrent.duration._
   import ws.kotonoha.server.records._
   import com.foursquare.rogue.LiftRogue._
   import DateTimeUtils._
 
-  var user : UserRecord = _
-  
+  var user: UserRecord = _
+
   def userId = user.id.is
 
   lazy val ucont = kta.userContext(userId)
@@ -71,8 +73,8 @@ class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with Befo
   }
 
   after {
-    WordRecord where (_.user eqs user.id.is) bulkDelete_!!(WriteConcern.NORMAL)
-    WordCardRecord where (_.user eqs user.id.is) bulkDelete_!!(WriteConcern.NORMAL)
+    WordRecord where (_.user eqs user.id.is) bulkDelete_!! (WriteConcern.NORMAL)
+    WordCardRecord where (_.user eqs user.id.is) bulkDelete_!! (WriteConcern.NORMAL)
   }
 
   test("saving word for user") {
@@ -83,11 +85,11 @@ class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with Befo
     val time = dtNow minus (1 day)
     word.createdOn(time)
     word.save
-    word.id.valueBox.isEmpty should be (false)
+    word.id.valueBox.isEmpty should be(false)
 
     val found = WordRecord.find(word.id.is)
-    found.isEmpty should be (false)
-    found.flatMap(_.createdOn.valueBox) should be (Full(time))
+    found.isEmpty should be(false)
+    found.flatMap(_.createdOn.valueBox) should be(Full(time))
   }
 
   test("card saved with empty learning loads with such") {
@@ -96,7 +98,7 @@ class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with Befo
     rec.save
 
     val rec2 = WordCardRecord.find(rec.id.is).openTheBox
-    rec2.learning.valueBox.isEmpty should be (true)
+    rec2.learning.valueBox.isEmpty should be(true)
   }
 
   test("card with full learning loads with full too") {
@@ -106,9 +108,9 @@ class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with Befo
     rec.save
 
     val rec2 = WordCardRecord.find(rec.id.is).openOrThrowException("Babah!")
-    rec2.learning.valueBox.isEmpty should be (false)
+    rec2.learning.valueBox.isEmpty should be(false)
   }
-  
+
   def createWord = {
     val rec = WordRecord.createRecord
     val ex = ExampleRecord.createRecord.example("この例はどうにもならんぞ")
@@ -117,13 +119,13 @@ class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with Befo
     rec.user(userId).examples(List(ex))
     rec
   }
-  
+
   def saveWordAsync = {
     implicit val timeout = Timeout(2500 millis)
     val fut = ucont.actor ? RegisterWord(createWord)
     fut.mapTo[ObjectId]
   }
-  
+
   def saveWord = {
     val fut = saveWordAsync
     Await.result(fut, 2500 milli)
@@ -131,35 +133,37 @@ class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with Befo
 
   test("word is being saved all right") {
     val saved = saveWord
-    
+
     val wOpt = WordRecord where (_.writing contains ("例")) and (_.user eqs userId) get()
     wOpt should not be (None)
     val id = wOpt.get.id.is
-    saved should equal (id)
-    val cards = WordCardRecord where (_.word eqs id) fetch(50)
+    saved should equal(id)
+    val cards = WordCardRecord where (_.word eqs id) fetch (50)
     cards should have length (2)
     val card = cards.head
-    card.learning.valueBox.isEmpty should be (true)
+    card.learning.valueBox.isEmpty should be(true)
   }
 
-  test ("paired card is being postproned") {
+  test("paired card is being postproned") {
     val id = saveWord
     val cards = WordCardRecord where (_.word eqs id) fetch()
 
-    cards.length should equal (2)
+    cards.length should equal(2)
     val card = cards.head
 
     val sched = ucont.userActor(Props[CardActor].withDispatcher(CallingThreadDispatcher.Id), "ca")
     sched.receive(SchedulePaired(id, card.cardMode.is))
     val cid = cards.last.id.is
-    
+
     val anotherCard = WordCardRecord.find(cid).get
     anotherCard.notBefore.value should not be (None)
     anotherCard.notBefore.is.get should be >= (new DateTime)
   }
 
   test("getting new cards from actor") {
-    val fs = Future.sequence(1 to 5 map { x => saveWordAsync })
+    val fs = Future.sequence(1 to 5 map {
+      x => saveWordAsync
+    })
     Await.ready(fs, 5 seconds)
 
     val ar = kta.userContext(userId).userActor[CardLoader]("usa")
@@ -167,20 +171,24 @@ class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with Befo
     val cards = receiveOne(1 minute).asInstanceOf[List[WordCardRecord]]
     cards should have length (10)
   }
-  
+
   test("getting new cards and words") {
-    val fs = Future.sequence(1 to 5 map { x => saveWordAsync })
+    val fs = Future.sequence(1 to 5 map {
+      x => saveWordAsync
+    })
     Await.ready(fs, 5 seconds)
 
     val wlen = WordRecord where (_.user eqs userId) count()
-    wlen should equal (5)
+    wlen should equal(5)
     val clen = WordCardRecord where (_.user eqs userId) count()
-    clen should equal (10)
-    
+    clen should equal(10)
+
     val sel = ask(ucont.actor, LoadCards(6)).mapTo[List[WordCardRecord]]
     val words = Await.result(sel, 1 second)
     words.length should be >= (1)
-    val groups = words groupBy { w => w.word.is }
+    val groups = words groupBy {
+      w => w.word.is
+    }
     for ((id, gr) <- groups) {
       gr should have length (1)
     }
@@ -191,7 +199,9 @@ class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with Befo
   }
 
   test("full work cycle") {
-    val fs = Future.sequence(1 to 5 map { x => saveWordAsync })
+    val fs = Future.sequence(1 to 5 map {
+      x => saveWordAsync
+    })
     Await.ready(fs, 1000 milli)
 
     val wicF = ask(ucont.actor, LoadWords(5)).mapTo[WordsAndCards]
@@ -204,13 +214,15 @@ class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with Befo
 
     Await.ready(ask(ucont.actor, ProcessMarkEvents(List(event))), 5 seconds)
     val updatedCard = WordCardRecord.find(card.id.is).get
-    updatedCard.learning.valueBox.isEmpty should be (false)
+    updatedCard.learning.valueBox.isEmpty should be(false)
   }
-  
+
   test("Multiple marks for word") {
     import DateTimeUtils._
     implicit val timeout = Timeout(2 seconds)
-    val fs = Future.sequence(1 to 2 map { x => saveWordAsync })
+    val fs = Future.sequence(1 to 2 map {
+      x => saveWordAsync
+    })
     Await.ready(fs, 1500 milli)
 
     (ucont.actor ! LoadWords(5))(testActor)
@@ -249,7 +261,7 @@ class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with Befo
     receiveOne(1 minute)
 
     val updatedCard = WordCardRecord.find(cid).get
-    updatedCard.learning.valueBox.isEmpty should be (false)
-    updatedCard.learning.value.lapse.is should be (2)
+    updatedCard.learning.valueBox.isEmpty should be(false)
+    updatedCard.learning.value.lapse.is should be(2)
   }
 }

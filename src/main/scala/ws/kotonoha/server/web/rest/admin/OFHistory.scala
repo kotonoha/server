@@ -19,7 +19,7 @@ package ws.kotonoha.server.web.rest.admin
 import ws.kotonoha.server.web.rest.KotonohaRest
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import net.liftweb.http.{BadResponse, JsonResponse, ForbiddenResponse, Req}
-import ws.kotonoha.server.records.{MarkEventRecord, OFArchiveRecord, UserRecord}
+import ws.kotonoha.server.records.{OFArchiveRecord, UserRecord}
 import org.joda.time.{Duration, DateTime}
 import net.liftweb.common.{Empty, Full}
 import ws.kotonoha.server.util.unapply.XOid
@@ -33,6 +33,7 @@ import ws.kotonoha.server.util.ResponseUtil
  */
 
 object OFHistory extends KotonohaRest with ReleaseAkka {
+
   import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.KBsonDSL._
   import ws.kotonoha.server.util.DateTimeUtils._
@@ -55,10 +56,10 @@ object OFHistory extends KotonohaRest with ReleaseAkka {
       val ujs = users map {
         case (uid, email) => {
           val data = nfo(uid).map {
-             case (_, id, ts) => {
-               ("time" -> ts.toDate) ~ ("id" -> id)
-             }
-           }
+            case (_, id, ts) => {
+              ("time" -> ts.toDate) ~ ("id" -> id)
+            }
+          }
           ("user" -> uid) ~ ("email" -> email) ~ ("data" -> data)
         }
       }

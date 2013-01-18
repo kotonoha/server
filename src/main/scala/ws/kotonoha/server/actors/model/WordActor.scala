@@ -17,13 +17,11 @@
 package ws.kotonoha.server.actors.model
 
 
-
-
 import akka.util.Timeout
 import akka.actor.{ActorLogging, Actor}
 import ws.kotonoha.server.model.CardMode
 import ws.kotonoha.server.actors.{UserScopedActor, KotonohaMessage, SaveRecord, RootActor}
-import ws.kotonoha.server.records.{MarkEventRecord, WordCardRecord, WordStatus, WordRecord}
+import ws.kotonoha.server.records.{WordCardRecord, WordStatus, WordRecord}
 import net.liftweb.common.Empty
 import ws.kotonoha.server.learning.ProcessMarkEvents
 import net.liftweb.json.JsonAST.JObject
@@ -31,15 +29,22 @@ import ws.kotonoha.akane.unicode.KanaUtil
 import org.bson.types.ObjectId
 import concurrent.Future
 import com.mongodb.casbah.WriteConcern
+import ws.kotonoha.server.records.events.MarkEventRecord
 
 trait WordMessage extends KotonohaMessage
+
 case class RegisterWord(word: WordRecord, state: WordStatus.Value = WordStatus.Approved) extends WordMessage
+
 case class ChangeWordStatus(word: ObjectId, status: WordStatus.Value) extends WordMessage
+
 case class MarkAllWordCards(word: ObjectId, mark: Int) extends WordMessage
+
 case class MarkForDeletion(word: ObjectId) extends WordMessage
+
 case object DeleteReadyWords
 
 class WordActor extends UserScopedActor with ActorLogging {
+
   import concurrent.duration._
   import akka.pattern.{ask, pipe}
   import com.foursquare.rogue.LiftRogue._
@@ -73,7 +78,9 @@ class WordActor extends UserScopedActor with ActorLogging {
       fl ::= card ? RegisterCard(wordid, CardMode.WRITING)
 
       val s = Future.sequence(fl.map(_.mapTo[Boolean])).flatMap(_ => self ? ChangeWordStatus(wordid, st))
-      s map { x => wordid } pipeTo sender
+      s map {
+        x => wordid
+      } pipeTo sender
     }
     case ChangeWordStatus(word, stat) => {
       import ws.kotonoha.server.util.KBsonDSL._
@@ -84,33 +91,44 @@ class WordActor extends UserScopedActor with ActorLogging {
         case WordStatus.Approved => card ? ChangeCardEnabled(word, true)
         case _ => card ? ChangeCardEnabled(word, false)
       }
-      f map { x => 1 } pipeTo sender
+      f map {
+        x => 1
+      } pipeTo sender
     }
     case MarkAllWordCards(word, mark) => {
-      val cards = WordCardRecord where(_.word eqs word) fetch()
-      val data = cards map {c => {
-        val r =  MarkEventRecord.createRecord
-        r.card(c.id.valueBox)
-        r.mode(c.cardMode.valueBox)
-        r.time(Empty)
-        r.mark(mark)
-        r.datetime(now)
-        r.user(c.user.valueBox)
-        r
-      }}
-      (userActor ? ProcessMarkEvents(data)) andThen {case _ =>
-        data map { d => card ! ClearNotBefore(d.card.is) }
+      val cards = WordCardRecord where (_.word eqs word) fetch()
+      val data = cards map {
+        c => {
+          val r = MarkEventRecord.createRecord
+          r.card(c.id.valueBox)
+          r.mode(c.cardMode.valueBox)
+          r.time(Empty)
+          r.mark(mark)
+          r.datetime(now)
+          r.user(c.user.valueBox)
+          r
+        }
+      }
+      (userActor ? ProcessMarkEvents(data)) andThen {
+        case _ =>
+          data map {
+            d => card ! ClearNotBefore(d.card.is)
+          }
       }
     }
     case MarkForDeletion(word) => {
-      WordRecord where (_.id eqs word) modify (_.deleteOn setTo(now.plusDays(1))) updateOne()
+      WordRecord where (_.id eqs word) modify (_.deleteOn setTo (now.plusDays(1))) updateOne()
       self ! ChangeWordStatus(word, WordStatus.Deleting)
     }
     case DeleteReadyWords => {
       val time = now
       val q = WordRecord where (_.deleteOn lt time) and (_.status eqs WordStatus.Deleting)
-      q foreach { w => { card ! DeleteCardsForWord(w.id.is) } }
-      q bulkDelete_!!(WriteConcern.Normal)
+      q foreach {
+        w => {
+          card ! DeleteCardsForWord(w.id.is)
+        }
+      }
+      q bulkDelete_!! (WriteConcern.Normal)
       context.system.scheduler.scheduleOnce(3 hours, self, DeleteReadyWords)
     }
   }

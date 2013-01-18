@@ -18,6 +18,7 @@ package ws.kotonoha.server.actors.model
 
 import akka.actor.ActorLogging
 import ws.kotonoha.server.records._
+import events.AddWordRecord
 import net.liftweb.common.{Empty, Box}
 import ws.kotonoha.server.actors.dict.DictType._
 import ws.kotonoha.server.actors.{UserScopedActor, SearchQuery}
@@ -44,10 +45,13 @@ import concurrent.{Future, Promise}
  */
 
 case class DictData(name: String, data: List[DictCard])
+
 case class ExampleForSelection(ex: String, translation: Box[String], id: Long)
+
 case class WordData(dicts: List[DictData], examples: List[ExampleForSelection], word: WordRecord, onSave: Promise[WordData])
 
 case class DictCard(writing: String, reading: String, meaning: String)
+
 object DictCard {
   def makeCard(writing: List[String], reading: List[String], meaning: List[String]) = {
     DictCard(
@@ -62,8 +66,10 @@ object DictCard {
 case class CreateWordData(in: AddWordRecord)
 
 class WordCreateActor extends UserScopedActor with ActorLogging {
+
   import DateTimeUtils._
   import akka.pattern.pipe
+
   implicit val timeout: Timeout = 10 seconds
 
   def prepareWord(rec: AddWordRecord): Future[WordData] = {
@@ -71,26 +77,33 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
     val rd: Option[String] = rec.reading.valueBox
     val jf = (userActor ? DictQuery(jmdict, wr, rd, 5)).mapTo[SearchResult]
     val wf = (userActor ? DictQuery(warodai, wr, rd, 5)).mapTo[SearchResult]
-    val exs = jf.flatMap { jmen => {
-      val idsf = jmen.entries match {
-        case Nil => { //don't have such word in dictionary
-          services ? SearchQuery(wr)
+    val exs = jf.flatMap {
+      jmen => {
+        val idsf = jmen.entries match {
+          case Nil => {
+            //don't have such word in dictionary
+            services ? SearchQuery(wr)
+          }
+          case x :: _ => {
+            services ? SearchQuery(wr + " " + x.readings.head)
+          }
         }
-        case x :: _ => {
-          services ? SearchQuery(wr + " " + x.readings.head)
+        idsf.mapTo[List[Long]].map(_.distinct).flatMap {
+          exIds => {
+            val trsid = (userActor ? TranslationsWithLangs(exIds, LangUtil.langs)).mapTo[List[ExampleIds]]
+            val exs = trsid.flatMap(userActor ? LoadExamples(_)).mapTo[List[ExampleEntry]]
+            exs.map(_.map {
+              e => {
+                ExampleForSelection(e.jap.content.is, e.other match {
+                  case x :: _ => x.content.valueBox
+                  case _ => Empty
+                }, e.jap.id.is)
+              }
+            })
+          }
         }
       }
-      idsf.mapTo[List[Long]].map(_.distinct).flatMap { exIds => {
-        val trsid = (userActor ? TranslationsWithLangs(exIds, LangUtil.langs)).mapTo[List[ExampleIds]]
-        val exs = trsid.flatMap(userActor ? LoadExamples(_)).mapTo[List[ExampleEntry]]
-        exs.map (_.map{ e => {
-           ExampleForSelection(e.jap.content.is, e.other match {
-             case x :: _ => x.content.valueBox
-             case _ => Empty
-           }, e.jap.id.is)
-        }})
-      }}
-    }}
+    }
 
     jf.zip(wf).zip(exs) map {
       case ((sr1, sr2), ex) => {
@@ -104,12 +117,11 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
   }
 
 
-
   def collapse(in: SearchResult, name: String) = {
     import DictCard.makeCard
     import UnicodeUtil.{isKatakana => isk}
-    DictData( name,
-      in.entries.map ({
+    DictData(name,
+      in.entries.map({
         //if there is no writing and has katakana-only elems
         //then we make an entry (kana, hira from kata, meaning)
         case DictionaryEntry(Nil, rd, mn) if rd.exists(isk(_)) => {
@@ -124,10 +136,10 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
     val rec = WordRecord.createRecord
     rec.user(user).status(WordStatus.New).createdOn(now)
 
-//    val exs = examples.map { e =>
-//      ExampleRecord.createRecord.id(e.id).example(e.ex).translation(e.translation.openOr(""))
-//    }
-//    rec.examples(exs)
+    //    val exs = examples.map { e =>
+    //      ExampleRecord.createRecord.id(e.id).example(e.ex).translation(e.translation.openOr(""))
+    //    }
+    //    rec.examples(exs)
 
     val data = dictData.flatMap(d => d.data).headOption
     data match {

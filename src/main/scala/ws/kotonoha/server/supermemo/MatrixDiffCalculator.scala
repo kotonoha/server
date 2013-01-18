@@ -16,9 +16,10 @@
 
 package ws.kotonoha.server.supermemo
 
-import ws.kotonoha.server.records.{MarkEventRecord, OFArchiveRecord}
+import ws.kotonoha.server.records.{OFArchiveRecord}
 import org.joda.time.DateTime
 import org.bson.types.ObjectId
+import ws.kotonoha.server.records.events.MarkEventRecord
 
 /**
  * @author eiennohito
@@ -32,18 +33,24 @@ class MatrixDiffCalculator {
 case class MatrixDiffEntry(rep: Long, ef: Double, value: Double, diff: Double, marks: List[Int])
 
 object MatrixDiffCalculator {
+
   import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   private case class Crd(rep: Long, diff: Double)
+
   def diff(left: OFArchiveRecord, right: OFArchiveRecord) = {
-    val mp = left.elems.is.map {e => Crd(e.rep, e.diff) -> e.value}.toMap.withDefault(c => c.diff)
-    right.elems.is.map {e => {
-      val c = Crd(e.rep, e.diff)
-      val old = mp(c)
-      val diff = e.value - old
-      e.copy(value = diff)
-    }}
+    val mp = left.elems.is.map {
+      e => Crd(e.rep, e.diff) -> e.value
+    }.toMap.withDefault(c => c.diff)
+    right.elems.is.map {
+      e => {
+        val c = Crd(e.rep, e.diff)
+        val old = mp(c)
+        val diff = e.value - old
+        e.copy(value = diff)
+      }
+    }
   }
 
   private def count(user: ObjectId, beg: DateTime, end: DateTime) = {
@@ -61,7 +68,9 @@ object MatrixDiffCalculator {
   def model(left: OFArchiveRecord, right: OFArchiveRecord) = {
     val df = diff(left, right)
     val cnt = count(left.user.is, left.timestamp.is, right.timestamp.is)
-    val mp = right.elems.is.map {e => Crd(e.rep, e.diff) -> e.value}.toMap.withDefault(c => c.diff)
+    val mp = right.elems.is.map {
+      e => Crd(e.rep, e.diff) -> e.value
+    }.toMap.withDefault(c => c.diff)
     df.map(e => {
       val diff = e.diff
       val rep = e.rep

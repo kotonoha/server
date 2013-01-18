@@ -1,15 +1,15 @@
 package ws.kotonoha.server.learning
 
-import ws.kotonoha.server.util.DateTimeUtils._
 import net.liftweb.common.Full
 import akka.util.Timeout
 import akka.actor.{ActorRef, ActorLogging, Props}
-import ws.kotonoha.server.records.{WordCardRecord, ChangeWordStatusEventRecord, ItemLearningDataRecord, MarkEventRecord}
+import ws.kotonoha.server.records.{WordCardRecord, ItemLearningDataRecord}
 import ws.kotonoha.server.actors.model.{ChangeWordStatus, ChangeCardEnabled, SchedulePaired}
 import ws.kotonoha.server.actors._
 import ws.kotonoha.server.supermemo.{SM6, ProcessMark}
 import concurrent.Future
 import com.mongodb.casbah.WriteConcern
+import ws.kotonoha.server.records.events.{ChangeWordStatusEventRecord, MarkEventRecord}
 
 /*
  * Copyright 2012 eiennohito
@@ -36,19 +36,26 @@ import akka.pattern._
 import concurrent.duration._
 
 trait EventMessage extends KotonohaMessage
+
 case class ProcessMarkEvents(marks: List[MarkEventRecord]) extends EventMessage
+
 case class ProcessMarkEvent(mark: MarkEventRecord) extends EventMessage
+
 case class RegisterServices(mong: ActorRef, sched: ActorRef) extends EventMessage
+
 case class ProcessWordStatusEvent(ev: List[ChangeWordStatusEventRecord]) extends EventMessage
+
 case class ProcessWordStatus(ev: ChangeWordStatusEventRecord) extends EventMessage
 
 
 class ChildProcessor extends UserScopedActor with ActorLogging {
+
   import com.foursquare.rogue.LiftRogue._
+
   implicit val timeout = Timeout(5000 milliseconds)
-  
-  var mongo : ActorRef = context.actorFor(guardActorPath / "mongo")
-  var sm6 : ActorRef = context.actorOf(Props[SM6], "sm6")
+
+  var mongo: ActorRef = context.actorFor(guardActorPath / "mongo")
+  var sm6: ActorRef = context.actorOf(Props[SM6], "sm6")
 
   def processWs(ws: ChangeWordStatusEventRecord) = {
     mongo ! SaveRecord(ws)
@@ -79,8 +86,8 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
     mongo ! SaveRecord(mr)
   }
 
-  def processMark(ev: MarkEventRecord): Unit ={
-    val obj = WordCardRecord where (_.user eqs(ev.user.is)) and (_.id eqs ev.card.is) get()
+  def processMark(ev: MarkEventRecord): Unit = {
+    val obj = WordCardRecord where (_.user eqs (ev.user.is)) and (_.id eqs ev.card.is) get()
     obj match {
       case None => {
         log.warning("invalid mark event: {}", ev)
@@ -91,20 +98,21 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
         userActor ! SchedulePaired(card.word.is, card.cardMode.is)
         val it = ProcessMark(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
         val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord]
-        val ur = cardF.map { l => {
-          WordCardRecord where (_.id eqs (ev.card.is)) modify(_.learning setTo(l)) updateOne(WriteConcern.Safe)
-          log.debug(s"updated learning to $l")
-        }}
+        val ur = cardF.map {
+          l => {
+            WordCardRecord where (_.id eqs (ev.card.is)) modify (_.learning setTo (l)) updateOne (WriteConcern.Safe)
+            log.debug(s"updated learning to $l")
+          }
+        }
         ur map {
           x =>
             log.debug("processed event for cardid={}", card.id.is)
             1
-        } pipeTo(sender)
+        } pipeTo (sender)
       }
     }
   }
 }
-
 
 
 class EventProcessor extends UserScopedActor with ActorLogging {
@@ -114,9 +122,11 @@ class EventProcessor extends UserScopedActor with ActorLogging {
 
 
   override def receive = {
-    case p : ProcessMarkEvent => children.forward(p)
+    case p: ProcessMarkEvent => children.forward(p)
     case ProcessMarkEvents(evs) => {
-      val futs = evs.map { ev => ask(children, ProcessMarkEvent(ev)).mapTo[Int]}
+      val futs = evs.map {
+        ev => ask(children, ProcessMarkEvent(ev)).mapTo[Int]
+      }
       Future.sequence(futs) pipeTo sender
     }
     case ProcessWordStatusEvent(evs) => {

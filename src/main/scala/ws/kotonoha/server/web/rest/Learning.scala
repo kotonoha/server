@@ -6,9 +6,9 @@ import net.liftweb.util.BasicTypesHelpers.AsInt
 import net.liftweb.http._
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.util.ResponseUtil
-import ws.kotonoha.server.records.{ChangeWordStatusEventRecord, AddWordRecord, MarkEventRecord}
 import ws.kotonoha.server.learning.{ProcessWordStatusEvent, ProcessMarkEvents}
 import com.typesafe.scalalogging.slf4j.Logging
+import ws.kotonoha.server.records.events.{ChangeWordStatusEventRecord, AddWordRecord, MarkEventRecord}
 
 
 /*
@@ -34,7 +34,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 class Timer extends Logging {
   val init = System.nanoTime()
-  
+
   def print() {
     val epl = System.nanoTime() - init
     val milli = epl / 1e6
@@ -46,39 +46,48 @@ trait LearningRest extends KotonohaRest {
 
   import ResponseUtil._
 
-  serve ( "api" / "words" prefix {
+  serve("api" / "words" prefix {
     case "scheduled" :: AsInt(max) :: Nil JsonGet req => {
       val t = new Timer
       if (max > 50) ForbiddenResponse("number is too big")
-      else async(userId) { id =>
-        val f = userAsk[WordsAndCards](id, LoadWords(max))
-        f map { wc => t.print(); Full(JsonResponse(jsonResponse(wc))) }
+      else async(userId) {
+        id =>
+          val f = userAsk[WordsAndCards](id, LoadWords(max))
+          f map {
+            wc => t.print(); Full(JsonResponse(jsonResponse(wc)))
+          }
       }
     }
 
     case "review" :: AsInt(max) :: Nil JsonGet req => {
       val t = new Timer
       if (max > 50) ForbiddenResponse("number is too big")
-      else async(userId) { id =>
-        val f = userAsk[WordsAndCards](id, LoadReviewList(max))
-        f map { wc => t.print(); Full(JsonResponse(jsonResponse(wc))) }
+      else async(userId) {
+        id =>
+          val f = userAsk[WordsAndCards](id, LoadReviewList(max))
+          f map {
+            wc => t.print(); Full(JsonResponse(jsonResponse(wc)))
+          }
       }
     }
   })
-  
+
   import net.liftweb.mongodb.BsonDSL._
   import ws.kotonoha.server.util.ResponseUtil.Tr
-  
-  serve ( "api" / "events" prefix {
+
+  serve("api" / "events" prefix {
     case "mark" :: Nil JsonPost reqV => {
       val t = new Timer()
       val (json, req) = reqV
-      async(userId) { id =>
-        val marks = json.children flatMap (MarkEventRecord.fromJValue(_)) map (_.user(id))
-        logger.info("posing %d marks for user %s".format(marks.length, id))
-        val count = userAsk(id, ProcessMarkEvents(marks))
-        count.mapTo[List[Int]] map {c => t.print(); Full(JsonResponse("values" -> Tr(c))) }
-      }      
+      async(userId) {
+        id =>
+          val marks = json.children flatMap (MarkEventRecord.fromJValue(_)) map (_.user(id))
+          logger.info("posing %d marks for user %s".format(marks.length, id))
+          val count = userAsk(id, ProcessMarkEvents(marks))
+          count.mapTo[List[Int]] map {
+            c => t.print(); Full(JsonResponse("values" -> Tr(c)))
+          }
+      }
     }
 
     case List("add_words") JsonPost reqV => {
@@ -93,9 +102,12 @@ trait LearningRest extends KotonohaRest {
     case List("change_word_status") JsonPost reqV => {
       val (json, req) = reqV
       val chs = json.children flatMap (ChangeWordStatusEventRecord.fromJValue(_)) map (_.user(userId))
-      async(userId) { id =>
-        val f = userAsk[List[Int]](id, ProcessWordStatusEvent(chs))
-        f.map {o => Full(JsonResponse("values" -> Tr(o)))}
+      async(userId) {
+        id =>
+          val f = userAsk[List[Int]](id, ProcessWordStatusEvent(chs))
+          f.map {
+            o => Full(JsonResponse("values" -> Tr(o)))
+          }
       }
     }
   })

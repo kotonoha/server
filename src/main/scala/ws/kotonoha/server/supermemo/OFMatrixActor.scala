@@ -19,6 +19,7 @@ package ws.kotonoha.server.supermemo
 import akka.actor.{ActorRef, ActorLogging, Actor}
 import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.server.records._
+import events.MarkEventRecord
 import org.joda.time.Duration
 import scala.Some
 import ws.kotonoha.server.math.MathUtil
@@ -31,8 +32,8 @@ import com.typesafe.scalalogging.slf4j.Logging
  */
 
 
-
 case class MatrixElementUpdate(rep: Int, diff: Double, v: Double)
+
 case class UpdateMatrix(card: ObjectId, mark: Double, interval: Double, curRep: Int, ef: Double)
 
 class OFMatrixActor(user: ObjectId, matrix: OFMatrixHolder) extends Actor with ActorLogging {
@@ -61,18 +62,18 @@ class OFMatrixActor(user: ObjectId, matrix: OFMatrixHolder) extends Actor with A
 
   def updateMatrix(o: UpdateMatrix) {
     val n = o.curRep
-    val history = MarkEventRecord where (_.card eqs o.card) orderDesc(_.datetime) skip(1) limit(n + 1) fetch()
+    val history = MarkEventRecord where (_.card eqs o.card) orderDesc (_.datetime) skip (1) limit (n + 1) fetch()
     val (lastN, lastEf) = calcLastValues(history, o)
     val ef = o.ef
     val il = o.interval
     val of = matrix(n, ef)
     val oldOf = matrix(lastN, lastEf)
     val q = o.mark
-    val mod5 = 1.05 max  (il + 1) / il
-    val mod2 = 0.75 min  (il - 1) / il
+    val mod5 = 1.05 max (il + 1) / il
+    val mod2 = 0.75 min (il - 1) / il
 
     val mod = if (q > 4) {
-      1 + (mod5 - 1)*(q - 4)
+      1 + (mod5 - 1) * (q - 4)
     } else {
       1 - (1 - mod2) / 2 * (4 - q)
     }
@@ -91,6 +92,7 @@ class OFMatrixActor(user: ObjectId, matrix: OFMatrixHolder) extends Actor with A
 }
 
 class OFMatrixHolder(user: ObjectId) extends Logging {
+
   import com.foursquare.rogue.LiftRogue._
   import DateTimeUtils._
 
@@ -104,7 +106,7 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
     def apply(rep: Int, diff: Double) = new MatrixCoordinate(rep, MathUtil.round(diff, 1))
   }
 
-  var lastSave = OFArchiveRecord where (_.user eqs user) orderDesc(_.timestamp) select(_.timestamp) get()
+  var lastSave = OFArchiveRecord where (_.user eqs user) orderDesc (_.timestamp) select (_.timestamp) get()
 
   val matrix = OFMatrixRecord.forUser(user)
 
@@ -112,7 +114,9 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
 
   def lookupElements(record: OFMatrixRecord) = {
     val elems = OFElementRecord where (_.matrix eqs matrix.id.is) fetch()
-    elems.map{e => Crd(e.n.is, e.ef.is) -> e}.toMap
+    elems.map {
+      e => Crd(e.n.is, e.ef.is) -> e
+    }.toMap
   }
 
   def apply(rep: Int, diff: Double) = {
@@ -123,7 +127,9 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
   }
 
   def archive(): Unit = {
-    val items = elements map { case (p, v) => OFElement(p.rep, p.diff, v.value.is) }
+    val items = elements map {
+      case (p, v) => OFElement(p.rep, p.diff, v.value.is)
+    }
     val ofar = OFArchiveRecord.createRecord
     ofar.elems(items.toList.sortBy(_.diff).sortBy(_.rep))
     ofar.matrix(matrix.id.is)
@@ -155,7 +161,7 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
         val newinst = OFElementRecord.createRecord
         newinst.setFieldsFromDBObject(dbo)
         elements = elements.updated(mc, newinst)
-        val q = OFElementRecord where (_.id eqs el.id.is) modify (_.value setTo(value))
+        val q = OFElementRecord where (_.id eqs el.id.is) modify (_.value setTo (value))
         q.updateOne()
       }
       case None => {

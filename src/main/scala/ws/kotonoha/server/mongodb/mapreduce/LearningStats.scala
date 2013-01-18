@@ -16,7 +16,6 @@
 
 package ws.kotonoha.server.mongodb.mapreduce
 
-import ws.kotonoha.server.records.MarkEventRecord
 import com.mongodb.casbah.query.Imports._
 import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
 import ws.kotonoha.server.mongodb.{ProjectOperator, MatchOperator, GroupOperator}
@@ -33,6 +32,7 @@ import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JString
 import org.bson.types.{Code, CodeWScope}
 import com.mongodb.casbah.map_reduce.MapReduceCommand
+import ws.kotonoha.server.records.events.MarkEventRecord
 
 /**
  * @author eiennohito
@@ -42,18 +42,20 @@ import com.mongodb.casbah.map_reduce.MapReduceCommand
 case class RepeatStat(user: ObjectId, date: DateTime, avgMark: Double, total: Long)
 
 object LearningStats extends GroupOperator with MatchOperator with ProjectOperator {
+
   import ws.kotonoha.server.util.DateTimeUtils._
+
   def recentLearning(days: Int) = {
     val dbo = MongoDBObject.newBuilder
     dbo += "aggregate" -> "markeventrecords"
     dbo += "pipeline" -> MongoDBList(
-      $match ("datetime" $gt now.minusDays(10)),
+      $match("datetime" $gt now.minusDays(10)),
       MongoDBObject(
         "$project" -> MongoDBObject(
-        "_id" -> 0,
-        "user" -> 1,
-        "mark" -> 1,
-        "day" -> MongoDBObject("$dayOfMonth" -> "$datetime")
+          "_id" -> 0,
+          "user" -> 1,
+          "mark" -> 1,
+          "day" -> MongoDBObject("$dayOfMonth" -> "$datetime")
         )
       ),
       MongoDBObject(
@@ -64,9 +66,11 @@ object LearningStats extends GroupOperator with MatchOperator with ProjectOperat
         )
       )
     )
-    MarkEventRecord.useDb {db => {
-      db.command(dbo.result())
-    }}
+    MarkEventRecord.useDb {
+      db => {
+        db.command(dbo.result())
+      }
+    }
   }
 
   implicit val objectIdJson = new JSONR[ObjectId] {
@@ -82,10 +86,14 @@ object LearningStats extends GroupOperator with MatchOperator with ProjectOperat
     val jobj = JObjectParser.serialize(mdb.get("result"))(DefaultFormats)
     val day2Dates = {
       val days = last10midn
-      days map {d => d.dayOfMonth().get() -> d} toMap
+      days map {
+        d => d.dayOfMonth().get() -> d
+      } toMap
     }
     jobj match {
-      case JArray(a) => a flatMap {parseJson(_, day2Dates)}
+      case JArray(a) => a flatMap {
+        parseJson(_, day2Dates)
+      }
       case _ => Nil
     }
   }
@@ -109,7 +117,9 @@ object LearningStats extends GroupOperator with MatchOperator with ProjectOperat
     val da = field[Int]("day")(id) flatMap (date _)
     val ma = field[Double]("mark")(in)
     val mt = field[Long]("total")(in)
-    val x: Result[RepeatStat] = (ua |@| da |@| ma |@| mt) { RepeatStat }
+    val x: Result[RepeatStat] = (ua |@| da |@| ma |@| mt) {
+      RepeatStat
+    }
     x match {
       case Success(c) => List(c)
       case _ => Nil
@@ -185,12 +195,16 @@ object LearningStats extends GroupOperator with MatchOperator with ProjectOperat
     implicit val formats = DefaultFormats
     def inner(in: JValue) = {
       //Extraction.extract[List[HiLvl]](in)
-      val id = field[String]("_id")(in) map( new ObjectId(_) )
-      val mp = field[Map[String, List[Double]]]("value")(in) map {o => o.map{
-        case (i, j) => i.toInt -> j.map(_.toInt)
-      }}
-      (id |@| mp) { UserMarks }
+      val id = field[String]("_id")(in) map (new ObjectId(_))
+      val mp = field[Map[String, List[Double]]]("value")(in) map {
+        o => o.map {
+          case (i, j) => i.toInt -> j.map(_.toInt)
+        }
+      }
+      (id |@| mp) {
+        UserMarks
+      }
     }
-    in map inner flatMap(_.toOption)
+    in map inner flatMap (_.toOption)
   }
 }
