@@ -20,6 +20,7 @@ import akka.actor._
 import dict.{ExampleMessage, ExampleActor, DictionaryActor}
 import learning._
 import model.{CardMessage, WordMessage, CardActor, WordActor}
+import tags.{TagMessage, TagActor}
 import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
 
 /**
@@ -28,8 +29,10 @@ import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
  */
 
 class UserGuardActor extends UserScopedActor with ActorLogging {
+
   import SupervisorStrategy._
   import concurrent.duration._
+
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 1500, withinTimeRange = 1 day) {
     case e: Exception => log.error(e, "Caught an exception in guard actor"); Restart
   }
@@ -43,6 +46,7 @@ class UserGuardActor extends UserScopedActor with ActorLogging {
   val cardActor = context.actorOf(Props[CardActor], "card")
   val dictActor = context.actorOf(Props[DictionaryActor], "dict")
   val exampleActor = context.actorOf(Props[ExampleActor], "example")
+  val tagActor = context.actorOf(Props[TagActor], "tag")
 
   def dispatch(msg: KotonohaMessage) {
     users ! PingUser(uid)
@@ -56,6 +60,7 @@ class UserGuardActor extends UserScopedActor with ActorLogging {
       case _: CardMessage => cardActor.forward(msg)
       case _: DictionaryMessage => dictActor.forward(msg)
       case _: ExampleMessage => exampleActor.forward(msg)
+      case _: TagMessage => tagActor.forward(msg)
     }
   }
 
@@ -64,6 +69,6 @@ class UserGuardActor extends UserScopedActor with ActorLogging {
       case null | "" => sender ! context.actorOf(p)
       case _ => sender ! context.actorOf(p, name)
     }
-    case msg : KotonohaMessage => dispatch(msg)
+    case msg: KotonohaMessage => dispatch(msg)
   }
 }

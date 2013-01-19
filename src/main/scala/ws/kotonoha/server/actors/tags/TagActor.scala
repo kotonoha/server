@@ -25,6 +25,7 @@ import concurrent.duration._
 import ws.kotonoha.server.records.{WordTagInfo, UserTagInfo, WordRecord}
 import collection.mutable.ListBuffer
 import org.bson.types.ObjectId
+import org.specs2.specification.TagsFragments.TaggedAs
 
 /**
  * @author eiennohito
@@ -81,13 +82,17 @@ class TagActor extends UserScopedActor {
         handleTagWrit(to, wrs, 1)
       }
     }
-    WordRecord where (_.id eqs rec.id.is) modify (_.tags setTo cur.result()) updateOne()
+    val res = cur.result()
+    WordRecord where (_.id eqs rec.id.is) modify (_.tags setTo res) updateOne()
+    sender ! Tagged(rec.id.is, res)
   }
 
   override def receive = {
     case TagWord(wr, ops) => tagWord(wr, ops)
   }
 }
+
+case class Tagged(wid: ObjectId, tags: List[String])
 
 trait Taggable {
   def curTags: List[String]

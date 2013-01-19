@@ -41,13 +41,17 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
 
   def userId = UserRecord.currentId
 
-  def userAsk[T](uid: Box[ObjectId], msg: AnyRef)(implicit m: Manifest[T]): Future[T] =  userId match {
+  def userAsk[T](uid: Box[ObjectId], msg: AnyRef)(implicit m: Manifest[T]): Future[T] = userId match {
     case Full(uid) => userAsk[T](uid, msg)(m)
     case _ => Promise[T].failure(new EmptyUserException).future
   }
+
   def userAsk[T](msg: AnyRef)(implicit m: Manifest[T]): Future[T] = userAsk[T](userId, msg)(m)
+
   def userAsk[T](uid: ObjectId, msg: AnyRef)(implicit m: Manifest[T]): Future[T] = {
-    akkaServ.userActorF(uid).flatMap{ a => a ? msg }.mapTo[T]
+    akkaServ.userActorF(uid).flatMap {
+      a => a ? msg
+    }.mapTo[T]
   }
 
   def async[Obj](param: Future[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
@@ -95,8 +99,21 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
 
   override def needAuth = !(S.inStatefulScope_? && UserRecord.currentUserId.isDefined)
 
+  class EmptyBoxException(msg: String = null, t: Throwable = null) extends RuntimeException(msg, t)
 
   def kept[T <% LiftResponse](obj: T) = {
     Promise[Box[LiftResponse]].success(Full(obj))
   }
+
+  implicit class WrappedBox[T](val b: Box[T]) {
+    def fut: Future[T] = b match {
+      case Full(x) => Future {
+        x
+      }
+      case Empty => Future.failed(new EmptyBoxException)
+      case Failure(msg, ex, _) => Future.failed(new EmptyBoxException(msg, ex.openOr(null)))
+    }
+  }
+
+  implicit def option2WrappedBox[T](in: Option[T]) = new WrappedBox[T](in)
 }

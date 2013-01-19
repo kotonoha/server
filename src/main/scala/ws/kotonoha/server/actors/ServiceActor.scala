@@ -22,13 +22,14 @@ import interop.{JumanMessage, JumanRouter}
 import lift.{LiftMessage, LiftActorService}
 import com.fmpwizard.cometactor.pertab.namedactor.{NamedCometMessage, PertabCometManager}
 import akka.actor.SupervisorStrategy.Restart
-import tags.TagService
+import tags.{TagMessage, TagService}
 
 /**
  * @author eiennohito
  * @since 07.01.13 
  */
 class ServiceActor extends Actor with ActorLogging {
+
   import concurrent.duration._
 
   val mongo = context.actorOf(Props[MongoDBActor], "mongo")
@@ -50,6 +51,7 @@ class ServiceActor extends Actor with ActorLogging {
     case msg: LifetimeMessage => lifetime.forward(msg)
     case msg: NamedCometMessage => cometActor.forward(msg)
     case msg: ClientMessage => clientActor.forward(msg)
+    case msg: TagMessage => tagSvc.forward(msg)
   }
 
   override def supervisorStrategy() = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 hour) {

@@ -1,3 +1,5 @@
+module = angular.module('kotonoha', ['taglist'])
+
 window.WordCon = ($scope, $http) ->
   re = /w=([0-9a-f]+)/i
   [_, id] = window.location.search.match(re)

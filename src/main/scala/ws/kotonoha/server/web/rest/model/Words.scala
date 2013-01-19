@@ -32,6 +32,9 @@ import net.liftweb.json.JsonAST.JString
 import net.liftweb.json.JsonAST.JInt
 import ws.kotonoha.server.actors.model.MarkForDeletion
 import org.bson.types.ObjectId
+import ws.kotonoha.server.actors.ForUser
+import ws.kotonoha.server.actors.tags.{TagParser, TagWord}
+import concurrent.Future
 
 /**
  * @author eiennohito
@@ -39,16 +42,26 @@ import org.bson.types.ObjectId
  */
 
 object Words extends KotonohaRest with ReleaseAkka {
+
   import com.foursquare.rogue.LiftRogue._
 
-  def updateWord(updated: JValue, user: ObjectId, wid: ObjectId): Box[LiftResponse] = {
+  def updateWord(updated: JValue, user: ObjectId, wid: ObjectId): Future[Box[LiftResponse]] = {
     val rec = WordRecord where (_.id eqs (wid)) and (_.user eqs (user)) get()
-    rec map (r => {
+    rec.fut flatMap (r => {
       val js = WordRecord.trimInternal(updated, out = false)
       val c = r.setFieldsFromJValue(js)
       //r.fields().map(_.validate)
       r.save
-      OkResponse()
+      val tags = updated \ "tags"
+      val data = TagParser.parseOps(tags)
+      val f = if (data.ops.nonEmpty)
+        akkaServ ? ForUser(user, TagWord(r, data.ops))
+      else Future {
+        null
+      }
+      f map {
+        _ => Full(OkResponse())
+      }
     })
   }
 
@@ -56,30 +69,37 @@ object Words extends KotonohaRest with ReleaseAkka {
     case XOid(id) :: Nil JsonGet req => {
       val uid = UserRecord.currentId
       val jv = uid.flatMap(user => {
-        WordRecord where (_.id eqs(id)) and (_.user eqs (user)) get()
-      }).map {_.stripped.map {
-        case JField("status", JInt(v)) => JField("status", JString(WordStatus(v.intValue()).toString))
-        case x => x
-      }}
-      jv.map {j => JsonResponse(j)} ~> (401)
+        WordRecord where (_.id eqs (id)) and (_.user eqs (user)) get()
+      }).map {
+        _.stripped.map {
+          case JField("status", JInt(v)) => JField("status", JString(WordStatus(v.intValue()).toString))
+          case x => x
+        }
+      }
+      jv.map {
+        j => JsonResponse(j)
+      } ~> (401)
     }
     case XOid(wid) :: Nil JsonPost reqV => {
       val (obj, req) = reqV
       val uid = UserRecord.currentId
-      val res = obj \ "command" match {
-        case JString("update") => uid flatMap { id => updateWord(obj \ "content", id, wid) }
+      val res: Box[LiftResponse] = obj \ "command" match {
+        case JString("update") => async(uid) {
+          id => updateWord(obj \ "content", id, wid)
+        }
         case JString("update-approve") => {
-          uid flatMap (id => {
+          async(uid)(id => {
             val succ = updateWord(obj \ "content", id, wid)
-            if (!succ.isEmpty) {
-              akkaServ ! ChangeWordStatus(wid, WordStatus.Approved)
+            succ.foreach {
+              _ =>
+                akkaServ ! ChangeWordStatus(wid, WordStatus.Approved)
             }
             succ
           })
         }
-        case _ => Failure("Can't handle request")
+        case _ => Failure("Can't handle request") ~> 401
       }
-      (res ~> 401)
+      res
     }
     case XOid(wid) :: Nil Delete req => {
       val uid = UserRecord.currentId
