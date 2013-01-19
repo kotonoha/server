@@ -17,11 +17,13 @@
 package ws.kotonoha.server.records.events
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.mongodb.record.field.{MongoListField, ObjectIdPk}
+import net.liftweb.mongodb.record.field.{ObjectIdField, MongoCaseClassListField, MongoListField, ObjectIdPk}
 import ws.kotonoha.server.model.EventTypes
 import net.liftweb.record.field.{LongField, OptionalStringField, StringField, BooleanField}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import ws.kotonoha.server.records.KotonohaMongoRecord
+import ws.kotonoha.server.actors.tags.{TagOps, TagOp}
+import net.liftweb.json.DefaultFormats
 
 /**
  * @author eiennohito
@@ -41,9 +43,11 @@ class AddWordRecord private() extends MongoRecord[AddWordRecord] with ObjectIdPk
 
   object meaning extends OptionalStringField(this, 500)
 
-  object group extends LongField(this)
+  object group extends ObjectIdField(this)
 
-  object tags extends MongoListField[AddWordRecord, String](this)
+  object tags extends MongoCaseClassListField[AddWordRecord, TagOp](this) {
+    override def formats = DefaultFormats + TagOps
+  }
 
 }
 

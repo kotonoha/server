@@ -1,4 +1,4 @@
-/*
+c/*
  * Copyright 2012 eiennohito
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,8 @@
  */
 
 .nihongo {
-  font-size: larger;
-  font-family: Meiryo, MS Gothic;
+  font-size: larger !important;
+  font-family: Meiryo, MS Gothic !important;
 }
 
 .area textarea {
@@ -55,7 +55,7 @@ textarea.autoresize {
 }
 
 .hor-center {
-    /* flexbox, por favor */
+  /* flexbox, por favor */
   display: -webkit-box;
   -webkit-box-orient: horizontal;
   -webkit-box-pack: center;
@@ -73,7 +73,7 @@ textarea.autoresize {
 }
 
 .ver-center {
-    /* flexbox, por favor */
+  /* flexbox, por favor */
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-box-pack: center;
@@ -121,8 +121,8 @@ textarea.autoresize {
   height: 15px;
   outline: 0;
   -webkit-box-shadow: none;
-  -moz-box-shadow   : none;
-  box-shadow        : none;
+  -moz-box-shadow: none;
+  box-shadow: none;
 }
 
 .taginput {
@@ -145,21 +145,21 @@ textarea.autoresize {
 
 .tag-entry {
   -webkit-border-radius: 3px;
-  -moz-border-radius   : 3px;
-  border-radius        : 3px;
-  -moz-background-clip   : padding;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  -moz-background-clip: padding;
   -webkit-background-clip: padding-box;
-  background-clip        : padding-box;
+  background-clip: padding-box;
   background-color: #e4e4e4;
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f4f4f4', endColorstr='#eeeeee', GradientType=0 );
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr = '#f4f4f4', endColorstr = '#eeeeee', GradientType = 0);
   background-image: -webkit-gradient(linear, 0 0, 0 100%, color-stop(20%, #f4f4f4), color-stop(50%, #f0f0f0), color-stop(52%, #e8e8e8), color-stop(100%, #eeeeee));
   background-image: -webkit-linear-gradient(top, #f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eeeeee 100%);
   background-image: -moz-linear-gradient(top, #f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eeeeee 100%);
   background-image: -o-linear-gradient(top, #f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eeeeee 100%);
   background-image: linear-gradient(#f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eeeeee 100%);
-  -webkit-box-shadow: 0 0 2px #ffffff inset, 0 1px 0 rgba(0,0,0,0.05);
-  -moz-box-shadow   : 0 0 2px #ffffff inset, 0 1px 0 rgba(0,0,0,0.05);
-  box-shadow        : 0 0 2px #ffffff inset, 0 1px 0 rgba(0,0,0,0.05);
+  -webkit-box-shadow: 0 0 2px #ffffff inset, 0 1px 0 rgba(0, 0, 0, 0.05);
+  -moz-box-shadow: 0 0 2px #ffffff inset, 0 1px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 2px #ffffff inset, 0 1px 0 rgba(0, 0, 0, 0.05);
   color: #333;
   border: 1px solid #aaaaaa;
   line-height: 13px;
@@ -172,12 +172,12 @@ textarea.autoresize {
 .tag-container-active {
   border-color: rgba(82, 168, 236, 0.8);
   outline: 0;
-  outline: thin dotted \9;
+  outline: thin dotted  \9;
   /* IE6-9 */
 
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
 }
 
 .tag-noop {
@@ -201,9 +201,9 @@ textarea.autoresize {
 }
 
 .tag-prep-rm {
-    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 36, 0, 0.60);
-       -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 36, 0, 0.60);
-            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 36, 0, 0.60);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 36, 0, 0.60);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 36, 0, 0.60);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 36, 0, 0.60);
 }
 
 .taglist-ac-container {
@@ -236,4 +236,35 @@ textarea.autoresize {
 
 .tag-ac-sel-def {
   background-color: rgba(91, 192, 222, 0.2);
+}
+
+.collapsable {
+  display: inline-block;
+}
+
+.collapsable.opened > .title:before {
+  content: '▼ ';
+}
+
+.collapsable.opened > .body {
+  display: block;
+}
+
+.collapsable.closed > .title:before {
+  content: '► ';
+}
+
+.collapsable.closed > .body {
+  display: none;
+}
+
+.collapsable > .title {
+  background-color: black;
+  color: white;
+  padding: .1em .3em;
+  cursor: pointer;
+}
+
+.collapsable > .body {
+  padding: .1em .3em;
 }

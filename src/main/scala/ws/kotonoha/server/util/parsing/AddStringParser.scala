@@ -17,8 +17,8 @@
 package ws.kotonoha.server.util.parsing
 
 import util.parsing.combinator.RegexParsers
-import ws.kotonoha.server.web.snippet.Candidate
 import ws.kotonoha.server.util.Strings
+import ws.kotonoha.server.web.comet.Candidate
 
 /**
  * @author eiennohito
@@ -42,31 +42,42 @@ object AddStringParser extends RegexParsers {
 
   def wssep = space ~ sep ~ space
 
-  def comment =  opt( "[%#]".r ~> "[^\n\r]*".r  ) <~ (endl | eoi)
+  def comment = opt("[%#]".r ~> "[^\n\r]*".r) <~ (endl | eoi)
 
-  def readingString = (regex("[\u3040-\u3097,、]+".r)) ^^ { Strings.trim(_) } //kana and ,s
+  def readingString = (regex("[\u3040-\u3097,、]+".r)) ^^ {
+    Strings.trim(_)
+  } //kana and ,s
 
-  def word = (regex("[^|｜%#\n\r]+".r)) ^^ { Strings.trim(_) }
+  def word = (regex("[^|｜%#\n\r]+".r)) ^^ {
+    Strings.trim(_)
+  }
 
   def skippedLine = "[^\n\r]*".r <~ guard(comment) ^^^ Nil
 
   def commentLine = (space) <~ guard(comment) ^^^ Nil
 
-  def simpleWord = word <~ guard(comment) ^^ { Candidate(_, None, None) :: Nil }
+  def simpleWord = word <~ guard(comment) ^^ {
+    Candidate(_, None, None) :: Nil
+  }
 
-  def wordWithReading = ((word <~ wssep) ~ readingString) <~ guard(comment) ^^
-    {case w ~ r => Candidate(w, Some(r), None) :: Nil }
+  def wordWithReading = ((word <~ wssep) ~ readingString) <~ guard(comment) ^^ {
+    case w ~ r => Candidate(w, Some(r), None) :: Nil
+  }
 
-  def wordWithMeaning = ((word <~ wssep) ~ word) <~ guard(comment) ^^
-    {case w ~ m => Candidate(w, None, Some(m)) :: Nil }
+  def wordWithMeaning = ((word <~ wssep) ~ word) <~ guard(comment) ^^ {
+    case w ~ m => Candidate(w, None, Some(m)) :: Nil
+  }
 
-  def fullWord = ((word <~ wssep) ~ (word <~ wssep) ~ word) <~ guard(comment) ^^
-    {case w ~ r ~ m => Candidate(w, Some(r), Some(m)) :: Nil}
+  def fullWord = ((word <~ wssep) ~ (word <~ wssep) ~ word) <~ guard(comment) ^^ {
+    case w ~ r ~ m => Candidate(w, Some(r), Some(m)) :: Nil
+  }
 
   def line = simpleWord | wordWithReading | wordWithMeaning | fullWord | commentLine | skippedLine
 
   def commentedLine = (space ~> line) <~ (space ~ comment)
 
-  def entries = phrase(rep(not(eoi) ~> commentedLine)) ^^ { _.flatten }
+  def entries = phrase(rep(not(eoi) ~> commentedLine)) ^^ {
+    _.flatten
+  }
 
 }

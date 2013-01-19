@@ -28,7 +28,8 @@ import net.liftweb.http.js.JE.Call
  * @author eiennohito
  * @since 23.10.12 
  */
-trait NgLiftActor extends LiftActor { self: CometActor =>
+trait NgLiftActor extends LiftActor {
+  self: CometActor =>
 
   def module = "kotonoha"
 
@@ -38,7 +39,7 @@ trait NgLiftActor extends LiftActor { self: CometActor =>
     val sb = new StringBuilder()
     sb.append("function($q) {")
     sb.append(
-      """
+      s"""
         var svc = {};
         svc.fromActor = function(obj) {
           if (svc.callback !== null) {
@@ -46,10 +47,10 @@ trait NgLiftActor extends LiftActor { self: CometActor =>
           }
         };
         svc.toActor = function(obj) {
-          %s(obj);
+          ${jsonSend.funcId}(obj);
         }
         svc.callback = null;
-      """.format(jsonSend.funcId)
+      """
     )
     global_fnc(sb)
     sb.append("return svc;\n")
@@ -66,7 +67,7 @@ trait NgLiftActor extends LiftActor { self: CometActor =>
   lazy val outname = "cometng_" + Helpers.nextFuncName
 
   def render: RenderOut = {
-    val js ="angular.module('%s').factory('%s', %s);".format(module, svcName, function)
+    val js = s"angular.module('$module').factory('$svcName', $function);"
     RenderOut(Empty, Empty, Full(JsCmds.Run(js) & jsonToIncludeInCode), Empty, true)
   }
 

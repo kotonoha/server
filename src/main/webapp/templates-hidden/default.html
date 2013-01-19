@@ -8,9 +8,9 @@
 
   <title class="lift:Menu.title">Kotonoha: </title>
   <head_merge>
-    <link rel="stylesheet" type="text/css" href="/static/kotonoha.css">
     <link rel="stylesheet" type="text/css" href="/static/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="/static/bootstrap-responsive.css">
+    <link rel="stylesheet" type="text/css" href="/static/kotonoha.css">
 
     <lift:cpres.script src="jquery-1.8.1"></lift:cpres.script>
     <lift:cpres.script src="angular"></lift:cpres.script>
@@ -33,18 +33,9 @@
 
   <hr/>
   <div class="row-fluid">
-      <div class="span3">
-        <lift:Menu.builder expandAll="true" li_item:class="active" ul:class="nav nav-list">
-          <ul>
-            <li>asd</li>
-            <li>dsf</li>
-          </ul>
-        </lift:Menu.builder>
-        <div class="lift:Msgs?showAll=true"></div>
-      <!-- Menu -->
-
-      <!-- Msgs -->
-
+    <div class="span3">
+      <div class="lift:Menu.builder?expandAll=true&li_item:class=active&ul:class=nav+nav-list"></div>
+      <div class="lift:Msgs?showAll=true"></div>
     </div>
 
     <div class="span9">
