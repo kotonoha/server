@@ -48,7 +48,7 @@ case class DictData(name: String, data: List[DictCard])
 
 case class ExampleForSelection(ex: String, translation: Box[String], id: Long)
 
-case class WordData(dicts: List[DictData], examples: List[ExampleForSelection], word: WordRecord, onSave: Promise[WordData])
+case class WordData(dicts: List[DictData], examples: List[ExampleForSelection], word: WordRecord, onSave: Promise[WordData], init: AddWordRecord)
 
 case class DictCard(writing: String, reading: String, meaning: String)
 
@@ -111,7 +111,7 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
         log.debug("Calculated word data")
         val onSave = Promise[WordData]()
         context.system.scheduler.scheduleOnce(15 minutes)(() => onSave.tryComplete(util.Failure(new TimeoutException)))
-        WordData(dicts, ex, createWord(rec.user.is, dicts, ex), onSave)
+        WordData(dicts, ex, createWord(rec.user.is, dicts, ex), onSave, rec)
       }
     }
   }

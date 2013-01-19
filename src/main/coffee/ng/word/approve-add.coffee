@@ -1,3 +1,4 @@
+angular.module('kotonoha', ['taglist'])
 angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
   svc = AddSvc
   $scope.waiting = true;
@@ -6,6 +7,8 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
   nextItems = []
   $scope.cur = 0
   $scope.total = 0
+
+  $scope.tagNfo = []
 
   updateIndices = (obj) ->
     $scope.total = obj.total;
@@ -16,6 +19,7 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
     obj = nextItems.shift()
     $scope.word = obj.word
     $scope.dics = obj.dics
+    $scope.tags = obj.tags
     updateIndices(obj)
 
   processNext = ->
@@ -27,10 +31,13 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
 
 
   $scope.save = (status) ->
+    w = $scope.word
+    $scope.word = null
+    w.tags = $scope.tags
     cmd = {
-      cmd: "save"
-      status: status
-      word: $scope.word
+    cmd: "save"
+    status: status
+    word: w
     }
     svc.toActor(cmd)
     $scope.cur += 1
@@ -67,7 +74,7 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
         if ($scope.waiting) then $scope.$apply -> display()
       when "update-indices" then $scope.$apply -> updateIndices(obj)
       when "no-items"
-        #//$scope.waiting = false;
+      #//$scope.waiting = false;
         return
 
 )

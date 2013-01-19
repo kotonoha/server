@@ -21,6 +21,7 @@
   <head_merge>
     <script class="lift:cpres.js?src=jq.autoresize"></script>
     <script class="lift:cpres.ng?src=word/approve-add"></script>
+    <script class="lift:cpres.js?src=taglist"></script>
     <style>
 
       .dict-entry {
@@ -41,9 +42,17 @@
         margin: 10px;
       }
 
-      .ng-cloak { display: none; }
-      .tr { display: table-row; }
-      .tc {display: table-cell; }
+      .ng-cloak {
+        display: none;
+      }
+
+      .tr {
+        display: table-row;
+      }
+
+      .tc {
+        display: table-cell;
+      }
     </style>
   </head_merge>
   <div class="lift:AddWordActorSnippet" ng-controller="AddWord">
@@ -53,6 +62,7 @@
       <span id="status-string" ng-show="!loaded"><b>Please wait, loading...</b></span>
     </div>
     <h2 ng-show="cur != total">Word card</h2>
+
     <div class="row-fluid" ng-show="cur != total">
       <div class="span8 center" id="left">
         <form id="main-form">
@@ -86,6 +96,7 @@
             <button class="btn" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
           </div>
           <h2>Examples</h2>
+
           <div id="word-examples" style="display: table" ng-show="cur != total">
             <div ng-repeat="ex in word.examples" class="tr">
               <div class="tc span1">
@@ -108,17 +119,29 @@
         </div>
       </div>
       <div class="span4" id="right">
-        <span>Click a dictionary entry to fill word entries with it</span>
-        <div id="dictionary-entries">
-          <div ng-repeat="dic in dics">
-            <hr/>
-            <b class="dict-name">{{dic.name}}</b>
-            <div class="dict-entry" ng-repeat="de in dic.data">
-              <div>
-                <span class="nihongo" ng-click="copyDicEntry(de)">{{de.writing}}({{de.reading}})</span>
-                <button href="javascript:void(0)" ng-click="addFromDic(de, $event)" class="btn btn-mini"><i class="icon-plus" ></i> this too</button>
+        <div class="row">
+          <label>
+            <i class="icon-tags"></i> Tags
+          </label>
+
+          <div taglist="true" data="tags" tagnfo="tagNfo" class="span12"></div>
+        </div>
+        <div class="row">
+          <div>Click a dictionary entry to fill word entries with it</div>
+          <div id="dictionary-entries">
+            <div ng-repeat="dic in dics">
+              <hr/>
+              <b class="dict-name">{{dic.name}}</b>
+
+              <div class="dict-entry" ng-repeat="de in dic.data">
+                <div>
+                  <span class="nihongo" ng-click="copyDicEntry(de)">{{de.writing}}({{de.reading}})</span>
+                  <button href="javascript:void(0)" ng-click="addFromDic(de, $event)" class="btn btn-mini"><i
+                    class="icon-plus"></i> this too
+                  </button>
+                </div>
+                <div ng-click="copyDicEntry(de)">{{de.meaning}}</div>
               </div>
-              <div ng-click="copyDicEntry(de)">{{de.meaning}}</div>
             </div>
           </div>
         </div>

@@ -65,11 +65,12 @@ class WordActor extends UserScopedActor with ActorLogging {
     }
   }
 
-  val mongo = context.actorFor(guardActorPath / "mongo")
-  val card = context.actorFor(guardActorPath / "card")
+  lazy val mongo = context.actorFor(guardActorPath / "mongo")
+  lazy val card = context.actorFor(guardActorPath / "card")
 
   override def receive = {
     case RegisterWord(word, st) => {
+      log.debug(s"Is card actor dead: ${card.isTerminated}")
       val wordid = word.id.is
       var fl = List(ask(mongo, SaveRecord(word)))
       if (checkReadingWriting(word)) {

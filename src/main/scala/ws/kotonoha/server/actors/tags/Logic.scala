@@ -32,20 +32,38 @@ case class TagData(tags: List[String], ops: List[TagOp])
 
 sealed trait TagOp {
   def transform(tags: List[String]): List[String]
+
+  def asJValue: JValue
 }
 
 case class AddTag(tag: String) extends TagOp {
   def transform(tags: List[String]) = tags ++ List(tag)
+
+  def asJValue = {
+    import ws.kotonoha.server.util.KBsonDSL._
+    "add" -> tag
+  }
+
 }
 
 case class RemoveTag(tag: String) extends TagOp {
   def transform(tags: List[String]) = tags.filterNot(_.equals(tag))
+
+  def asJValue = {
+    import ws.kotonoha.server.util.KBsonDSL._
+    "remove" -> tag
+  }
 }
 
 case class RenameTag(from: String, to: String) extends TagOp {
   def transform(tags: List[String]) = tags.map {
     case s if s.equals(from) => to
     case s => s
+  }
+
+  def asJValue = {
+    import ws.kotonoha.server.util.KBsonDSL._
+    ("rename" -> from) ~ ("to" -> to)
   }
 }
 
@@ -61,8 +79,12 @@ object TagOps extends TypeHints {
     case _ => None
   }
 
+  implicit private val formats = DefaultFormats
+
   override def deserialize = {
-    case (_, x) => TagParser.parseObj(x)
+    case ("add", x) => Extraction.extract[AddTag](x)
+    case ("remove", x) => Extraction.extract[RemoveTag](x)
+    case ("rename", x) => Extraction.extract[RenameTag](x)
   }
 
   override def serialize = {

@@ -43,6 +43,7 @@ import net.liftweb.json.ext.JodaTimeSerializers
 import com.typesafe.scalalogging.slf4j.Logging
 import concurrent.{Promise, Future, ExecutionContext}
 import org.bson.types.ObjectId
+import ws.kotonoha.server.actors.tags.{AddTag, TagWord, TagParser}
 
 
 /**
@@ -219,13 +220,26 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
       case _ => ""
     }
     val wi = displaying.get(wid)
+
+    val tagjv = jobj \ "tags"
+    val tags = TagParser.parseOps(tagjv)
+    val defTags = tags.tags.map {
+      t => AddTag(t)
+    }
+    val allOps = (defTags ++ tags.ops).distinct
+
     if (wi.isDefined) {
       val w = wi.get
       val wd = w.word
+      wd.tags(Nil)
       val filtered = WordRecord.trimInternal(jobj, out = false)
       wd.setFieldsFromJValue(filtered)
       w.onSave.future.foreach {
-        x => uact ! RegisterWord(wd, st)
+        x =>
+          val f = uact ? RegisterWord(wd, st)
+          f.foreach {
+            _ => uact ! TagWord(wd, allOps)
+          }
       }
       w.onSave.tryComplete(util.Success(w))
     }
@@ -311,12 +325,17 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     }
 
     val dicts = Extraction.decompose(data.dicts)
+    val tags = data.word.tags.is.map {
+      s => JString(s)
+    }
+    val globalOps = data.init.tags.is.map(_.asJValue)
 
     val jv = ("word" -> data.word.stripped) ~
       ("dics" -> dicts) ~
       ("cmd" -> "word") ~
       ("total" -> selector.total) ~
-      ("cur" -> selector.cur)
+      ("cur" -> selector.cur) ~
+      ("tags" -> (tags ++ globalOps))
 
     val fexs = data.examples.map(renderExample(_, data.word))
     val jvsf = Future.sequence(fexs)
