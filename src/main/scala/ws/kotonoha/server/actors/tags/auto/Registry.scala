@@ -16,15 +16,49 @@
 
 package ws.kotonoha.server.actors.tags.auto
 
+import akka.actor.Props
+import ws.kotonoha.server.actors.tags.TagMessage
+import ws.kotonoha.server.actors.UserScopedActor
+import concurrent.Future
+import akka.util.Timeout
+
 /**
  * @author eiennohito
  * @since 20.01.13 
  */
 
-object Registry {
+case class AutoTagger(name: String, wiki: Option[String], props: Props)
 
+object Registry {
+  val taggers = List(
+    AutoTagger("jmdict", None, Props[JMDictTagger]),
+    AutoTagger("yojijukugo", None, Props[YojijukugoTagger])
+  )
 }
 
-case class PossibleTagRequest(writing: String, reading: Option[String])
+case class PossibleTagRequest(writing: String, reading: Option[String]) extends TagMessage
 
 case class PossibleTags(tags: List[String])
+
+class WordAutoTagger extends UserScopedActor {
+
+  import akka.pattern.{ask, pipe}
+  import concurrent.duration._
+
+  lazy val children = {
+    Registry.taggers.map {
+      n =>
+        context.actorOf(n.props, n.name)
+    }
+  }
+
+  implicit val timeout: Timeout = 5 seconds
+
+  def receive = {
+    case r: PossibleTagRequest => {
+      val futs = children.map(_ ? r).map(_.mapTo[PossibleTags])
+      val f = Future.fold(futs)(List[String]())(_ ++ _.tags).map(l => PossibleTags(l.distinct))
+      f pipeTo sender
+    }
+  }
+}

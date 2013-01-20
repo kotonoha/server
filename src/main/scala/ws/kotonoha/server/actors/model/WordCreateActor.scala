@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.actors.model
 
-import akka.actor.ActorLogging
+import akka.actor.{Props, ActorLogging}
 import ws.kotonoha.server.records._
 import events.AddWordRecord
 import net.liftweb.common.{Empty, Box}
@@ -38,6 +38,7 @@ import ws.kotonoha.server.actors.dict.ExampleEntry
 import ws.kotonoha.akane.unicode.{KanaUtil, UnicodeUtil}
 import org.bson.types.ObjectId
 import concurrent.{Future, Promise}
+import ws.kotonoha.server.actors.tags.auto.{PossibleTags, PossibleTagRequest, WordAutoTagger}
 
 /**
  * @author eiennohito
@@ -72,6 +73,8 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
 
   implicit val timeout: Timeout = 10 seconds
 
+  lazy val tagger = context.actorOf(Props[WordAutoTagger], "tagger")
+
   def prepareWord(rec: AddWordRecord): Future[WordData] = {
     val wr = rec.writing.is
     val rd: Option[String] = rec.reading.valueBox
@@ -104,15 +107,28 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
         }
       }
     }
+    val tags = jf.flatMap {
+      jm =>
+        val req = jm.entries.headOption.map(e =>
+          PossibleTagRequest(e.writings.head, e.readings.headOption)
+        )
+        req match {
+          case Some(s) => (tagger ? s).mapTo[PossibleTags]
+          case None => Future.successful(PossibleTags(Nil))
+        }
+    }
 
-    jf.zip(wf).zip(exs) map {
-      case ((sr1, sr2), ex) => {
-        val dicts = List(collapse(sr1, "JMDict"), collapse(sr2, "Warodai"))
-        log.debug("Calculated word data")
-        val onSave = Promise[WordData]()
-        context.system.scheduler.scheduleOnce(15 minutes)(() => onSave.tryComplete(util.Failure(new TimeoutException)))
-        WordData(dicts, ex, createWord(rec.user.is, dicts, ex), onSave, rec)
-      }
+    for (
+      sr1 <- jf;
+      sr2 <- wf;
+      ex <- exs;
+      t <- tags
+    ) yield {
+      val dicts = List(collapse(sr1, "JMDict"), collapse(sr2, "Warodai"))
+      log.debug("Calculated word data")
+      val onSave = Promise[WordData]()
+      context.system.scheduler.scheduleOnce(15 minutes)(() => onSave.tryComplete(util.Failure(new TimeoutException)))
+      WordData(dicts, ex, createWord(rec.user.is, dicts, ex, t), onSave, rec)
     }
   }
 
@@ -132,9 +148,11 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
     )
   }
 
-  def createWord(user: ObjectId, dictData: List[DictData], examples: List[ExampleForSelection]): WordRecord = {
+  def createWord(user: ObjectId, dictData: List[DictData],
+                 examples: List[ExampleForSelection], tags: PossibleTags): WordRecord = {
     val rec = WordRecord.createRecord
     rec.user(user).status(WordStatus.New).createdOn(now)
+    rec.tags(tags.tags)
 
     //    val exs = examples.map { e =>
     //      ExampleRecord.createRecord.id(e.id).example(e.ex).translation(e.translation.openOr(""))

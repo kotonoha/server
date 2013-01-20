@@ -29,8 +29,9 @@ import concurrent.{Await, ExecutionContext}
  */
 
 trait AkkaMain {
-  def ! (x : AnyRef) = global ! x
-  def ? (x: AnyRef) = ask(global, x)(15 seconds)
+  def !(x: AnyRef) = global ! x
+
+  def ?(x: AnyRef) = ask(global, x)(15 seconds)
 
   def system: ActorSystem
 
@@ -49,6 +50,7 @@ trait AkkaMain {
 
   def shutdown() {
     system.shutdown()
+    system.awaitTermination()
   }
 
   def userActorF(uid: ObjectId) = {

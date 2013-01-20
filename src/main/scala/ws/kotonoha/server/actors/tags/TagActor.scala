@@ -18,6 +18,7 @@ package ws.kotonoha.server.actors.tags
 
 import akka.actor.{Actor, ActorRef}
 import akka.pattern.{ask, pipe}
+import auto.PossibleTagRequest
 import ws.kotonoha.server.actors.UserScopedActor
 import scala.concurrent.Await
 import akka.util.Timeout
@@ -89,6 +90,7 @@ class TagActor extends UserScopedActor {
 
   override def receive = {
     case TagWord(wr, ops) => tagWord(wr, ops)
+    case ptr@PossibleTagRequest =>
   }
 }
 

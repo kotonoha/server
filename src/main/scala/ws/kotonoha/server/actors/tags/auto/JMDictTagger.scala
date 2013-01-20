@@ -26,18 +26,19 @@ import net.liftweb.mongodb.Limit
  * @since 20.01.13 
  */
 
-object JMDictInfo {
+object JMDictTagger {
   val jdictAliases = Map(
     "" -> "unknown"
   )
 
   val add1: PartialFunction[String, List[String]] = {
+    case s if s.startsWith("v5") => List("verb", "v5")
     case s if s.startsWith("v") => List("verb")
-    case s if s.startsWith("adj") => List("adj")
   }
 
   val add2 = Map(
-    "" -> List("")
+    "adj-i" -> List("adj"),
+    "adj-na" -> List("adj")
   )
 
   val additional = add1 orElse add2
@@ -48,13 +49,13 @@ object JMDictInfo {
       case None => t
     }
 
-    if (additional.isDefinedAt(norm))
+    if (!additional.isDefinedAt(norm))
       norm :: Nil
     else norm :: additional(norm)
   }
 }
 
-class JMDictInfo extends UserScopedActor {
+class JMDictTagger extends UserScopedActor {
 
   import ws.kotonoha.server.util.KBsonDSL._
 
@@ -66,7 +67,7 @@ class JMDictInfo extends UserScopedActor {
       r =>
         r.meaning.is.flatMap {
           m => m.info.is
-        }.flatMap(e => JMDictInfo.process(e)).distinct
+        }.flatMap(e => JMDictTagger.process(e)).distinct
     }
     sender ! PossibleTags(tags)
   }
