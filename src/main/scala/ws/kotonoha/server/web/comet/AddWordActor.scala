@@ -47,7 +47,7 @@ import ws.kotonoha.server.actors.ForUser
 case class InvalidStringException(str: String) extends Exception("String " + str + " is not valid")
 
 case class Candidate(writing: String, reading: Option[String], meaning: Option[String]) {
-  def toQuery: JValue = {
+  def toQuery: JObject = {
     import ws.kotonoha.server.util.KBsonDSL._
     //def regex(s: String) = "$regex" -> ("^" + s + "$")
 
