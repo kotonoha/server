@@ -26,8 +26,11 @@ import akka.actor.Status.Failure
  */
 
 case class SaveRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMessage
+
 case class UpdateRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMessage
+
 case class DeleteRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMessage
+
 case class RegisterMongo(mongo: ActorRef)
 
 class MongoDBActor extends Actor with ActorLogging {
@@ -35,7 +38,7 @@ class MongoDBActor extends Actor with ActorLogging {
     case SaveRecord(rec) => {
       log.debug("saving object {}", rec)
       try {
-        rec.save(WriteConcern.Safe)
+        rec.save(WriteConcern.JournalSafe)
         sender ! true
       } catch {
         case e: Throwable => log.error(e, "Cant' save X"); sender ! Failure(e)

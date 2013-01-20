@@ -4,22 +4,24 @@ window.WordCon = ($scope, $http) ->
   re = /w=([0-9a-f]+)/i
   [_, id] = window.location.search.match(re)
   $scope.status = false
-  $http.get("../api/model/words/#{id}").success (w) -> $scope.word = w
+  load = ->
+    q = $http.get("../api/model/words/#{id}")
+    q.success (w) -> $scope.word = w
+    q
+
+  load()
 
   $scope.save = (command) ->
     $http.post("../api/model/words/#{id}",
       command: command
       content: $scope.word
     ).success ->
-      $scope.status = true
-      w = $scope.word
-      if (command == 'update-approve')
-        w.status = 'Approved'
-      $scope.word = w
+      load().success ->
+        $scope.status = true
 
   $scope.delete = ->
     $http.delete("../api/model/words/#{id}").success ->
-      $scope.word.status = "Deleting"
+      load()
 
   $scope.addExample = ->
     $scope.word.examples.push
