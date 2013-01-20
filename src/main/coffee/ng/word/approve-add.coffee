@@ -56,6 +56,8 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
     $scope.word.writing = de.writing
     $scope.word.reading = de.reading
     $scope.word.meaning = de.meaning
+    cmd = { cmd: "retag", data: de }
+    svc.toActor(cmd)
 
   $scope.addFromDic = (de, ev) ->
     cmd =
@@ -75,6 +77,15 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
   $scope.select_none = -> selection(-> false)
   $scope.select_invert = -> selection((e) -> !e.selected)
 
+  retag = (tags) ->
+    old = $scope.tags
+    max = 0
+    for item, idx in old
+      if typeof (item) == 'string'
+        max = idx + 1
+    tags.splice(0, 0, 0, max)
+    Array.prototype.splice.apply(old, tags)
+
 
   svc.callback = (obj) ->
     if (!$scope.loaded) then $scope.$apply -> $scope.loaded = true;
@@ -82,6 +93,7 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
       when "word"
         nextItems.push(obj)
         if ($scope.waiting) then $scope.$apply -> display()
+      when "retag" then $scope.$apply -> retag(obj.tags)
       when "update-indices" then $scope.$apply -> updateIndices(obj)
       when "no-items"
       #//$scope.waiting = false;

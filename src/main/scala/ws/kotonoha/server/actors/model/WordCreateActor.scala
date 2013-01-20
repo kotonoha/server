@@ -174,5 +174,6 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
 
   override def receive = {
     case CreateWordData(awr) => createWordData(awr)
+    case r: PossibleTagRequest => tagger.forward(r)
   }
 }

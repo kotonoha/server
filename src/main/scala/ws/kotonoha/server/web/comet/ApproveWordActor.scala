@@ -44,6 +44,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import concurrent.{Promise, Future, ExecutionContext}
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.tags.{AddTag, TagWord, TagParser}
+import ws.kotonoha.server.actors.tags.auto.{PossibleTags, PossibleTagRequest}
 
 
 /**
@@ -254,6 +255,13 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     self ! PublishNext
   }
 
+  def processRetag(card: DictCard): Unit = {
+    val w = card.writing.split(",").toList.map(_.trim).head
+    val r = card.reading.split(",").toList.map(_.trim).headOption
+    val req = PossibleTagRequest(w, r)
+    wordCreator ! req
+  }
+
   def process(js: JValue): Unit = {
     implicit val formats = DefaultFormats ++ JodaTimeSerializers.all
     (js \ "cmd") match {
@@ -273,6 +281,11 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
         val jv = (js \ "entry")
         val o = Extraction.extract[DictCard](jv)
         selector.addWordCandidate(o)
+      }
+      case JString("retag") => {
+        val data = js \ "data"
+        val c = Extraction.extract[DictCard](data)
+        processRetag(c)
       }
       case _ => logger.info("Invalid message " + js)
     }
@@ -348,6 +361,11 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     }
   }
 
+  def pushTags(tags: List[String]): Unit = {
+    val jv: JValue = ("cmd" -> "retag") ~ ("tags" -> tags)
+    ngMessage(jv)
+  }
+
   override def lowPriority = {
     case PrepareWords => list = Empty; prepare()
     case l: WordList => list = Full(l); prepare()
@@ -355,6 +373,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     case ProcessJson(js) => process(js)
     case DoRenderAndDisplay(wd) => renderAndPush(wd)
     case RemoveItem(hid) => displaying -= hid
+    case PossibleTags(tags) => pushTags(tags)
     case Boolean => // do nothing
   }
 
