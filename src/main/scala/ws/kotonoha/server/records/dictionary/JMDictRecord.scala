@@ -33,7 +33,9 @@ class JMDictMeaning extends BsonRecord[JMDictMeaning] {
   def meta = JMDictMeaning
 
   object info extends MongoListField[JMDictMeaning, String](this)
+
   object vals extends MongoCaseClassListField[JMDictMeaning, LocString](this)
+
 }
 
 object JMDictMeaning extends JMDictMeaning with BsonMetaRecord[JMDictMeaning]
@@ -42,7 +44,11 @@ class JMString extends BsonRecord[JMString] {
   def meta = JMString
 
   object priority extends MongoCaseClassListField[JMString, Priority](this)
+
   object value extends StringField(this, 500)
+
+  object info extends MongoListField[JMString, String](this)
+
 }
 
 object JMString extends JMString with BsonMetaRecord[JMString]
@@ -51,8 +57,11 @@ class JMDictRecord private() extends MongoRecord[JMDictRecord] with LongPk[JMDic
   def meta = JMDictRecord
 
   object reading extends BsonRecordListField(this, JMString)
+
   object writing extends BsonRecordListField(this, JMString)
+
   object meaning extends BsonRecordListField(this, JMDictMeaning)
+
 }
 
 object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with DictDatabase {

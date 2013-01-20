@@ -18,7 +18,7 @@ package ws.kotonoha.server.actors.tags.auto
 
 import ws.kotonoha.server.actors.UserScopedActor
 import ws.kotonoha.server.web.comet.Candidate
-import ws.kotonoha.server.records.dictionary.JMDictRecord
+import ws.kotonoha.server.records.dictionary.{JMString, JMDictRecord}
 import net.liftweb.mongodb.Limit
 
 /**
@@ -59,15 +59,52 @@ class JMDictTagger extends UserScopedActor {
 
   import ws.kotonoha.server.util.KBsonDSL._
 
+  def resolvePriority(strs: List[JMString]): String = {
+    val x = strs.flatMap {
+      _.priority.is.map {
+        _.value
+      }
+    }
+      .map {
+      case "news1" => 1
+      case "news2" => 2
+      case "ichi1" => 1
+      case "ichi2" => 2
+      case "spec1" => 1
+      case "spec2" => 2
+      case "gai1" => 1
+      case "gai2" => 2
+      case s if s.startsWith("nf") => (s.substring(2).toInt / 24) + 1
+      case _ => 0
+    }
+
+    val sum = x.fold(0)(_ + _)
+    val cnt = x.length
+
+    if (cnt == 0) "nonfreq"
+    else {
+      val avg = sum / cnt
+      s"freq$avg"
+    }
+  }
+
   def resolve(wr: String, rd: Option[String]): Unit = {
     val c = Candidate(wr, rd, None)
     val jv = c.toQuery
     val ji = JMDictRecord.findAll(jv, Limit(50))
     val tags = ji.headOption.toList.flatMap {
       r =>
-        r.meaning.is.flatMap {
-          m => m.info.is
-        }.flatMap(e => JMDictTagger.process(e)).distinct
+        val p1 = r.meaning.is.flatMap {
+          _.info.is
+        }
+        val p2 = r.writing.is.flatMap {
+          _.info.is
+        }
+        val p3 = r.reading.is.flatMap {
+          _.info.is
+        }
+        val prio = resolvePriority(r.writing.is)
+        (prio :: p1 ++ p2 ++ p3).flatMap(e => JMDictTagger.process(e)).distinct
     }
     sender ! PossibleTags(tags)
   }

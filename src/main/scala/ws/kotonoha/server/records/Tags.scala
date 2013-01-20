@@ -84,11 +84,11 @@ class WordTagInfo private() extends MongoRecord[WordTagInfo] with ObjectIdPk[Wor
 
   object tag extends StringField(this, 100)
 
-  object word extends StringField(this, 100)
+  object word extends StringField(this, 100) {
+
+  }
 
   object usage extends LongField(this)
-
-  object user extends ObjectIdField(this)
 
 }
 

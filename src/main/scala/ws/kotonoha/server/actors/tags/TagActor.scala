@@ -27,6 +27,7 @@ import ws.kotonoha.server.records.{WordTagInfo, UserTagInfo, WordRecord}
 import collection.mutable.ListBuffer
 import org.bson.types.ObjectId
 import org.specs2.specification.TagsFragments.TaggedAs
+import com.mongodb.WriteConcern
 
 /**
  * @author eiennohito
@@ -43,14 +44,13 @@ class TagActor extends UserScopedActor {
 
   def handleWritingStat(writ: String, tag: String, cnt: Int): Unit = {
     svc ! GlobalTagWritingStat(writ, tag, cnt)
-    Tags.handleWritingStat(writ, tag, cnt, uid)
   }
 
   def handleUsage(tag: String, count: Int): Unit = {
     svc ! GlobalUsage(tag, count)
     val res = UserTagInfo.where(u => objectIdFieldToObjectIdQueryField(u.user).eqs(uid)).and(_.tag eqs tag).findAndModify(_.usage inc count) updateOne (false)
     res match {
-      case None if count > 0 => UserTagInfo.createRecord.user(uid).tag(tag).usage(count).save
+      case None if count > 0 => UserTagInfo.createRecord.user(uid).tag(tag).usage(count).save(WriteConcern.SAFE)
       case _ =>
     }
   }

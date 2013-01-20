@@ -22,6 +22,7 @@ import ws.kotonoha.server.actors.KotonohaActor
 import ws.kotonoha.server.records.{TagInfo, WordTagInfo, TagAlias}
 import org.bson.types.ObjectId
 import net.liftweb.common.Full
+import com.mongodb.casbah.WriteConcern
 
 /**
  * @author eiennohito
@@ -57,7 +58,7 @@ class TagService extends KotonohaActor {
         val rec = TagInfo.createRecord
         rec.tag(tag)
         rec.usage(num)
-        rec.save
+        rec.save(WriteConcern.Safe)
       case _ =>
     }
   }
@@ -66,7 +67,7 @@ class TagService extends KotonohaActor {
     case ServiceActor => sender ! self
     case AddTagAlias(from, to) => addAlias(from, to)
     case RemoveTagAlias(from) => removeTagAlias(from)
-    case GlobalTagWritingStat(writ, tag, cnt) => Tags.handleWritingStat(writ, tag, cnt, sid)
+    case GlobalTagWritingStat(writ, tag, cnt) => Tags.handleWritingStat(writ, tag, cnt)
     case GlobalUsage(tag, cnt) => handleGlobalUsage(tag, cnt)
   }
 }
@@ -85,16 +86,15 @@ object Tags {
 
   def aliases = aliases_
 
-  def handleWritingStat(writ: String, tag: String, cnt: Int, uid: ObjectId): Unit = {
-    val q = WordTagInfo where (_.word eqs writ) and (_.tag eqs tag) and (_.user eqs uid)
+  def handleWritingStat(writ: String, tag: String, cnt: Int): Unit = {
+    val q = WordTagInfo where (_.word eqs writ) and (_.tag eqs tag)
     q findAndModify (_.usage inc cnt) updateOne (false) match {
       case None if cnt > 0 => {
         val rec = WordTagInfo.createRecord
         rec.tag(tag)
         rec.usage(cnt)
-        rec.user(uid)
         rec.word(writ)
-        rec.save
+        rec.save(WriteConcern.Safe)
       }
       case _ =>
     }

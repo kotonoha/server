@@ -28,12 +28,14 @@ import ws.kotonoha.akane.dict.jmdict.{JMDictParser, JMString => PJMS}
  */
 
 object JMDictImporter {
+
   import resource._
 
   def jmstring(in: PJMS): JMString = {
     val jms = JMString.createRecord
     jms.priority(in.priority)
     jms.value(in.value)
+    jms.info(in.info)
   }
 
   def main(args: Array[String]) = {
