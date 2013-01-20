@@ -1,4 +1,4 @@
-module = angular.module('kotonoha', ['taglist'])
+angular.module('kotonoha', ['taglist'])
 
 window.WordCon = ($scope, $http) ->
   re = /w=([0-9a-f]+)/i
@@ -13,6 +13,8 @@ window.WordCon = ($scope, $http) ->
     ).success ->
       $scope.status = true
       w = $scope.word
+      if (command == 'update-approve')
+        w.status = 'Approved'
       $scope.word = w
 
   $scope.delete = ->
@@ -24,5 +26,15 @@ window.WordCon = ($scope, $http) ->
       selected: true
       example: ""
       translation: ""
+
+  selection = (fnc) ->
+    exs = $scope.word.examples
+    for ex in exs
+      ex.selected = fnc(ex)
+    return
+
+  $scope.select_all = -> selection(-> true)
+  $scope.select_none = -> selection(-> false)
+  $scope.select_invert = -> selection((e) -> !e.selected)
 
   return

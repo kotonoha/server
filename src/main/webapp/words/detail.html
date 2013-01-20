@@ -17,11 +17,17 @@
 
 <html>
 <body class="lift:content_id=main">
-<div id="main" class="lift:surround?with=default;at=content" xmlns:word="word">
+<div id="main" class="lift:surround?with=default;at=content">
   <head_merge>
+    <style type="text/css">
+      div.selections {
+        margin-bottom: 1em;
+      }
+    </style>
+
     <script class="lift:cpres.js?src=jq.autoresize"></script>
-    <script class="lift:cpres.ng?src=word/word-rest"></script>
     <script class="lift:cpres.js?src=taglist"></script>
+    <script class="lift:cpres.ng?src=word/word-rest"></script>
   </head_merge>
   <h2>Word card</h2>
 
@@ -82,6 +88,12 @@
     </div>
     <div class="row-fluid">
       <h2>Examples</h2>
+    </div>
+    <div class="selections">
+      Select:
+      <a href="javascript:void(0)" ng-click="select_all()">All</a>
+      <a href="javascript:void(0)" ng-click="select_none()">None</a>
+      <a href="javascript:void(0)" ng-click="select_invert()">Invert</a>
     </div>
     <div class="row-fluid" ng-repeat="ex in word.examples">
       <br/>

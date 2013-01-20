@@ -65,6 +65,16 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
     $(ev.target).hide(200)
     return false;
 
+  selection = (fnc) ->
+    exs = $scope.word.examples
+    for ex in exs
+      ex.selected = fnc(ex)
+    return
+
+  $scope.select_all = -> selection(-> true)
+  $scope.select_none = -> selection(-> false)
+  $scope.select_invert = -> selection((e) -> !e.selected)
+
 
   svc.callback = (obj) ->
     if (!$scope.loaded) then $scope.$apply -> $scope.loaded = true;

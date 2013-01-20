@@ -53,6 +53,10 @@
       .tc {
         display: table-cell;
       }
+
+      div.selections {
+        margin-bottom: 1em;
+      }
     </style>
   </head_merge>
   <div class="lift:AddWordActorSnippet" ng-controller="AddWord">
@@ -98,10 +102,16 @@
           <h2>Examples</h2>
 
           <div id="word-examples" style="display: table" ng-show="cur != total">
+            <div class="selections">
+              Select:
+              <a href="javascript:void(0)" ng-click="select_all()">All</a>
+              <a href="javascript:void(0)" ng-click="select_none()">None</a>
+              <a href="javascript:void(0)" ng-click="select_invert()">Invert</a>
+            </div>
             <div ng-repeat="ex in word.examples" class="tr">
               <div class="tc span1">
-                <div class="ver-center">
-                  <input type="checkbox" ng-checked="ex.selected">
+                <div class="">
+                  <input type="checkbox" ng-model="ex.selected">
                 </div>
               </div>
               <div class="tc span11">

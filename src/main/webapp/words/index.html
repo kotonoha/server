@@ -38,8 +38,9 @@
         color: blue;
       }
 
-      .pages a { margin: 0.5mm;}
-      .selections a { margin: 0.5mm; }
+      .pages a {
+        margin: 0.5mm;
+      }
     </style>
     <script language="javascript">
       function list_data() {
@@ -48,7 +49,7 @@
 
       function select_all() {
         $('tbody#tbl * input[type=checkbox]').val(
-          function(ind, val) {
+          function (ind, val) {
             this.checked = true;
             return true;
           }
@@ -57,7 +58,7 @@
 
       function select_none() {
         $('tbody#tbl * input[type=checkbox]').val(
-          function(ind, val) {
+          function (ind, val) {
             this.checked = false;
             return false;
           }
@@ -66,7 +67,7 @@
 
       function select_inverse() {
         $('tbody#tbl * input[type=checkbox]').val(
-          function(ind, val) {
+          function (ind, val) {
             var ch = this.checked;
             this.checked = !ch;
             return !ch;
@@ -76,7 +77,7 @@
 
       function update_data(ids, status) {
         $(ids).each(function (o) {
-          $('#row-'+this+' .status').text(status);
+          $('#row-' + this + ' .status').text(status);
         })
       }
     </script>
@@ -85,7 +86,7 @@
     <form method="get" action=".">
       <input class="lift:WordPaginator.queryVal" type="text" name="q">
       <input class="lift:WordPaginator.params">
-      <input type="submit" title="Search" value="Search" >
+      <input type="submit" title="Search" value="Search">
     </form>
   </div>
   <div>
@@ -102,28 +103,48 @@
     <thead>
     <tr class="search-header lift:WordPaginator.paginate">
       <td></td>
-      <td><sort:adate>Added date</sort:adate></td>
-      <td><sort:status>Status</sort:status></td>
-      <td><sort:writing>Writing</sort:writing></td>
-      <td><sort:reading>Reading</sort:reading></td>
+      <td>
+        <sort:adate>Added date</sort:adate>
+      </td>
+      <td>
+        <sort:status>Status</sort:status>
+      </td>
+      <td>
+        <sort:writing>Writing</sort:writing>
+      </td>
+      <td>
+        <sort:reading>Reading</sort:reading>
+      </td>
       <td>Meaning</td>
     </tr>
     </thead>
     <tbody id="tbl">
     <tr class="word-row lift:WordPaginator.renderPage" xmlns:word="word-namespace" word:row="">
-      <td><word:selected></word:selected></td>
-      <td><word:addedDate></word:addedDate></td>
-      <td class="status"><word:status></word:status></td>
-      <td class="nihongo"><word:writing></word:writing></td>
-      <td class="nihongo"><word:reading></word:reading></td>
-      <td class="nihongo"><word:meaning></word:meaning></td>
+      <td>
+        <word:selected></word:selected>
+      </td>
+      <td>
+        <word:addedDate></word:addedDate>
+      </td>
+      <td class="status">
+        <word:status></word:status>
+      </td>
+      <td class="nihongo">
+        <word:writing></word:writing>
+      </td>
+      <td class="nihongo">
+        <word:reading></word:reading>
+      </td>
+      <td class="nihongo">
+        <word:meaning></word:meaning>
+      </td>
     </tr>
     </tbody>
   </table>
   <div><span class="lift:WordPaginator.paginate" xmlns:nav="navigation">
     <nav:first></nav:first>
     <span> | </span>
-    <nav:prev ></nav:prev>
+    <nav:prev></nav:prev>
     <span> | </span>
     <span class="pages"><nav:zoomedpages></nav:zoomedpages></span>
     <span> | </span>
@@ -131,7 +152,7 @@
     <span> | </span>
     <nav:last></nav:last>
     <span> | </span>
-    <nav:records ></nav:records>
+    <nav:records></nav:records>
   </span></div>
 </div>
 </body>
