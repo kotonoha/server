@@ -50,10 +50,15 @@ case class Candidate(writing: String, reading: Option[String], meaning: Option[S
   def toQuery: JObject = {
     import ws.kotonoha.server.util.KBsonDSL._
     //def regex(s: String) = "$regex" -> ("^" + s + "$")
+    if (UnicodeUtil.isKatakana(writing)) {
+      "$or" -> List("reading.value" -> writing, "writing.value" -> writing)
+    } else {
+      val p1 = ("writing.value" -> writing)
+      if (reading.isDefined) {
+        p1 ~ ("reading.value" -> reading.get)
+      } else p1
+    }
 
-    ("writing.value" -> writing) ~ (reading map {
-      r => ("reading.value" -> r)
-    })
   }
 }
 

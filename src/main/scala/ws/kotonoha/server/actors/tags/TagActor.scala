@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.actors.tags
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{ActorLogging, Actor, ActorRef}
 import akka.pattern.{ask, pipe}
 import auto.PossibleTagRequest
 import ws.kotonoha.server.actors.UserScopedActor
@@ -34,7 +34,7 @@ import com.mongodb.WriteConcern
  * @since 07.01.13 
  */
 
-class TagActor extends UserScopedActor {
+class TagActor extends UserScopedActor with ActorLogging {
 
   import com.foursquare.rogue.LiftRogue._
 
@@ -82,6 +82,8 @@ class TagActor extends UserScopedActor {
         handleTagWrit(from, wrs, -cnt)
         handleTagWrit(to, wrs, 1)
       }
+      case x =>
+        log.debug("ignoring tagging operation {}", x)
     }
     val res = cur.result()
     WordRecord where (_.id eqs rec.id.is) modify (_.tags setTo res) updateOne()

@@ -31,8 +31,10 @@ case class AutoTagger(name: String, wiki: Option[String], props: Props)
 
 object Registry {
   val taggers = List(
+    AutoTagger("basic", None, Props[BasicTagger]),
     AutoTagger("jmdict", None, Props[JMDictTagger]),
-    AutoTagger("yojijukugo", None, Props[YojijukugoTagger])
+    AutoTagger("yojijukugo", None, Props[YojijukugoTagger]),
+    AutoTagger("kanjdic", None, Props[KanjidicTagger])
   )
 }
 

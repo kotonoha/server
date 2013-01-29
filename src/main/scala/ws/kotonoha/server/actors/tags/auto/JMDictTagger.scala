@@ -32,7 +32,7 @@ object JMDictTagger {
   )
 
   val add1: PartialFunction[String, List[String]] = {
-    case s if s.startsWith("v5") => List("verb", "v5")
+    case s if s.startsWith("v5") => List("v5", "verb")
     case s if s.startsWith("v") => List("verb")
   }
 
@@ -88,6 +88,9 @@ class JMDictTagger extends UserScopedActor {
     }
   }
 
+  //iru-eru regex
+  val xru = ".*[いきしちにひみりぎじぢびぴえけせてねべめれげぜでべぺ]る".r
+
   def resolve(wr: String, rd: Option[String]): Unit = {
     val c = Candidate(wr, rd, None)
     val jv = c.toQuery
@@ -104,7 +107,14 @@ class JMDictTagger extends UserScopedActor {
           _.info.is
         }
         val prio = resolvePriority(r.writing.is)
-        (prio :: p1 ++ p2 ++ p3).flatMap(e => JMDictTagger.process(e)).distinct
+        val godanEx = {
+          val ends = r.reading.is.find {
+            rd => xru.findFirstIn(rd.value.is).isDefined
+          }.isDefined
+          val tag = p1.contains("v5r")
+          if (ends && tag) List("v5-ex") else Nil
+        }
+        (prio :: p1 ++ p2 ++ p3 ++ godanEx).flatMap(e => JMDictTagger.process(e)).distinct
     }
     sender ! PossibleTags(tags)
   }

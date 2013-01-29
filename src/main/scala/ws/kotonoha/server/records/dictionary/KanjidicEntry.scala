@@ -18,7 +18,7 @@
 package ws.kotonoha.server.records.dictionary
 
 import ws.kotonoha.akane.dict.kanjidic2.{RmGroup, Misc, Entry, KanjidicEntry}
-import ws.kotonoha.server.mongodb.NamedDatabase
+import ws.kotonoha.server.mongodb.{DictDatabase, NamedDatabase}
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.mongodb.record.field.{MongoListField, MongoCaseClassField, MongoCaseClassListField, ObjectIdPk}
 import net.liftweb.record.field.StringField
@@ -57,4 +57,4 @@ class KanjidicRecord extends MongoRecord[KanjidicRecord] with ObjectIdPk[Kanjidi
   }
 }
 
-object KanjidicRecord extends KanjidicRecord with MongoMetaRecord[KanjidicRecord] with NamedDatabase
+object KanjidicRecord extends KanjidicRecord with MongoMetaRecord[KanjidicRecord] with DictDatabase

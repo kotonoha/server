@@ -22,6 +22,7 @@ import ws.kotonoha.server.mongodb.{DictId, MongoDbInit}
 import net.liftweb.json.{DefaultFormats, Extraction}
 import net.liftweb.mongodb.{MongoDB, JObjectParser}
 import net.liftweb.json.JsonAST.JObject
+import ws.kotonoha.server.records.dictionary.KanjidicRecord
 
 /**
  * @author eiennohito
@@ -30,12 +31,13 @@ import net.liftweb.json.JsonAST.JObject
 
 object KanjidicImporter {
   implicit val formats = DefaultFormats
+
   def main(args: Array[String]) {
     MongoDbInit.init()
     val path = Path.fromString(args(0))
     for (is <- path.inputStream) {
       val p = Kanjidic2Parser.parse(is)
-      MongoDB.useCollection(DictId, "kanjidicentries")(c => {
+      MongoDB.useCollection(DictId, KanjidicRecord.collectionName)(c => {
         c.drop()
         for (i <- p) {
           val jv = Extraction.decompose(i)
