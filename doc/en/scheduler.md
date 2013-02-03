@@ -109,7 +109,7 @@ when there are no cards that have repetition points in 2 weeks from now.
 Criteria: ready cards + bad cards > 1.5 * average learning count
 
 The special thing about this mode that there is a lot of ready cards. Scheduler should consume list of ready cards in
-two ways. The first is normal way: from a card that has the most distant repetition point from now. The second should
-select cards with short intervals that have repetition points near present moment. This way will allow us to exploit
-spacing effect the most for such cards for the expense of cards with longer intervals being reviewed later than they
-should have been.
+two ways. The first on is a normal way: from a card that has the most distant repetition point from now. The second one
+should select cards with short intervals that have repetition points near present moment. This way will allow us to
+exploit spacing effect the most for such cards for the expense of cards with longer intervals being reviewed later than
+they should have been.
