@@ -72,12 +72,44 @@ Cards become mature after a chain of repetitions with good marks.
 
 There is a number of situations which can be possible with learning. Scheduler should be able to cope with them all.
 
-* Initial period - system wouldn't have enough data to do anything. It should end with 1000 cards reviews or
+* Initial period - system wouldn't have enough data to do anything. It should end with 1000 card reviews or
 14 days with reviews whatever comes first.
-* Ready card starvation - when there is low number of ready cards at the moment.
+* Ready card starvation - when there is a low number of ready cards at the moment.
 * New card starvation - same as above, but with new cards.
 * Total starvation - ready and new cards starvation.
 * After-rest period - user took some 'rest' from learning and decided to learn something again. There will be a great
  number of ready cards, more than user should be able to handle in one try.
 * Normal workflow - none of above, the best condition for work, with everyday learning it should be the most frequent
  operating mode.
+
+###Normal workflow
+
+In the normal workflow scheduler will mix ready with bad cards in order to empty both lists simultaniously.
+For the new cards, scheduler should decide their rate taking in concideration current repetition forecast and
+average repetition numbers and marks for the last two weeks.
+
+###Ready card starvation
+
+Scheduler will move here usually from normal mode when user will drain ready and bad cards. In addition to new cards
+scheduler should add to output list old cards that were scheduled long time ago and have both large
+passed-time-from-repetition to interval-time rates and large interval lengths (more than two months).
+
+###New card starvation
+
+Scheduler should select cards like in normal mode, but instead of using new cards it should use additional cards
+as described in ready card starvation mode.
+
+###Total starvation
+
+Scheduler should select cards as selected in ready card starvation mode, but it should stop selecting cards at all
+when there are no cards that have repetition points in 2 weeks from now.
+
+###After-rest period
+
+Criteria: ready cards + bad cards > 1.5 * average learning count
+
+The special thing about this mode that there is a lot of ready cards. Scheduler should consume list of ready cards in
+two ways. The first is normal way: from a card that has the most distant repetition point from now. The second should
+select cards with short intervals that have repetition points near present moment. This way will allow us to exploit
+spacing effect the most for such cards for the expense of cards with longer intervals being reviewed later than they
+should have been.
