@@ -57,6 +57,7 @@ cards that will be presented to a user for a review in order they appear in the 
 scheduler will be a maintenance of a best possible form of the global card repetition forecast for a user.
 
 Here is an example of such forecast.
+
 ![Learning forecast example](http://i.imgur.com/jKT0btP.png)
 
 On 0 there are number of cards that have repetition points in 24 hours from now, 1 - from 24 to 48 hours, etc.
@@ -67,3 +68,16 @@ Graph can be divided in 2 areas that conform to one of two types of old cards in
 
 Cards become mature after a chain of repetitions with good marks.
 
+###Operation modes
+
+There is a number of situations which can be possible with learning. Scheduler should be able to cope with them all.
+
+* Initial period - system wouldn't have enough data to do anything. It should end with 1000 cards reviews or
+14 days with reviews whatever comes first.
+* Ready card starvation - when there is low number of ready cards at the moment.
+* New card starvation - same as above, but with new cards.
+* Total starvation - ready and new cards starvation.
+* After-rest period - user took some 'rest' from learning and decided to learn something again. There will be a great
+ number of ready cards, more than user should be able to handle in one try.
+* Normal workflow - none of above, the best condition for work, with everyday learning it should be the most frequent
+ operating mode.
