@@ -106,7 +106,7 @@ when there are no cards that have repetition points in 2 weeks from now.
 
 ###After-rest period
 
-Criteria: ready cards + bad cards > 1.5 * average learning count
+Criteria: ready cards + bad cards > 2.5 * average learning count
 
 The special thing about this mode that there is a lot of ready cards. Scheduler should consume list of ready cards in
 two ways. The first on is a normal way: from a card that has the most distant repetition point from now. The second one
