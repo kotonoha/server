@@ -28,6 +28,12 @@ import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
  * @since 25.04.12
  */
 
+object UserGuardNames {
+  val word = "word"
+  val card = "card"
+  val tags = "tags"
+}
+
 class UserGuardActor extends UserScopedActor with ActorLogging {
 
   import SupervisorStrategy._
@@ -37,16 +43,18 @@ class UserGuardActor extends UserScopedActor with ActorLogging {
     case e: Exception => log.error(e, "Caught an exception in guard actor"); Restart
   }
 
+  import UserGuardNames._
+
   val mongo = context.actorOf(Props[MongoDBActor], "mongo")
   val wordSelector = context.actorOf(Props[WordSelector], "wordSelector")
   val markProcessor = context.actorOf(Props[EventProcessor], "markProc")
   val qractor = context.actorOf(Props[QrCreator], "qr")
   val userToken = context.actorOf(Props[UserTokenActor], "token")
-  val wordActor = context.actorOf(Props[WordActor], "word")
-  val cardActor = context.actorOf(Props[CardActor], "card")
+  val wordActor = context.actorOf(Props[WordActor], word)
+  val cardActor = context.actorOf(Props[CardActor], card)
   val dictActor = context.actorOf(Props[DictionaryActor], "dict")
   val exampleActor = context.actorOf(Props[ExampleActor], "example")
-  val tagActor = context.actorOf(Props[TagActor], "tag")
+  val tagActor = context.actorOf(Props[TagActor], tags)
 
   def dispatch(msg: KotonohaMessage) {
     users ! PingUser(uid)

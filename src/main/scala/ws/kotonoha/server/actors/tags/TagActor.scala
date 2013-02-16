@@ -23,11 +23,12 @@ import ws.kotonoha.server.actors.UserScopedActor
 import scala.concurrent.Await
 import akka.util.Timeout
 import concurrent.duration._
-import ws.kotonoha.server.records.{WordTagInfo, UserTagInfo, WordRecord}
+import ws.kotonoha.server.records.{UserSettings, WordTagInfo, UserTagInfo, WordRecord}
 import collection.mutable.ListBuffer
 import org.bson.types.ObjectId
-import org.specs2.specification.TagsFragments.TaggedAs
 import com.mongodb.WriteConcern
+import ws.kotonoha.server.actors.model.{PrioritiesApplied, ReprioritizeCards}
+import net.liftweb.util.{Props => LP}
 
 /**
  * @author eiennohito
@@ -48,11 +49,7 @@ class TagActor extends UserScopedActor with ActorLogging {
 
   def handleUsage(tag: String, count: Int): Unit = {
     svc ! GlobalUsage(tag, count)
-    val res = UserTagInfo.where(u => objectIdFieldToObjectIdQueryField(u.user).eqs(uid)).and(_.tag eqs tag).findAndModify(_.usage inc count) updateOne (false)
-    res match {
-      case None if count > 0 => UserTagInfo.createRecord.user(uid).tag(tag).usage(count).save(WriteConcern.SAFE)
-      case _ =>
-    }
+    UserTagInfo.where(_.user eqs uid).and(_.tag eqs tag).findAndModify(_.usage inc count) upsertOne (false)
   }
 
   def handleTagWrit(rawTag: String, writings: List[String], cnt: Int) = {
@@ -90,8 +87,51 @@ class TagActor extends UserScopedActor with ActorLogging {
     sender ! Tagged(rec.id.is, res)
   }
 
+  var canPublishPrio = true
+
+  def changeTagPriority(tag: String, pr: Int, lim: Option[Int]): Unit = {
+    val q = UserTagInfo where (_.user eqs uid) and (_.tag eqs tag) modify (_.priority setTo pr)
+    q modify (_.limit setTo (lim)) upsertOne (WriteConcern.SAFE)
+    UserSettings where (_.id eqs uid) modify (_.stalePriorities setTo (true)) updateOne (WriteConcern.NORMAL)
+    log.debug("updating tag {}: priority -> {}, limit -> {}", tag, pr, lim)
+    if (canPublishPrio) {
+      val time = if (LP.devMode) 5 seconds else 5 minutes;
+      context.system.scheduler.scheduleOnce(time) {
+        userActor ! ReprioritizeCards
+      }
+      canPublishPrio = false
+    }
+    priorities += tag -> pr
+  }
+
+  var priorities = {
+    val nfos = UserTagInfo where (_.user eqs uid) and (_.priority neqs 0) fetch()
+    nfos.map(i => i.tag.is -> i.priority.is).toMap.withDefaultValue(0)
+  }
+
+  def calculatePriority(tags: List[String]): Unit = {
+    val res = tags match {
+      case Nil => 0
+      case tags =>
+        val prio = tags.foldLeft(0) {
+          _ + priorities(_)
+        }
+        prio / tags.length
+    }
+    sender ! Priority(res)
+  }
+
+  def taglist(): Taglist = {
+    val tags = UserTagInfo where (_.user eqs uid) orderDesc (_.usage) fetch()
+    Taglist(tags)
+  }
+
   override def receive = {
+    case PrioritiesApplied => canPublishPrio = true
     case TagWord(wr, ops) => tagWord(wr, ops)
+    case UpdateTagPriority(tag, pr, lim) => changeTagPriority(tag, pr, lim)
+    case CalculatePriority(tags) => calculatePriority(tags)
+    case TaglistRequest => sender ! taglist()
     case ptr@PossibleTagRequest =>
   }
 }

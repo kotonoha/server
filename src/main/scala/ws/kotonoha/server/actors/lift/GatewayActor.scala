@@ -29,12 +29,17 @@ import akka.actor._
  */
 
 trait LiftMessage extends KotonohaMessage
+
 case class BindLiftActor(actor: CometActor) extends LiftMessage
+
 case class UnbindLiftActor(actor: CometActor) extends LiftMessage
+
 case object Ping extends LiftMessage
+
 case object Shutdown extends LiftMessage
 
 trait AkkaInterop extends CometActor with Akka {
+
   import concurrent.duration._
 
   private def createBridge(): ActorRef = {
@@ -58,6 +63,8 @@ trait AkkaInterop extends CometActor with Akka {
     val f = apa(parent, CreateActor(p, name))(30 seconds).mapTo[ActorRef]
     Await.result(f, 30 seconds)
   }
+
+  def toAkka(msg: AnyRef) = akkaServ.global ! msg
 }
 
 case class ToAkka(actor: ActorRef, in: Any)
@@ -73,7 +80,7 @@ class LiftBridge(svc: ActorRef, lift: CometActor) extends Actor {
       }
       sender ! act
     }
-    case Shutdown =>  {
+    case Shutdown => {
       svc ! UnbindLiftActor(lift)
     }
     case x => lift ! x
@@ -90,7 +97,9 @@ class LiftActorService extends Actor {
       sender ! ar
     }
     case UnbindLiftActor(lift) => {
-      actors.remove(lift) map { _ ! PoisonPill }
+      actors.remove(lift) map {
+        _ ! PoisonPill
+      }
     }
   }
 }

@@ -19,7 +19,7 @@ package ws.kotonoha.server.records
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.mongodb.record.field.{MongoListField, ObjectIdPk, LongPk}
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.record.field.IntField
+import net.liftweb.record.field.{BooleanField, IntField}
 import net.liftweb.http.SessionVar
 import org.bson.types.ObjectId
 
@@ -32,12 +32,19 @@ class UserSettings private() extends MongoRecord[UserSettings] with ObjectIdPk[U
   def meta = UserSettings
 
   object badCount extends IntField(this, 20)
+
   object lastTags extends MongoListField[UserSettings, String](this)
+
+  object stalePriorities extends BooleanField(this, false)
+
 }
 
 object UserSettings extends UserSettings with MongoMetaRecord[UserSettings] with NamedDatabase {
+
   private object cached extends SessionVar[UserSettings](
-    UserRecord.currentId map { forUser(_) } openOrThrowException("Will create new thing")
+    UserRecord.currentId map {
+      forUser(_)
+    } openOrThrowException ("Will create new thing")
   )
 
   def current = cached.is

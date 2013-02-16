@@ -57,7 +57,7 @@ class Boot extends Logging {
       Menu.i("Debug") / "admin" / "debug",
       Menu.i("Global learning") / "admin" / "learning",
       Menu.i("OF history") / "admin" / "ofhistory"
-    )
+      )
 
     def sitemap = {
       SiteMap(
@@ -67,7 +67,8 @@ class Boot extends Logging {
           Menu.i("Repetition") / "learning" / "repeat",
           Menu.i("Scheduled words") / "learning" / "scheduled_cnt",
           Menu.i("OF Matrix") / "learning" / "ofmatrix",
-          Menu.i("Words for review") / "learning" / "bad_cards"
+          Menu.i("Words for review") / "learning" / "bad_cards",
+          Menu.i("Tags") / "learning" / "tags"
           ),
         admin,
         Menu.i("Words") / "words" / "index" >> loggedin submenus(
@@ -87,14 +88,14 @@ class Boot extends Logging {
           ),
         Menu.i("Oauth") / "oauth" >> Hidden submenus (
           Menu.i("OAuth request") / "oauth" / "request"
-        )
+          )
       )
     }
 
-      // more complex because this menu allows anything in the
-      // /static path to be visible
-      //Menu(Loc("Static", Link(List("static"), true, "/static/index"),
-//	       "Static Content")))
+    // more complex because this menu allows anything in the
+    // /static path to be visible
+    //Menu(Loc("Static", Link(List("static"), true, "/static/index"),
+    //	       "Static Content")))
 
     def sitemapMutators = UserRecord.sitemapMutator
 
@@ -138,7 +139,9 @@ class Boot extends Logging {
     // Make a transaction span the whole HTTP request
     //S.addAround(DB.buildLoanWrapper)
 
-    LiftRules.unloadHooks.append({ () => ReleaseAkkaMain.shutdown() })
+    LiftRules.unloadHooks.append({
+      () => ReleaseAkkaMain.shutdown()
+    })
 
     LiftRules.snippetDispatch.append(
       Map("cpres" -> ClasspathResource)

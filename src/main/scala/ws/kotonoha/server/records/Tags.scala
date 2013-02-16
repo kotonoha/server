@@ -75,6 +75,10 @@ class UserTagInfo private() extends MongoRecord[UserTagInfo] with ObjectIdPk[Use
 
   object usage extends LongField(this)
 
+  object priority extends IntField(this, 0)
+
+  object limit extends OptionalIntField(this)
+
 }
 
 object UserTagInfo extends UserTagInfo with MongoMetaRecord[UserTagInfo] with NamedDatabase

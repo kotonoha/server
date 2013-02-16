@@ -17,7 +17,7 @@
 package ws.kotonoha.server.actors.tags
 
 import ws.kotonoha.server.actors.KotonohaMessage
-import ws.kotonoha.server.records.WordRecord
+import ws.kotonoha.server.records.{UserTagInfo, WordRecord}
 
 /**
  * @author eiennohito
@@ -39,3 +39,13 @@ case class GlobalUsage(tag: String, cnt: Int) extends TagMessage
 case class AddTagAlias(from: String, to: String) extends TagMessage
 
 case class RemoveTagAlias(from: String) extends TagMessage
+
+case class UpdateTagPriority(tag: String, prio: Int, limit: Option[Int]) extends TagMessage
+
+case class CalculatePriority(tags: List[String]) extends TagMessage
+
+case class Priority(prio: Int)
+
+case object TaglistRequest extends TagMessage
+
+case class Taglist(info: List[UserTagInfo])
