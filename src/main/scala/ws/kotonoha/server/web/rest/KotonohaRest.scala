@@ -28,6 +28,7 @@ import org.bson.types.ObjectId
 import com.typesafe.scalalogging.slf4j.Logging
 import akka.util.Timeout
 import concurrent.{duration, Promise, Future}
+import reflect.ClassTag
 
 class EmptyUserException extends Exception("No user present")
 
@@ -41,14 +42,14 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
 
   def userId = UserRecord.currentId
 
-  def userAsk[T](uid: Box[ObjectId], msg: AnyRef)(implicit m: Manifest[T]): Future[T] = userId match {
+  def userAsk[T](uid: Box[ObjectId], msg: AnyRef)(implicit m: ClassTag[T]): Future[T] = userId match {
     case Full(uid) => userAsk[T](uid, msg)(m)
     case _ => Promise[T].failure(new EmptyUserException).future
   }
 
-  def userAsk[T](msg: AnyRef)(implicit m: Manifest[T]): Future[T] = userAsk[T](userId, msg)(m)
+  def userAsk[T](msg: AnyRef)(implicit m: ClassTag[T]): Future[T] = userAsk[T](userId, msg)(m)
 
-  def userAsk[T](uid: ObjectId, msg: AnyRef)(implicit m: Manifest[T]): Future[T] = {
+  def userAsk[T](uid: ObjectId, msg: AnyRef)(implicit m: ClassTag[T]): Future[T] = {
     akkaServ.userActorF(uid).flatMap {
       a => a ? msg
     }.mapTo[T]

@@ -37,6 +37,7 @@ import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateToken}
  */
 
 trait UserToken extends Akka {
+
   import Helpers._
   import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
@@ -46,22 +47,24 @@ trait UserToken extends Akka {
   implicit val ec = akkaServ.context
 
 
-  def create(in: NodeSeq) : NodeSeq = {
+  def create(in: NodeSeq): NodeSeq = {
     var name: String = ""
     val uid = UserRecord.currentId.get
 
     def save(): JsCmd = {
       val fut = (akkaServ ? CreateToken(uid, name).forUser(uid)).mapTo[UserTokenRecord]
-      val qrFut = fut flatMap { x =>
-        val authStr = json.pretty(json.render(Extraction.decompose(x.auth)))
-        (akkaServ ? CreateQrWithLifetime(authStr, 1 minute)).mapTo[QrEntry]
+      val qrFut = fut flatMap {
+        x =>
+          val authStr = json.pretty(json.render(Extraction.decompose(x.auth)))
+          (akkaServ ? CreateQrWithLifetime(authStr, 1 minute).forUser(uid)).mapTo[QrEntry]
       }
       val qr = Await.result(qrFut, 5 seconds)
-      val code =  qr.id.is.toString
+      val code = qr.id.is.toString
       val uri = "/iqr/" + code
       SetHtml("qrcode",
         <span>
-          Scan this QR Code to login <br />
+          Scan this QR Code to login
+          <br/>
           <img src={uri}></img>
         </span>
       )
@@ -76,18 +79,19 @@ trait UserToken extends Akka {
     val uid = UserRecord.currentId.get
     val tokens = UserTokenRecord where (_.user eqs uid) fetch()
 
-    def delete(t : UserTokenRecord): JsCmd = {
+    def delete(t: UserTokenRecord): JsCmd = {
       t.delete_!
       FadeOut(t.hashCode().toString, 0 millis, 250 millis)
     }
 
-    tokens flatMap { t =>
-      bind("t", in,
-        AttrBindParam("id", t.hashCode().toString, "id"),
-        "name" -> t.label.is,
-        "date" -> Formatting.format(t.createdOn.is),
-        "delete" -> SHtml.a(() => delete(t), Text("delete"))
-      )
+    tokens flatMap {
+      t =>
+        bind("t", in,
+          AttrBindParam("id", t.hashCode().toString, "id"),
+          "name" -> t.label.is,
+          "date" -> Formatting.format(t.createdOn.is),
+          "delete" -> SHtml.a(() => delete(t), Text("delete"))
+        )
     }
   }
 

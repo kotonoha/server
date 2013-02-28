@@ -83,9 +83,11 @@ trait LearningRest extends KotonohaRest {
         id =>
           val marks = json.children flatMap (MarkEventRecord.fromJValue(_)) map (_.user(id))
           logger.info("posing %d marks for user %s".format(marks.length, id))
-          val count = userAsk(id, ProcessMarkEvents(marks))
-          count.mapTo[List[Int]] map {
-            c => t.print(); Full(JsonResponse("values" -> Tr(c)))
+          val count = userAsk[List[Int]](id, ProcessMarkEvents(marks))
+          count map {
+            c =>
+              t.print()
+              Full(JsonResponse("values" -> Tr(c)))
           }
       }
     }

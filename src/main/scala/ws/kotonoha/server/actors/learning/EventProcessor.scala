@@ -104,8 +104,8 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
         val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord]
         val ur = cardF.map {
           l => {
-            WordCardRecord where (_.id eqs (ev.card.is)) modify (_.learning setTo (l)) updateOne (WriteConcern.Safe)
             log.debug(s"updated learning to $l")
+            WordCardRecord where (_.id eqs (ev.card.is)) modify (_.learning setTo (l)) updateOne (WriteConcern.Safe)
           }
         }
         ur map {
