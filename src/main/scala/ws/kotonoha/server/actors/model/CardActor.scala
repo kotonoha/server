@@ -48,6 +48,8 @@ case object ReprioritizeCards extends CardMessage
 
 case object PrioritiesApplied
 
+case class TagCards(wid: ObjectId, tags: List[String], prio: Int) extends CardMessage
+
 class CardActor extends UserScopedActor with ActorLogging {
 
   import concurrent.duration._
@@ -75,10 +77,16 @@ class CardActor extends UserScopedActor with ActorLogging {
           }
         }
         pri.map {
-          p => WordCardRecord where (_.id eqs cid) modify (_.priority setTo p.prio) updateOne(); Nil
+          p => WordCardRecord where (_.id eqs cid) modify (_.priority setTo p.prio) updateOne()
+          Nil
         }
     }
     Future.sequence(res).map(_ => PrioritiesApplied) pipeTo sender
+  }
+
+  def tagCards(wid: ObjectId, tags: List[String], prio: Int): Unit = {
+    val q = WordCardRecord where (_.word eqs wid) modify (_.tags setTo (tags)) and (_.priority setTo (prio))
+    q.updateMulti(WriteConcern.Normal)
   }
 
   override def receive = {
@@ -106,6 +114,7 @@ class CardActor extends UserScopedActor with ActorLogging {
       WordCardRecord where (_.word eqs word) bulkDelete_!! (WriteConcern.Normal)
     }
     case ReprioritizeCards => reprioritizeCards()
+    case TagCards(wid, tags, prio) => tagCards(wid, tags, prio)
   }
 
   def schedulePaired(cardMode: Int, word: ObjectId) {

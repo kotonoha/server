@@ -157,7 +157,7 @@ with BeforeAndAfterAll {
 
     val anotherCard = WordCardRecord.find(cid).get
     anotherCard.notBefore.value should not be (None)
-    anotherCard.notBefore.is.get should be >= (new DateTime)
+    anotherCard.notBefore.is should be >= (new DateTime)
   }
 
   test("getting new cards from actor") {

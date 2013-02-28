@@ -27,7 +27,7 @@ import ws.kotonoha.server.records.{UserSettings, WordTagInfo, UserTagInfo, WordR
 import collection.mutable.ListBuffer
 import org.bson.types.ObjectId
 import com.mongodb.WriteConcern
-import ws.kotonoha.server.actors.model.{PrioritiesApplied, ReprioritizeCards}
+import ws.kotonoha.server.actors.model.{TagCards, PrioritiesApplied, ReprioritizeCards}
 import net.liftweb.util.{Props => LP}
 
 /**
@@ -84,6 +84,8 @@ class TagActor extends UserScopedActor with ActorLogging {
     }
     val res = cur.result()
     WordRecord where (_.id eqs rec.id.is) modify (_.tags setTo res) updateOne()
+    val prio = priority(res)
+    userActor ! TagCards(rec.id.is, res, prio)
     sender ! Tagged(rec.id.is, res)
   }
 
@@ -110,6 +112,10 @@ class TagActor extends UserScopedActor with ActorLogging {
   }
 
   def calculatePriority(tags: List[String]): Unit = {
+    sender ! Priority(priority(tags))
+  }
+
+  def priority(tags: List[String]): Int = {
     val res = tags match {
       case Nil => 0
       case tags =>
@@ -118,7 +124,7 @@ class TagActor extends UserScopedActor with ActorLogging {
         }
         prio / tags.length
     }
-    sender ! Priority(res)
+    res
   }
 
   def taglist(): Taglist = {

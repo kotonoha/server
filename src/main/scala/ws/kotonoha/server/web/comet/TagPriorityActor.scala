@@ -25,6 +25,7 @@ import net.liftweb.json.{DefaultFormats, Extraction}
 import ws.kotonoha.server.records.{UserTagInfo, UserRecord}
 import ws.kotonoha.server.actors.ForUser
 import ws.kotonoha.server.actors.tags.{Taglist, TaglistRequest, UpdateTagPriority}
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author eiennohito
@@ -35,7 +36,7 @@ case class DisplayingTagPriority(tag: String, usage: Long, priority: Int, limit:
 
 case object PublishTags
 
-class TagPriorityActor extends NamedCometActor with NgLiftActor with ReleaseAkka {
+class TagPriorityActor extends NamedCometActor with NgLiftActor with ReleaseAkka with Logging {
 
   val self = this
 
@@ -83,6 +84,7 @@ class TagPriorityActor extends NamedCometActor with NgLiftActor with ReleaseAkka
       JField("cmd", JString(cmd)) ::
         JField("data", data) :: Nil
       ) => execute(cmd, data)
+      case _ => logger.warn(s"invalid json $value")
     }
   }
 

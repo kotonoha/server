@@ -18,6 +18,7 @@ package ws.kotonoha.server.web.snippet
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.{FunSuite, FreeSpec}
+import ws.kotonoha.server.web.comet.Candidate
 
 /**
  * @author eiennohito
@@ -28,21 +29,21 @@ class AddWordSnippetTest extends FunSuite with ShouldMatchers {
   test("matches from string with one") {
     val c = Candidate("help me!")
     c.writing should equal("help me!")
-    c.reading should be (None)
-    c.meaning should be (None)
+    c.reading should be(None)
+    c.meaning should be(None)
   }
 
   test("matches from string with two params") {
-      val c = Candidate("help me!|please!")
-      c.writing should equal("help me!")
-      c.reading should be (None)
-      c.meaning should be (Some("please!"))
+    val c = Candidate("help me!|please!")
+    c.writing should equal("help me!")
+    c.reading should be(None)
+    c.meaning should be(Some("please!"))
   }
 
   test("matches from string with kana") {
-      val c = Candidate("help me!|ばか")
-      c.writing should equal("help me!")
-      c.reading should be (Some("ばか"))
-      c.meaning should be (None)
+    val c = Candidate("help me!|ばか")
+    c.writing should equal("help me!")
+    c.reading should be(Some("ばか"))
+    c.meaning should be(None)
   }
 }

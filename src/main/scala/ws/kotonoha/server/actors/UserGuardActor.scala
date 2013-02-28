@@ -46,7 +46,7 @@ class UserGuardActor extends UserScopedActor with ActorLogging {
   import UserGuardNames._
 
   val mongo = context.actorOf(Props[MongoDBActor], "mongo")
-  val wordSelector = context.actorOf(Props[WordSelector], "wordSelector")
+  val wordSelector = context.actorOf(Props[SelectorFacade], "selector")
   val markProcessor = context.actorOf(Props[EventProcessor], "markProc")
   val qractor = context.actorOf(Props[QrCreator], "qr")
   val userToken = context.actorOf(Props[UserTokenActor], "token")

@@ -34,7 +34,7 @@ import xml.{Text, NodeSeq, Utility}
 import net.liftweb.json.JsonAST.{JField, JObject, JValue}
 import net.liftweb.http.js.JsCmds.SetHtml
 import org.bson.types.ObjectId
-import akka.actor.ActorRef
+import akka.actor.{Status, ActorRef}
 import com.typesafe.scalalogging.slf4j.Logging
 
 /**
@@ -144,6 +144,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
       count += 1
     }
     case _: Int => //do nothing
+    case Status.Failure(ex) => logger.error("error in akka", ex)
   }
 }
 

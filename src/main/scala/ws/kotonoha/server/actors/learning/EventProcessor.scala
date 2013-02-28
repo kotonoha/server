@@ -4,8 +4,8 @@ import net.liftweb.common.Full
 import akka.util.Timeout
 import akka.actor.{ActorRef, ActorLogging, Props}
 import ws.kotonoha.server.records.{WordCardRecord, ItemLearningDataRecord}
-import ws.kotonoha.server.actors.model.{ChangeWordStatus, ChangeCardEnabled, SchedulePaired}
 import ws.kotonoha.server.actors._
+import model.{ScheduleLater, SchedulePaired, ChangeWordStatus, ChangeCardEnabled}
 import ws.kotonoha.server.supermemo.{SM6, ProcessMark}
 import concurrent.Future
 import com.mongodb.casbah.WriteConcern
@@ -51,6 +51,7 @@ case class ProcessWordStatus(ev: ChangeWordStatusEventRecord) extends EventMessa
 class ChildProcessor extends UserScopedActor with ActorLogging {
 
   import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.util.DateTimeUtils._
 
   implicit val timeout = Timeout(5000 milliseconds)
 
@@ -96,6 +97,9 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
       case Some(card) => {
         saveMarkRecord(ev, card)
         userActor ! SchedulePaired(card.word.is, card.cardMode.is)
+        if (ev.mark.is < 3.5) {
+          userActor ! ScheduleLater(card.id.is, 30 minutes)
+        }
         val it = ProcessMark(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
         val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord]
         val ur = cardF.map {

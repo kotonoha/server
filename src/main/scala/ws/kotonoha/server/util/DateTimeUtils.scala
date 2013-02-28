@@ -31,22 +31,30 @@ import concurrent.duration.FiniteDuration
  */
 
 class MultipliableDuration(val dur: JodaDuration) {
-  def * (times: Int) = new JodaDuration(dur.getMillis * times)
+  def *(times: Int) = new JodaDuration(dur.getMillis * times)
 }
 
 
-
 object DateTimeUtils {
+
   import language.implicitConversions
 
   implicit class DateTimeComparable(val t: DateTime) extends AnyVal with Ordered[DateTime] {
     def compare(that: DateTime) = t.compareTo(that)
+
+    def min(o: DateTime) = if (t.compareTo(o) < 0) t else o
+
+    def max(o: DateTime) = if (t.compareTo(o) > 0) t else o
   }
 
-  implicit def dateTime2Calendar(dt: DateTime) : Calendar = dt.toCalendar(null)
+  implicit def dateTime2Calendar(dt: DateTime): Calendar = dt.toCalendar(null)
+
   implicit def akkaToJodaDurations(dur: FiniteDuration): JodaDuration = new JodaDuration(dur.toMillis)
+
   implicit def calendar2DateTime(c: Calendar) = new DateTime(c.getTimeInMillis)
-  implicit def akkaDurationToLiftTimeSpan(dur: FiniteDuration) : TimeSpan = TimeSpan(dur.toMillis)
+
+  implicit def akkaDurationToLiftTimeSpan(dur: FiniteDuration): TimeSpan = TimeSpan(dur.toMillis)
+
   implicit def liftTimeSpanToAkkaDuration(ts: TimeSpan): FiniteDuration = new FiniteDuration(ts.toMillis, TimeUnit.MILLISECONDS)
 
   implicit def dur2Multipliable(dur: JodaDuration) = new MultipliableDuration(dur)
@@ -60,8 +68,12 @@ object DateTimeUtils {
   def userNow(uid: Option[Long]) = uid match {
     case Some(id) => {
       val u = UserRecord.find(id)
-      val tz = u map {_.timezone.isAsTimeZone.getOffset(System.currentTimeMillis)}
-      val dtz = tz map {DateTimeZone.forOffsetMillis(_)} openOr DateTimeZone.forID("UTC")
+      val tz = u map {
+        _.timezone.isAsTimeZone.getOffset(System.currentTimeMillis)
+      }
+      val dtz = tz map {
+        DateTimeZone.forOffsetMillis(_)
+      } openOr DateTimeZone.forID("UTC")
       new DateTime(dtz)
     }
     case None => now
@@ -80,6 +92,8 @@ object DateTimeUtils {
 
   def intervals(begin: ReadableInstant, dur: JodaDuration, times: Int): List[DateTime] = {
     val beg = new DateTime(begin.getMillis)
-    (0 until times).map{i => beg.withDurationAdded(dur, i)}.toList
+    (0 until times).map {
+      i => beg.withDurationAdded(dur, i)
+    }.toList
   }
 }

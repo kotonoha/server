@@ -59,7 +59,7 @@ libraryDependencies ++= {
 libraryDependencies +=  "org.mortbay.jetty" % "jetty" % "6.1.22" % "container"
 
 libraryDependencies ++=  {
-  val rogueVer = "2.0.0-RC1-SNAPSHOT"
+  val rogueVer = "2.0.0-RC2-SNAPSHOT"
   Seq(
     "com.foursquare" %% "rogue-lift" % rogueVer intransitive(),
     "com.foursquare" %% "rogue-core" % rogueVer intransitive(),

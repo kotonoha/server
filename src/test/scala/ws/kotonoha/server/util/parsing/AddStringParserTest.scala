@@ -19,7 +19,7 @@ package ws.kotonoha.server.util.parsing
 import org.scalatest.FreeSpec
 import org.scalatest.matchers.{MatchResult, BeMatcher, ShouldMatchers}
 import util.parsing.input.CharSequenceReader
-import ws.kotonoha.server.web.snippet.Candidate
+import ws.kotonoha.server.web.comet.Candidate
 
 /**
  * @author eiennohito
@@ -27,6 +27,7 @@ import ws.kotonoha.server.web.snippet.Candidate
  */
 
 class AddStringParserTest extends FreeSpec with ShouldMatchers {
+
   import AddStringParser._
 
   def sucv[T](v: T) = new BeMatcher[ParseResult[T]] {
@@ -37,7 +38,7 @@ class AddStringParserTest extends FreeSpec with ShouldMatchers {
           "%s doesn't equal %s".format(o, v),
           "%s equals %s".format(o, v)
         )
-        case _ => MatchResult (
+        case _ => MatchResult(
           false,
           "Parse failure:\n" + left, ""
         )
@@ -46,9 +47,10 @@ class AddStringParserTest extends FreeSpec with ShouldMatchers {
   }
 
   def suc = new BeMatcher[ParseResult[_]] {
-    def apply(left: ParseResult[_]) = MatchResult(left.successful,
+    def apply(left: ParseResult[_]): MatchResult = MatchResult(left.successful,
       "Parse failed: " + left, "Parse not failed" + left)
   }
+
   import language.implicitConversions
 
   implicit def str2charseqreader(in: String) = new CharSequenceReader(in)
@@ -56,34 +58,34 @@ class AddStringParserTest extends FreeSpec with ShouldMatchers {
   "addString parses" - {
     "comment" in {
       val cmt = "#whatever!"
-      comment(cmt) should be (sucv(Some("whatever!"): Option[String]))
+      comment(cmt) should be(sucv(Some("whatever!"): Option[String]))
     }
 
     "word" in {
-      word("馬鹿") should be (suc)
+      word("馬鹿") should be(suc)
       word("馬#鹿") should not be (sucv("馬鹿"))
     }
 
     "simpleWord" in {
-      simpleWord("馬鹿") should be (sucv(Candidate("馬鹿", None, None) :: Nil))
+      simpleWord("馬鹿") should be(sucv(Candidate("馬鹿", None, None) :: Nil))
     }
 
     "fullWord" in {
       val data = "馬鹿｜ばか｜fool"
-      fullWord(data) should be (sucv(Candidate("馬鹿", Some("ばか"), Some("fool")) :: Nil))
+      fullWord(data) should be(sucv(Candidate("馬鹿", Some("ばか"), Some("fool")) :: Nil))
     }
 
     "word with reading" in {
       val data = "この野郎｜このやろう"
-      wordWithReading(data) should be (sucv(Candidate("この野郎", Some("このやろう"), None) :: Nil))
+      wordWithReading(data) should be(sucv(Candidate("この野郎", Some("このやろう"), None) :: Nil))
     }
 
     "2 lines" in {
       val smt = "ばか\n駒"
       val res = entries(smt)
-      res should be (sucv(
+      res should be(sucv(
         Candidate("ばか", None, None) ::
-        Candidate("駒", None, None) :: Nil
+          Candidate("駒", None, None) :: Nil
       ))
     }
 
@@ -100,12 +102,12 @@ class AddStringParserTest extends FreeSpec with ShouldMatchers {
           |阿呆 % ахо-!
         """.stripMargin
       val res = entries(data)
-      res should be (sucv(
+      res should be(sucv(
         Candidate("馬鹿", None, None) ::
-        Candidate("この野郎", Some("このやろう"), None) ::
-        Candidate("それでは", None, Some("вот так")) ::
-        Candidate("そして", Some("そして"), Some("как-то так")) ::
-        Candidate("阿呆", None, None) :: Nil
+          Candidate("この野郎", Some("このやろう"), None) ::
+          Candidate("それでは", None, Some("вот так")) ::
+          Candidate("そして", Some("そして"), Some("как-то так")) ::
+          Candidate("阿呆", None, None) :: Nil
       ))
     }
   }
