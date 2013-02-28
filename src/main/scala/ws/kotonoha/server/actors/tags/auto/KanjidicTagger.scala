@@ -72,7 +72,6 @@ object Kanjidic {
 
   def entries(kanji: List[String]) = {
     val q = KanjidicRecord where (_.literal in kanji)
-    println(q.toString())
     val data = q fetch()
     data.map {
       i => i.literal.is -> i

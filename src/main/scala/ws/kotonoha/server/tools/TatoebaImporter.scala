@@ -34,7 +34,7 @@ object TatoebaLinkParser {
 
   def parseCodes(in: Input) = {
     in.lines(includeTerminator = false).
-      map(_.split("\t")).collect{
+      map(_.split("\t")).collect {
       case Array(XLong(id), lang, _) => id -> lang
     }.toMap
   }
@@ -68,12 +68,17 @@ object TatoebaLinkParser {
   }
 }
 
+/**
+ * This importer adds tatoeba links to database
+ *
+ * I don't really use this one.
+ */
 object TatoebaImporter {
 
   def loadLinks(links: Input) = {
     var i = 0L
     for (line <- links.lines(includeTerminator = false)) {
-      val x : Any = line.split("\t") match {
+      val x: Any = line.split("\t") match {
         case Array(XLong(left), XLong(right)) => {
           val rec = ExampleLinkRecord.createRecord
           rec.left(left).right(right).
@@ -88,12 +93,12 @@ object TatoebaImporter {
   }
 
   def main(args: Array[String]) = {
-      MongoDbInit.init()
-      val dir = args(0)
-      val path = Path(dir)
-      val links = path / "links.csv"
-      loadLinks(links)
-    }
+    MongoDbInit.init()
+    val dir = args(0)
+    val path = Path.fromString(dir)
+    val links = path / "links.csv"
+    loadLinks(links)
+  }
 }
 
 object TatoebaSentenceImporter {
@@ -103,12 +108,14 @@ object TatoebaSentenceImporter {
         val arr = s.split("\t")
         arr(0).toLong -> arr(1)
     }.groupBy(_._1)
-    grps.transform{case (k, l) => l.map(_._2).toList}
+    grps.transform {
+      case (k, l) => l.map(_._2).toList
+    }
   }
 
   def load(in: Input, tags: Map[Long, List[String]]) {
     for (line <- in.lines(includeTerminator = false)) {
-      val x : Any = line.split("\t") match {
+      val x: Any = line.split("\t") match {
         case Array(XLong(id), lang, sent) => {
           val tag = tags.get(id).getOrElse(Nil)
           val s = ExampleSentenceRecord.createRecord.
