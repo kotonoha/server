@@ -23,7 +23,11 @@ import net.liftweb.util.Helpers
 import net.liftweb.http.{SHtml, S, RequestVar}
 import ws.kotonoha.server.util.LangUtil
 import scala.concurrent.Await
-import ws.kotonoha.server.actors.dict.{ExampleEntry, LoadExamples, ExampleIds, TranslationsWithLangs}
+import ws.kotonoha.server.actors.dict._
+import ws.kotonoha.server.records.UserRecord
+import ws.kotonoha.server.actors.dict.ExampleEntry
+import ws.kotonoha.server.actors.dict.LoadExamples
+import ws.kotonoha.server.actors.SearchQuery
 
 
 /**
@@ -36,6 +40,7 @@ trait ExampleDisplay extends Akka {
   implicit val ec = akkaServ.context
 
   object query extends RequestVar[String](S.param("query").openOr(""))
+
   import Helpers._
   import ws.kotonoha.server.util.DateTimeUtils._
 
@@ -47,24 +52,30 @@ trait ExampleDisplay extends Akka {
   //small wtf, build list of examples and translations from query, asynchronously ftw
   def docs: List[ExampleEntry] = {
     val f = (akkaServ ? SearchQuery(query.is)).mapTo[List[Long]]
-    val fs = f flatMap { cand => {
-      val comp = (akkaServ ? TranslationsWithLangs(cand, LangUtil.langs)).mapTo[List[ExampleIds]]
-      val recs = comp.flatMap(akkaServ ? LoadExamples(_)).mapTo[List[ExampleEntry]]
-      recs
-    }}
+    val fs = f map {
+      cand =>
+        val ids = ExampleSearch.translationsWithLangs(cand, LangUtil.langs)
+        ExampleSearch.loadExamples(ids)
+    }
     Await.result(fs, 5 seconds)
   }
 
   def body(in: NodeSeq): NodeSeq = {
-    docs.flatMap( d =>
-      <div>{ inner(d) }</div>
+    docs.flatMap(d =>
+      <div>
+        {inner(d)}
+      </div>
     )
   }
 
 
   def inner(d: ExampleEntry): NodeSeq = {
-    <li>{ d.jap.content.is }</li> ++
-    d.other.flatMap(o => <li>{o.content}</li>)
+    <li>
+      {d.jap.content.is}
+    </li> ++
+      d.other.flatMap(o => <li>
+        {o.content}
+      </li>)
   }
 }
 

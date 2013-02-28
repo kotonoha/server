@@ -22,6 +22,7 @@ import java.io.File
 import net.liftweb.util.{Props => LP}
 import ws.kotonoha.server.records.dictionary.ExampleSentenceRecord
 import ws.kotonoha.server.dict.{TatoebaLink, TatoebaLinks}
+import akka.event.LoggingReceive
 
 /**
  * @author eiennohito
@@ -29,43 +30,54 @@ import ws.kotonoha.server.dict.{TatoebaLink, TatoebaLinks}
  */
 
 trait ExampleMessage extends KotonohaMessage
+
 case class LoadExamples(data: List[ExampleIds]) extends ExampleMessage
+
 case class TranslationsWithLangs(ids: List[Long], langs: List[String]) extends ExampleMessage
 
 case class ExampleIds(jap: Long, other: List[TatoebaLink])
+
 case class ExampleEntry(jap: ExampleSentenceRecord, other: List[ExampleSentenceRecord])
+
 class ExampleActor extends Actor {
 
   val exampleSearcher = //new TatoebaLinks(new File(LP.get("example.index").get))
-        ExampleSearcher
-
-
-
-  import com.foursquare.rogue.LiftRogue._
+    ExampleSearcher
 
   override def postStop() {
     super.postStop()
-    exampleSearcher.close()
+    //exampleSearcher.close()
   }
 
-  override def receive = {
-    case LoadExamples(eids) =>  {
-      val ids = (eids flatMap (ei => List(ei.jap) ++ ei.other.map(_.right))).distinct
-      val recs = (ExampleSentenceRecord where (_.id in ids) fetch() map (r => r.id.is -> r)).toMap
-      val objs = eids.flatMap( r => {
-        val exr = recs.get(r.jap)
-        val o = r.other.flatMap(t => recs.get(t.right))
-        exr.map(e => ExampleEntry(e, o))
-      })
-      sender ! objs
+  override def receive = LoggingReceive {
+    case LoadExamples(eids) => {
+      sender ! ExampleSearch.loadExamples(eids)
     }
     case TranslationsWithLangs(ids, lang) => {
-      sender ! ids.map { id => {
-        val other = exampleSearcher.from(id).filter(t => lang.contains(t.rightLang))
-        ExampleIds(id, other.toList)
-      }}
+      sender ! ExampleSearch.translationsWithLangs(ids, lang)
     }
   }
 }
 
 object ExampleSearcher extends TatoebaLinks(new File(LP.get("example.index").get))
+
+object ExampleSearch {
+  def translationsWithLangs(ids: List[Long], langs: List[String]) = {
+    ids map {
+      id =>
+        val other = ExampleSearcher.from(id).filter(t => langs.contains(t.rightLang))
+        ExampleIds(id, other.toList)
+    }
+  }
+
+  def loadExamples(eids: List[ExampleIds]) = {
+    import com.foursquare.rogue.LiftRogue._
+    val ids = (eids flatMap (ei => List(ei.jap) ++ ei.other.map(_.right))).distinct
+    val recs = (ExampleSentenceRecord where (_.id in ids) fetch() map (r => r.id.is -> r)).toMap
+    eids.flatMap(r => {
+      val exr = recs.get(r.jap)
+      val o = r.other.flatMap(t => recs.get(t.right))
+      exr.map(e => ExampleEntry(e, o))
+    })
+  }
+}
