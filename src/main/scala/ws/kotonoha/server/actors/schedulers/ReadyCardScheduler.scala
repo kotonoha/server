@@ -60,6 +60,9 @@ class ReadyCardScheduler extends UserScopedActor {
         case _ =>
           queryNormal(cnt)
       }
-      sender ! PossibleCards(data)
+      sender ! PossibleCards(data.map {
+        cid => ReviewCard(cid, "Ready")
+      })
+    case _: CardsSelected =>
   }
 }

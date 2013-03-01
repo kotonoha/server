@@ -28,7 +28,7 @@ import akka.util.Timeout
  */
 
 
-case class Source(function: CardRequest => Future[List[ObjectId]], weight: Double)
+case class Source(provider: CardProvider, weight: Double)
 
 case class CardMixer(input: List[Source]) {
 
@@ -39,13 +39,13 @@ case class CardMixer(input: List[Source]) {
   } toArray
 
   private val maxw = weights(weights.length - 1)
-
   private val count = input.length
-
   private val rng = new Random()
 
-  private def combine(in: Array[List[ObjectId]], limit: Int): List[ObjectId] = {
-    def stream(trials: Int): Stream[ObjectId] = {
+  private def combine(in: Array[List[ReviewCard]], limit: Int): (List[Int], List[ReviewCard]) = {
+    val selected = new Array[Int](count)
+
+    def stream(trials: Int): Stream[ReviewCard] = {
       if (trials > count * 2) {
         return Stream.Empty
       }
@@ -56,19 +56,28 @@ case class CardMixer(input: List[Source]) {
       in(pos) match {
         case x :: xs =>
           in(pos) = xs
+          selected(pos) += 1
           Stream.cons(x, stream(0))
         case Nil => stream(trials + 1)
       }
     }
 
-    stream(0).distinct.take(limit).toList
+    val data = stream(0).distinct.take(limit).toList
+    (selected.toList, data)
   }
 
-  def process(req: CardRequest)(implicit ec: ExecutionContext): Future[List[ObjectId]] = {
-    val basic = input.map(_.function(req))
+  def process(req: CardRequest)(implicit ec: ExecutionContext): Future[List[ReviewCard]] = {
+    val basic = input.map(src =>
+      src.provider.request(req.copy(limit = req.limit * src.weight * 1.1 / maxw toInt))
+    )
     val rewrap = Future.sequence(basic)
     rewrap.map {
-      lst => combine(lst.toArray, req.limit)
+      lst =>
+        val (cnt, data) = combine(lst.toArray, req.limit)
+        cnt.zip(input).foreach {
+          case (cnt, src) => src.provider.selected(cnt)
+        }
+        data
     }
   }
 }
@@ -77,18 +86,49 @@ object CardMixer {
   def apply(srcs: Source*) = new CardMixer(srcs.toList)
 }
 
+case class ReviewCard(cid: ObjectId, source: String, seq: Long) {
+  override def equals(obj: Any): Boolean = {
+    if (obj == null || !obj.isInstanceOf[ReviewCard]) {
+      return false
+    }
+    val o = obj.asInstanceOf[ReviewCard]
+    return cid.equals(o.cid)
+  }
+
+  override def hashCode() = cid.hashCode()
+}
+
+object ReviewCard {
+  def apply(cid: ObjectId, source: String) = new ReviewCard(cid, source, 0)
+}
 
 case class CardRequest(state: State.State, normalLvl: Int, curSession: Int, today: Int, limit: Int)
 
-case class PossibleCards(cards: List[ObjectId])
+case class PossibleCards(cards: List[ReviewCard])
+
+case class CardsSelected(count: Int)
+
+trait CardProvider {
+  def request(req: CardRequest): Future[List[ReviewCard]]
+
+  def selected(count: Int): Unit
+}
 
 object ActorSupport {
 
   import scala.languageFeature.implicitConversions
   import akka.pattern.ask
 
-  implicit def actor2RequestFunction(actor: => ActorRef)(implicit ec: ExecutionContext, timeout: Timeout):
-  CardRequest => Future[List[ObjectId]] =
-    (req: CardRequest) =>
-      (actor ? req).mapTo[PossibleCards].map(_.cards)
+  implicit def actor2CardProvicer(actor: => ActorRef)
+                                 (implicit ec: ExecutionContext, timeout: Timeout) = {
+    new CardProvider {
+      def request(req: CardRequest) = {
+        (actor ? req).mapTo[PossibleCards].map(_.cards)
+      }
+
+      def selected(count: Int) {
+        actor ! CardsSelected(count)
+      }
+    }
+  }
 }

@@ -31,13 +31,20 @@ class CardMixerTest extends FreeSpec with ShouldMatchers {
 
   import concurrent.duration._
 
-  def oids(num: Int): CardRequest => Future[List[ObjectId]] = _ => Future.successful(1 to num map {
-    _ => new ObjectId()
-  } toList)
+  def oids(num: Int): CardProvider = new CardProvider {
+    def request(req: CardRequest) = {
+      val cards = 1 to num map {
+        _ => new ObjectId()
+      }
+      Future.successful(cards.map(c => ReviewCard(c, "None")).toList)
+    }
+
+    def selected(count: Int) {}
+  }
 
   "CardMixer" - {
     "with two seqs should give good answer" in {
-      val mixer = CardMixer(Source(oids(5), 1.0), Source(oids(5), 1.0))
+      val mixer = CardMixer(Source(oids(5), 1.0), Source(oids(10), 2.0))
       val req = CardRequest(State.Normal, 0, 0, 0, 20)
       val data = Await.result(mixer.process(req), 10 minutes)
       data.length should be > (5)

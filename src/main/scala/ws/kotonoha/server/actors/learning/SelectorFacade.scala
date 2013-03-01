@@ -49,7 +49,7 @@ class SelectorFacade extends UserScopedActor {
     val ordered = ids flatMap {
       wds.get(_)
     }
-    sender ! WordsAndCards(ordered, Nil)
+    sender ! WordsAndCards(ordered, Nil, Nil)
   }
 
   val cards = context.actorOf(Props[CardSelectorFacade], "cards")
@@ -65,13 +65,14 @@ class CardSelectorFacade extends UserScopedActor with ActorLogging {
 
   import com.foursquare.rogue.LiftRogue._
 
-  def createResult(cards: List[WordCardRecord]): WordsAndCards = {
+  def createResult(wac: WordsAndCards): WordsAndCards = {
+    val cards = wac.cards
     val wIds = cards map (_.word.is)
     val words = WordRecord where (_.id in wIds) fetch()
     val wids = words.map(_.id.is).toSet
     val (present, absent) = cards.partition(c => wids.contains(c.word.is))
     absent.foreach(_.delete_!)
-    WordsAndCards(words, present)
+    wac.copy(cards = present, words = words)
   }
 
   def processPaired(cards: List[WordCardRecord]) = {
@@ -80,19 +81,19 @@ class CardSelectorFacade extends UserScopedActor with ActorLogging {
     }
   }
 
-  val scheduler = context.actorOf(Props[CoreScheduler], "scheduler")
+  val scheduler = context.actorOf(Props[CardSelectorCache], "scheduler")
 
   def receive = {
     case LoadWords(max) => {
-      val f = ask(self, LoadCards(max))(10 seconds).mapTo[List[WordCardRecord]]
+      val f = ask(self, LoadCards(max))(10 seconds).mapTo[WordsAndCards]
       f.map {
         lst => createResult(lst)
       } pipeTo sender
     }
     case msg: LoadCards => {
-      val f = ask(scheduler, msg)(10 seconds).mapTo[List[WordCardRecord]]
+      val f = ask(scheduler, msg)(10 seconds).mapTo[WordsAndCards]
       f.map {
-        lst => processPaired(lst); lst
+        wac => processPaired(wac.cards); wac
       } pipeTo sender
     }
   }

@@ -48,7 +48,10 @@ class LowRepBigIntScheduler extends UserScopedActor {
 
   def receive = {
     case CardRequest(_, _, _, _, cnt) => {
-      sender ! PossibleCards(query(cnt))
+      sender ! PossibleCards(query(cnt).map {
+        cid => ReviewCard(cid, "LowRepBigInt")
+      })
     }
+    case _: CardsSelected =>
   }
 }

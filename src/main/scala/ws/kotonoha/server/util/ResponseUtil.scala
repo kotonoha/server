@@ -3,7 +3,7 @@ package ws.kotonoha.server.util
 import ws.kotonoha.server.actors.learning.WordsAndCards
 import net.liftweb.json.JsonAST._
 import net.liftweb.mongodb.record.MongoRecord
-import net.liftweb.json.JsonDSL
+import net.liftweb.json.{DefaultFormats, Extraction, JsonDSL}
 import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
 
 /*
@@ -27,14 +27,16 @@ import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
  */
 
 object ResponseUtil {
+
   import net.liftweb.json.JsonDSL._
-  
+
   object Tr {
-    def apply[T <: MongoRecord[T]](lst: List[T]) : JArray = list2JList(lst)
+    def apply[T <: MongoRecord[T]](lst: List[T]): JArray = list2JList(lst)
+
     def apply[A <% JValue](lst: List[A]): JArray = JsonDSL.seq2jvalue(lst)
   }
-  
-  def deuser(x : JValue) = {
+
+  def deuser(x: JValue) = {
     x remove {
       case JField("user", _) => true
       case _ => false
@@ -46,12 +48,17 @@ object ResponseUtil {
       case JObject(JField("$dt" | "$oid", JString(s)) :: Nil) => JString(s)
     }
   }
-  
-  implicit def list2JList[T <: MongoRecord[T]](lst: List[T]) : JArray = {
-    lst map { _.asJValue }
+
+  implicit def list2JList[T <: MongoRecord[T]](lst: List[T]): JArray = {
+    lst map {
+      _.asJValue
+    }
   }
 
   def jsonResponse(data: WordsAndCards): JValue = {
-    ("cards" -> Tr(data.cards)) ~ ("words" -> Tr(data.words.map(w => WordRecord.trimInternal(w.asJValue))))
+    implicit val format = DefaultFormats ++ Seq(OidSerializer)
+    ("cards" -> Tr(data.cards)) ~
+      ("words" -> Tr(data.words.map(w => WordRecord.trimInternal(w.asJValue)))) ~
+      ("sequence" -> Extraction.decompose(data.sequence))
   }
 }

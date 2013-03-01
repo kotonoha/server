@@ -3,17 +3,18 @@ package ws.kotonoha.server.model
 import converters.DateTimeTypeConverter
 import events.MarkEvent
 import learning.{Container, WordCard, Word}
-import net.liftweb.json.{Printer, JsonAST}
+import net.liftweb.json._
 import com.google.gson.GsonBuilder
 import org.joda.time.DateTime
-import net.liftweb.json.JsonAST.JObject
-import ws.kotonoha.server.actors.learning.WordsAndCards
-import ws.kotonoha.server.util.{DateTimeUtils, ResponseUtil}
+import ws.kotonoha.server.util.{OidSerializer, DateTimeUtils, ResponseUtil}
 import ws.kotonoha.server.records.{WordCardRecord, ExampleRecord, WordRecord}
 import java.io.InputStreamReader
 import java.nio.charset.Charset
 import org.bson.types.ObjectId
 import ws.kotonoha.server.records.events.MarkEventRecord
+import ws.kotonoha.server.actors.schedulers.ReviewCard
+import net.liftweb.json.JsonAST.JObject
+import ws.kotonoha.server.actors.learning.WordsAndCards
 
 
 /*
@@ -85,15 +86,33 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     obj.getWord should equal(wid.toString)
   }
 
+  test("review card serializes") {
+    import ws.kotonoha.server.model.learning.{ReviewCard => JReviewCard}
+    implicit val formats = DefaultFormats ++ Seq(OidSerializer)
+    val rc = new ReviewCard(new ObjectId(), "None", 321541232L)
+    val json = Printer.compact(JsonAST.render(Extraction.decompose(rc)))
+
+    val jrc = gson.fromJson(json, classOf[JReviewCard])
+    jrc should have(
+      'cid(rc.cid.toString),
+      'seq(rc.seq),
+      'source(rc.source)
+    )
+  }
+
   test("container is being parsed") {
+    val rc = new ReviewCard(new ObjectId(), "None", 321541232L)
     val words = List(word, word)
     val cards = List(card, card)
+    val rcards = List(rc, rc, rc)
 
-    val jv = ResponseUtil.jsonResponse(WordsAndCards(words, cards))
+    val jv = ResponseUtil.jsonResponse(WordsAndCards(words, cards, rcards))
     val str = Printer.compact(JsonAST.render(ResponseUtil.deuser(jv)))
     val obj = gson.fromJson(str, classOf[Container])
     obj.getWords.size() should be(2)
     obj.getCards.size() should be(2)
+    obj.getSequence.size() should be(3)
+    obj.getSequence
   }
 
   test("word mark event goes from java to scala world") {

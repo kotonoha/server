@@ -22,13 +22,16 @@ import org.bson.types.ObjectId
 import ws.kotonoha.server.records.events.NewCardSchedule
 import com.foursquare.rogue.Iter
 import ws.kotonoha.server.records.UserTagInfo
+import util.Random
+import collection.immutable.VectorBuilder
+import akka.actor.ActorLogging
 
 /**
  * @author eiennohito
  * @since 27.02.13 
  */
 
-class NewCardScheduler extends UserScopedActor {
+class NewCardScheduler extends UserScopedActor with ActorLogging {
 
   import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
@@ -56,7 +59,7 @@ class NewCardScheduler extends UserScopedActor {
     ks.keys.toList
   }
 
-  def query(cnt: Int, ignore: List[ObjectId]) = {
+  def query(cnt: Int, ignore: Vector[ObjectId]) = {
     Queries.newCards(uid) and (_.id nin ignore) and (_.tags nin bannedTags) orderDesc
       (_.priority) select(_.id, _.tags) fetch (cnt)
   }
@@ -74,11 +77,11 @@ class NewCardScheduler extends UserScopedActor {
   }
 
   def fetchUpdate(cnt: Int) = {
-    val bldr = new ListBuffer[ObjectId]()
+    val bldr = new VectorBuilder[ObjectId]()
 
     var rem = cnt
     while (rem > 0) {
-      val objs = query(cnt * 2, bldr.result())
+      val objs = query(cnt, cached ++ bldr.result())
       val processed = processUsage(objs)
       bldr ++= processed
       rem -= processed.length
@@ -87,9 +90,27 @@ class NewCardScheduler extends UserScopedActor {
     bldr.result()
   }
 
+  var cached = Vector[ObjectId]()
+
+  private def select(cnt: Int): List[ObjectId] = {
+    if (cached.length < cnt) {
+      val oldlen = cached.length
+      cached = Random.shuffle((cached ++ fetchUpdate(cnt * 2)).distinct)
+      log.debug("updated cache: {} -> {}", oldlen, cached.length)
+    }
+    cached.take(cnt).toList
+  }
+
+  private def commit(cnt: Int): Unit = {
+    cached = cached.drop(cnt)
+  }
+
   def receive = {
     case CardRequest(_, _, _, _, cnt) =>
-      val entries = fetchUpdate(cnt)
-      sender ! PossibleCards(entries)
+      val entries = select(cnt)
+      sender ! PossibleCards(entries.map {
+        cid => ReviewCard(cid, "New")
+      })
+    case CardsSelected(cnt) => commit(cnt)
   }
 }

@@ -24,6 +24,7 @@ import java.util.Collection;
 public class Container {
   private Collection<Word> words;
   private Collection<WordCard> cards;
+  private Collection<ReviewCard> sequence;
 
   public Collection<Word> getWords() {
     return words;
@@ -39,5 +40,13 @@ public class Container {
 
   public void setCards(Collection<WordCard> cards) {
     this.cards = cards;
+  }
+
+  public Collection<ReviewCard> getSequence() {
+    return sequence;
+  }
+
+  public void setSequence(Collection<ReviewCard> sequence) {
+    this.sequence = sequence;
   }
 }

@@ -36,6 +36,7 @@ import net.liftweb.http.js.JsCmds.SetHtml
 import org.bson.types.ObjectId
 import akka.actor.{Status, ActorRef}
 import com.typesafe.scalalogging.slf4j.Logging
+import ws.kotonoha.server.actors.schedulers.ReviewCard
 
 /**
  * @author eiennohito
@@ -88,11 +89,12 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     sb.toString()
   }
 
-  def publish(words: List[WordRecord], cards: List[WordCardRecord]): Unit = {
+  def publish(words: List[WordRecord], cards: List[WordCardRecord], seq: List[ReviewCard]): Unit = {
     import ws.kotonoha.server.util.KBsonDSL._
     import net.liftweb.json.{compact => jc, render => jr}
     import ws.kotonoha.server.util.WordUtils.processWord
     val wm = words.map(w => (w.id.is, w)).toMap
+    val cm = cards.map(c => (c.id.is, c)).toMap
     def getExamples(in: List[ExampleRecord], max: Int) = {
       val selected = Random.shuffle(in).take(max)
       val html = selected flatMap (e =>
@@ -104,7 +106,8 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
           </div>)
       nsString(html)
     }
-    val data: JValue = cards map (c => {
+    val data: JValue = seq map (it => {
+      val c = cm(it.cid)
       val w = wm(c.word.is)
       val addInfo = processWord(w.writing.stris, Some(w.reading.stris))
       val procInfo = addInfo map {
@@ -112,7 +115,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
       } getOrElse ""
       ("writing" -> w.writing.stris) ~ ("reading" -> w.reading.stris) ~ ("meaning" -> w.meaning) ~
         ("cid" -> c.id.is.toString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
-        ("additional" -> procInfo) ~ ("wid" -> c.word.is.toString)
+        ("additional" -> procInfo) ~ ("wid" -> c.word.is.toString) ~ ("src" -> it.source)
     })
     partialUpdate(Call("publish_new", jc(jr(data))).cmd)
   }
@@ -137,7 +140,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
       uact ! LoadWords(15)
     }
     case RecieveJson(o) => processJson(o)
-    case WordsAndCards(words, cards) => publish(words, cards)
+    case WordsAndCards(words, cards, seq) => publish(words, cards, seq)
     case m: WebMark => processMark(m)
     case UpdateNum => {
       partialUpdate(SetHtml("rpt-num", Text("Repeated %d word(s)".format(count))))

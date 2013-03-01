@@ -2,7 +2,7 @@ package ws.kotonoha.server.learning
 
 import net.liftweb.common.Full
 import akka.util.Timeout
-import akka.actor.{ActorRef, ActorLogging, Props}
+import akka.actor.{Terminated, ActorRef, ActorLogging, Props}
 import ws.kotonoha.server.records.{WordCardRecord, ItemLearningDataRecord}
 import ws.kotonoha.server.actors._
 import model.{ScheduleLater, SchedulePaired, ChangeWordStatus, ChangeCardEnabled}
@@ -10,6 +10,7 @@ import ws.kotonoha.server.supermemo.{SM6, ProcessMark}
 import concurrent.Future
 import com.mongodb.casbah.WriteConcern
 import ws.kotonoha.server.records.events.{ChangeWordStatusEventRecord, MarkEventRecord}
+import org.bson.types.ObjectId
 
 /*
  * Copyright 2012 eiennohito
@@ -46,6 +47,12 @@ case class RegisterServices(mong: ActorRef, sched: ActorRef) extends EventMessag
 case class ProcessWordStatusEvent(ev: List[ChangeWordStatusEventRecord]) extends EventMessage
 
 case class ProcessWordStatus(ev: ChangeWordStatusEventRecord) extends EventMessage
+
+case class RegisterCardListener(actor: ActorRef) extends EventMessage
+
+case class UnregisterCardListener(actor: ActorRef) extends EventMessage
+
+case class CardProcessed(cid: ObjectId)
 
 
 class ChildProcessor extends UserScopedActor with ActorLogging {
@@ -124,9 +131,20 @@ class EventProcessor extends UserScopedActor with ActorLogging {
   lazy val children = context.actorOf(Props[ChildProcessor], "child")
   implicit val timeout: Timeout = 5 seconds
 
+  var listeners: List[ActorRef] = Nil
 
   override def receive = {
-    case p: ProcessMarkEvent => children.forward(p)
+    case RegisterCardListener(act) =>
+      listeners ::= act
+      context.watch(act)
+    case Terminated(act) => listeners = listeners.filter(_ != act)
+    case UnregisterCardListener(act) => listeners = listeners.filter(_ != act)
+    case p: ProcessMarkEvent =>
+      val f = children ? p
+      f foreach {
+        _ => listeners.foreach(a => a ! CardProcessed(p.mark.card.is))
+      }
+      f pipeTo sender
     case ProcessMarkEvents(evs) => {
       val futs = evs.map {
         ev => ask(children, ProcessMarkEvent(ev)).mapTo[Int]

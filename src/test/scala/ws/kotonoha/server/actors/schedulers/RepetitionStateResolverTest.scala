@@ -20,7 +20,6 @@ import org.scalatest.{BeforeAndAfterAll, FreeSpec}
 import org.scalatest.matchers.ShouldMatchers
 import ws.kotonoha.server.test.TestWithAkka
 import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord, UserRecord}
-import ws.kotonoha.server.actors.schedulers.RepetitionStateResolver
 
 /**
  * @author eiennohito

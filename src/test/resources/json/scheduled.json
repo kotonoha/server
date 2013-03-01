@@ -1,469 +1,1929 @@
 {
   "cards":[{
-    "createdOn":"20090331T114617.000Z",
+    "priority":0,
+    "createdOn":"20091130T125120.000Z",
+    "tags":["freq1","n","vs","verb"],
+    "enabled":true,
     "cardMode":2,
-    "_id":237,
-    "notBefore":"20120214T054542.139Z",
-    "word":229498,
+    "_id":"000013880000000000001467",
+    "notBefore":"20130206T184047.557Z",
+    "word":"0000138800000000004485f7",
+    "user":"000013880000000000000001",
     "learning":{
-      "intervalEnd":"20120221T064751.915Z",
-      "intervalStart":"20120218T130002.725Z",
-      "difficulty":2.5,
-      "intervalLength":2.741541548918105,
-      "repetition":1,
-      "lapse":1
+      "intervalEnd":"20130301T095146.601Z",
+      "intervalStart":"20130222T121628.292Z",
+      "difficulty":1.4000000000000001,
+      "intervalLength":6.899517460881719,
+      "repetition":5,
+      "lapse":11,
+      "inertia":1.0
     }
   },{
-    "createdOn":"20090331T115541.000Z",
-    "cardMode":2,
-    "_id":759,
-    "notBefore":"20120218T130645.188Z",
-    "word":229763,
-    "learning":{
-      "intervalEnd":"20120221T065545.563Z",
-      "intervalStart":"20120219T092027.626Z",
-      "difficulty":1.96,
-      "intervalLength":1.8995131619048409,
-      "repetition":1,
-      "lapse":2
-    }
-  },{
-    "createdOn":"20090331T114543.000Z",
-    "cardMode":2,
-    "_id":137,
-    "notBefore":"20120214T054342.628Z",
-    "word":229446,
-    "learning":{
-      "intervalEnd":"20120221T071248.840Z",
-      "intervalStart":"20120218T113647.763Z",
-      "difficulty":2.5,
-      "intervalLength":2.816679135168895,
-      "repetition":1,
-      "lapse":1
-    }
-  },{
-    "createdOn":"20090331T114605.000Z",
-    "cardMode":2,
-    "_id":213,
-    "notBefore":"20120214T054522.970Z",
-    "word":229486,
-    "learning":{
-      "intervalEnd":"20120221T072530.875Z",
-      "intervalStart":"20120218T113754.439Z",
-      "difficulty":2.5,
-      "intervalLength":2.8247272701893236,
-      "repetition":1,
-      "lapse":1
-    }
-  },{
-    "createdOn":"20090331T114544.000Z",
-    "cardMode":2,
-    "_id":145,
-    "notBefore":"20120214T054350.313Z",
-    "word":229450,
-    "learning":{
-      "intervalEnd":"20120221T074952.952Z",
-      "intervalStart":"20120218T113655.983Z",
-      "difficulty":2.5,
-      "intervalLength":2.8423260301659314,
-      "repetition":1,
-      "lapse":1
-    }
-  },{
-    "createdOn":"20090331T114607.000Z",
-    "cardMode":2,
-    "_id":217,
-    "notBefore":"20120214T054531.038Z",
-    "word":229488,
-    "learning":{
-      "intervalEnd":"20120221T075457.742Z",
-      "intervalStart":"20120218T125954.210Z",
-      "difficulty":2.5,
-      "intervalLength":2.7882353211639166,
-      "repetition":1,
-      "lapse":1
-    }
-  },{
-    "createdOn":"20090331T115309.000Z",
+    "priority":0,
+    "createdOn":"20120715T065131.125Z",
+    "tags":["nonfreq","n","adj-no"],
+    "enabled":true,
     "cardMode":1,
-    "_id":644,
-    "notBefore":"20120218T130645.188Z",
-    "word":229706,
+    "_id":"0000138806a31b0f9ef9d9d7",
+    "notBefore":"20120925T090908.400Z",
+    "word":"0000138800000000004490f2",
+    "user":"000013880000000000000001",
     "learning":{
-      "intervalEnd":"20120221T075817.311Z",
-      "intervalStart":"20120218T131422.015Z",
+      "intervalEnd":"20130228T144558.074Z",
+      "intervalStart":"20130222T042032.119Z",
+      "difficulty":1.4600000000000004,
+      "intervalLength":6.434328179235056,
+      "repetition":4,
+      "lapse":15,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20120527T144606.814Z",
+    "tags":["nonfreq","adv","lonely-kun"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"000013880f5772d674b197f2",
+    "notBefore":"20130228T014151.735Z",
+    "word":"000013880000000000448ba0",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130225T002629.132Z",
+      "intervalStart":"20130220T051849.034Z",
+      "difficulty":1.8400000000000007,
+      "intervalLength":4.796991877334037,
+      "repetition":3,
+      "lapse":5,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20120527T150432.483Z",
+    "tags":["freq2","n"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"00001388107802aef89da1ff",
+    "notBefore":"20130206T194711.988Z",
+    "word":"000013880000000000448bbd",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130225T021716.506Z",
+      "intervalStart":"20121023T180354.394Z",
+      "difficulty":2.06,
+      "intervalLength":124.34261703581123,
+      "repetition":6,
+      "lapse":1,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20121126T134108.683Z",
+    "tags":["nonfreq","exp"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"0000138824cdf48bdf4c8c2c",
+    "notBefore":"20130107T160626.448Z",
+    "word":"00001388000000000044998f",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130225T023039.243Z",
+      "intervalStart":"20121212T193128.915Z",
+      "difficulty":2.5,
+      "intervalLength":74.29109175604019,
+      "repetition":2,
+      "lapse":1,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20121024T151050.067Z",
+    "tags":["freq1","n","uk","iK"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"000013882ae866f7e6f0f617",
+    "notBefore":"20130109T175231.724Z",
+    "word":"000013880000000000449810",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T213256.398Z",
+      "intervalStart":"20130222T121649.203Z",
+      "difficulty":1.7800000000000005,
+      "intervalLength":6.386194383205378,
+      "repetition":2,
+      "lapse":3,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20120708T161901.532Z",
+    "tags":["freq1","n","vs","verb"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"000013882ec2b1eeaa793949",
+    "notBefore":"20120930T172801.874Z",
+    "word":"000013880000000000448fcd",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130301T041355.682Z",
+      "intervalStart":"20130226T070540.756Z",
+      "difficulty":1.4000000000000001,
+      "intervalLength":2.880728305619919,
+      "repetition":2,
+      "lapse":5,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20121016T045428.315Z",
+    "tags":["freq1","n"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"000013883c56d4792f6640e1",
+    "notBefore":"20130128T131715.133Z",
+    "word":"00001388000000000044974c",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T184436.149Z",
+      "intervalStart":"20130222T042026.722Z",
+      "difficulty":1.3,
+      "intervalLength":6.600109110804284,
+      "repetition":4,
+      "lapse":6,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20120807T171744.615Z",
+    "tags":["freq1","n","vs","verb"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"000013884f4398a11d98716b",
+    "notBefore":"20130218T091448.589Z",
+    "word":"0000138800000000004493c0",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130225T015101.810Z",
+      "intervalStart":"20120921T023611.120Z",
+      "difficulty":2.5,
+      "intervalLength":156.96864224161828,
+      "repetition":3,
+      "lapse":1,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20121005T065113.226Z",
+    "tags":["nonfreq","n","vs","verb"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"000013885dae22c0d3fb4603",
+    "notBefore":"20121230T170033.589Z",
+    "word":"000013880000000000449735",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T233456.465Z",
+      "intervalStart":"20130222T042012.036Z",
+      "difficulty":1.3,
+      "intervalLength":6.80190310934172,
+      "repetition":4,
+      "lapse":6,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20120620T043321.511Z",
+    "tags":["nonfreq","n","vs","verb"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"000013885f28e5961e541197",
+    "notBefore":"20130301T134623.292Z",
+    "word":"000013880000000000448c7a",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130225T011737.464Z",
+      "intervalStart":"20130221T033118.923Z",
+      "difficulty":1.3000000000000014,
+      "intervalLength":3.907159034814512,
+      "repetition":3,
+      "lapse":7,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20121126T133346.123Z",
+    "tags":["nonfreq","n","vs","verb"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"00001388756e7ff1158c2b21",
+    "notBefore":"20130227T134208.155Z",
+    "word":"00001388000000000044997e",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130301T223657.225Z",
+      "intervalStart":"20130228T143306.250Z",
+      "difficulty":1.3,
+      "intervalLength":1.3360066549626597,
+      "repetition":1,
+      "lapse":5,
+      "inertia":0.5760000000000002
+    }
+  },{
+    "priority":0,
+    "createdOn":"20120830T035816.792Z",
+    "tags":["nonfreq","n"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"00001388d2d67cf0e42bcfaa",
+    "notBefore":"20130128T211005.253Z",
+    "word":"000013880000000000449534",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T142012.315Z",
+      "intervalStart":"20130226T052509.250Z",
+      "difficulty":1.7400000000000002,
+      "intervalLength":2.37156325395264,
+      "repetition":1,
+      "lapse":2,
+      "inertia":0.8
+    }
+  },{
+    "priority":0,
+    "createdOn":"20121109T171547.255Z",
+    "tags":["nonfreq","n","uk","lonely-kun"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"00001388d7669b7b9401319c",
+    "notBefore":"20130209T005709.051Z",
+    "word":"0000138800000000004498d3",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130301T103508.456Z",
+      "intervalStart":"20130222T115955.948Z",
+      "difficulty":1.4000000000000001,
+      "intervalLength":6.941116994472887,
+      "repetition":4,
+      "lapse":12,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20121126T133449.259Z",
+    "tags":["freq1","n"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"00001388dd4aa90225af464a",
+    "notBefore":"20130301T042429.080Z",
+    "word":"000013880000000000449984",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130222T080003.334Z",
+      "intervalStart":"20130120T182616.558Z",
+      "difficulty":1.7400000000000002,
+      "intervalLength":32.565124725775966,
+      "repetition":4,
+      "lapse":2,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20121216T145435.902Z",
+    "tags":[],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50cde0ab3fa749b39803ed53",
+    "notBefore":"20130218T220450.325Z",
+    "word":"50cde0933fa749b39803ed40",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T142320.034Z",
+      "intervalStart":"20130226T052450.505Z",
+      "difficulty":2.0400000000000005,
+      "intervalLength":2.3739528830416115,
+      "repetition":1,
+      "lapse":3,
+      "inertia":0.8
+    }
+  },{
+    "priority":0,
+    "createdOn":"20121216T145604.345Z",
+    "tags":["nonfreq","exp","id"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50cde1043fa749b39803ed88",
+    "notBefore":"20130222T231118.346Z",
+    "word":"50cde0ec3fa749b39803ed73",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130226T215100.590Z",
+      "intervalStart":"20130224T113711.641Z",
+      "difficulty":1.4200000000000006,
+      "intervalLength":2.4262609786785942,
+      "repetition":1,
+      "lapse":5,
+      "inertia":0.9
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130107T151721.269Z",
+    "tags":["freq1","v1","verb","vt","lonely-kun"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50eae7013fa7cc3afe3fc4f2",
+    "notBefore":"20130212T012408.217Z",
+    "word":"50eae6f43fa7cc3afe3fc4e9",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130225T031724.675Z",
+      "intervalStart":"20130203T174326.050Z",
+      "difficulty":1.6400000000000001,
+      "intervalLength":21.3985952020039,
+      "repetition":3,
+      "lapse":2,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153627.278Z",
+    "tags":["nonfreq","n","vs","verb","4j"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"50f2d47b3fa7d0e4555ee2fe",
+    "notBefore":"20130223T101116.386Z",
+    "word":"50f2d4593fa7d0e4555ee2ea",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T164951.551Z",
+      "intervalStart":"20130226T070626.989Z",
+      "difficulty":1.3200000000000003,
+      "intervalLength":2.405145397889492,
+      "repetition":2,
+      "lapse":3,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153627.279Z",
+    "tags":["nonfreq","n","vs","verb","4j"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50f2d47b3fa7d0e4555ee2ff",
+    "notBefore":"20130301T013833.049Z",
+    "word":"50f2d4593fa7d0e4555ee2ea",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130223T120331.781Z",
+      "intervalStart":"20130220T052013.932Z",
+      "difficulty":1.3,
+      "intervalLength":3.2800676956775323,
+      "repetition":3,
+      "lapse":11,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153714.590Z",
+    "tags":["4j"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"50f2d4aa3fa7d0e4555ee378",
+    "notBefore":"20130218T084751.518Z",
+    "word":"50f2d4a23fa7d0e4555ee366",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130301T115049.161Z",
+      "intervalStart":"20130226T070752.776Z",
+      "difficulty":1.4000000000000001,
+      "intervalLength":3.196485934730147,
+      "repetition":3,
+      "lapse":11,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153717.891Z",
+    "tags":["nonfreq","n","vs","verb","4j"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"50f2d4ad3fa7d0e4555ee382",
+    "notBefore":"20130228T215440.166Z",
+    "word":"50f2d4a73fa7d0e4555ee372",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130224T155609.581Z",
+      "intervalStart":"20130221T051338.973Z",
+      "difficulty":1.3200000000000003,
+      "intervalLength":3.4461875942606253,
+      "repetition":3,
+      "lapse":3,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153840.162Z",
+    "tags":["4j"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"50f2d5003fa7d0e4555ee40b",
+    "notBefore":"20130227T080840.722Z",
+    "word":"50f2d4fb3fa7d0e4555ee3fa",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130303T103420.746Z",
+      "intervalStart":"20130228T143304.950Z",
+      "difficulty":1.3,
+      "intervalLength":2.8342106037633257,
+      "repetition":1,
+      "lapse":6,
+      "inertia":0.81
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153843.422Z",
+    "tags":["nonfreq","n","4j"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50f2d5033fa7d0e4555ee425",
+    "notBefore":"20130227T080624.774Z",
+    "word":"50f2d5003fa7d0e4555ee412",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130301T105032.771Z",
+      "intervalStart":"20130228T142241.642Z",
+      "difficulty":1.3,
+      "intervalLength":0.8526751024428046,
+      "repetition":1,
+      "lapse":7,
+      "inertia":0.7290000000000001
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153901.960Z",
+    "tags":["nonfreq","n","vs","verb","4j"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50f2d5153fa7d0e4555ee455",
+    "notBefore":"20130218T204435.720Z",
+    "word":"50f2d5103fa7d0e4555ee444",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T095750.028Z",
+      "intervalStart":"20130226T070222.055Z",
+      "difficulty":1.5000000000000002,
+      "intervalLength":2.1218515431619958,
+      "repetition":1,
+      "lapse":3,
+      "inertia":0.9
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153903.881Z",
+    "tags":["4j"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"50f2d5173fa7d0e4555ee460",
+    "notBefore":"20130211T010121.602Z",
+    "word":"50f2d5143fa7d0e4555ee450",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130301T091244.997Z",
+      "intervalStart":"20130226T052320.042Z",
+      "difficulty":1.3,
+      "intervalLength":3.1593166116640234,
+      "repetition":3,
+      "lapse":6,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153910.508Z",
+    "tags":["4j"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50f2d51e3fa7d0e4555ee493",
+    "notBefore":"20130223T164723.113Z",
+    "word":"50f2d51b3fa7d0e4555ee480",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130226T130859.338Z",
+      "intervalStart":"20130224T113635.485Z",
+      "difficulty":1.3,
+      "intervalLength":2.064164966670479,
+      "repetition":1,
+      "lapse":8,
+      "inertia":0.9
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153916.981Z",
+    "tags":["nonfreq","adj-na","adj","n","adj-no","4j"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50f2d5243fa7d0e4555ee4d0",
+    "notBefore":"20130223T160656.475Z",
+    "word":"50f2d5213fa7d0e4555ee4bc",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T154950.462Z",
+      "intervalStart":"20130226T070819.399Z",
+      "difficulty":1.3,
+      "intervalLength":2.3621650827336476,
+      "repetition":2,
+      "lapse":6,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153931.862Z",
+    "tags":["4j"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50f2d5333fa7d0e4555ee510",
+    "notBefore":"20130221T114613.576Z",
+    "word":"50f2d52c3fa7d0e4555ee4fe",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130224T204452.200Z",
+      "intervalStart":"20130211T115609.912Z",
+      "difficulty":1.3,
+      "intervalLength":13.367156107029897,
+      "repetition":4,
+      "lapse":5,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153935.948Z",
+    "tags":["4j"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50f2d5373fa7d0e4555ee536",
+    "notBefore":"20130225T085949.105Z",
+    "word":"50f2d5353fa7d0e4555ee523",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130302T003406.951Z",
+      "intervalStart":"20130226T052119.456Z",
+      "difficulty":2.04,
+      "intervalLength":3.8005497144978646,
+      "repetition":1,
+      "lapse":2,
+      "inertia":0.9
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153940.335Z",
+    "tags":["nonfreq","n","4j"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50f2d53c3fa7d0e4555ee567",
+    "notBefore":"20130113T153940.328Z",
+    "word":"50f2d53a3fa7d0e4555ee553",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T214445.582Z",
+      "intervalStart":"20130226T052202.206Z",
+      "difficulty":1.4000000000000001,
+      "intervalLength":2.6824464816952616,
+      "repetition":3,
+      "lapse":7,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130113T153941.283Z",
+    "tags":["nonfreq","n","4j"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"50f2d53d3fa7d0e4555ee571",
+    "notBefore":"20130113T153941.282Z",
+    "word":"50f2d53b3fa7d0e4555ee560",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130227T115139.411Z",
+      "intervalStart":"20130226T070830.468Z",
+      "difficulty":1.3,
+      "intervalLength":1.196631280279347,
+      "repetition":1,
+      "lapse":8,
+      "inertia":0.9
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130116T172223.955Z",
+    "tags":["freq1","n","vs","verb","uk","lonely-kun"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"50f6e1cf3fa7415776718e61",
+    "notBefore":"20130129T125409.246Z",
+    "word":"50f6e1b13fa7415776718e4f",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130225T020629.770Z",
+      "intervalStart":"20130211T115603.297Z",
+      "difficulty":2.04,
+      "intervalLength":13.590584173626802,
+      "repetition":2,
+      "lapse":2,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130203T110803.253Z",
+    "tags":["nonfreq","n","4j"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"510e45133fa779d4c0b23173",
+    "notBefore":"20130225T032634.552Z",
+    "word":"510e45053fa779d4c0b23160",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130301T033224.892Z",
+      "intervalStart":"20130226T052008.458Z",
+      "difficulty":1.9000000000000008,
+      "intervalLength":2.925190211081552,
+      "repetition":1,
+      "lapse":3,
+      "inertia":0.7200000000000001
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130203T110812.431Z",
+    "tags":["freq2","adj-na","adj","n","adj-no"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"510e451c3fa779d4c0b23180",
+    "notBefore":"20130301T100001.415Z",
+    "word":"510e45083fa779d4c0b2316c",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130225T034236.481Z",
+      "intervalStart":"20130222T041939.822Z",
+      "difficulty":1.9000000000000008,
+      "intervalLength":2.9742668903408864,
+      "repetition":1,
+      "lapse":3,
+      "inertia":0.7200000000000001
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130203T110825.644Z",
+    "tags":["freq2","n","adj-na","adj","adj-no"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"510e45293fa779d4c0b23189",
+    "notBefore":"20130218T103215.096Z",
+    "word":"510e45133fa779d4c0b23178",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130224T203050.209Z",
+      "intervalStart":"20130219T045605.986Z",
+      "difficulty":1.82,
+      "intervalLength":5.649122954298222,
+      "repetition":2,
+      "lapse":2,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130203T111056.351Z",
+    "tags":["nonfreq","n","4j"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"510e45c03fa779d4c0b231c3",
+    "notBefore":"20130215T230729.819Z",
+    "word":"510e45653fa779d4c0b231b0",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130301T055410.928Z",
+      "intervalStart":"20130224T113821.535Z",
+      "difficulty":1.5400000000000005,
+      "intervalLength":4.760988346124357,
+      "repetition":2,
+      "lapse":3,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130203T111304.975Z",
+    "tags":["nonfreq","n","4j"],
+    "enabled":true,
+    "cardMode":2,
+    "_id":"510e46403fa779d4c0b23228",
+    "notBefore":"20130217T140118.153Z",
+    "word":"510e46323fa779d4c0b23219",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130301T075346.665Z",
+      "intervalStart":"20130222T121734.584Z",
       "difficulty":2.3600000000000003,
-      "intervalLength":2.7805011161125446,
+      "intervalLength":6.816806497794143,
       "repetition":1,
-      "lapse":2
+      "lapse":1,
+      "inertia":1.0
     }
   },{
-    "createdOn":"20090424T145525.000Z",
+    "priority":0,
+    "createdOn":"20130203T111848.859Z",
+    "tags":["nonfreq","n"],
+    "enabled":true,
     "cardMode":1,
-    "_id":1800,
-    "notBefore":"20120218T130645.188Z",
-    "word":2195464,
+    "_id":"510e47983fa779d4c0b2350a",
+    "notBefore":"20130215T162458.730Z",
+    "word":"510e47923fa779d4c0b234f7",
+    "user":"000013880000000000000001",
     "learning":{
-      "intervalEnd":"20120221T080851.099Z",
-      "intervalStart":"20120218T113759.078Z",
-      "difficulty":2.5,
-      "intervalLength":2.8547687617505697,
+      "intervalEnd":"20130301T002947.592Z",
+      "intervalStart":"20130222T121757.395Z",
+      "difficulty":2.3600000000000003,
+      "intervalLength":6.508219876167646,
       "repetition":1,
-      "lapse":1
+      "lapse":1,
+      "inertia":1.0
     }
   },{
-    "createdOn":"20090527T144700.000Z",
+    "priority":0,
+    "createdOn":"20130203T111946.172Z",
+    "tags":["nonfreq","n"],
+    "enabled":true,
     "cardMode":2,
-    "_id":2141,
-    "notBefore":"20120218T130645.188Z",
-    "word":3899401
+    "_id":"510e47d23fa779d4c0b23523",
+    "notBefore":"20130217T000425.459Z",
+    "word":"510e47993fa779d4c0b23510",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T210923.241Z",
+      "intervalStart":"20130222T121803.617Z",
+      "difficulty":2.3600000000000003,
+      "intervalLength":6.3689771312399275,
+      "repetition":1,
+      "lapse":1,
+      "inertia":1.0
+    }
   },{
-    "createdOn":"20090527T144218.000Z",
+    "priority":0,
+    "createdOn":"20130203T112016.438Z",
+    "tags":["nonfreq","n","vs","verb"],
+    "enabled":true,
     "cardMode":2,
-    "_id":2135,
-    "notBefore":"20120218T130645.188Z",
-    "word":3899398
+    "_id":"510e47f03fa779d4c0b23560",
+    "notBefore":"20130301T064058.944Z",
+    "word":"510e47eb3fa779d4c0b2354f",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130225T023250.956Z",
+      "intervalStart":"20130222T121819.901Z",
+      "difficulty":1.96,
+      "intervalLength":2.5934149861053015,
+      "repetition":1,
+      "lapse":1,
+      "inertia":1.0
+    }
   },{
-    "createdOn":"20090527T144936.000Z",
-    "cardMode":2,
-    "_id":2143,
-    "notBefore":"20120218T130645.188Z",
-    "word":3899402
-  },{
-    "createdOn":"20090527T144045.000Z",
-    "cardMode":2,
-    "_id":2131,
-    "notBefore":"20120218T130645.188Z",
-    "word":3899396
-  },{
-    "createdOn":"20090527T145947.000Z",
-    "cardMode":2,
-    "_id":2151,
-    "notBefore":"20120218T130645.188Z",
-    "word":3899406
-  },{
-    "createdOn":"20090527T150716.000Z",
-    "cardMode":2,
-    "_id":2153,
-    "notBefore":"20120218T130645.188Z",
-    "word":3899407
-  },{
-    "createdOn":"20090527T144456.000Z",
-    "cardMode":2,
-    "_id":2137,
-    "notBefore":"20120218T130645.188Z",
-    "word":3899399
-  },{
-    "createdOn":"20090527T144110.000Z",
-    "cardMode":2,
-    "_id":2133,
-    "notBefore":"20120218T130645.188Z",
-    "word":3899397
-  },{
-    "createdOn":"20090530T131130.000Z",
+    "priority":0,
+    "createdOn":"20130203T112017.914Z",
+    "tags":["freq2","adj-na","adj","n"],
+    "enabled":true,
     "cardMode":1,
-    "_id":2158,
-    "notBefore":"20120218T130645.188Z",
-    "word":3997698
+    "_id":"510e47f13fa779d4c0b2356e",
+    "notBefore":"20130225T160520.917Z",
+    "word":"510e47ef3fa779d4c0b2355b",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T180744.382Z",
+      "intervalStart":"20130226T052024.000Z",
+      "difficulty":1.6800000000000002,
+      "intervalLength":2.5328747969543626,
+      "repetition":1,
+      "lapse":3,
+      "inertia":0.9
+    }
   },{
-    "createdOn":"20090527T145915.000Z",
+    "priority":0,
+    "createdOn":"20130203T112103.382Z",
+    "tags":[],
+    "enabled":true,
     "cardMode":2,
-    "_id":2149,
-    "notBefore":"20120218T130645.188Z",
-    "word":3899405
+    "_id":"510e481f3fa779d4c0b2357a",
+    "notBefore":"20130219T124249.050Z",
+    "word":"510e47f03fa779d4c0b23567",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T182059.217Z",
+      "intervalStart":"20130222T121825.248Z",
+      "difficulty":2.3600000000000003,
+      "intervalLength":6.251782053745726,
+      "repetition":1,
+      "lapse":1,
+      "inertia":1.0
+    }
   },{
-    "createdOn":"20090527T145138.000Z",
+    "priority":0,
+    "createdOn":"20130203T112211.745Z",
+    "tags":["freq2","adj-na","adj","n"],
+    "enabled":true,
     "cardMode":2,
-    "_id":2145,
-    "notBefore":"20120218T130645.188Z",
-    "word":3899403
+    "_id":"510e48633fa779d4c0b23594",
+    "notBefore":"20130227T072119.826Z",
+    "word":"510e481f3fa779d4c0b23581",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130223T222130.318Z",
+      "intervalStart":"20130220T123455.728Z",
+      "difficulty":1.3200000000000003,
+      "intervalLength":3.407344792090909,
+      "repetition":3,
+      "lapse":3,
+      "inertia":1.0
+    }
   },{
-    "createdOn":"20090530T113331.000Z",
-    "cardMode":2,
-    "_id":2157,
-    "notBefore":"20120218T130645.188Z",
-    "word":3997697
+    "priority":0,
+    "createdOn":"20130203T112433.610Z",
+    "tags":["freq1","n","adj-no"],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"510e48f13fa779d4c0b235c1",
+    "notBefore":"20130226T105706.266Z",
+    "word":"510e48703fa779d4c0b235a8",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130224T204345.408Z",
+      "intervalStart":"20130212T055117.754Z",
+      "difficulty":1.96,
+      "intervalLength":12.619764516446304,
+      "repetition":2,
+      "lapse":1,
+      "inertia":1.0
+    }
+  },{
+    "priority":0,
+    "createdOn":"20130203T115657.869Z",
+    "tags":[],
+    "enabled":true,
+    "cardMode":1,
+    "_id":"510e50893fa779d4c0b23abe",
+    "notBefore":"20130203T115657.868Z",
+    "word":"510e50843fa779d4c0b23aac",
+    "user":"000013880000000000000001",
+    "learning":{
+      "intervalEnd":"20130228T235610.875Z",
+      "intervalStart":"20130222T121900.116Z",
+      "difficulty":2.3600000000000003,
+      "intervalLength":6.484152298588367,
+      "repetition":1,
+      "lapse":1,
+      "inertia":1.0
+    }
   }],
   "words":[{
-    "writing":"ぎっしり",
-    "createdOn":"20090331T114543.000Z",
+    "writing":"左遷",
+    "createdOn":"20091130T125120.000Z",
     "examples":[],
-    "reading":"ぎっしり",
-    "_id":229446,
-    "meaning":"tightly, fully"
+    "tags":["freq1","n","vs","verb"],
+    "reading":"させん",
+    "_id":"0000138800000000004485f7",
+    "meaning":"demotion, degradation",
+    "status":1
   },{
-    "writing":"すっかり",
-    "createdOn":"20090331T114544.000Z",
+    "writing":"頗る",
+    "createdOn":"20120527T144534.720Z",
+    "examples":[{
+      "selected":true,
+      "id":116569,
+      "translation":"He is very blunt in his manner.",
+      "example":"彼の態度はすこぶる無骨だ。"
+    },{
+      "selected":true,
+      "id":873974,
+      "translation":"I may be plump, but I'm vigorous.",
+      "example":"私は太り気味かもしれないが、すこぶる健康だよ。"
+    },{
+      "selected":true,
+      "id":106441,
+      "translation":"The last time when I saw him, he was quite well.",
+      "example":"彼は私がこの前会ったときはすこぶる元気だった。"
+    }],
+    "tags":["nonfreq","adv","lonely-kun"],
+    "reading":"すこぶる,そこぶる",
+    "_id":"000013880000000000448ba0",
+    "meaning":"adv: extremely; very much",
+    "status":1
+  },{
+    "writing":"哺乳類",
+    "createdOn":"20120527T150420.815Z",
+    "examples":[{
+      "selected":true,
+      "id":176004,
+      "translation":"A whale is a mammal.",
+      "example":"鯨は哺乳類である。"
+    },{
+      "selected":true,
+      "id":228453,
+      "translation":"A dolphin is a mammal.",
+      "example":"イルカは哺乳類である。"
+    },{
+      "selected":true,
+      "id":77075,
+      "translation":"A bat is not a bird, but a mammal.",
+      "example":"蝙蝠は鳥ではなく哺乳類だ。"
+    },{
+      "selected":true,
+      "id":176012,
+      "translation":"The whale is not a fish but a mammal.",
+      "example":"鯨は魚ではなくて哺乳類である。"
+    },{
+      "selected":true,
+      "id":228454,
+      "translation":"A dolphin is a kind of mammal.",
+      "example":"イルカは哺乳類の一種です。"
+    },{
+      "selected":true,
+      "id":176003,
+      "translation":"Whales are classified as mammals.",
+      "example":"鯨は哺乳類に分類される。"
+    },{
+      "selected":true,
+      "id":176014,
+      "translation":"The whale is a very large mammal which lives in the sea.",
+      "example":"鯨は海に住む巨大な哺乳類である。"
+    }],
+    "tags":["freq2","n"],
+    "reading":"ほにゅうるい",
+    "_id":"000013880000000000448bbd",
+    "meaning":"n: mammal; mammalian",
+    "status":1
+  },{
+    "writing":"言説",
+    "createdOn":"20120620T043306.452Z",
+    "examples":[{
+      "selected":true,
+      "id":173742,
+      "translation":"The sayings of Confucius are famous.",
+      "example":"孔子の言説は有名である。"
+    }],
+    "tags":["nonfreq","n","vs","verb"],
+    "reading":"げんせつ",
+    "_id":"000013880000000000448c7a",
+    "meaning":"замечание, мнение, утверждение, высказывание; толки, разговоры.",
+    "status":1
+  },{
+    "writing":"措置",
+    "createdOn":"20120708T161849.401Z",
+    "examples":[{
+      "selected":true,
+      "id":125289,
+      "translation":"You should take the appropriate measures at the appropriate time.",
+      "example":"適切なときに適切な措置を講ずるべきです。"
+    },{
+      "selected":true,
+      "id":143141,
+      "translation":"The government adopted strong measures to fight inflation.",
+      "example":"政府はインフレに対するために強硬な措置をとった。"
+    },{
+      "selected":true,
+      "id":148595,
+      "translation":"We should take the necessary steps before it's too late.",
+      "example":"手後れにならないうちに、必要な措置を取るべきです。"
+    },{
+      "selected":true,
+      "id":77225,
+      "translation":"Affirmative action and busing are debated topics.",
+      "example":"論争の多い話題：積極的差別是正措置とバス通学。"
+    },{
+      "selected":true,
+      "id":122830,
+      "translation":"Unless Japan eliminates its unfair tariffs, the U.S. will impose sanctions.",
+      "example":"日本が不公平な関税を撤廃しなければ、米国は制裁措置をとるだろう。"
+    },{
+      "selected":true,
+      "id":122836,
+      "translation":"Unless Japan eliminates those barriers, the U.S. will take sanctions.",
+      "example":"日本がそれらの障壁を撤廃しなければ米国は制裁措置を取るだろう。"
+    },{
+      "selected":true,
+      "id":143079,
+      "translation":"Governments usually resort to price control when inflation has reached a certain level.",
+      "example":"政府は通常インフレがある水準に達した場合は、物価の抑制の措置に訴える。"
+    },{
+      "selected":true,
+      "id":143109,
+      "translation":"The government didn't take appropriate measures to prevent the infection from spreading.",
+      "example":"政府は感染の拡大を未然に防ぐための適切な措置を取らなかった。"
+    },{
+      "selected":true,
+      "id":143110,
+      "translation":"The government didn't take appropriate measures to prevent the infection from spreading.",
+      "example":"政府は感染が広がることを予防する適切な措置を取らなかった。"
+    },{
+      "selected":true,
+      "id":122835,
+      "translation":"Unless Japan eliminates those unfair tariffs, the U.S. will impose sanctions.",
+      "example":"日本がそれらの不当な関税を撤廃しなければ、アメリカは制裁措置を取るだろう。"
+    }],
+    "tags":["freq1","n","vs","verb"],
+    "reading":"そち",
+    "_id":"000013880000000000448fcd",
+    "meaning":"мера, мероприятие; распоряжение чем-л.; действие;\r\n措置を取る(講ずる) принимать меры; перен. делать шаг;\r\n措置よろしくを得る делать правильный шаг, поступать правильно;\r\n措置を行う проводить мероприятие;\r\n軍縮への最初の措置 первый шаг к разоружению.",
+    "status":1
+  },{
+    "writing":"朱色",
+    "createdOn":"20120715T065124.479Z",
     "examples":[],
-    "reading":"すっかり",
-    "_id":229450,
-    "meaning":"all, completely, thoroughly"
+    "tags":["nonfreq","n","adj-no"],
+    "reading":"しゅいろ",
+    "_id":"0000138800000000004490f2",
+    "meaning":"(n,adj-no):vermilion; scarlet",
+    "status":1
   },{
-    "writing":"近々",
-    "createdOn":"20090331T114605.000Z",
-    "examples":[{
-      "example":"近々お会いできるのを楽しみにしています。",
-      "translation":"I hope to see you soon."
-    },{
-      "example":"近々またお会いできるのを楽しみに待ってます。",
-      "translation":"I'm looking forward to seeing you again before long."
-    },{
-      "example":"政府は近々、消費税を引き上げるつもりなのかしら。 [F]",
-      "translation":"Will the government raise the consumption tax soon?"
-    },{
-      "example":"内緒の話だが僕は近々仕事を辞める予定だ。 [M]",
-      "translation":"Between you and me, I'm going to quit my present job soon."
-    },{
-      "example":"彼の秘密は近々ばれるだろう。",
-      "translation":"His secret will be disclosed soon."
-    }],
-    "reading":"ちかぢか",
-    "_id":229486,
-    "meaning":"nearness, before long"
-  },{
-    "writing":"各",
-    "createdOn":"20090331T114607.000Z",
-    "examples":[{
-      "example":"この病院では、各看護婦は５人の患者の看護を受け持っている。",
-      "translation":"In this hospital each nurse attends five patients."
-    },{
-      "example":"そして各チームはゴールを蹴ってこの穴に通そうとして互いに競いあったのです。",
-      "translation":"And the teams competed with each other to try to kick the ball through this hole."
-    },{
-      "example":"その老医師は各患者を一人一人個人的に診察した。",
-      "translation":"The old doctor gave individual attention to each patient."
-    },{
-      "example":"ようやく各店舗に監視カメラが設置されることになった。",
-      "translation":"Eventually it was decided that the stores be equipped with surveillance cameras."
-    },{
-      "example":"各ロボットには通話機が取り付けられています。",
-      "translation":"Each robot is equipped with a talking machine."
-    }],
-    "reading":"おのおの",
-    "_id":229488,
-    "meaning":"each, every, either, respectively, severally"
-  },{
-    "writing":"一度",
-    "createdOn":"20090331T114617.000Z",
-    "examples":[{
-      "example":"「近頃どうも調子が悪くてね」「一度診てもらった方がいいよ」",
-      "translation":"\"I haven't been feeling too good lately.\" \"You had better go to a doctor.\""
-    },{
-      "example":"１週間に一度ここで集まりましょう。",
-      "translation":"Let's get together here once a week."
-    },{
-      "example":"１度だけチャンスが残っている。",
-      "translation":"There is but one chance left."
-    },{
-      "example":"１度に２つの事をしようと思うな。",
-      "translation":"Don't try to do two things at a time."
-    },{
-      "example":"１度や２度の失敗はだれにでもある。",
-      "translation":"Everybody fails once or twice."
-    },{
-      "example":"赤道における経度1度当たりの長さ。",
-      "translation":"Distance per degree of longitude at equator."
-    }],
-    "reading":"いちど",
-    "_id":229498,
-    "meaning":"once, one time, on one occasion"
-  },{
-    "writing":"嫋か",
-    "createdOn":"20090331T115309.000Z",
-    "examples":[{
-      "example":"その子供の手のしなやかさ。",
-      "translation":"The delicacy of the child's hands."
-    }],
-    "reading":"しなやか",
-    "_id":229706,
-    "meaning":"supple, flexible, elastic"
-  },{
-    "writing":"鼓",
-    "createdOn":"20090331T115541.000Z",
+    "writing":"憂慮",
+    "createdOn":"20120807T171739.222Z",
     "examples":[],
-    "reading":"つづみ",
-    "_id":229763,
-    "meaning":"hand drum"
+    "tags":["freq1","n","vs","verb"],
+    "reading":"ゆうりょ",
+    "_id":"0000138800000000004493c0",
+    "meaning":"(n,vs):anxiety; concern; fear",
+    "status":1
   },{
-    "writing":"遠巻き",
-    "createdOn":"20090424T145525.000Z",
+    "writing":"簀子",
+    "createdOn":"20120830T035813.444Z",
     "examples":[],
-    "reading":"とおまき",
-    "_id":2195464,
-    "meaning":"surrounding at a distance"
+    "tags":["nonfreq","n"],
+    "reading":"すのこ",
+    "_id":"000013880000000000449534",
+    "meaning":"(n):drainboard; floor grates; duckboard; slatted wood (e.g. used as a base for storing futons inside a cupboard)",
+    "status":1
   },{
-    "writing":"見解",
-    "createdOn":"20090527T144045.000Z",
+    "writing":"惨死",
+    "createdOn":"20121005T065111.217Z",
     "examples":[{
-      "example":"そのような事件の場合、証拠をどのように保存するかについては一致した見解はないようである。",
-      "translation":"There seems to be little agreement as to how to preserve the evidence in such cases."
-    },{
-      "example":"その件についての我々の見解は一致している。",
-      "translation":"Our views on the matter are in accord."
-    },{
-      "example":"なぜ我々が彼の見解を支持できないかという理由を以下に述べよう。",
-      "translation":"The reason why we cannot support his view will be given below."
-    },{
-      "example":"パリが１７８９年の革命以前ですら頻繁な暴動の拠点であったという見解には十分な根拠がある。",
-      "translation":"There are good grounds for the view that Paris was the scene of frequent riots even before the revolution of 1789."
-    },{
-      "example":"議長は自らの見解を非公式に述べるだけだろう。",
-      "translation":"The chairman would only make her comments off the record."
+      "selected":true,
+      "id":785131,
+      "translation":"He met with a tragic death in an ambush.",
+      "example":"彼は伏兵に会って惨死しました。"
     }],
-    "reading":"けんかい",
-    "_id":3899396,
-    "meaning":"opinion, point of view"
+    "tags":["nonfreq","n","vs","verb"],
+    "reading":"ざんし",
+    "_id":"000013880000000000449735",
+    "meaning":"(n,vs):tragic death; violent death",
+    "status":1
   },{
-    "writing":"食いつく",
-    "createdOn":"20090527T144110.000Z",
+    "writing":"借款",
+    "createdOn":"20121016T045424.772Z",
     "examples":[{
-      "example":"今日は魚の食いつきがいい。",
-      "translation":"The fish are striking well today."
-    },{
-      "example":"今日は魚の食いつきがいい。",
-      "translation":"The fish are striking well today."
+      "selected":true,
+      "id":173052,
+      "translation":"The IMF ruled out any new loans to that country.",
+      "example":"国際通貨基金は同国に対する新たな借款も認めませんでした。"
     }],
-    "reading":"くいつく, くらいつく",
-    "_id":3899397,
-    "meaning":"to bite at, to snap at, to nibble\nto get one's teeth into (metaphorically), to get to grips with, to really get into"
+    "tags":["freq1","n"],
+    "reading":"しゃっかん",
+    "_id":"00001388000000000044974c",
+    "meaning":"(n):(international) loan",
+    "status":1
   },{
-    "writing":"妄想",
-    "createdOn":"20090527T144218.000Z",
+    "writing":"絨毯,絨緞,絨氈",
+    "createdOn":"20121024T151035.876Z",
     "examples":[{
-      "example":"あの少女は自分が王女様だという妄想にとらわれている。",
-      "translation":"That girl is under the delusion that she is a princess."
+      "selected":true,
+      "id":1406536,
+      "translation":"Sleeping on a carpet is great.",
+      "example":"絨毯の上に寝るのは最高だ。"
+    },{
+      "selected":true,
+      "id":121973,
+      "translation":"The cat started to scratch the carpet.",
+      "example":"猫はじゅうたんをひっかき始めた。"
+    },{
+      "selected":true,
+      "id":145489,
+      "translation":"We want a new carpet.",
+      "example":"新しいじゅうたんが欲しい。"
+    },{
+      "selected":true,
+      "id":161071,
+      "translation":"I spilled my coffee on the carpet.",
+      "example":"私はコーヒーをじゅうたんにこぼしてしまった。"
+    },{
+      "selected":true,
+      "id":223681,
+      "translation":"I still have to get rid of this carpet.",
+      "example":"このじゅうたんを取り除かなくてはならない。"
+    },{
+      "selected":true,
+      "id":226488,
+      "translation":"The curtains and the carpet are a good match.",
+      "example":"カーテンとじゅうたんはよくあっている。"
+    },{
+      "selected":true,
+      "id":77802,
+      "translation":"A green carpet will not go with this blue curtain.",
+      "example":"緑の絨毯はこの青いカーテンと調和しないだろう。"
+    },{
+      "selected":true,
+      "id":209008,
+      "translation":"The floor is covered with a thick carpet.",
+      "example":"その床には厚いじゅうたんが敷いてある。"
+    },{
+      "selected":true,
+      "id":215724,
+      "translation":"I'm looking for something to clean the carpet with.",
+      "example":"じゅうたんをきれいにする道具を探しているのです。"
+    },{
+      "selected":true,
+      "id":215725,
+      "translation":"The rugs are a good match for the curtains.",
+      "example":"じゅうたんはそのカーテンによく合っている。"
+    },{
+      "selected":true,
+      "id":215726,
+      "translation":"The color of the carpet is in harmony with the wall.",
+      "example":"じゅうたんの色は壁と調和している。"
+    },{
+      "selected":true,
+      "id":215727,
+      "translation":"Don't drop cigarette ash on the carpet.",
+      "example":"じゅうたんにたばこの灰を落とさないでください。"
+    },{
+      "selected":true,
+      "id":221049,
+      "translation":"These new curtains don't go well with the rugs.",
+      "example":"この新しいカーテンはじゅうたんには似合わない。"
+    },{
+      "selected":true,
+      "id":151193,
+      "translation":"A purple carpet will not go with this red curtain.",
+      "example":"紫のじゅうたんはこの赤いカーテンと調和しないだろう。"
+    },{
+      "selected":true,
+      "id":219971,
+      "translation":"We must buy a new carpet for this room.",
+      "example":"この部屋用に新しいじゅうたんを買わなければいけない。"
+    },{
+      "selected":true,
+      "id":223682,
+      "translation":"This carpet is big enough to cover the whole floor.",
+      "example":"このじゅうたんは床全体に敷けるほどの大きさである。"
+    },{
+      "selected":true,
+      "id":1048282,
+      "translation":"I have to buy a new carpet for this room.",
+      "example":"この部屋用に新しいじゅうたんを買わなきゃいけない。"
+    },{
+      "selected":true,
+      "id":196695,
+      "translation":"The best advice to follow when buying a Persian carpet is to have a good knowledge of carpets!",
+      "example":"ペルシャ絨毯を買う場合にしたがうべき最高のアドバイスは、カーペットについてよく知っておけ、ということである。"
+    },{
+      "selected":true,
+      "id":223683,
+      "translation":"The size of the carpet is 120 by 160 centimeters.",
+      "example":"このじゅうたんの大きさは横１２０センチ縦１６０センチだ。"
     }],
-    "reading":"もうそう, ぼうそう",
-    "_id":3899398,
-    "meaning":"wild idea, delusion"
+    "tags":["freq1","n","uk","iK"],
+    "reading":"じゅうたん",
+    "_id":"000013880000000000449810",
+    "meaning":"(n,uk):carpet; rug; runner; ковёр",
+    "status":1
   },{
-    "writing":"成就",
-    "createdOn":"20090527T144456.000Z",
-    "examples":[{
-      "example":"滑り出しが好調なら事は半ば成就したのに等しい。",
-      "translation":"Well begun is half done. [Proverb]"
-    }],
-    "reading":"じょうじゅ",
-    "_id":3899399,
-    "meaning":"fulfillment, fulfilment, realization, realisation, completion"
-  },{
-    "writing":"民衆",
-    "createdOn":"20090527T144700.000Z",
-    "examples":[{
-      "example":"ウーマン・リブは底辺は広いが、非公式な民衆の運動である。",
-      "translation":"Women's Liberation is a broad-based but informal popular movement."
-    },{
-      "example":"演説者は民衆をそそのかして反乱を起こさせようとした。",
-      "translation":"The speaker tried to incite the people to rebellion."
-    },{
-      "example":"彼は常に民衆の味方であった。",
-      "translation":"He was always on the people's side."
-    },{
-      "example":"彼は民衆の支持を得ようと努めていた。",
-      "translation":"He was bidding for popular support."
-    },{
-      "example":"民衆はまるで羊のように独裁者の後に従った。",
-      "translation":"The people followed the dictator like so many sheep."
-    }],
-    "reading":"みんしゅう",
-    "_id":3899401,
-    "meaning":"people, populace, masses"
-  },{
-    "writing":"短冊",
-    "createdOn":"20090527T144936.000Z",
+    "writing":"鏝",
+    "createdOn":"20121109T171507.133Z",
     "examples":[],
-    "reading":"たんざく, たんじゃく",
-    "_id":3899402,
-    "meaning":"long, narrow card on which Japanese poems are written (vertically)"
+    "tags":["nonfreq","n","uk","lonely-kun"],
+    "reading":"こて",
+    "_id":"0000138800000000004498d3",
+    "meaning":"1) утюг;\n…にこてをあてる гладить (бельё и т. п.);\n2) щипцы для завивки волос;\n髪にこてをあてる завивать волосы;\n3) стр. мастерок, кельма, лопатка;\n…をこてで塗る, …にこてをあてる штукатурить что-л.;\n4) паяльник.",
+    "status":1
   },{
-    "writing":"開港",
-    "createdOn":"20090527T145138.000Z",
-    "examples":[{
-      "example":"新東京国際空港が成田に開港した。",
-      "translation":"The New Tokyo International Airport was opened in Narita."
-    }],
-    "reading":"かいこう",
-    "_id":3899403,
-    "meaning":"open port, opening a port"
-  },{
-    "writing":"凌辱",
-    "createdOn":"20090527T145915.000Z",
+    "writing":"膾炙",
+    "createdOn":"20121126T133336.504Z",
     "examples":[],
-    "reading":"りょうじょく",
-    "_id":3899405,
-    "meaning":"insult, affront, disgrace, indignity\nsexual assault, rape"
+    "tags":["nonfreq","n","vs","verb"],
+    "reading":"かいしゃ",
+    "_id":"00001388000000000044997e",
+    "meaning":"связ.: 人口に膾炙する быть у всех на устах; быть общеизвестным; вызывать множество разговоров (толков).",
+    "status":1
   },{
-    "writing":"徹底",
-    "createdOn":"20090527T145947.000Z",
+    "writing":"意表",
+    "createdOn":"20121126T133428.602Z",
     "examples":[{
-      "example":"あなたは徹底した人間嫌いですね。",
-      "translation":"You are a thoroughgoing misanthrope."
-    },{
-      "example":"ためらうことなく、その陰謀にたいする徹底した対抗処置をとった。",
-      "translation":"Without a moment's hesitation, they took drastic action against the conspiracy."
-    },{
-      "example":"厳格な父親は、徹底したしつけによって子供たちに決まりごとを守らせる。",
-      "translation":"A strict father makes his children toe the line by thorough training."
-    },{
-      "example":"彼は徹底した利己主義者だ。",
-      "translation":"He is a thorough-going egoist."
-    },{
-      "example":"生産性はオートメーションの徹底によって向上する。",
-      "translation":"Production improves by becoming more automatic."
+      "selected":true,
+      "id":177564,
+      "translation":"You surprised everybody.",
+      "example":"君はみんなの意表をついたね。"
     }],
-    "reading":"てってい",
-    "_id":3899406,
-    "meaning":"thoroughness, completeness"
+    "tags":["freq1","n"],
+    "reading":"いひょう",
+    "_id":"000013880000000000449984",
+    "meaning":"(n):surprise; something unexpected",
+    "status":1
   },{
-    "writing":"無闇に",
-    "createdOn":"20090527T150716.000Z",
+    "writing":"百聞は一見にしかず,百聞は一見に如かず",
+    "createdOn":"20121126T134059.331Z",
+    "examples":[{
+      "selected":true,
+      "id":85412,
+      "translation":"Seeing is believing.",
+      "example":"百聞は一見に如かず。"
+    },{
+      "selected":true,
+      "id":823590,
+      "translation":"To see is to believe.",
+      "example":"百聞は一見にしかず"
+    }],
+    "tags":["nonfreq","exp"],
+    "reading":"ひゃくぶんはいっけんにしかず",
+    "_id":"00001388000000000044998f",
+    "meaning":"(exp):seeing is believing; one eye-witness is better than many hearsays; a picture is worth a thousand words",
+    "status":1
+  },{
+    "writing":"悪事身にとまる",
+    "createdOn":"20121216T145411.950Z",
     "examples":[],
-    "reading":"むやみに",
-    "_id":3899407,
-    "meaning":"unreasonably, absurdly, recklessly, indiscreetly, at random"
+    "tags":[],
+    "reading":"あくじみにとまる",
+    "_id":"50cde0933fa749b39803ed40",
+    "meaning":"［＝返る］　自分で犯した悪事は自分に戻って来る。",
+    "status":1
   },{
-    "writing":"満足",
-    "createdOn":"20090530T113331.000Z",
+    "writing":"悪銭身に付かず,悪銭身につかず",
+    "createdOn":"20121216T145540.424Z",
     "examples":[{
-      "example":"１５年間は満足しうる取り決めであった。",
-      "translation":"It was a satisfactory arrangement for fifteen years."
-    },{
-      "example":"あなたが言われたことについては全く満足に感じています。",
-      "translation":"I am feeling quite pleased about what you've said."
-    },{
-      "example":"あなたの仕事はまったく満足できるというわけではない。",
-      "translation":"Your work is not altogether satisfactory."
-    },{
-      "example":"あなたは、あなたの仕事に満足していますか。",
-      "translation":"Are you satisfied with your job?"
-    },{
-      "example":"あなたはその結果に満足していますか。",
-      "translation":"Are you satisfied with the result?"
+      "selected":true,
+      "id":191400,
+      "translation":"Ill gained, ill spent.",
+      "example":"悪銭身に付かず。"
     }],
-    "reading":"まんぞく",
-    "_id":3997697,
-    "meaning":"satisfaction\nsufficiency"
+    "tags":["nonfreq","exp","id"],
+    "reading":"あくせんみにつかず",
+    "_id":"50cde0ec3fa749b39803ed73",
+    "meaning":"(exp,id):Easy come, easy go; Lightly comes, lightly goes; Soon gotten soon spent",
+    "status":1
   },{
-    "writing":"意地",
-    "createdOn":"20090530T131130.000Z",
+    "writing":"据える",
+    "createdOn":"20130107T151708.188Z",
     "examples":[{
-      "example":"意地の悪い魔女が男にとんでもない魔法をかけて、虫に変えてしまった。",
-      "translation":"The wicked witch cast an evil spell on the man and turned him into an insect."
+      "selected":true,
+      "id":112850,
+      "translation":"He has settled down to the job.",
+      "example":"彼はその仕事に腰をすえている。"
     },{
-      "example":"昔、イングランドにたいへん意地の悪い王様が住んでいた。",
-      "translation":"Once there lived a very wicked king in England."
+      "selected":true,
+      "id":94149,
+      "translation":"I find her manner a little hard to take.",
+      "example":"彼女の態度は少々腹にすえかねる。"
     },{
-      "example":"彼の兄は私に意地が悪かった。",
-      "translation":"His brother was nasty to me."
+      "selected":true,
+      "id":146837,
+      "translation":"Settle down for a while and concentrate.",
+      "example":"少しは腰を据えてやれ。"
     },{
-      "example":"みかけはそうではないのに本当は意地が悪い。",
-      "translation":"He doesn't look that way, but he's really a nasty piece of work."
+      "selected":true,
+      "id":107235,
+      "translation":"He settled down to his work.",
+      "example":"彼は腰を据えて仕事に取り掛かった。"
     },{
-      "example":"彼の意地の悪い発言で、講義が一層激しくなった。",
-      "translation":"His nasty comments fueled the argument."
+      "selected":true,
+      "id":101845,
+      "translation":"He mustered up his courage to talk to a foreigner.",
+      "example":"彼は度胸を据えて外人に話し掛けた。"
+    },{
+      "selected":true,
+      "id":94615,
+      "translation":"I couldn't put up with her arrogant behavior.",
+      "example":"彼女の横柄な態度は腹に据えかねた。"
+    },{
+      "selected":true,
+      "id":74457,
+      "translation":"A desk stood in the centre, with a red leather swivel-chair.",
+      "example":"中央には机が据えられていて、赤い革張りの回転椅子がそえてあった。"
+    },{
+      "selected":true,
+      "id":1158590,
+      "translation":"Nobody argued against choosing him as chairman.",
+      "example":"彼を議長に据えることに誰も異議を唱えなかった。"
+    },{
+      "selected":true,
+      "id":1240965,
+      "translation":"It might be because I am near-sighted, but I can't read or write if my desk is not in a brightly lit place.",
+      "example":"わたしは近眼のせいもありましょうが、机は明るいところに据えなければ、読むことも書くことも出来ません。"
     }],
-    "reading":"いじ",
-    "_id":3997698,
-    "meaning":"disposition, spirit, willpower, obstinacy, backbone, appetite"
+    "tags":["freq1","v1","verb","vt","lonely-kun"],
+    "reading":"すえる",
+    "_id":"50eae6f43fa7cc3afe3fc4e9",
+    "meaning":"1) ставить, устанавливать;\n土台を据える заложить фундамент;\n腰を据える а) усесться; б) долго сидеть за чем-л.;\n目を据えて見る уставиться на кого-что-л.;\n2) усаживать кого-л.;\n3) назначать на должность;\n…のあとがまに据える назначать в качестве преемника…;\n4) применять (лечебное прижигание);\n5) ставить (штамп, печать).",
+    "status":1
+  },{
+    "writing":"阿付迎合,阿附迎合",
+    "createdOn":"20130113T153553.373Z",
+    "examples":[],
+    "tags":["nonfreq","n","vs","verb","4j"],
+    "reading":"あふげいごう",
+    "_id":"50f2d4593fa7d0e4555ee2ea",
+    "meaning":"(n,vs):ingratiation; sycophancy\n「阿付」は、おもねること、「迎合」は、へつらうことで、人に気に入られようとしてそのその人の言い成りになり、おべんちゃらを言う。 類：●取り持ち屋●茶坊主●迎合（あど）を打つ●米搗（つ）き飛蝗（ばった）●太鼓持ち●阿諛（あゆ）迎合●提灯（ちょうちん）持ち",
+    "status":1
+  },{
+    "writing":"安常処順",
+    "createdOn":"20130113T153706.128Z",
+    "examples":[],
+    "tags":["4j"],
+    "reading":"あんじょうしょじゅん",
+    "_id":"50f2d4a23fa7d0e4555ee366",
+    "meaning":"平穏でのどかな暮らしのこと。万事が順調に運ぶ状況にあること。",
+    "status":1
+  },{
+    "writing":"安心立命",
+    "createdOn":"20130113T153711.516Z",
+    "examples":[],
+    "tags":["nonfreq","n","vs","verb","4j"],
+    "reading":"あんしんりつめい,あんじんりゅうめい,あんじんりゅうみょう",
+    "_id":"50f2d4a73fa7d0e4555ee372",
+    "meaning":"人力を尽くしてその身を天命に任せ、どんな場合にも落ち着いていること。信仰によって心を平安に保ち、下らないことに心を動かさないこと。 類：●天を楽しみ命を知る 出典：「伝燈録」 ★初め儒学の語であったが、のちに主として禅宗の語として使われ、その後、広く使われるようになった＜大辞林（三）＞",
+    "status":1
+  },{
+    "writing":"移花接木",
+    "createdOn":"20130113T153835.095Z",
+    "examples":[],
+    "tags":["4j"],
+    "reading":"いかせつぼく",
+    "_id":"50f2d4fb3fa7d0e4555ee3fa",
+    "meaning":"花を取り替え、枝を接ぎ木する。 １．人や物を取り替えて、表面を取り繕うこと。２．論点などを、巧みに擦り替えること。",
+    "status":1
+  },{
+    "writing":"衣冠束帯",
+    "createdOn":"20130113T153840.580Z",
+    "examples":[],
+    "tags":["nonfreq","n","4j"],
+    "reading":"いかんそくたい",
+    "_id":"50f2d5003fa7d0e4555ee412",
+    "meaning":"貴族の礼装で、平安朝以降の天皇・公家・貴族・高級官僚の正装。 ★「束帯」は天皇以下文武百官が朝廷の公事に着た正服。「衣冠」は、束帯を簡略化した服装のこと。 ★衣冠と束帯が同一のものと誤解され、江戸時代後半以降に成立した言葉。",
+    "status":1
+  },{
+    "writing":"意気阻喪",
+    "createdOn":"20130113T153856.065Z",
+    "examples":[],
+    "tags":["nonfreq","n","vs","verb","4j"],
+    "reading":"いきそそう",
+    "_id":"50f2d5103fa7d0e4555ee444",
+    "meaning":"意気込みが挫（くじ）けて弱まること。元気を失うこと。 類：●意気消沈",
+    "status":1
+  },{
+    "writing":"異客没却",
+    "createdOn":"20130113T153900.404Z",
+    "examples":[],
+    "tags":["4j"],
+    "reading":"いきゃくもっきゃく",
+    "_id":"50f2d5143fa7d0e4555ee450",
+    "meaning":"歓迎されない客。 類：●異客（いきゃく） ★「没却」は身をほろぼすの意。「異客」に語調を合わせて添えた語。近世、格式に違う意の「違格」と混同し、正当でない客の意にとる＜国語大辞典(小)＞",
+    "status":1
+  },{
+    "writing":"衣錦還郷",
+    "createdOn":"20130113T153907.315Z",
+    "examples":[],
+    "tags":["4j"],
+    "reading":"いきんかんきょう",
+    "_id":"50f2d51b3fa7d0e4555ee480",
+    "meaning":"立身出世して生まれ故郷へ帰ること。 類：●故郷へ錦を飾る●錦を飾る 出典：李白「越中覽古」「越王句踐破呉歸、義士還郷盡錦衣」",
+    "status":1
+  },{
+    "writing":"意志薄弱",
+    "createdOn":"20130113T153913.930Z",
+    "examples":[{
+      "selected":true,
+      "id":422731,
+      "translation":"He's a weak-willed man.",
+      "example":"こいつは意志薄弱な男です。"
+    }],
+    "tags":["nonfreq","adj-na","adj","n","adj-no","4j"],
+    "reading":"いしはくじゃく",
+    "_id":"50f2d5213fa7d0e4555ee4bc",
+    "meaning":"意志の力が弱く、我慢強さに欠ける人。また、他からの煽（おだ）てに乗り易く、自分独自の決断を下せない人。 例：「意志薄弱なので煙草がやめられない」 類：●優柔不断 反：■意志強固",
+    "status":1
+  },{
+    "writing":"衣帯不解",
+    "createdOn":"20130113T153924.974Z",
+    "examples":[],
+    "tags":["4j"],
+    "reading":"いたいふかい",
+    "_id":"50f2d52c3fa7d0e4555ee4fe",
+    "meaning":"衣服を着替えることもせず、不眠不休で仕事に熱中すること。やり遂げるために、長時間真剣に取り組むこと。 類：●不眠不休 故事：「漢書－王莽伝・上」「乱首垢面、不解衣帯連月」 王莽（おうもう）は、伯父王鳳（おうほう）の病が重くなったとき、何ヶ月も着物の帯を解かずに看病した。",
+    "status":1
+  },{
+    "writing":"一意直到",
+    "createdOn":"20130113T153933.225Z",
+    "examples":[],
+    "tags":["4j"],
+    "reading":"いちいちょくとう",
+    "_id":"50f2d5353fa7d0e4555ee523",
+    "meaning":"思ったことを、偽らずに有りの侭（まま）表わすこと。 類：●真実一路●竹を割ったような 反：■巧言令色",
+    "status":1
+  },{
+    "writing":"一言居士",
+    "createdOn":"20130113T153938.245Z",
+    "examples":[{
+      "selected":true,
+      "id":190647,
+      "translation":"You have something to say about everything, don't you?",
+      "example":"一言居士。"
+    },{
+      "selected":true,
+      "id":195550,
+      "translation":"Uh-oh here comes another lecture. How typical. This guy has something to say about everything.",
+      "example":"また、お説教が始まった。一言居士の面目躍如というところだね。"
+    }],
+    "tags":["nonfreq","n","4j"],
+    "reading":"いちげんこじ",
+    "_id":"50f2d53a3fa7d0e4555ee553",
+    "meaning":"何事についても、自分の意見を言わないと、気が済まない人。 ★「一言抉（こじ）る」を人名になぞらえたもの＜国語大辞典(小)＞",
+    "status":1
+  },{
+    "writing":"一伍一什",
+    "createdOn":"20130113T153939.869Z",
+    "examples":[],
+    "tags":["nonfreq","n","4j"],
+    "reading":"いちごいちじゅう",
+    "_id":"50f2d53b3fa7d0e4555ee560",
+    "meaning":"一から十まで。始めから終わりまで。 類：●一部始終",
+    "status":1
+  },{
+    "writing":"箒",
+    "createdOn":"20130116T172153.134Z",
+    "examples":[{
+      "selected":true,
+      "id":91553,
+      "translation":"She sweeps the room with a broom.",
+      "example":"彼女はほうきで部屋を掃除する。"
+    },{
+      "selected":true,
+      "id":143592,
+      "translation":"The angry wife was on the warpath; she hit her husband with a broom for coming home late and drunk.",
+      "example":"酔っ払っておそく家に帰ったかどで、怒った女房は亭主に食ってかかり、箒で亭主をひっぱたいた。"
+    }],
+    "tags":["freq1","n","vs","verb","uk","lonely-kun"],
+    "reading":"ほうき",
+    "_id":"50f6e1b13fa7415776718e4f",
+    "meaning":"метла; веник;\n箒で掃く мести метлой;\nあんな男は箒で掃くほどある такими, как он, хоть пруд пруди.",
+    "status":1
+  },{
+    "writing":"魑魅魍魎",
+    "createdOn":"20130203T110749.358Z",
+    "examples":[],
+    "tags":["nonfreq","n","4j"],
+    "reading":"ちみもうりょう",
+    "_id":"510e45053fa779d4c0b23160",
+    "meaning":"кн. злые духи гор и рек, страшилища.",
+    "status":1
+  },{
+    "writing":"尋常",
+    "createdOn":"20130203T110752.519Z",
+    "examples":[{
+      "selected":true,
+      "id":216525,
+      "translation":"Jane didn't die a natural death.",
+      "example":"ジェーンの死は尋常ではない。"
+    },{
+      "selected":true,
+      "id":372718,
+      "translation":"Is it normal for male teachers to make eyes at female students?",
+      "example":"男性高校教師が女子生徒に色目を使うのは尋常でしょうか？"
+    }],
+    "tags":["freq2","adj-na","adj","n","adj-no"],
+    "reading":"じんじょう",
+    "_id":"510e45083fa779d4c0b2316c",
+    "meaning":"1): ～の обыкновенный, обычный, нормальный;\n彼にはどこが尋常でない所がある в нём есть что-то своеобразное;\n2): ～な правильный; честный;\n尋常に白状する честно (открыто) признаваться.",
+    "status":1
+  },{
+    "writing":"無頼",
+    "createdOn":"20130203T110803.886Z",
+    "examples":[],
+    "tags":["freq2","n","adj-na","adj","adj-no"],
+    "reading":"ぶらい",
+    "_id":"510e45133fa779d4c0b23178",
+    "meaning":"(n,adj-na,adj-no):hoodlum; scoundrel; ruffian; tough; villain\nvillainy\nwithout relying on others; without asking for help",
+    "status":1
+  },{
+    "writing":"満身創痍",
+    "createdOn":"20130203T110925.127Z",
+    "examples":[],
+    "tags":["nonfreq","n","4j"],
+    "reading":"まんしんそうい",
+    "_id":"510e45653fa779d4c0b231b0",
+    "meaning":"(n):having wounds all over one's body",
+    "status":1
+  },{
+    "writing":"天涯孤独",
+    "createdOn":"20130203T111250.561Z",
+    "examples":[],
+    "tags":["nonfreq","n","4j"],
+    "reading":"てんがいこどく",
+    "_id":"510e46323fa779d4c0b23219",
+    "meaning":"(n):a person without a single relative",
+    "status":1
+  },{
+    "writing":"証左",
+    "createdOn":"20130203T111842.463Z",
+    "examples":[{
+      "selected":true,
+      "id":75245,
+      "translation":"Just as if that was proof that that English was correct.",
+      "example":"まるでそれが正しい英語の証左かのように。"
+    }],
+    "tags":["nonfreq","n"],
+    "reading":"しょうさ",
+    "_id":"510e47923fa779d4c0b234f7",
+    "meaning":"(n):evidence; proof; witness",
+    "status":1
+  },{
+    "writing":"嵌め殺し,はめ殺し",
+    "createdOn":"20130203T111849.591Z",
+    "examples":[],
+    "tags":["nonfreq","n"],
+    "reading":"はめごろし,はめころし",
+    "_id":"510e47993fa779d4c0b23510",
+    "meaning":"(n):fixed fitting\n開閉できない固定された建具｡または建具のそのような取り付け方｡",
+    "status":1
+  },{
+    "writing":"相席",
+    "createdOn":"20130203T112011.898Z",
+    "examples":[{
+      "selected":true,
+      "id":140432,
+      "translation":"May I share this table with you?",
+      "example":"相席させていただけますか。"
+    },{
+      "selected":true,
+      "id":140433,
+      "translation":"May I share this table with you?",
+      "example":"相席させていただいてよろしいですか。"
+    }],
+    "tags":["nonfreq","n","vs","verb"],
+    "reading":"あいせき",
+    "_id":"510e47eb3fa779d4c0b2354f",
+    "meaning":"(n,vs):sharing a table (at a restaurant with someone you don't know)",
+    "status":1
+  },{
+    "writing":"懇切",
+    "createdOn":"20130203T112015.257Z",
+    "examples":[],
+    "tags":["freq2","adj-na","adj","n"],
+    "reading":"こんせつ",
+    "_id":"510e47ef3fa779d4c0b2355b",
+    "meaning":"(adj-na,n):kindness; cordiality; exhaustiveness",
+    "status":1
+  },{
+    "writing":"想像",
+    "createdOn":"20130203T112016.834Z",
+    "examples":[{
+      "selected":true,
+      "id":217085,
+      "translation":"I leave it to your imagination.",
+      "example":"ご想像に任せます。"
+    },{
+      "selected":true,
+      "id":202526,
+      "translation":"After all, it might be imagination.",
+      "example":"つまるところ想像力だろう。"
+    },{
+      "selected":true,
+      "id":233745,
+      "translation":"You can't imagine it, can you?",
+      "example":"あなたには想像もつかない、でしょ？"
+    },{
+      "selected":true,
+      "id":217086,
+      "translation":"I'll leave it up to your imagination.",
+      "example":"ご想像にお任せします。"
+    },{
+      "selected":true,
+      "id":204080,
+      "translation":"I can't imagine such a life.",
+      "example":"そんな生活は想像できません。"
+    },{
+      "selected":true,
+      "id":188269,
+      "translation":"Music feeds our imagination.",
+      "example":"音楽は想像力を豊かにする。"
+    },{
+      "selected":true,
+      "id":147179,
+      "translation":"Don't let your imagination run wild.",
+      "example":"勝手にそんなふうに想像するなよ。"
+    },{
+      "selected":true,
+      "id":140594,
+      "translation":"I couldn't even guess.",
+      "example":"想像すらできなかった。"
+    },{
+      "selected":true,
+      "id":140591,
+      "translation":"I used my imagination.",
+      "example":"想像力を働かせた。"
+    },{
+      "selected":true,
+      "id":102875,
+      "translation":"He has a rich imagination.",
+      "example":"彼は想像力が豊かだ。"
+    },{
+      "selected":true,
+      "id":78215,
+      "translation":"The dragon is an imaginary creature.",
+      "example":"竜は想像上の生物である。"
+    },{
+      "selected":true,
+      "id":1125130,
+      "translation":"A dragon is a creature of fancy.",
+      "example":"竜は想像上の動物だ。"
+    },{
+      "selected":true,
+      "id":1690040,
+      "translation":"",
+      "example":"想像力を解き放て。"
+    },{
+      "selected":true,
+      "id":221154,
+      "translation":"This novel is very imaginative.",
+      "example":"この小説は想像力に富んでいる。"
+    },{
+      "selected":true,
+      "id":220448,
+      "translation":"I cannot fancy going out in this weather.",
+      "example":"この天気に外出するなど想像できない。"
+    },{
+      "selected":true,
+      "id":220447,
+      "translation":"I can't fancy going out in this weather.",
+      "example":"この天気に外出するなど想像もできない。"
+    },{
+      "selected":true,
+      "id":218301,
+      "translation":"This is beyond the scope of my imagination.",
+      "example":"これは私の想像の範囲を超えている。"
+    },{
+      "selected":true,
+      "id":188178,
+      "translation":"We cannot conceive science without a hypothesis.",
+      "example":"仮説のない科学など想像もできない。"
+    },{
+      "selected":true,
+      "id":175649,
+      "translation":"Imagine yourself to be on the moon.",
+      "example":"月の上にいると想像しなさい。"
+    },{
+      "selected":true,
+      "id":169227,
+      "translation":"I'm afraid your guess is wide of the mark.",
+      "example":"残念ながら君の想像は検討違いだ。"
+    }],
+    "tags":[],
+    "reading":"そうぞう",
+    "_id":"510e47f03fa779d4c0b23567",
+    "meaning":"(n,vs,adj-no):imagination; guess",
+    "status":1
+  },{
+    "writing":"瑣末",
+    "createdOn":"20130203T112103.496Z",
+    "examples":[],
+    "tags":["freq2","adj-na","adj","n"],
+    "reading":"さまつ",
+    "_id":"510e481f3fa779d4c0b23581",
+    "meaning":"(adj-na,n):trivial; trifling",
+    "status":1
+  },{
+    "writing":"余談",
+    "createdOn":"20130203T112224.536Z",
+    "examples":[{
+      "selected":true,
+      "id":74532,
+      "translation":"By the by, this ability to will fire into existence is apparently called pyrokinesis.",
+      "example":"余談だが、この念発火能力のことをパイロキネシスというらしい。"
+    }],
+    "tags":["freq1","n","adj-no"],
+    "reading":"よだん",
+    "_id":"510e48703fa779d4c0b235a8",
+    "meaning":"(n,adj-no):digression; sequel (of a story)",
+    "status":1
+  },{
+    "writing":"繰り広げる",
+    "createdOn":"20130203T115652.747Z",
+    "examples":[{
+      "selected":true,
+      "id":1000915,
+      "translation":"",
+      "example":"いちごが果物か野菜かをめぐって関係団体が利権争いを繰り広げている。"
+    },{
+      "selected":true,
+      "id":75663,
+      "translation":"A love story that unfolds between an unlikely pair, a public prosecutor from a good family and a modern high school girl.",
+      "example":"良家出身のエリート検事と今どきの女子高生という、アンバランスな男女の間に繰り広げられる愛の物語。"
+    },{
+      "selected":true,
+      "id":75507,
+      "translation":"The exchange unfolding in front of my eyes had not a single millimetre of a gap in which for me to slip.",
+      "example":"目の前で繰り広げられるやり取りは、俺が入り込む隙なんて一ミリもない。"
+    }],
+    "tags":[],
+    "reading":"くりひろげる",
+    "_id":"510e50843fa779d4c0b23aac",
+    "meaning":"(v1,vt):to unfold; to unroll; to open",
+    "status":1
+  }],
+  "sequence":[{
+    "cid":"50f2d4aa3fa7d0e4555ee378",
+    "source":"Ready",
+    "seq":22853042814582784
+  },{
+    "cid":"50f2d5033fa7d0e4555ee425",
+    "source":"Ready",
+    "seq":22853042814582785
+  },{
+    "cid":"00001388dd4aa90225af464a",
+    "source":"Ready",
+    "seq":22853042814582786
+  },{
+    "cid":"00001388d7669b7b9401319c",
+    "source":"Ready",
+    "seq":22853042814582787
+  },{
+    "cid":"000013880000000000001467",
+    "source":"Ready",
+    "seq":22853042814582788
+  },{
+    "cid":"50f2d5173fa7d0e4555ee460",
+    "source":"Ready",
+    "seq":22853042814582789
+  },{
+    "cid":"50f2d47b3fa7d0e4555ee2ff",
+    "source":"Ready",
+    "seq":22853042814582790
+  },{
+    "cid":"510e48633fa779d4c0b23594",
+    "source":"Ready",
+    "seq":22853042814582791
+  },{
+    "cid":"50cde0ab3fa749b39803ed53",
+    "source":"Bad",
+    "seq":22853042814582792
+  },{
+    "cid":"510e46403fa779d4c0b23228",
+    "source":"Ready",
+    "seq":22853042814582793
+  },{
+    "cid":"510e45c03fa779d4c0b231c3",
+    "source":"Ready",
+    "seq":22853042814582794
+  },{
+    "cid":"50f2d4ad3fa7d0e4555ee382",
+    "source":"Ready",
+    "seq":22853042814582795
+  },{
+    "cid":"00001388d2d67cf0e42bcfaa",
+    "source":"Bad",
+    "seq":22853042814582796
+  },{
+    "cid":"000013882ec2b1eeaa793949",
+    "source":"Ready",
+    "seq":22853042814582797
+  },{
+    "cid":"510e45293fa779d4c0b23189",
+    "source":"Ready",
+    "seq":22853042814582798
+  },{
+    "cid":"510e45133fa779d4c0b23173",
+    "source":"Ready",
+    "seq":22853042814582799
+  },{
+    "cid":"510e48f13fa779d4c0b235c1",
+    "source":"Ready",
+    "seq":22853042814582800
+  },{
+    "cid":"510e47983fa779d4c0b2350a",
+    "source":"Ready",
+    "seq":22853042814582801
+  },{
+    "cid":"510e50893fa779d4c0b23abe",
+    "source":"Ready",
+    "seq":22853042814582802
+  },{
+    "cid":"50f2d5373fa7d0e4555ee536",
+    "source":"Bad",
+    "seq":22853042814582803
+  },{
+    "cid":"50f2d5333fa7d0e4555ee510",
+    "source":"Ready",
+    "seq":22853042814582804
+  },{
+    "cid":"000013885dae22c0d3fb4603",
+    "source":"Ready",
+    "seq":22853042814582805
+  },{
+    "cid":"50f2d53d3fa7d0e4555ee571",
+    "source":"Bad",
+    "seq":22853042814582806
+  },{
+    "cid":"000013880f5772d674b197f2",
+    "source":"Ready",
+    "seq":22853042814582807
+  },{
+    "cid":"50f2d5153fa7d0e4555ee455",
+    "source":"Bad",
+    "seq":22853042814582808
+  },{
+    "cid":"510e45133fa779d4c0b23173",
+    "source":"Bad",
+    "seq":22853042814582809
+  },{
+    "cid":"00001388756e7ff1158c2b21",
+    "source":"Bad",
+    "seq":22853042814582810
+  },{
+    "cid":"000013885f28e5961e541197",
+    "source":"Ready",
+    "seq":22853042814582811
+  },{
+    "cid":"000013884f4398a11d98716b",
+    "source":"Ready",
+    "seq":22853042814582812
+  },{
+    "cid":"50f2d53c3fa7d0e4555ee567",
+    "source":"Ready",
+    "seq":22853042814582813
+  },{
+    "cid":"50cde1043fa749b39803ed88",
+    "source":"Bad",
+    "seq":22853042814582814
+  },{
+    "cid":"000013882ae866f7e6f0f617",
+    "source":"Ready",
+    "seq":22853042814582815
+  },{
+    "cid":"510e47d23fa779d4c0b23523",
+    "source":"Ready",
+    "seq":22853042814582816
+  },{
+    "cid":"50f6e1cf3fa7415776718e61",
+    "source":"Ready",
+    "seq":22853042814582817
+  },{
+    "cid":"000013883c56d4792f6640e1",
+    "source":"Ready",
+    "seq":22853042814582818
+  },{
+    "cid":"00001388107802aef89da1ff",
+    "source":"Ready",
+    "seq":22853042814582819
+  },{
+    "cid":"510e481f3fa779d4c0b2357a",
+    "source":"Ready",
+    "seq":22853042814582820
+  },{
+    "cid":"0000138824cdf48bdf4c8c2c",
+    "source":"Ready",
+    "seq":22853042814582821
+  },{
+    "cid":"50f2d5003fa7d0e4555ee40b",
+    "source":"Bad",
+    "seq":22853042814582822
+  },{
+    "cid":"510e47f03fa779d4c0b23560",
+    "source":"Ready",
+    "seq":22853042814582823
+  },{
+    "cid":"510e47f13fa779d4c0b2356e",
+    "source":"Ready",
+    "seq":22853042814582824
+  },{
+    "cid":"50f2d5033fa7d0e4555ee425",
+    "source":"Bad",
+    "seq":22853042814582825
+  },{
+    "cid":"50f2d47b3fa7d0e4555ee2fe",
+    "source":"Ready",
+    "seq":22853042814582826
+  },{
+    "cid":"50f2d5243fa7d0e4555ee4d0",
+    "source":"Ready",
+    "seq":22853042814582827
+  },{
+    "cid":"0000138806a31b0f9ef9d9d7",
+    "source":"Ready",
+    "seq":22853042814582828
+  },{
+    "cid":"50f2d51e3fa7d0e4555ee493",
+    "source":"Bad",
+    "seq":22853042814582829
+  },{
+    "cid":"50cde0ab3fa749b39803ed53",
+    "source":"Ready",
+    "seq":22853042814582830
+  },{
+    "cid":"50eae7013fa7cc3afe3fc4f2",
+    "source":"Ready",
+    "seq":22853042814582831
+  },{
+    "cid":"00001388d2d67cf0e42bcfaa",
+    "source":"Ready",
+    "seq":22853042814582832
+  },{
+    "cid":"510e451c3fa779d4c0b23180",
+    "source":"Ready",
+    "seq":22853042814582833
   }]
 }

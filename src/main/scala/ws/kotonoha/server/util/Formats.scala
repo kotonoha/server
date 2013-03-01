@@ -14,34 +14,23 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.actors.schedulers
+package ws.kotonoha.server.util
 
-import ws.kotonoha.server.actors.UserScopedActor
+import net.liftweb.json._
+import org.bson.types.ObjectId
+import net.liftweb.json.JsonAST.JString
 
 /**
- *
- * This Scheduler gets bad cards - that had last mark 1, 2 or 3.
- *
- * It's not very complicated
- *
  * @author eiennohito
- * @since 08.02.13
+ * @since 01.03.13 
  */
-class BadCardScheduler extends UserScopedActor {
 
-  import com.foursquare.rogue.LiftRogue._
-  import ws.kotonoha.server.util.DateTimeUtils._
-
-  def loadBadCards(cnt: Int) = {
-    val q = Queries.badCards(uid) select (_.id)
-    q.fetch(cnt)
+object OidSerializer extends Serializer[ObjectId] {
+  override def serialize(implicit format: Formats) = {
+    case x: ObjectId => JString(x.toString)
   }
 
-  def receive = {
-    case CardRequest(_, _, _, _, cnt) =>
-      sender ! PossibleCards(loadBadCards(cnt).map {
-        cid => ReviewCard(cid, "Bad")
-      })
-    case _: CardsSelected =>
+  override def deserialize(implicit format: Formats) = {
+    case (_, JString(s)) => new ObjectId(s)
   }
 }

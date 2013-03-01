@@ -21,7 +21,7 @@ import org.bson.types.ObjectId
 import akka.actor.{ActorLogging, Props}
 import ws.kotonoha.server.records.WordCardRecord
 import akka.util.Timeout
-import ws.kotonoha.server.actors.learning.LoadCards
+import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadCards}
 import akka.pattern.pipe
 
 /**
@@ -60,7 +60,7 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
       Source(ready, 5),
       Source(newcard, 1),
       Source(lowrep, 0.5),
-      Source(bad, 1.5)
+      Source(bad, 2.5)
     ),
     State.AfterRest -> CardMixer(
       Source(ready, 1),
@@ -88,13 +88,15 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
     )
   )
 
-  def load(ids: List[ObjectId]): List[WordCardRecord] = {
-    val recs = WordCardRecord.findAll(ids)
-    val map = recs.map(r => r.id.is -> r).toMap
-    ids.map(id => map(id))
-  }
-
   var current = 0
+
+  def seqnum() = {
+    val timepart = System.currentTimeMillis() / 1000
+    val res = (timepart << 24) | current
+    current += 1
+    if (current > (1 << 24)) current = 0
+    res
+  }
 
   def receive = {
     case LoadCards(cnt) => loadCards(cnt)
@@ -111,6 +113,12 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
     )
     val mixer = mixers(state)
     log.debug("For user {} scheduler state = {}", uid, state)
-    mixer.process(req).map(ids => load(ids)) pipeTo sender
+    mixer.process(req).map {
+      seq =>
+        val outsec = seq.map {
+          c => c.copy(seq = seqnum())
+        }
+        WordsAndCards(Nil, Nil, outsec)
+    } pipeTo sender
   }
 }

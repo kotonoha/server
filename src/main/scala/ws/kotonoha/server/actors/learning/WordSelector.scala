@@ -29,6 +29,7 @@ import model.SchedulePaired
 import DateTimeUtils._
 import org.bson.types.ObjectId
 import akka.actor.Status.Failure
+import schedulers.ReviewCard
 
 /**
  * @author eiennohito
@@ -113,7 +114,7 @@ case class LoadWords(max: Int) extends SelectWordsMessage
 
 case class LoadReviewList(max: Int) extends SelectWordsMessage
 
-case class WordsAndCards(words: List[WordRecord], cards: List[WordCardRecord])
+case class WordsAndCards(words: List[WordRecord], cards: List[WordCardRecord], sequence: List[ReviewCard])
 
 case class LoadScheduled(uid: ObjectId, maxSched: Int)
 
