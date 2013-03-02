@@ -78,9 +78,9 @@ class CardSelectorCache extends UserScopedActor with ActorLogging {
 
   def processReply(to: ActorRef, wnc: WordsAndCards, cnt: Int): Unit = {
     val data = wnc.sequence
-    invalidate()
     val last = cache.length
     cache = (cache ++ data).distinct
+    invalidate()
     answer(cnt, to)
     log.debug("updated global card cache from {} to {} req {}", last, cache.length, cnt)
   }
