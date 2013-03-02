@@ -25,6 +25,7 @@ import ws.kotonoha.server.supermemo.OFMatrixHolder
  *
  * Algorithm: we select cards that have interval as if they were marked between 2->4 and and 5->5
  * marks (intervals will be calculated with (2.1, 1) and (2.1, 2) of matrix entries).
+ * Cards should be repeated at least 14 days ago.
  *
  * @author eiennohito
  * @since 27.02.13 
@@ -40,8 +41,10 @@ class LowRepBigIntScheduler extends UserScopedActor {
   def query(cnt: Int) = {
     val lower = of(1, 2.1) * of(2, 2.1)
     val upper = of(1, 2.5) * of(2, 2.6)
+    val borderline = now.minusDays(14)
 
     val q = WordCardRecord.enabledFor(uid) where (_.notBefore lt now) and
+      (_.learning.subfield(_.intervalStart) lt borderline) and
       (_.learning.subfield(_.intervalLength) between(lower, upper)) select (_.id)
     q.fetch(cnt)
   }
