@@ -49,7 +49,9 @@ class CardSelectorCache extends UserScopedActor with ActorLogging {
   val impl = context.actorOf(Props[CoreScheduler])
 
   def invalidate() = {
+    val cnt = cache.length
     cache = cache.filter(c => !trim.contains(c.cid)) //invalidate cache
+    log.debug("invalidated cache: reduced size from {} to {} by {}, trim.size {}", cnt, cache.size, cache.size - cnt, trim.size)
     trim = Set.empty
   }
 
@@ -92,7 +94,7 @@ class CardSelectorCache extends UserScopedActor with ActorLogging {
   }
 
   override def preStart() {
-    userActor ! RegisterCardListener(self)
     super.preStart()
+    userActor ! RegisterCardListener(self)
   }
 }

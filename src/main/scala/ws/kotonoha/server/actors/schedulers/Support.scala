@@ -21,6 +21,7 @@ import org.bson.types.ObjectId
 import util.Random
 import akka.actor.ActorRef
 import akka.util.Timeout
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author eiennohito
@@ -30,7 +31,7 @@ import akka.util.Timeout
 
 case class Source(provider: CardProvider, weight: Double)
 
-case class CardMixer(input: List[Source]) {
+class CardMixer(input: List[Source]) extends Logging {
 
   import java.util.Arrays.binarySearch
 
@@ -74,6 +75,7 @@ case class CardMixer(input: List[Source]) {
     rewrap.map {
       lst =>
         val (cnt, data) = combine(lst.toArray, req.limit)
+        logger.debug(s"Made a selection [${req.state}] -> (${cnt.mkString(", ")}})")
         cnt.zip(input).foreach {
           case (cnt, src) => src.provider.selected(cnt)
         }

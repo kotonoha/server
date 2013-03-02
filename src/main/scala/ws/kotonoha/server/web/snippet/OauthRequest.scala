@@ -17,6 +17,7 @@ import org.bson.types.ObjectId
  */
 
 object OauthRequest extends Akka with ReleaseAkka {
+
   import com.foursquare.rogue.LiftRogue._
   import concurrent.duration._
 
@@ -33,8 +34,8 @@ object OauthRequest extends Akka with ReleaseAkka {
           case Full(u) => {
             val str: String = makeAuthString(u, cl)
             <p>
-              You are trying to authentificate {cl.name.is}
-              <a class="btn" href={"http://kotonoha.ws/intent/auth?data="+str}>Confirm</a>
+              You are trying to authentificate
+              {cl.name.is}<a class="btn" href={"http://kotonoha.ws/intent/auth?data=" + str}>Confirm</a>
             </p>
           }
           case _ => {
@@ -46,11 +47,11 @@ object OauthRequest extends Akka with ReleaseAkka {
                 uBox match {
                   case Full(u) => {
                     val msg = makeAuthString(u.id.is, cl)
-                    S.redirectTo("kotonoha://kotonoha.ws/intent/auth?data="+msg)
+                    S.redirectTo("kotonoha://kotonoha.ws/intent/auth?data=" + msg)
                   }
                   case _ => {
                     <b>Invalid username or password, please try one more time</b> ++
-                    in
+                      in
                   }
                 }
               }
@@ -66,8 +67,9 @@ object OauthRequest extends Akka with ReleaseAkka {
   }
 
   def makeAuthString(uid: ObjectId, cl: ClientRecord): String = {
+    import ws.kotonoha.server.actors.UserSupport._
     val name = dateRenderer.print(System.currentTimeMillis())
-    val f = (akkaServ ? EncryptedTokenString(CreateToken(uid, name), cl.apiPrivate.is))
+    val f = (akkaServ ? EncryptedTokenString(CreateToken(uid, name), cl.apiPrivate.is).u(uid))
       .mapTo[String]
     val str = Await.result(f, 1 minute)
     str

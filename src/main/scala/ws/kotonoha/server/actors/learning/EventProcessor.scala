@@ -140,14 +140,15 @@ class EventProcessor extends UserScopedActor with ActorLogging {
     case Terminated(act) => listeners = listeners.filter(_ != act)
     case UnregisterCardListener(act) => listeners = listeners.filter(_ != act)
     case p: ProcessMarkEvent =>
-      val f = children ? p
+      val f = (children ? p)
       f foreach {
-        _ => listeners.foreach(a => a ! CardProcessed(p.mark.card.is))
+        _ =>
+          listeners.foreach(a => a ! CardProcessed(p.mark.card.is))
       }
       f pipeTo sender
     case ProcessMarkEvents(evs) => {
       val futs = evs.map {
-        ev => ask(children, ProcessMarkEvent(ev)).mapTo[Int]
+        ev => ask(self, ProcessMarkEvent(ev)).mapTo[Int]
       }
       Future.sequence(futs) pipeTo sender
     }
