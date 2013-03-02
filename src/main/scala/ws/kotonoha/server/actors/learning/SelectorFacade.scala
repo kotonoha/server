@@ -84,8 +84,8 @@ class CardSelectorFacade extends UserScopedActor with ActorLogging {
   val scheduler = context.actorOf(Props[CardSelectorCache], "scheduler")
 
   def receive = {
-    case LoadWords(max) => {
-      val f = ask(self, LoadCards(max))(10 seconds).mapTo[WordsAndCards]
+    case LoadWords(max, skip) => {
+      val f = ask(self, LoadCards(max, skip))(10 seconds).mapTo[WordsAndCards]
       f.map {
         lst => createResult(lst)
       } pipeTo sender

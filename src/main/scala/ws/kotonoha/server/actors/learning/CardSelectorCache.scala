@@ -38,7 +38,7 @@ class CardSelectorCache extends UserScopedActor with ActorLogging {
   import akka.pattern.pipe
   import concurrent.duration._
 
-  case class ProcessAnswer(to: ActorRef, data: WordsAndCards, cnt: Int)
+  case class ProcessAnswer(to: ActorRef, data: WordsAndCards, cnt: Int, skip: Int)
 
   implicit val timeout: Timeout = 5 seconds
 
@@ -51,7 +51,9 @@ class CardSelectorCache extends UserScopedActor with ActorLogging {
   def invalidate() = {
     val cnt = cache.length
     cache = cache.filter(c => !trim.contains(c.cid)) //invalidate cache
-    log.debug("invalidated cache: reduced size from {} to {} by {}, trim.size {}", cnt, cache.size, cache.size - cnt, trim.size)
+    val diff = cache.size - cnt
+    if (diff != 0)
+      log.debug("invalidated cache: reduced size from {} to {} by {}, trim.size {}", cnt, cache.size, diff, trim.size)
     trim = Set.empty
   }
 
@@ -60,37 +62,37 @@ class CardSelectorCache extends UserScopedActor with ActorLogging {
     WordCardRecord where (_.id in cids) fetch()
   }
 
-  def processLoad(cnt: Int): Unit = {
+  def processLoad(cnt: Int, skip: Int): Unit = {
     invalidate()
     if (cache.length < cnt) {
       val s = sender
-      val wnc = (impl ? LoadCards(cnt * 8 / 5)).mapTo[WordsAndCards]
-      wnc.map(w => ProcessAnswer(s, w, cnt)) pipeTo self
+      val wnc = (impl ? LoadCards((cnt + skip) * 6 / 5 + 5, 0)).mapTo[WordsAndCards]
+      wnc.map(w => ProcessAnswer(s, w, cnt, skip)) pipeTo self
     } else {
-      answer(cnt, sender)
+      answer(cnt, skip, sender)
     }
   }
 
 
-  def answer(cnt: Int, to: ActorRef) {
-    val ans = cache.take(cnt)
+  def answer(cnt: Int, skip: Int, to: ActorRef) {
+    val ans = cache.drop(skip).take(cnt)
     val cards = load(ans.map(_.cid))
     to ! WordsAndCards(Nil, cards, ans.toList)
   }
 
-  def processReply(to: ActorRef, wnc: WordsAndCards, cnt: Int): Unit = {
+  def processReply(to: ActorRef, wnc: WordsAndCards, cnt: Int, skip: Int): Unit = {
     val data = wnc.sequence
     val last = cache.length
     cache = (cache ++ data).distinct
     invalidate()
-    answer(cnt, to)
+    answer(cnt, skip, to)
     log.debug("updated global card cache from {} to {} req {}", last, cache.length, cnt)
   }
 
   def receive = {
     case CardProcessed(cid) => trim += cid
-    case LoadCards(cnt) => processLoad(cnt)
-    case ProcessAnswer(to, fresh, cnt) => processReply(to, fresh, cnt)
+    case LoadCards(cnt, skip) => processLoad(cnt, skip)
+    case ProcessAnswer(to, fresh, cnt, skip) => processReply(to, fresh, cnt, skip)
   }
 
   override def preStart() {

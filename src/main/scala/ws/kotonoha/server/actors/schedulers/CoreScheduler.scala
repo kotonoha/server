@@ -99,7 +99,7 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
   }
 
   def receive = {
-    case LoadCards(cnt) => loadCards(cnt)
+    case LoadCards(cnt, _) => loadCards(cnt)
   }
 
   def loadCards(cnt: Int) {

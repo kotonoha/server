@@ -17,7 +17,6 @@
 package ws.kotonoha.server.actors.schedulers
 
 import ws.kotonoha.server.actors.UserScopedActor
-import collection.mutable.ListBuffer
 import org.bson.types.ObjectId
 import ws.kotonoha.server.records.events.NewCardSchedule
 import com.foursquare.rogue.Iter
@@ -25,6 +24,7 @@ import ws.kotonoha.server.records.UserTagInfo
 import util.Random
 import collection.immutable.VectorBuilder
 import akka.actor.ActorLogging
+import annotation.tailrec
 
 /**
  * @author eiennohito
@@ -36,8 +36,18 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
   import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
-  def bannedTags: List[String] = {
-    //NewCardSchedule where (_.user eqs uid) and (_.date lt now.minusDays(1)) bulkDelete_!!(WriteConcern.Safe)
+  case class CacheItem(cid: ObjectId, tags: List[String])
+
+  def limits() = {
+    val list = UserTagInfo where (_.user eqs uid) and
+      (_.limit exists true) and
+      (_.limit neqs 0) select(_.tag, _.limit) fetch()
+    list.map {
+      case (tag, limit) => tag -> limit.get
+    } toMap
+  }
+
+  def usage() = {
     val q = NewCardSchedule where (_.user eqs uid) and
       (_.date gt (now.minusDays(1))) select (_.tag)
     val usage = q.iterate(Map[String, Int]()) {
@@ -45,52 +55,82 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
         Iter.Continue(m.updated(tag, m.get(tag).getOrElse(0) + 1))
       case (m, _) => Iter.Return(m)
     }
+    usage
+  }
 
-    val tags = {
-      val list = UserTagInfo where (_.user eqs uid) and (_.limit exists true) select(_.tag, _.limit) fetch()
-      list.map {
-        case (tag, limit) => tag -> limit.get
-      } toMap
-    }
-
-    val ks = usage filter {
-      case (tag, cnt) => cnt > tags(tag)
+  def bannedTags(lims: Map[String, Int], usg: Map[String, Int] = usage()): List[String] = {
+    val ks = usg filter {
+      case (tag, cnt) => cnt > lims(tag)
     }
     ks.keys.toList
   }
 
-  def query(cnt: Int, ignore: Vector[ObjectId]) = {
-    Queries.newCards(uid) and (_.id nin ignore) and (_.tags nin bannedTags) orderDesc
+  def query(cnt: Int, ignore: Vector[ObjectId], banned: List[String]) = {
+    log.debug("new query: ignore ids: {}, banned tags: [{}]", ignore.length, banned.mkString(", "))
+    Queries.newCards(uid) and (_.id nin ignore) and (_.tags nin banned) orderDesc
       (_.priority) select(_.id, _.tags) fetch (cnt)
   }
 
-  def processUsage(data: List[(ObjectId, List[String])]): List[ObjectId] = {
-    val entries = data flatMap {
-      case (cid, tags) => tags map {
+  def processUsage(data: Vector[CacheItem]) = {
+    val lims = limits()
+    data foreach {
+      case CacheItem(cid, tags) => tags foreach {
         tag =>
-          val entry = NewCardSchedule.createRecord
-          entry.user(uid).card(cid).date(now).tag(tag)
+          if (lims.contains(tag)) {
+            val entry = NewCardSchedule.createRecord
+            entry.user(uid).card(cid).date(now).tag(tag)
+          }
       }
     }
-    NewCardSchedule.insertAll(entries)
-    data.map(_._1)
   }
 
   def fetchUpdate(cnt: Int) = {
-    val bldr = new VectorBuilder[ObjectId]()
+    val lims = limits().withDefaultValue(Int.MaxValue)
 
-    var rem = cnt
-    while (rem > 0) {
-      val objs = query(cnt, cached ++ bldr.result())
-      val processed = processUsage(objs)
-      bldr ++= processed
-      rem -= processed.length
+    @tailrec
+    def rec(rem: Int, usg: Map[String, Int], banned: List[String], prev: Vector[CacheItem]): Vector[CacheItem] = {
+      val ignore = (cached ++ prev).map(_.cid)
+      val objs = query(cnt, ignore, banned) map (CacheItem.tupled)
+      val bldr = new VectorBuilder[CacheItem]()
+
+      val usm = objs.foldLeft(usg) {
+        case (u, i) =>
+          resolveUpdateUsage(i.tags, u, lims) match {
+            case Some(r) =>
+              bldr += i
+              r
+            case None =>
+              u
+          }
+      }
+      val res = bldr.result()
+      val len = res.length
+      if (len == 0) {
+        log.debug("iter: got 0 after filtering, was {}", objs.length)
+        prev
+      } else if (len > rem) {
+        prev ++ res
+      } else {
+        rec(rem - len, usm, bannedTags(lims, usm), prev ++ res)
+      }
     }
 
-    bldr.result()
+    rec(cnt, usage(), bannedTags(lims), Vector.empty)
   }
 
-  var cached = Vector[ObjectId]()
+
+  private def resolveUpdateUsage(tags: List[String], u: Map[String, Int], lims: Map[String, Int]): Option[Map[String, Int]] = {
+    tags.foldLeft[Option[Map[String, Int]]](Some(u)) {
+      case (u, t) =>
+        if (u.isDefined) {
+          val u1 = u.get
+          val cur = u1.get(t).getOrElse(0)
+          if (lims(t) > cur) Some(u1.updated(t, cur + 1)) else None
+        } else None
+    }
+  }
+
+  var cached = Vector[CacheItem]()
 
   private def select(cnt: Int): List[ObjectId] = {
     if (cached.length < cnt) {
@@ -98,10 +138,12 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
       cached = Random.shuffle((cached ++ fetchUpdate(cnt * 2)).distinct)
       log.debug("updated cache: {} -> {}", oldlen, cached.length)
     }
-    cached.take(cnt).toList
+    cached.take(cnt).toList.map(_.cid)
   }
 
   private def commit(cnt: Int): Unit = {
+    val dropped = cached.take(cnt)
+    processUsage(dropped)
     cached = cached.drop(cnt)
   }
 

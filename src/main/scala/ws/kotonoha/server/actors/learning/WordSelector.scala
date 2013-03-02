@@ -102,15 +102,15 @@ class WordSelector extends UserScopedActor with ActorLogging {
   }
 
   override def receive = {
-    case LoadCards(max) => {
-      forUser(uid, max) pipeTo sender
+    case LoadCards(max, skip) => {
+      forUser(uid, max + skip) pipeTo sender
     }
   }
 }
 
-case class LoadCards(max: Int) extends SelectWordsMessage
+case class LoadCards(max: Int, skip: Int) extends SelectWordsMessage
 
-case class LoadWords(max: Int) extends SelectWordsMessage
+case class LoadWords(max: Int, skip: Int) extends SelectWordsMessage
 
 case class LoadReviewList(max: Int) extends SelectWordsMessage
 

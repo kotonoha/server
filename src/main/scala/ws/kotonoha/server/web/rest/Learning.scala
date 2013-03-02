@@ -45,14 +45,20 @@ class Timer extends Logging {
 trait LearningRest extends KotonohaRest {
 
   import ResponseUtil._
+  import net.liftweb.util.ControlHelpers._
 
   serve("api" / "words" prefix {
     case "scheduled" :: AsInt(max) :: Nil JsonGet req => {
       val t = new Timer
-      if (max > 50) ForbiddenResponse("number is too big")
+      val skip = req.param("skip").flatMap(p => tryo {
+        p.toInt
+      }).openOr(0)
+      if (skip < 0) ForbiddenResponse("skip count should be positive")
+      else if (skip > 50) ForbiddenResponse("skip count is too big")
+      else if (max > 50) ForbiddenResponse("number is too big")
       else async(userId) {
         id =>
-          val f = userAsk[WordsAndCards](id, LoadWords(max))
+          val f = userAsk[WordsAndCards](id, LoadWords(max, skip))
           f map {
             wc => t.print(); Full(JsonResponse(jsonResponse(wc)))
           }

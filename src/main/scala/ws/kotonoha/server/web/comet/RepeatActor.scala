@@ -123,7 +123,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   def processMark(mark: WebMark): Unit = {
     import DateTimeUtils._
     if (mark.remaining < 5) {
-      uact ! LoadWords(15)
+      uact ! LoadWords(15, 0)
     }
     val me = MarkEventRecord.createRecord
     val cid = new ObjectId(mark.card)
@@ -137,7 +137,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     case RepeatUser(id) => {
       userId = id
       uact = akkaServ.userActor(userId)
-      uact ! LoadWords(15)
+      uact ! LoadWords(15, 0)
     }
     case RecieveJson(o) => processJson(o)
     case WordsAndCards(words, cards, seq) => publish(words, cards, seq)
