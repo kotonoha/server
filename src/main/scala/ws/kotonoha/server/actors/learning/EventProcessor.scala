@@ -105,7 +105,7 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
         saveMarkRecord(ev, card)
         userActor ! SchedulePaired(card.word.is, card.cardMode.is)
         if (ev.mark.is < 3.5) {
-          userActor ! ScheduleLater(card.id.is, 30 minutes)
+          userActor ! ScheduleLater(card.id.is, 3 hours)
         }
         val it = ProcessMark(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
         val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord]

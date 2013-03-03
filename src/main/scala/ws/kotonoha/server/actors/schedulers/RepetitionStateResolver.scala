@@ -20,7 +20,7 @@ import com.foursquare.rogue.Iter
 import org.bson.types.ObjectId
 import ws.kotonoha.server.records.events.MarkEventRecord
 import org.joda.time.Duration
-import ws.kotonoha.server.util.Aggregator
+import ws.kotonoha.server.util.{DateTimeUtils, Aggregator}
 import ws.kotonoha.server.records.WordCardRecord
 
 /**
@@ -32,12 +32,14 @@ class RepetitionStateResolver(uid: ObjectId) {
   import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
+  val snap = DateTimeUtils.snapTime(uid)
+
   def pastMarks = {
-    MarkEventRecord where (_.user eqs uid) and (_.datetime lt now.minusDays(1)) count()
+    MarkEventRecord where (_.user eqs uid) and (_.datetime lt snap) count()
   }
 
   def today = {
-    MarkEventRecord where (_.user eqs uid) and (_.datetime gt now.minusDays(1)) count()
+    MarkEventRecord where (_.user eqs uid) and (_.datetime gt snap) count()
   }
 
   def total = pastMarks + today
@@ -46,18 +48,18 @@ class RepetitionStateResolver(uid: ObjectId) {
    * Repetition counts for last month (except last day)
    */
   lazy val last = {
-    val q = MarkEventRecord where (_.user eqs uid) and (_.datetime gt now.minusMonths(1)) and
-      (_.datetime lt now.minusDays(1)) select (_.datetime)
-    val end = now
-    val map = q.iterate(Map[Int, Int]()) {
+    val end = snap
+    val start = end.minusDays(30)
+    val q = MarkEventRecord where (_.user eqs uid) and (_.datetime between(start, end)) select (_.datetime)
+    val map = q.iterate(new Array[Int](30)) {
       case (map, Iter.Item(item)) =>
-        val dist = new Duration(item, end)
+        val dist = new Duration(start, item)
         val days = dist.getStandardDays.toInt max -1
-        Iter.Continue(map.updated(days, map.get(days).getOrElse(0) + 1))
+        map(days) += 1
+        Iter.Continue(map)
       case (map, _) => Iter.Return(map)
     }
-
-    map.toVector.sortBy(-_._1).map(_._2)
+    map.toVector
   }
 
   lazy val lastStat = {
@@ -83,15 +85,20 @@ class RepetitionStateResolver(uid: ObjectId) {
     val q = WordCardRecord where (_.user eqs uid) and (_.learning exists true) and
       (_.enabled eqs true) and (_.learning subfield (_.intervalEnd) lt date) select
       (_.notBefore, _.learning.subfield(_.intervalEnd))
-    val map = q.iterate(Map[Int, Int]()) {
-      case (map, Iter.Item((nbef, iend))) =>
-        val notBefore = nbef max iend.get
-        val dur = new Duration(nowDate, notBefore)
-        val days = dur.getStandardDays.toInt
-        Iter.Continue(map.updated(days, map.get(days).getOrElse(0) + 1))
+    val init = new Array[Int](11)
+    val map = q.iterateBatch(300, init) {
+      case (map, Iter.Item(lst)) =>
+        lst.foreach {
+          case (nbef, iend) =>
+            val notBefore = nbef max iend.get
+            val dur = new Duration(nowDate, notBefore)
+            val days = dur.getStandardDays.toInt max -1
+            map(days + 1) += 1
+        }
+        Iter.Continue(map)
       case (map, _) => Iter.Return(map)
     }
-    map.toList.sortBy(_._1).map(_._2)
+    map.toList
   }
 
   lazy val high = {
@@ -116,11 +123,19 @@ class RepetitionStateResolver(uid: ObjectId) {
     Queries.badCards(uid) count()
   }
 
+  def unavailable = {
+    WordCardRecord.enabledFor(uid) and (_.notBefore gt now) count()
+  }
+
+  def learnt = {
+    WordCardRecord.enabledFor(uid) and (_.learning exists true) count()
+  }
+
   def resolveState(): State.State = {
     import State._
-    val bline = normal / 10
+    val bline = lastAvg / 10
 
-    val noold = (newAvailable + badCount) < bline
+    val noold = (scheduledCnt + badCount) < bline
     val nonew = newAvailable < bline
     (noold, nonew) match {
       case (true, true) => return TotalStarvation
@@ -129,7 +144,7 @@ class RepetitionStateResolver(uid: ObjectId) {
       case _ => //do nothing
     }
 
-    if (scheduledCnt > 3 * normal / 2)
+    if (scheduledCnt > 3 * lastAvg / 2)
       AfterRest
     else Normal
   }

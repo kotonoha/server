@@ -34,7 +34,8 @@ class OldBalancingScheduler extends UserScopedActor {
 
   def query(cnt: Int) = {
     val date = now.plusDays(7)
-    val q = WordCardRecord.enabledFor(uid) and (_.learning.subfield(_.intervalLength) gt 30.0) and
+    val q = WordCardRecord.enabledFor(uid) and (_.notBefore lt now) and
+      (_.learning.subfield(_.intervalLength) gt 30.0) and
       (_.learning.subfield(_.intervalEnd) between(now, date)) select (_.id)
     q.fetch(cnt)
   }

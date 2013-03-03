@@ -40,6 +40,12 @@ class Timer extends Logging {
     val milli = epl / 1e6
     logger.debug("Current timer: timed for %.3f".format(milli))
   }
+
+  def print(req: Req) {
+    val epl = System.nanoTime() - init
+    val milli = epl / 1e6
+    logger.debug(f"Request to: ${req.path.wholePath.mkString("/")} <- timed $milli%.3f msec")
+  }
 }
 
 trait LearningRest extends KotonohaRest {
@@ -60,7 +66,7 @@ trait LearningRest extends KotonohaRest {
         id =>
           val f = userAsk[WordsAndCards](id, LoadWords(max, skip))
           f map {
-            wc => t.print(); Full(JsonResponse(jsonResponse(wc)))
+            wc => t.print(req); Full(JsonResponse(jsonResponse(wc)))
           }
       }
     }
@@ -72,7 +78,7 @@ trait LearningRest extends KotonohaRest {
         id =>
           val f = userAsk[WordsAndCards](id, LoadReviewList(max))
           f map {
-            wc => t.print(); Full(JsonResponse(jsonResponse(wc)))
+            wc => t.print(req); Full(JsonResponse(jsonResponse(wc)))
           }
       }
     }
@@ -92,7 +98,7 @@ trait LearningRest extends KotonohaRest {
           val count = userAsk[List[Int]](id, ProcessMarkEvents(marks))
           count map {
             c =>
-              t.print()
+              t.print(req)
               Full(JsonResponse("values" -> Tr(c)))
           }
       }

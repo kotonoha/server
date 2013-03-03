@@ -76,6 +76,7 @@ class CardSelectorCache extends UserScopedActor with ActorLogging {
 
   def answer(cnt: Int, skip: Int, to: ActorRef) {
     val ans = cache.drop(skip).take(cnt)
+    log.debug("selected {}", ans)
     val cards = load(ans.map(_.cid))
     to ! WordsAndCards(Nil, cards, ans.toList)
   }

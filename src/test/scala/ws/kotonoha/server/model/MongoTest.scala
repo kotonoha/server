@@ -183,7 +183,7 @@ with BeforeAndAfterAll {
     val clen = WordCardRecord where (_.user eqs userId) count()
     clen should equal(10)
 
-    val sel = ask(ucont.actor, LoadCards(6)).mapTo[List[WordCardRecord]]
+    val sel = ask(ucont.actor, LoadCards(6, 0)).mapTo[List[WordCardRecord]]
     val words = Await.result(sel, 1 second)
     words.length should be >= (1)
     val groups = words groupBy {
@@ -193,7 +193,7 @@ with BeforeAndAfterAll {
       gr should have length (1)
     }
 
-    val wicF = ask(ucont.actor, LoadWords(6)).mapTo[WordsAndCards]
+    val wicF = ask(ucont.actor, LoadWords(6, 0)).mapTo[WordsAndCards]
     val wic = Await.result(wicF, 2 seconds)
     wic.cards.length should be >= (1)
   }
@@ -204,7 +204,7 @@ with BeforeAndAfterAll {
     })
     Await.ready(fs, 1000 milli)
 
-    val wicF = ask(ucont.actor, LoadWords(5)).mapTo[WordsAndCards]
+    val wicF = ask(ucont.actor, LoadWords(5, 0)).mapTo[WordsAndCards]
     val wic = Await.result(wicF, 5 seconds)
 
     val card = wic.cards.head
@@ -225,7 +225,7 @@ with BeforeAndAfterAll {
     })
     Await.ready(fs, 1500 milli)
 
-    (ucont.actor ! LoadWords(5))(testActor)
+    (ucont.actor ! LoadWords(5, 0))(testActor)
     val wic = receiveOne(5 minutes).asInstanceOf[WordsAndCards]
 
     val card = wic.cards.head

@@ -32,4 +32,8 @@ class Aggregator(val sum: Double, val count: Long, val mean: Double, m2: Double)
   }
 
   def variance = m2 / (count - 1)
+
+  def stat = Stat(sum, mean, math.sqrt(variance))
 }
+
+case class Stat(sum: Double, mean: Double, std: Double)

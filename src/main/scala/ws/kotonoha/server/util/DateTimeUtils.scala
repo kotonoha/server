@@ -8,6 +8,7 @@ import ws.kotonoha.server.records.UserRecord
 import java.util.concurrent.TimeUnit
 import scala.Some
 import concurrent.duration.FiniteDuration
+import org.bson.types.ObjectId
 
 /*
  * Copyright 2012 eiennohito
@@ -65,18 +66,38 @@ object DateTimeUtils {
 
   def now = new DateTime(UTC)
 
-  def userNow(uid: Option[Long]) = uid match {
+  def userNow(uid: Option[ObjectId]) = uid match {
     case Some(id) => {
-      val u = UserRecord.find(id)
-      val tz = u map {
-        _.timezone.isAsTimeZone.getOffset(System.currentTimeMillis)
-      }
-      val dtz = tz map {
-        DateTimeZone.forOffsetMillis(_)
-      } openOr DateTimeZone.forID("UTC")
+      val dtz: DateTimeZone = usetTz(id)
       new DateTime(dtz)
     }
     case None => now
+  }
+
+
+  def usetTz(uid: ObjectId): DateTimeZone = {
+    val u = UserRecord.find(uid)
+    val tz = u map {
+      _.timezone.isAsTimeZone.getOffset(System.currentTimeMillis)
+    }
+    val dtz = tz map {
+      DateTimeZone.forOffsetMillis(_)
+    } openOr DateTimeZone.forID("UTC")
+    dtz
+  }
+
+  def snapTime(uid: ObjectId): DateTime = {
+    snapTime(usetTz(uid))
+  }
+
+  def snapTime(tz: DateTimeZone): DateTime = {
+    val now = new DateTime(tz)
+    snapTime(now)
+  }
+
+  def snapTime(now: DateTime): DateTime = {
+    val time = now.withTimeAtStartOfDay().withHourOfDay(5) //05:00
+    if (time.isAfter(now)) time.minusDays(1) else time
   }
 
   def d(date: DateTime) = date.toDate

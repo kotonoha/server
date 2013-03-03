@@ -55,7 +55,7 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
     }.mapTo[T]
   }
 
-  def async[Obj](param: Future[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
+  def async[Obj, Res <% LiftResponse](param: Future[Obj])(f: (Obj => Future[Box[Res]])) = {
     RestContinuation.async({
       case resp =>
         param onComplete {
@@ -76,7 +76,7 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
     })
   }
 
-  def async[Obj](param: Box[Obj])(f: (Obj => Future[Box[LiftResponse]])) = {
+  def async[Obj, Res <% LiftResponse](param: Box[Obj])(f: (Obj => Future[Box[Res]])) = {
     RestContinuation.async({
       case resp =>
         param match {
