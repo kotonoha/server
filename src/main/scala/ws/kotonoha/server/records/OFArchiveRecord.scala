@@ -30,15 +30,20 @@ import net.liftweb.mongodb.{JsonObject, JsonObjectMeta}
 case class OFElement(rep: Long, diff: Double, value: Double) extends JsonObject[OFElement] {
   def meta = OFElement
 }
+
 object OFElement extends JsonObjectMeta[OFElement]
 
 class OFArchiveRecord private() extends MongoRecord[OFArchiveRecord] with ObjectIdPk[OFArchiveRecord] {
   def meta = OFArchiveRecord
 
   object timestamp extends JodaDateField(this)
+
   object elems extends MongoJsonObjectListField[OFArchiveRecord, OFElement](this, OFElement)
+
   object user extends ObjectIdField(this)
+
   object matrix extends ObjectIdField(this)
+
 }
 
-object OFArchiveRecord extends OFArchiveRecord with MongoMetaRecord[OFArchiveRecord] with NamedDatabase
+object OFArchiveRecord extends OFArchiveRecord with MongoMetaRecord[OFArchiveRecord] with NamedDatabase with KotonohaMongoRecord[OFArchiveRecord]

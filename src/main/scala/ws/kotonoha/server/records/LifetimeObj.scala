@@ -31,8 +31,11 @@ class LifetimeObj private() extends MongoRecord[LifetimeObj] with ObjectIdPk[Lif
   def meta = LifetimeObj
 
   object obj extends ObjectIdField(this)
+
   object objtype extends EnumField(this, LifetimeObjects)
+
   object deadline extends JodaDateField(this)
+
 }
 
-object LifetimeObj extends LifetimeObj with MongoMetaRecord[LifetimeObj] with NamedDatabase
+object LifetimeObj extends LifetimeObj with MongoMetaRecord[LifetimeObj] with NamedDatabase with KotonohaMongoRecord[LifetimeObj]

@@ -34,26 +34,31 @@ class NonceRecord private() extends MongoRecord[NonceRecord] with ObjectIdPk[Non
   def meta = NonceRecord
 
   object consumerKey extends StringField(this, 32)
+
   object token extends StringField(this, 32)
+
   object nonce extends StringField(this, 50)
+
   object timestamp extends JodaDateField(this)
 
   def value = new OAuthNonce {
     def nonce = NonceRecord.this.nonce.is
 
-    def consumerKey =  NonceRecord.this.consumerKey.is
+    def consumerKey = NonceRecord.this.consumerKey.is
 
-    def token =  NonceRecord.this.token.is
+    def token = NonceRecord.this.token.is
 
-    def timestamp =  {
-      val cal : DateTime = NonceRecord.this.timestamp.is
+    def timestamp = {
+      val cal: DateTime = NonceRecord.this.timestamp.is
       cal.withZone(UTC).getMillis
     }
   }
 }
 
-object NonceRecord extends NonceRecord with MongoMetaRecord[NonceRecord] with NamedDatabase with OAuthNonceMeta {
+object NonceRecord extends NonceRecord with MongoMetaRecord[NonceRecord] with NamedDatabase with OAuthNonceMeta with KotonohaMongoRecord[NonceRecord] {
+
   import com.foursquare.rogue.LiftRogue._
+
   def create(consumerKey: String, token: String, timestamp: Long, nonce: String) {
     val rec = createRecord.
       consumerKey(consumerKey).token(token).timestamp(new DateTime(timestamp, UTC)).nonce(nonce)
@@ -63,9 +68,11 @@ object NonceRecord extends NonceRecord with MongoMetaRecord[NonceRecord] with Na
   def find(key: String, token: String, timestamp: Long, nonce: String) = {
 
     val d = new DateTime(timestamp, UTC)
-    val q = this where (_.consumerKey eqs key) and (_.token eqs token) and (_.timestamp between (d.minusSeconds(5), d.plusSeconds(5))) and
+    val q = this where (_.consumerKey eqs key) and (_.token eqs token) and (_.timestamp between(d.minusSeconds(5), d.plusSeconds(5))) and
       (_.nonce eqs nonce)
-    q.get() map {_.value}
+    q.get() map {
+      _.value
+    }
   }
 
   def bulkDelete_!!(minTimestamp: Long) {

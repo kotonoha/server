@@ -25,6 +25,7 @@ import scala.Some
 import ws.kotonoha.server.math.MathUtil
 import org.bson.types.ObjectId
 import com.typesafe.scalalogging.slf4j.Logging
+import com.mongodb.WriteConcern
 
 /**
  * @author eiennohito
@@ -135,7 +136,7 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
     ofar.matrix(matrix.id.is)
     ofar.user(user)
     ofar.timestamp(now)
-    ofar.save
+    ofar.save(WriteConcern.SAFE)
     lastSave = Some(now)
   }
 

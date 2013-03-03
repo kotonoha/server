@@ -41,7 +41,9 @@ object UserStatus extends Enumeration {
 
 
 class UserRecord private() extends MegaProtoUser[UserRecord] {
+
   import ws.kotonoha.server.util.KBsonDSL._
+
   def meta = UserRecord
 
   object username extends StringField(this, 50) {
@@ -51,9 +53,11 @@ class UserRecord private() extends MegaProtoUser[UserRecord] {
   object regDate extends JodaDateField(this)
 
   object apiPublicKey extends StringField(this, 32)
+
   object apiPrivateKey extends StringField(this, 32)
+
   object invite extends StringField(this, 32) {
-    override def validate : List[FieldError] = {
+    override def validate: List[FieldError] = {
       if (!AppConfig().inviteOnly.is) {
         return Nil
       }
@@ -64,6 +68,7 @@ class UserRecord private() extends MegaProtoUser[UserRecord] {
       }
     }
   }
+
   object status extends EnumField(this, UserStatus, UserStatus.Active)
 
   override def save = {
@@ -73,7 +78,7 @@ class UserRecord private() extends MegaProtoUser[UserRecord] {
   }
 }
 
-object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with NamedDatabase {
+object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with NamedDatabase with KotonohaMongoRecord[UserRecord] {
   def isAdmin = currentUser match {
     case Full(u) => u.superUser_?
     case _ => false
@@ -82,11 +87,14 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
   override def signupFields = username :: super.signupFields
 
   override def screenWrap = Full(<lift:surround with="default" at="content">
-			       <lift:bind /></lift:surround>)
+    <lift:bind/>
+  </lift:surround>)
 
   override def skipEmailValidation = true
 
-  def currentId = currentUserId map { new ObjectId(_) }
+  def currentId = currentUserId map {
+    new ObjectId(_)
+  }
 
   override protected def userFromStringId(id: String) = currentId.flatMap(find(_))
 
@@ -98,23 +106,26 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
     S.deleteCookie(cook)
   }
 
-  autologinFunc = Full ({() =>
-    S.findCookie(authCookie).
-      flatMap(_.value).
-      flatMap(crypt => {
+  autologinFunc = Full({
+    () =>
+      S.findCookie(authCookie).
+        flatMap(_.value).
+        flatMap(crypt => {
         val ua = S.request.flatMap(_.userAgent).openOr("none")
         UserUtil.authByCookie(crypt, ua)
-    }) match {
-      case Full(uid) => {
-        updateCookie(uid)
-        logUserIdIn(uid.toString)
+      }) match {
+        case Full(uid) => {
+          updateCookie(uid)
+          logUserIdIn(uid.toString)
+        }
+        case _ => deleteCookie()
       }
-      case _ => deleteCookie()
-    }
   })
 
 
-  onLogOut ::= { case _ => deleteCookie() }
+  onLogOut ::= {
+    case _ => deleteCookie()
+  }
 
   onLogIn ::= ((u: UserRecord) => {
     updateCookie(u.id.is)
@@ -146,12 +157,17 @@ object ClientStatus extends Enumeration {
 }
 
 class ClientRecord private() extends MongoRecord[ClientRecord] with ObjectIdPk[ClientRecord] with OAuthConsumer {
+
   import DateTimeUtils._
+
   def meta = ClientRecord
 
   object name extends StringField(this, 50)
+
   object apiPublic extends StringField(this, 32)
+
   object apiPrivate extends StringField(this, 32)
+
   object registeredDate extends JodaDateField(this)
 
   def reset {}
@@ -177,12 +193,17 @@ object ClientRecord extends ClientRecord with MongoMetaRecord[ClientRecord] with
 
 class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with ObjectIdPk[UserTokenRecord] {
   def meta = UserTokenRecord
+
   import DateTimeUtils._
 
   object user extends ObjectIdRefField(this, UserRecord)
+
   object label extends StringField(this, 100)
+
   object tokenPublic extends StringField(this, 32)
+
   object tokenSecret extends StringField(this, 32)
+
   object createdOn extends JodaDateField(this)
 
   def auth = AuthCode(AppConfig().baseUri.is, tokenPublic.is, tokenSecret.is)

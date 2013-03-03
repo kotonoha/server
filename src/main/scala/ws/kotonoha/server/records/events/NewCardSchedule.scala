@@ -20,7 +20,7 @@ import net.liftweb.mongodb.record.field.{ObjectIdField, ObjectIdPk}
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.record.field.StringField
-import ws.kotonoha.server.records.JodaDateField
+import ws.kotonoha.server.records.{KotonohaMongoRecord, JodaDateField}
 
 /**
  * @author eiennohito
@@ -40,4 +40,4 @@ class NewCardSchedule private() extends MongoRecord[NewCardSchedule] with Object
 
 }
 
-object NewCardSchedule extends NewCardSchedule with MongoMetaRecord[NewCardSchedule] with NamedDatabase
+object NewCardSchedule extends NewCardSchedule with MongoMetaRecord[NewCardSchedule] with NamedDatabase with KotonohaMongoRecord[NewCardSchedule]

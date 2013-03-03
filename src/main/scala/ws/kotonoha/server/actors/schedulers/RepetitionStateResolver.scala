@@ -102,13 +102,13 @@ class RepetitionStateResolver(uid: ObjectId) {
   }
 
   lazy val high = {
-    next.slice(1, 4).foldLeft(0) {
+    next.slice(2, 5).foldLeft(0) {
       _ + _
     } / 3
   }
 
   lazy val normal = {
-    next.drop(4).foldLeft(0)(_ + _) / 6
+    next.drop(5).foldLeft(0)(_ + _) / 6
   }
 
   def scheduledCnt = {
