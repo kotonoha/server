@@ -135,7 +135,7 @@ class RepetitionStateResolver(uid: ObjectId) {
     import State._
     val bline = lastAvg / 10
 
-    val noold = (scheduledCnt + badCount) < bline
+    val noold = scheduledCnt < bline
     val nonew = newAvailable < bline
     (noold, nonew) match {
       case (true, true) => return TotalStarvation

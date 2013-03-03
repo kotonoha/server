@@ -25,6 +25,8 @@ import util.Random
 import collection.immutable.VectorBuilder
 import akka.actor.ActorLogging
 import annotation.tailrec
+import collection.immutable.ListSet.ListSetBuilder
+import collection.mutable.ListBuffer
 
 /**
  * @author eiennohito
@@ -36,7 +38,7 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
   import com.foursquare.rogue.LiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
-  case class CacheItem(cid: ObjectId, tags: List[String])
+  case class CacheItem(cid: ObjectId, tags: List[String], mode: Int, word: ObjectId)
 
   def limits() = {
     val list = UserTagInfo where (_.user eqs uid) and
@@ -68,13 +70,13 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
   def query(cnt: Int, ignore: Vector[ObjectId], banned: List[String]) = {
     log.debug("new query: ignore ids: {}, banned tags: [{}]", ignore.length, banned.mkString(", "))
     Queries.newCards(uid) and (_.id nin ignore) and (_.tags nin banned) orderDesc
-      (_.priority) select(_.id, _.tags) fetch (cnt)
+      (_.priority) select(_.id, _.tags, _.cardMode, _.word) fetch (cnt)
   }
 
   def processUsage(data: Vector[CacheItem]) = {
     val lims = limits()
     data foreach {
-      case CacheItem(cid, tags) => tags foreach {
+      case CacheItem(cid, tags, _, _) => tags foreach {
         tag =>
           if (lims.contains(tag)) {
             val entry = NewCardSchedule.createRecord
@@ -82,6 +84,22 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
           }
       }
     }
+  }
+
+  def checkState(item: CacheItem, cur: TraversableOnce[CacheItem]): Boolean = {
+    def has(x: TraversableOnce[CacheItem]) = x.exists(ci => ci.word == item.word && ci.mode != item.mode)
+
+    !(has(cur) || has(cached))
+  }
+
+  def cutWords(vector: Vector[CacheItem]) = {
+    val buf = new ListBuffer[CacheItem]()
+    for (i <- vector) {
+      if (checkState(i, buf)) {
+        buf += i
+      }
+    }: Unit
+    buf.toVector
   }
 
   def fetchUpdate(cnt: Int) = {
@@ -135,7 +153,9 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
   private def select(cnt: Int): List[ObjectId] = {
     if (cached.length < cnt) {
       val oldlen = cached.length
-      cached = Random.shuffle((cached ++ fetchUpdate(cnt * 2)).distinct)
+      val got = Random.shuffle(fetchUpdate(cnt * 2))
+      val dwords = cutWords(got)
+      cached = (cached ++ dwords).distinct
       log.debug("updated cache: {} -> {}", oldlen, cached.length)
     }
     cached.take(cnt).toList.map(_.cid)

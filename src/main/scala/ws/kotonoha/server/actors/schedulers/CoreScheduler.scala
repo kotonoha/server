@@ -67,15 +67,15 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
       Source(bad, 0.5)
     ),
     State.NewStarvation -> CardMixer(
-      Source(newcard, 1), //trying to get all the cards possible
+      Source(newcard, 1),
       Source(ready, 1),
       Source(bad, 1),
       Source(oldbal, 0.5),
       Source(lowrep, 0.5)
     ),
     State.ReadyStarvation -> CardMixer(
-      Source(newcard, 1),
-      Source(ready, 2),
+      Source(newcard, 0.2),
+      Source(ready, 1),
       Source(bad, 1),
       Source(oldbal, 1),
       Source(lowrep, 0.5)
