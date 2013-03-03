@@ -58,7 +58,7 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
     ),
     State.Normal -> CardMixer(
       Source(ready, 5),
-      Source(newcard, 1),
+      Source(newcard, 0.3),
       Source(lowrep, 0.5),
       Source(bad, 2.5)
     ),
