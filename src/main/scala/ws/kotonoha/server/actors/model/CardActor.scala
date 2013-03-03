@@ -104,11 +104,13 @@ class CardActor extends UserScopedActor with ActorLogging {
     }
     case ClearNotBefore(card) => {
       log.debug("Clearning not before for card id {}", card)
-      WordCardRecord where (_.id eqs card) modify (_.notBefore setTo (Empty))
+      val q = WordCardRecord where (_.id eqs card) modify (_.notBefore setTo (Empty))
+      q updateOne()
     }
     case ScheduleLater(card, interval) => {
       val time = now plus (interval)
-      WordCardRecord where (_.id eqs card) modify (_.notBefore setTo (time))
+      val q = WordCardRecord where (_.id eqs card) modify (_.notBefore setTo (time))
+      q.updateOne()
     }
     case DeleteCardsForWord(word) => {
       WordCardRecord where (_.word eqs word) bulkDelete_!! (WriteConcern.Normal)
