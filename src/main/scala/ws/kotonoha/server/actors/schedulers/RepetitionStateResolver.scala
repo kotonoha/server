@@ -54,7 +54,7 @@ class RepetitionStateResolver(uid: ObjectId) {
     val map = q.iterate(new Array[Int](30)) {
       case (map, Iter.Item(item)) =>
         val dist = new Duration(start, item)
-        val days = dist.getStandardDays.toInt max -1
+        val days = dist.getStandardDays.toInt
         map(days) += 1
         Iter.Continue(map)
       case (map, _) => Iter.Return(map)
