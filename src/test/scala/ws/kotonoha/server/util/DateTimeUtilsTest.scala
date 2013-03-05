@@ -19,6 +19,7 @@ package ws.kotonoha.server.util
 import org.scalatest.FreeSpec
 import org.scalatest.matchers.ShouldMatchers
 import org.joda.time.DateTime
+import ws.kotonoha.server.util
 
 /**
  * @author eiennohito
@@ -26,11 +27,14 @@ import org.joda.time.DateTime
  */
 
 class DateTimeUtilsTest extends FreeSpec with ShouldMatchers {
+
+  import util.DateTimeUtils._
+
   "datetimeutils" - {
     "snapTime" - {
       "sets time to 0500 if parameter is after that today" in {
         val dt = new DateTime(2013, 3, 3, 12, 15, 11)
-        val time = DateTimeUtils.snapTime(dt)
+        val time = snapTime(dt)
         time should have(
           'getYear(dt.getYear()),
           'getMonthOfYear(dt.getMonthOfYear),
@@ -43,7 +47,7 @@ class DateTimeUtilsTest extends FreeSpec with ShouldMatchers {
 
       "sets time to 0500 yesterday if time is before that today" in {
         val dt = new DateTime(2013, 3, 3, 04, 15, 11)
-        val time = DateTimeUtils.snapTime(dt)
+        val time = snapTime(dt)
         time should have(
           'getYear(dt.getYear()),
           'getMonthOfYear(dt.getMonthOfYear),
@@ -53,6 +57,14 @@ class DateTimeUtilsTest extends FreeSpec with ShouldMatchers {
           'getSecondOfMinute(0)
         )
       }
+    }
+
+    "comparison" in {
+      val dt1 = now
+      val dt2 = now.minusDays(1)
+
+      (dt1 max dt2) should be(dt1)
+      (dt1 min dt2) should be(dt2)
     }
   }
 }

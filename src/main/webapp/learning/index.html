@@ -2,11 +2,42 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
-  <div class="lift:LearningCommon.stats" xmlns:st="learning-stats">
-    You have total <st:total></st:total> cards, <st:learning></st:learning> scheduled,
-    <st:ns></st:ns> not scheduled.<br />
-    <st:nsf></st:nsf> non-learned and <st:sf></st:sf> learned cards can't be scheduled now.<br />
-    There are <st:available></st:available> cards available for learning now.
+  <head_merge>
+    <script class="lift:cpres.script?src=jquery.jqplot"></script>
+    <script class="lift:cpres.script?src=plugins/jqplot.canvasTextRenderer"></script>
+    <script class="lift:cpres.script?src=plugins/jqplot.canvasAxisLabelRenderer"></script>
+    <script class="lift:cpres.script?src=plugins/jqplot.barRenderer"></script>
+    <script class="lift:cpres.script?src=plugins/jqplot.dateAxisRenderer"></script>
+    <script class="lift:cpres.js?src=word/learning"></script>
+    <script class="lift:cpres.css?src=jquery.jqplot"></script>
+  </head_merge>
+  <div ng-controller="Learning" class="ng-cloak">
+    <h4>Statistics</h4>
+
+    <p>Words: {{stats.words}}, Cards: {{stats.cards}} Total, {{stats.learntCards}} were scheduled
+      at least once, {{stats.cards - stats.learntCards}} weren't scheduled at all.</p>
+
+    <p>Avaliable cards for repetition: {{stats.newCards}} new, {{stats.badCards}} bad,
+      {{stats.schedCards}} ready.</p>
+
+    <p>
+      <ng-pluralize count="stats.unavailableCards"
+                    when="{one: '{} card', other: '{} cards'}"></ng-pluralize>
+      are not avaliable for repetition right now.
+    </p>
+    <p>
+      <ng-pluralize count="stats.today" offset="0"
+                    when="{one: 'You have repeated {} card',
+                          other: 'You have repeated {} cards',
+                          '0': 'You haven\'t repeated any cards'}"></ng-pluralize>
+      today.
+    </p>
+  </div>
+  <h4>Graphs</h4>
+
+  <div id="next10" class="span5" style="height: 7cm">
+  </div>
+  <div id="lastmonth" class="span7" style="height: 7cm;margin-top: 0.5cm;">
   </div>
 </div>
 </body>

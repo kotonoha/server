@@ -19,7 +19,7 @@ package ws.kotonoha.server.actors.schedulers
 import com.foursquare.rogue.Iter
 import org.bson.types.ObjectId
 import ws.kotonoha.server.records.events.MarkEventRecord
-import org.joda.time.Duration
+import org.joda.time.{DateTime, Duration}
 import ws.kotonoha.server.util.{DateTimeUtils, Aggregator}
 import ws.kotonoha.server.records.WordCardRecord
 
@@ -81,34 +81,48 @@ class RepetitionStateResolver(uid: ObjectId) {
 
   lazy val next = {
     val nowDate = now
-    val date = nowDate.plusDays(10)
+    val windowEnd = nowDate.plusDays(10)
     val q = WordCardRecord where (_.user eqs uid) and (_.learning exists true) and
-      (_.enabled eqs true) and (_.learning subfield (_.intervalEnd) lt date) select
-      (_.notBefore, _.learning.subfield(_.intervalEnd))
-    val init = new Array[Int](11)
-    val map = q.iterateBatch(300, init) {
-      case (map, Iter.Item(lst)) =>
-        lst.foreach {
-          case (nbef, iend) =>
-            val notBefore = nbef max iend.get
-            val dur = new Duration(nowDate, notBefore)
-            val days = dur.getStandardDays.toInt max -1
-            map(days + 1) += 1
-        }
-        Iter.Continue(map)
-      case (map, _) => Iter.Return(map)
+      (_.enabled eqs true) and (_.learning subfield (_.intervalEnd) lt windowEnd) select
+      (_.notBefore, _.learning.subfield(_.intervalEnd), _.learning.subfield(_.inertia))
+    val ready, bad, readyNa, badNa = new Array[Int](11)
+
+    def select(good: Boolean, nbef: DateTime) = {
+      if (nbef isBefore nowDate) {
+        if (good) ready else bad
+      } else if (good) readyNa else badNa
     }
-    map.toList
+    q.iterateBatch(300, ()) {
+      case (_, Iter.Item(lst)) =>
+        lst.foreach {
+          case (nbef, iend, inertia) =>
+            val inval = inertia.getOrElse(1.0)
+            val end = iend.get
+            val point = nbef max end
+            if (point isAfter nowDate) {
+              val dur = new Duration(nowDate, point)
+              val days = dur.getStandardDays.toInt
+              select(inval == 1.0, nbef)(days + 1) += 1
+            } else {
+              select(inval == 1.0, nbef)(0) += 1
+            }
+        }
+        Iter.Continue(())
+      case (_, _) => Iter.Return(())
+    }
+    ScheduledCardCounts(ready.toList, bad.toList, readyNa.toList, badNa.toList)
   }
 
+  lazy val nextTotal = next.total
+
   lazy val high = {
-    next.slice(2, 5).foldLeft(0) {
+    nextTotal.slice(2, 5).foldLeft(0) {
       _ + _
     } / 3
   }
 
   lazy val normal = {
-    next.drop(5).foldLeft(0)(_ + _) / 6
+    nextTotal.drop(5).foldLeft(0)(_ + _) / 6
   }
 
   def scheduledCnt = {
@@ -147,5 +161,16 @@ class RepetitionStateResolver(uid: ObjectId) {
     if (scheduledCnt > 3 * lastAvg / 2)
       AfterRest
     else Normal
+  }
+}
+
+case class ScheduledCardCounts(
+                                ready: List[Int],
+                                bad: List[Int],
+                                readyNa: List[Int],
+                                badNa: List[Int]
+                                ) {
+  def total = {
+    List(ready, bad, readyNa, badNa).transpose.map(lst => lst.reduceLeft(_ + _))
   }
 }

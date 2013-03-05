@@ -21,7 +21,7 @@ import net.liftweb.common.Full
 import net.liftweb.http.{JsonResponse, PlainTextResponse}
 import ws.kotonoha.server.records.{WordRecord, WordCardRecord, UserRecord}
 import concurrent.Future
-import ws.kotonoha.server.actors.schedulers.RepetitionStateResolver
+import ws.kotonoha.server.actors.schedulers.{ScheduledCardCounts, RepetitionStateResolver}
 import net.liftweb.json.{Extraction, DefaultFormats}
 import ws.kotonoha.server.util.Stat
 
@@ -86,8 +86,8 @@ case class Resp(
                  words: Long, cards: Long,
                  today: Long,
                  badCards: Long, newCards: Long,
-                 schedCards: Long, unvailableCards: Long, learntCards: Long,
-                 next: List[Int]
+                 schedCards: Long, unavailableCards: Long, learntCards: Long,
+                 next: ScheduledCardCounts
                  )
 
 class StatusApi extends StatusTrait with ReleaseAkka
