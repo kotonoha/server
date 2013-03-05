@@ -88,7 +88,7 @@ class RepetitionStateResolver(uid: ObjectId) {
     val ready, bad, readyNa, badNa = new Array[Int](11)
 
     def select(good: Boolean, nbef: DateTime, intend: DateTime) = {
-      if (nbef.isBefore(nowDate) && intend.isAfter(nbef)) {
+      if (nbef.isBefore(nowDate) || intend.isAfter(nbef)) {
         if (good) ready else bad
       } else if (good) readyNa else badNa
     }
@@ -138,7 +138,8 @@ class RepetitionStateResolver(uid: ObjectId) {
   }
 
   def unavailable = {
-    WordCardRecord.enabledFor(uid) and (_.notBefore gt now) count()
+    val q = WordCardRecord.enabledFor(uid) and (_.notBefore gt now) and (_.learning exists true)
+    q raw (_.add("$where", "this.learning.intervalEnd < this.notBefore")) count()
   }
 
   def learnt = {

@@ -36,7 +36,7 @@ import net.liftweb.http.js.JsCmds.SetHtml
 import org.bson.types.ObjectId
 import akka.actor.{Status, ActorRef}
 import com.typesafe.scalalogging.slf4j.Logging
-import ws.kotonoha.server.actors.schedulers.ReviewCard
+import ws.kotonoha.server.actors.schedulers.{RepetitionStateResolver, ReviewCard}
 
 /**
  * @author eiennohito
@@ -57,6 +57,8 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   var userId: ObjectId = null
   var uact: ActorRef = _
   var count = 0
+
+  lazy val today = new RepetitionStateResolver(userId).today
 
   def render = {
     val js = JsCmds.Function("send_to_actor", List("obj"), jsonSend(JsRaw("obj")))
@@ -143,7 +145,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     case WordsAndCards(words, cards, seq) => publish(words, cards, seq)
     case m: WebMark => processMark(m)
     case UpdateNum => {
-      partialUpdate(SetHtml("rpt-num", Text("Repeated %d word(s)".format(count))))
+      partialUpdate(SetHtml("rpt-num", Text(s"Repeated $count word(s) in session, ${today + count} today")))
       count += 1
     }
     case _: Int => //do nothing
