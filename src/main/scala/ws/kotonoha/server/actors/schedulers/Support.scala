@@ -68,9 +68,10 @@ class CardMixer(input: List[Source]) extends Logging {
   }
 
   def process(req: CardRequest)(implicit ec: ExecutionContext): Future[List[ReviewCard]] = {
-    val basic = input.map(src =>
-      src.provider.request(req.copy(limit = req.limit * src.weight * 1.5 / maxw toInt))
-    )
+    val basic = input.map{ src =>
+      val lim = Math.ceil(req.limit * src.weight * 1.5 / maxw).toInt
+      src.provider.request(req.copy(limit = lim))
+    }
     val rewrap = Future.sequence(basic)
     rewrap.map {
       lst =>
