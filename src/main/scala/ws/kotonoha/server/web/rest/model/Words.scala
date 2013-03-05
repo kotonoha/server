@@ -42,6 +42,7 @@ import concurrent.Future
  */
 
 object Words extends KotonohaRest with ReleaseAkka {
+  import ws.kotonoha.server.actors.UserSupport._
 
   import com.foursquare.rogue.LiftRogue._
 
@@ -55,7 +56,7 @@ object Words extends KotonohaRest with ReleaseAkka {
       val tags = updated \ "tags"
       val data = TagParser.parseOps(tags)
       val f = if (data.ops.nonEmpty)
-        akkaServ ? ForUser(user, TagWord(r, data.ops))
+        akkaServ ? TagWord(r, data.ops).u(user)
       else Future {
         null
       }
@@ -92,7 +93,7 @@ object Words extends KotonohaRest with ReleaseAkka {
             val succ = updateWord(obj \ "content", id, wid)
             succ.foreach {
               _ =>
-                akkaServ ! ChangeWordStatus(wid, WordStatus.Approved)
+                akkaServ ! ChangeWordStatus(wid, WordStatus.Approved).u(id)
             }
             succ
           })
@@ -103,9 +104,10 @@ object Words extends KotonohaRest with ReleaseAkka {
     }
     case XOid(wid) :: Nil Delete req => {
       val uid = UserRecord.currentId
-      val cnt = WordRecord where (_.id eqs wid) and (_.user eqs uid.openOrThrowException("")) count()
+      val id = uid.openOrThrowException("")
+      val cnt = WordRecord where (_.id eqs wid) and (_.user eqs id) count()
       if (cnt == 1) {
-        akkaServ ! MarkForDeletion(wid)
+        akkaServ ! MarkForDeletion(wid).u(id)
         OkResponse()
       } else {
         ForbiddenResponse()

@@ -52,6 +52,7 @@ class ServiceActor extends Actor with ActorLogging {
     case msg: NamedCometMessage => cometActor.forward(msg)
     case msg: ClientMessage => clientActor.forward(msg)
     case msg: TagMessage => tagSvc.forward(msg)
+    case msg => log.warning("invalid message came to service actor root {}", msg)
   }
 
   override def supervisorStrategy() = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 hour) {

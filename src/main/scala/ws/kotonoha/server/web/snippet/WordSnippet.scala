@@ -193,10 +193,13 @@ object WordSnippet extends Akka with ReleaseAkka {
 
 class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka with ReleaseAkka {
   import ws.kotonoha.server.util.KBsonDSL._
+  import ws.kotonoha.server.actors.UserSupport._
 
   def headers = ("adate" -> "createdOn" ) :: ("status" -> "status") :: ("writing" -> "writing") :: ("reading" -> "reading") :: Nil
 
   lazy val count = WordRecord.count(query)
+
+  lazy val uid = UserRecord.currentId.openOrThrowException("No user logged in")
 
   override def itemsPerPage = 50
 
@@ -217,21 +220,21 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
     import net.liftweb.json.{compact, render}
     def handler(s: String): JsCmd = {
       val ids = findIds(s)
-      ids foreach { akkaServ ! ChangeWordStatus(_, WordStatus.ReviewWord) }
+      ids foreach { akkaServ ! ChangeWordStatus(_, WordStatus.ReviewWord).u(uid) }
       val data = JArray(ids.toList.map{ l => JString(l.toString) } )
       val x = compact(render(data))
       JE.Call("update_data", JE.JsRaw(x), JE.Str("ReviewWord") ).cmd
     }
     def handler_delete(s: String): JsCmd = {
       val ids = findIds(s)
-      ids foreach { akkaServ ! MarkForDeletion(_) }
+      ids foreach { akkaServ ! MarkForDeletion(_).u(uid) }
       val data = JArray(ids.toList.map{ l => JString(l.toString) } )
       val x = compact(render(data))
       JE.Call("update_data", JE.JsRaw(x), JE.Str("Deleting") ).cmd
     }
     def handler_approveall(s: String): JsCmd = {
       val ids = findIds(s)
-      ids foreach { akkaServ ! ChangeWordStatus(_, WordStatus.Approved) }
+      ids foreach { akkaServ ! ChangeWordStatus(_, WordStatus.Approved).u(uid) }
       val data = JArray(ids.toList map { i => JString(i.toString) } )
       val x = compact(render(data))
       JE.Call("update_data", JE.JsRaw(x), JE.Str("Approved")).cmd
@@ -248,7 +251,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
   }
 
   def query : JObject = {
-    val init = ("user" -> UserRecord.currentId.openOrThrowException("Should never be empty here"))
+    val init = ("user" -> uid)
     searchQuery match {
       case "" => init
       case q => {

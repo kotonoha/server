@@ -17,8 +17,8 @@ window.WordCon = ($scope, $http) ->
                command: command
                content: $scope.word
               ).success ->
-      load().success ->
-        $scope.status = true
+                load().success ->
+                  $scope.status = true
 
   $scope.delete = ->
     $http.delete("../api/model/words/#{id}").success ->
