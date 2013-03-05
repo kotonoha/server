@@ -110,7 +110,6 @@ class Boot extends Logging {
     LiftRules.dispatch.append(Stats)
     LiftRules.dispatch.append(Grants)
     LiftRules.dispatch.append(Juman)
-    LiftRules.dispatch.append(PersonalStats)
 
     LiftRules.dispatch.append(OFHistory)
 

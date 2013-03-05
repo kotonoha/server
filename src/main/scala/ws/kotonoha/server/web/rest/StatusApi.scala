@@ -19,11 +19,15 @@ package ws.kotonoha.server.web.rest
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import net.liftweb.common.Full
 import net.liftweb.http.{JsonResponse, PlainTextResponse}
-import ws.kotonoha.server.records.{WordRecord, WordCardRecord, UserRecord}
+import ws.kotonoha.server.records._
 import concurrent.Future
 import ws.kotonoha.server.actors.schedulers.{ScheduledCardCounts, RepetitionStateResolver}
 import net.liftweb.json.{Extraction, DefaultFormats}
 import ws.kotonoha.server.util.Stat
+import net.liftweb.common.Full
+import ws.kotonoha.server.util.Stat
+import ws.kotonoha.server.actors.schedulers.ScheduledCardCounts
+import net.liftweb.json.JsonAST.JArray
 
 /**
  * @author eiennohito
@@ -46,6 +50,16 @@ trait StatusTrait extends KotonohaRest with OauthRestHelper {
         }
         case _ => PlainTextResponse("Should not get this", 320)
       }
+    }
+    case List("api",  "ofmatrix") Get req => {
+      import ws.kotonoha.server.util.KBsonDSL._
+      val user = UserRecord.currentId
+      user map (id => {
+        val mid = OFMatrixRecord.forUser(id).id.is
+        val items = OFElementRecord where (_.matrix eqs mid) fetch()
+        val data = items map { i => ("ef" -> i.ef) ~ ("n" -> i.n) ~ ("val" -> i.value) }
+        JsonResponse(JArray(data))
+      })
     }
     case "api" :: "stats" :: Nil Get req => {
       implicit val formats = DefaultFormats

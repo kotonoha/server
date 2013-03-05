@@ -7,7 +7,8 @@ process = (objs) ->
 
 
 process2 = (objs) ->
-  [new Date(now - i * millsInDay), o] for o, i in objs
+  len = objs.length - 1
+  [new Date(now - i * millsInDay), objs[len - i]] for i in [0...len]
 
 drawNext10 = (dates) ->
   $.jqplot 'next10', [process(dates.ready), process(dates.bad), process(dates.readyNa), process(dates.badNa)],
