@@ -1,5 +1,6 @@
-angular.module('kotonoha', ['taglist', 'ui.autosize'])
-angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
+mod = angular.module('kotonoha', ['taglist', 'ui.autosize'])
+
+mod.controller 'AddWord', ($q, AddSvc, $scope) ->
   svc = AddSvc
   $scope.waiting = true;
   $scope.loaded = false;
@@ -34,11 +35,10 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
     w = $scope.word
     $scope.word = null
     w.tags = $scope.tags
-    cmd = {
-    cmd: "save"
-    status: status
-    word: w
-    }
+    cmd =
+      cmd: "save"
+      status: status
+      word: w
     svc.toActor(cmd)
     $scope.cur += 1
     processNext()
@@ -74,14 +74,11 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
     return
 
   $scope.select_all = ->
-    selection(->
-      true)
+    selection -> true
   $scope.select_none = ->
-    selection(->
-      false)
+    selection -> false
   $scope.select_invert = ->
-    selection((e) ->
-      !e.selected)
+    selection((e) -> !e.selected)
 
   retag = (tags) ->
     old = $scope.tags
@@ -106,7 +103,5 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
       when "update-indices" then $scope.$apply ->
         updateIndices(obj)
       when "no-items"
-      #//$scope.waiting = false;
         return
 
-                                     )
