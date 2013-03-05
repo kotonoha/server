@@ -87,8 +87,8 @@ class RepetitionStateResolver(uid: ObjectId) {
       (_.notBefore, _.learning.subfield(_.intervalEnd), _.learning.subfield(_.inertia))
     val ready, bad, readyNa, badNa = new Array[Int](11)
 
-    def select(good: Boolean, nbef: DateTime) = {
-      if (nbef isBefore nowDate) {
+    def select(good: Boolean, nbef: DateTime, intend: DateTime) = {
+      if (nbef.isBefore(nowDate) && intend.isAfter(nbef)) {
         if (good) ready else bad
       } else if (good) readyNa else badNa
     }
@@ -102,9 +102,9 @@ class RepetitionStateResolver(uid: ObjectId) {
             if (point isAfter nowDate) {
               val dur = new Duration(nowDate, point)
               val days = dur.getStandardDays.toInt
-              select(inval == 1.0, nbef)(days + 1) += 1
+              select(inval == 1.0, nbef, end)(days + 1) += 1
             } else {
-              select(inval == 1.0, nbef)(0) += 1
+              select(inval == 1.0, nbef, end)(0) += 1
             }
         }
         Iter.Continue(())
