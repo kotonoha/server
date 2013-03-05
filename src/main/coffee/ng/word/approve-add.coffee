@@ -1,4 +1,4 @@
-angular.module('kotonoha', ['taglist'])
+angular.module('kotonoha', ['taglist', 'ui.autosize'])
 angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
   svc = AddSvc
   $scope.waiting = true;
@@ -73,9 +73,15 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
       ex.selected = fnc(ex)
     return
 
-  $scope.select_all = -> selection(-> true)
-  $scope.select_none = -> selection(-> false)
-  $scope.select_invert = -> selection((e) -> !e.selected)
+  $scope.select_all = ->
+    selection(->
+      true)
+  $scope.select_none = ->
+    selection(->
+      false)
+  $scope.select_invert = ->
+    selection((e) ->
+      !e.selected)
 
   retag = (tags) ->
     old = $scope.tags
@@ -88,15 +94,19 @@ angular.module('kotonoha').controller('AddWord', ($q, AddSvc, $scope) ->
 
 
   svc.callback = (obj) ->
-    if (!$scope.loaded) then $scope.$apply -> $scope.loaded = true;
+    if (!$scope.loaded) then $scope.$apply ->
+      $scope.loaded = true;
     if (obj.cmd?) then switch(obj.cmd)
       when "word"
         nextItems.push(obj)
-        if ($scope.waiting) then $scope.$apply -> display()
-      when "retag" then $scope.$apply -> retag(obj.tags)
-      when "update-indices" then $scope.$apply -> updateIndices(obj)
+        if ($scope.waiting) then $scope.$apply ->
+          display()
+      when "retag" then $scope.$apply ->
+        retag(obj.tags)
+      when "update-indices" then $scope.$apply ->
+        updateIndices(obj)
       when "no-items"
       #//$scope.waiting = false;
         return
 
-)
+                                     )

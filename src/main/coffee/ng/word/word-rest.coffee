@@ -1,4 +1,4 @@
-angular.module('kotonoha', ['taglist'])
+angular.module('kotonoha', ['taglist', 'ui.autosize'])
 
 window.WordCon = ($scope, $http) ->
   re = /w=([0-9a-f]+)/i
@@ -6,16 +6,17 @@ window.WordCon = ($scope, $http) ->
   $scope.status = false
   load = ->
     q = $http.get("../api/model/words/#{id}")
-    q.success (w) -> $scope.word = w
+    q.success (w) ->
+      $scope.word = w
     q
 
   load()
 
   $scope.save = (command) ->
     $http.post("../api/model/words/#{id}",
-      command: command
-      content: $scope.word
-    ).success ->
+               command: command
+               content: $scope.word
+              ).success ->
       load().success ->
         $scope.status = true
 
@@ -35,8 +36,14 @@ window.WordCon = ($scope, $http) ->
       ex.selected = fnc(ex)
     return
 
-  $scope.select_all = -> selection(-> true)
-  $scope.select_none = -> selection(-> false)
-  $scope.select_invert = -> selection((e) -> !e.selected)
+  $scope.select_all = ->
+    selection(->
+      true)
+  $scope.select_none = ->
+    selection(->
+      false)
+  $scope.select_invert = ->
+    selection((e) ->
+      !e.selected)
 
   return

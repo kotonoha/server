@@ -15,20 +15,22 @@ resizer = (el) ->
   delayedResize()
 
   {
-    resize: resize
-    delayedResize: delayedResize
+  resize: resize
+  delayedResize: delayedResize
   }
 
 
 $.fn.autoresize = ->
-  this.each (i) -> resizer(this, i)
+  this.each (i) ->
+    resizer(this, i)
 
 
-angular.module("kotonoha", []).directive "autoresize", ->
+angular.module("ui.autosize", []).directive "autoresize", ->
   restrict: "C"
   scope: false
   link: (scope, el, attrs, cont) ->
     res = resizer(el[0])
     if (attrs.ngModel?)
       name = attrs.ngModel
-      scope.$watch(name, -> res.delayedResize())
+      scope.$watch(name, ->
+        res.delayedResize())
