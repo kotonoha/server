@@ -98,7 +98,7 @@ class CardActor extends UserScopedActor with ActorLogging {
     }
     case RegisterCard(word, mode, pri) => {
       val card = WordCardRecord.createRecord
-      card.user(uid).word(word).cardMode(mode).learning(Empty).notBefore(Empty).priority(pri)
+      card.user(uid).word(word).cardMode(mode).learning(Empty).notBefore(now).priority(pri)
       val s = sender
       ask(mongo, SaveRecord(card)) pipeTo (s)
     }
