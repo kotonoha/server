@@ -20,6 +20,9 @@ import akka.testkit.{TestProbe, TestKit}
 import akka.util.Timeout
 import net.liftweb.mongodb.record.MongoRecord
 import concurrent.duration._
+import ws.kotonoha.server.records.UserRecord
+import org.joda.time.DateTime
+import scala.util.Random
 
 /**
  * @author eiennohito
@@ -34,6 +37,17 @@ class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) e
     rec.save
     f(rec)
     rec.delete_!
+  }
+
+  def createUser() = {
+    val user = UserRecord.createRecord
+    user.username("test" + new DateTime() + Random.nextLong().toHexString)
+    user.save
+    user.id.is
+  }
+
+  def cleanup(seqs: TraversableOnce[MongoRecord[_]]*) = {
+    seqs.flatten.foreach(_.delete_!)
   }
 
   def probe = TestProbe()(kta.system)

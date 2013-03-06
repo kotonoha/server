@@ -25,6 +25,7 @@ import akka.pattern.ask
 import scala.concurrent.Await
 import akka.testkit.TestActorRef
 import ws.kotonoha.server.actors.{CreateActor, UserScopedActor, GlobalActor, AkkaMain}
+import scala.reflect.ClassTag
 
 /**
  * @author eiennohito
@@ -65,7 +66,7 @@ class UserContext(akka: KotonohaTestAkka, uid: ObjectId) {
     TestActorRef(props, supervisor, name)
   }
 
-  def userActor[T <: UserScopedActor](name: String)(implicit m: Manifest[T]) = {
+  def userActor[T <: UserScopedActor](name: String)(implicit ct: ClassTag[T]) = {
     TestActorRef.apply[T](Props[T], supervisor, name)
   }
 
