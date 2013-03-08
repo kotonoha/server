@@ -1,4 +1,4 @@
-module = angular.module('kotonoha', ['collapsable', 'taglist'])
+module = angular.module('kotonoha', ['collapsable', 'taglist', 'ui.popover2'])
 
 resolver = (o) ->
   empty =
@@ -9,12 +9,17 @@ resolver = (o) ->
   good =
     writing: -> o.item.writing
     reading: -> o.dic[0].reading
-    meaning: -> o.dic[0].meaning
+    meaning: ->
+      dic = o.dic[0]
+      if (dic.meaning.length > 0) then dic.meaning[0] else ""
     type: 'good'
   bad =
     writing: -> o.item.writing
     reading: -> o.present[0].reading
-    meaning: -> o.present[0].meaning
+    meaning: ->
+      m = o.present[0].meaning
+      if (m.length > 0) then m[0]
+      else ""
     type: 'bad'
   if o.present.length != 0
     bad

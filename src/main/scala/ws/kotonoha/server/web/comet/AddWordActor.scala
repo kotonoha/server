@@ -62,7 +62,7 @@ case class Candidate(writing: String, reading: Option[String], meaning: Option[S
   }
 }
 
-case class Possibility(writing: String, reading: String, meaning: String, id: Option[String] = None)
+case class Possibility(writing: String, reading: String, meaning: List[String], id: Option[String] = None)
 
 case class DisplayingEntry(item: Candidate, present: List[Possibility], dic: List[Possibility])
 
@@ -181,12 +181,13 @@ trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor wi
     Possibility(
       writing = dic.writing.is.map(k => k.value.is).mkString(", "),
       reading = dic.reading.is.map(k => k.value.is).mkString(", "),
-      meaning = dic.meaning.is.flatMap(_.vals.is.filter(_.loc == "eng").map(_.str)).headOption.getOrElse("")
+      meaning = dic.meaning.is.map(_.vals.is.filter(_.loc == "eng").map(_.str)).map(_.mkString("; ")),
+      id = Some(dic.id.is.toString)
     )
   }
 
   def createEntry(in: Candidate, cur: Map[String, List[WordRecord]], dic: Map[String, List[JMDictRecord]]) = {
-    val wds = cur(in.writing).map(r => Possibility(r.writing.stris, r.reading.stris, r.meaning.is, Some(r.id.is.toString)))
+    val wds = cur(in.writing).map(r => Possibility(r.writing.stris, r.reading.stris, r.meaning.is :: Nil, Some(r.id.is.toString)))
     val dics = dic(in.writing).map(dicPossibiliry(_))
     DisplayingEntry(in, wds, dics)
   }

@@ -23,6 +23,7 @@ import ws.kotonoha.server.actors.lift.Ping
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import ws.kotonoha.server.web.snippet.ClasspathResource
 import com.typesafe.scalalogging.slf4j.Logging
+import scala.xml.{NodeSeq, Text}
 
 
 /**
@@ -59,6 +60,10 @@ class Boot extends Logging {
       Menu.i("OF history") / "admin" / "ofhistory"
       )
 
+    val emptyLink: LinkText[Unit] = new LinkText({ case _ => Nil })
+    val loc = Loc("static", Link(List("static"), true, "/static"), emptyLink , Hidden)
+    val static = Menu.apply(loc)
+
     def sitemap = {
       SiteMap(
         Menu.i("Home") / "index",
@@ -87,7 +92,8 @@ class Boot extends Logging {
           ),
         Menu.i("Oauth") / "oauth" >> Hidden submenus (
           Menu.i("OAuth request") / "oauth" / "request"
-          )
+          ),
+        static
       )
     }
 
@@ -132,7 +138,16 @@ class Boot extends Logging {
 
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>
-      new Html5Properties(r.userAgent))
+      if (r.path(0) != "static") {
+        new Html5Properties(r.userAgent)
+      } else {
+        new Html5StaticProperties(r.userAgent)
+      }
+    )
+
+    LiftRules.statelessReqTest.append({
+      case StatelessReqTest("static" :: _, _) => true
+    })
 
     // Make a transaction span the whole HTTP request
     //S.addAround(DB.buildLoanWrapper)

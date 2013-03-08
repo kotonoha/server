@@ -22,6 +22,7 @@
     <script class="lift:cpres.js?src=taglist"></script>
     <script class="lift:cpres.ng?src=word/add-form"></script>
     <script class="lift:cpres.ng?src=dir/collapsable"></script>
+    <script class="lift:cpres.ng?src=popover2"></script>
     <style type="text/css">
       .candidate {
         height: 5em;
@@ -101,13 +102,17 @@
           <div class="cand-fld cand-writing nihongo"><span>{{writing}}</span></div>
           <div class="cand-fld cand-reading nihongo">{{reading}}</div>
           <div class="cand-fld cand-meaning">{{meaning}}</div>
-          <div class="dropdown-menu" role="menu">
+          <div popover2 enabled="type == 'good' || type == 'bad'">
             <div class="dic-entry" ng-repeat="dic in c.dic">
               <div>
-                <span class="dic-writing">{{dic.writing}}</span>
-                <span class="dic-reading">{{dic.reading}}</span>
+                <span class="nihongo dic-writing">{{dic.writing}}</span>
+                <span class="nihongo dic-reading">【{{dic.reading}}】</span>
               </div>
-              <div class="dic-meaning">{{dic.meaning}}</div>
+              <div style="max-height: 10em; overflow-y: auto">
+                <ol style="margin-left: 0.5em;">
+                  <li ng-repeat="m in dic.meaning">{{m}}</li>
+                </ol>
+              </div>
             </div>
           </div>
         </div>

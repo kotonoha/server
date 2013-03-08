@@ -1,7 +1,7 @@
 tens = (start) ->
   ({name: i, tens: i * 10} for i in [start..start+10])
 
-module = angular.module('kotonoha', ['taglist'])
+module = angular.module('kotonoha', ['ui.autosize', 'ui.popover2'])
 
 window.Model = ($scope, testSvc) ->
   $scope.start = 23
@@ -36,15 +36,6 @@ module.directive 'dataGrid', ($injector) ->
 
 
 window.TC2 = ($scope) ->
-  $scope.objs = [
-    { name: 'x', id: 1, gr: 'last'}
-    { name: 'y', id: 2, gr: 'last'}
-    { name: 'z', id: 3, gr: 'last'}
-    { name: 'a', id: 4, gr: 'fst'}
-    { name: 'b', id: 5, gr: 'fst'}
-  ]
-  $scope.whatever = ["tag1", {add: "tag2"}, {remove: "tag3"}, {rename: "tag4", to: "tag5"}]
-
   $scope.tagNfo = [
     { group: 'User tags', tags: [
       { name: 'tag1', descr: 'tag number 1, a great tag'}
@@ -67,6 +58,7 @@ window.TC2 = ($scope) ->
       { name: 't1', descr: 't2'}
     ]}
   ]
+  $scope.text = "This is a test. Don't worry, be happy!"
 
 
 module.directive 'chosen', ->
