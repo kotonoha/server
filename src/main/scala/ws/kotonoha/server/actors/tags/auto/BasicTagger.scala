@@ -24,15 +24,25 @@ import ws.kotonoha.akane.unicode.UnicodeUtil
  * @since 21.01.13 
  */
 
+case class BasicTaggerTest(test: String => Boolean, tag: String)
+
 class BasicTagger extends UserScopedActor {
+  import UnicodeUtil._
+
+  def T = BasicTaggerTest
+
+  val tests = List[BasicTaggerTest](
+    T(UnicodeUtil.hasKanji, "no-kanji"),
+    T(UnicodeUtil.isHiragana, "hira-only"),
+    T(UnicodeUtil.isKatakana, "kata-only")
+  )
 
   def handle(wr: String, rd: Option[String]): Unit = {
-    val kanji = rd match {
-      case Some(`wr`) => List("no-kanji")
-      case _ => Nil
+    val ret = tests.foldLeft(List[String]()) {
+      case (lst, BasicTaggerTest(fnc, res)) => if (fnc(wr)) res :: lst else lst
     }
-    val kata = if (UnicodeUtil.isKatakana(wr)) List("kata-only") else Nil
-    sender ! PossibleTags(kanji ++ kata)
+
+    sender ! PossibleTags(ret)
   }
 
   def receive = {

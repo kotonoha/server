@@ -23,6 +23,7 @@ import ws.kotonoha.server.mongodb.DictDatabase
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.mongodb.Limit
 import ws.kotonoha.akane.dict.jmdict.{Priority, LocString}
+import ws.kotonoha.server.web.comet.Candidate
 
 /**
  * @author eiennohito
@@ -61,16 +62,53 @@ class JMDictRecord private() extends MongoRecord[JMDictRecord] with LongPk[JMDic
   object writing extends BsonRecordListField(this, JMString)
 
   object meaning extends BsonRecordListField(this, JMDictMeaning)
-
 }
 
 object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with DictDatabase {
   def query(w: String, rd: Option[String], max: Int) = {
-    import ws.kotonoha.server.util.KBsonDSL._
-    val query: JObject = rd match {
-      case Some(r) => ("writing.value" -> bre(w)) ~ ("reading.value" -> bre(r))
-      case None => "$or" -> List(("writing.value" -> bre(w)), ("reading.value" -> bre(w)))
+    val c = Candidate(w, rd, None)
+    forCandidate(c, max)
+  }
+
+  def sorted(recs: List[JMDictRecord], c: Candidate = null) = {
+    if (c != null && (c.isOnlyKana || c.sameWR)) {
+      def penalty(r: JMDictRecord) = {
+        if (r.writing.is.length > 0) 10 else 0
+      }
+      recs.sortBy(r => -calculatePriority(r.writing.is) + penalty(r))
+    } else {
+      recs.sortBy(r => -calculatePriority(r.writing.is))
     }
-    JMDictRecord.findAll(query, Limit(max))
+  }
+
+  def forCandidate(cand: Candidate, limit: Int) = {
+    val jv = cand.toQuery
+    sorted(JMDictRecord.findAll(jv, Limit(limit)), cand)
+  }
+
+  def calculatePriority(strs: List[JMString]): Int = {
+    val x = strs.flatMap {
+      _.priority.is.map {
+        _.value
+      }
+    }.map {
+      case "news1" => 1
+      case "news2" => 2
+      case "ichi1" => 1
+      case "ichi2" => 2
+      case "spec1" => 1
+      case "spec2" => 2
+      case "gai1" => 1
+      case "gai2" => 2
+      case s if s.startsWith("nf") => (s.substring(2).toInt / 24) + 1
+      case _ => 0
+    }
+
+    val cnt = x.length
+    if (cnt == 0) 0
+    else {
+      val sum = x.fold(0)(_ + _)
+      sum / cnt
+    }
   }
 }

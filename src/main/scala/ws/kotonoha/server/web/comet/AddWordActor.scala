@@ -50,15 +50,24 @@ case class Candidate(writing: String, reading: Option[String], meaning: Option[S
   def toQuery: JObject = {
     import ws.kotonoha.server.util.KBsonDSL._
     //def regex(s: String) = "$regex" -> ("^" + s + "$")
-    if (UnicodeUtil.isKatakana(writing)) {
+    if (writing.length > 0 && UnicodeUtil.isKana(writing)) {
       "$or" -> List("reading.value" -> writing, "writing.value" -> writing)
+    } else if (writing.length == 0 && reading.isDefined) {
+      val rd = reading.get
+      "$or" -> List("reading.value" -> rd, "writing.value" -> rd)
     } else {
       val p1 = ("writing.value" -> writing)
       if (reading.isDefined) {
         p1 ~ ("reading.value" -> reading.get)
       } else p1
     }
+  }
 
+  def isOnlyKana = writing.length > 0 && UnicodeUtil.isKana(writing)
+
+  def sameWR = reading match {
+    case Some(`writing`) => true
+    case _ => false
   }
 }
 
@@ -84,7 +93,7 @@ object Candidate {
       case Array(w) => new Candidate(w, None, None)
       case Array(w, r, m) => new Candidate(w, wrap(r), wrap(m))
       case Array(w, smt) => {
-        if (stream(smt).forall(isKana(_))) {
+        if (isKana(smt)) {
           new Candidate(w, wrap(smt), None)
         } else {
           new Candidate(w, None, wrap(smt))
@@ -115,7 +124,7 @@ trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor wi
   }
 
   def all(s: String): List[Candidate] = AddStringParser.entries(new CharSequenceReader(s)) match {
-    case AddStringParser.Success(l, _) => l
+    case AddStringParser.Success(l, _) => l.distinct
     case _ => logger.warn(s"can't parse $s"); Nil
   }
 
@@ -174,7 +183,7 @@ trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor wi
           case (m, (k, v)) => m.updated(k, (m(k) ++ v).distinct)
         }
     }
-    des
+    des.mapValues(lst => JMDictRecord.sorted(lst))
   }
 
   def dicPossibiliry(dic: JMDictRecord) = {
@@ -188,7 +197,7 @@ trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor wi
 
   def createEntry(in: Candidate, cur: Map[String, List[WordRecord]], dic: Map[String, List[JMDictRecord]]) = {
     val wds = cur(in.writing).map(r => Possibility(r.writing.stris, r.reading.stris, r.meaning.is :: Nil, Some(r.id.is.toString)))
-    val dics = dic(in.writing).map(dicPossibiliry(_))
+    val dics = dic.getOrElse(in.writing, Nil).map(dicPossibiliry(_))
     DisplayingEntry(in, wds, dics)
   }
 

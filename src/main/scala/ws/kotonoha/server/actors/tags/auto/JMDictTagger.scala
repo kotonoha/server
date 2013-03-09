@@ -60,32 +60,10 @@ class JMDictTagger extends UserScopedActor {
   import ws.kotonoha.server.util.KBsonDSL._
 
   def resolvePriority(strs: List[JMString]): String = {
-    val x = strs.flatMap {
-      _.priority.is.map {
-        _.value
-      }
-    }
-      .map {
-      case "news1" => 1
-      case "news2" => 2
-      case "ichi1" => 1
-      case "ichi2" => 2
-      case "spec1" => 1
-      case "spec2" => 2
-      case "gai1" => 1
-      case "gai2" => 2
-      case s if s.startsWith("nf") => (s.substring(2).toInt / 24) + 1
-      case _ => 0
-    }
+    val prio = JMDictRecord.calculatePriority(strs)
 
-    val sum = x.fold(0)(_ + _)
-    val cnt = x.length
-
-    if (cnt == 0) "nonfreq"
-    else {
-      val avg = sum / cnt
-      s"freq$avg"
-    }
+    if (prio == 0) "nonfreq"
+    else s"freq$prio"
   }
 
   //iru-eru regex
@@ -93,8 +71,7 @@ class JMDictTagger extends UserScopedActor {
 
   def resolve(wr: String, rd: Option[String]): Unit = {
     val c = Candidate(wr, rd, None)
-    val jv = c.toQuery
-    val ji = JMDictRecord.findAll(jv, Limit(50))
+    val ji = JMDictRecord.forCandidate(c, 50)
     val tags = ji.headOption.toList.flatMap {
       r =>
         val p1 = r.meaning.is.flatMap {
