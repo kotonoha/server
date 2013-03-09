@@ -103,13 +103,10 @@ class TagActor extends UserScopedActor with ActorLogging {
       }
       canPublishPrio = false
     }
-    priorities += tag -> pr
+    priorities(tag) = pr
   }
 
-  var priorities = {
-    val nfos = UserTagInfo where (_.user eqs uid) and (_.priority neqs 0) fetch()
-    nfos.map(i => i.tag.is -> i.priority.is).toMap.withDefaultValue(0)
-  }
+  lazy val priorities = new PriorityCache(uid)
 
   def calculatePriority(tags: List[String]): Unit = {
     sender ! Priority(priority(tags))
@@ -139,6 +136,26 @@ class TagActor extends UserScopedActor with ActorLogging {
     case CalculatePriority(tags) => calculatePriority(tags)
     case TaglistRequest => sender ! taglist()
     case ptr@PossibleTagRequest =>
+  }
+}
+
+class PriorityCache (uid: ObjectId) {
+  import com.foursquare.rogue.LiftRogue._
+
+  def apply(tag: String): Int = cache(tag)
+  def update(tag: String, prio: Int): Unit = mycache = cache.updated(tag, prio)
+
+  private var mycache: Map[String, Int] = _
+
+  def load(): Map[String, Int] = {
+    val nfos = UserTagInfo where (_.user eqs uid) and (_.priority neqs 0) fetch()
+    nfos.map(i => i.tag.is -> i.priority.is).toMap.withDefaultValue(0)
+  }
+
+  def cache = {
+    if (mycache == null)
+      mycache = load()
+    mycache
   }
 }
 

@@ -109,8 +109,12 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
     }
     val tags = jf.flatMap {
       jm =>
-        val req = jm.entries.headOption.map(e =>
-          PossibleTagRequest(e.writings.head, e.readings.headOption)
+        val req = jm.entries.headOption.flatMap(e =>
+          (e.writings.headOption, e.readings.headOption) match {
+            case (Some(w), r) => Some(PossibleTagRequest(w, r))
+            case (None, o@Some(r)) => Some(PossibleTagRequest(r, o))
+            case (None, None) => None
+          }
         )
         req match {
           case Some(s) => (tagger ? s).mapTo[PossibleTags]
@@ -127,7 +131,8 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
       val dicts = List(collapse(sr1, "JMDict"), collapse(sr2, "Warodai"))
       log.debug("Calculated word data")
       val onSave = Promise[WordData]()
-      context.system.scheduler.scheduleOnce(15 minutes)(() => onSave.tryComplete(util.Failure(new TimeoutException)))
+      val canc = context.system.scheduler.scheduleOnce(15 minutes)(() => onSave.tryComplete(util.Failure(new TimeoutException)))
+      onSave.future.foreach(_ => canc.cancel())
       WordData(dicts, ex, createWord(rec.user.is, dicts, ex, t), onSave, rec)
     }
   }

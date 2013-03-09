@@ -155,6 +155,6 @@ class WordActor extends UserScopedActor with ActorLogging {
   }
 
   override def preStart() {
-    context.system.scheduler.scheduleOnce(1 hour, users, ForUser(uid, DeleteReadyWords))
+    context.system.scheduler.scheduleOnce(5 minutes, self, DeleteReadyWords)
   }
 }

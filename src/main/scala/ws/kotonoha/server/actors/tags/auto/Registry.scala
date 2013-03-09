@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.actors.tags.auto
 
-import akka.actor.Props
+import akka.actor.{ActorLogging, Props}
 import ws.kotonoha.server.actors.tags.TagMessage
 import ws.kotonoha.server.actors.UserScopedActor
 import concurrent.Future
@@ -42,7 +42,7 @@ case class PossibleTagRequest(writing: String, reading: Option[String]) extends 
 
 case class PossibleTags(tags: List[String])
 
-class WordAutoTagger extends UserScopedActor {
+class WordAutoTagger extends UserScopedActor with ActorLogging {
 
   import akka.pattern.{ask, pipe}
   import concurrent.duration._
