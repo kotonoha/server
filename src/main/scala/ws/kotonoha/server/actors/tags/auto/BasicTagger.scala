@@ -32,7 +32,7 @@ class BasicTagger extends UserScopedActor {
   def T = BasicTaggerTest
 
   val tests = List[BasicTaggerTest](
-    T(UnicodeUtil.hasKanji, "no-kanji"),
+    T(x => !UnicodeUtil.hasKanji(x), "no-kanji"),
     T(UnicodeUtil.isHiragana, "hira-only"),
     T(UnicodeUtil.isKatakana, "kata-only")
   )
