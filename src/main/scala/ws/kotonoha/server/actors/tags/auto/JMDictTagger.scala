@@ -63,7 +63,7 @@ class JMDictTagger extends UserScopedActor {
     val prio = JMDictRecord.calculatePriority(strs)
 
     if (prio == 0) "nonfreq"
-    else s"freq$prio"
+    else s"freq${3 - prio}" // prio: 2 -> 1, 1 -> 2
   }
 
   //iru-eru regex
