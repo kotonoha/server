@@ -82,21 +82,26 @@ class SM6 extends UserScopedActor with ActorLogging {
     val data = item.data
     var mod = calculateMod(item.time, data.intervalStart.is, data.intervalEnd.is)
     val raw = if (q < 3.5) {
+      //bad mark
       data.lapse(data.lapse.is + 1)
       data.repetition(1)
       data.inertia(inertiaVal(data, q))
       matrix(data.lapse.is, data.difficulty.is) * (0.8 max mod) * (data.inertia.is max 0.05)
     } else {
       if (data.inertia.is < 1.0) {
+        //first good mark after bad marks
+        //scheduling for simple interval (as by SM6)
         data.inertia(1.0)
-        data.intervalLength(matrix(data.lapse.is, data.difficulty.is))
-        mod = 1.0
+        data.repetition(1)
+        matrix(data.lapse.is, data.difficulty.is)
+      } else {
+        //sequential good mark
+        data.repetition(data.repetition.is + 1)
+        val oldI = data.intervalLength.is
+        val newI = data.intervalLength.is * matrix(data.repetition.is, data.difficulty.is)
+        log.debug("updating item from {} to {} with mod {}", oldI, newI, mod)
+        oldI + (newI - oldI) * mod
       }
-      data.repetition(data.repetition.is + 1)
-      val oldI = data.intervalLength.is
-      val newI = data.intervalLength.is * matrix(data.repetition.is, data.difficulty.is)
-      log.debug("updating item from {} to {} with mod {}", oldI, newI, mod)
-      oldI + (newI - oldI) * mod
     }
     val interval = raw * MathUtil.ofrandom
     log.debug("Scheduling card {} in {} days, on {}", item.card, interval, item.time.plus(interval days))
