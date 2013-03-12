@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.web.snippet
 
-import xml.NodeSeq
+import scala.xml.{Text, NodeSeq}
 import net.liftweb.http.S
 import ws.kotonoha.server.util.LangUtil
 import ws.kotonoha.server.records.dictionary.{JMDictAnnotations, JMDictMeaning, JMString, JMDictRecord}
@@ -29,33 +29,56 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 object JMDict extends Logging {
   import net.liftweb.util.Helpers._
+  import ws.kotonoha.server.util.NodeSeqUtil._
 
   def fld(in: NodeSeq): NodeSeq = {
     val q = S.param("query").openOr("")
     bind("frm", in, AttrBindParam("value", q, "value"))
   }
 
-  def reduce(in: List[JMString], sep: String): String = {
-    in.map(_.value).mkString(sep)
+  def renderRW(in: List[JMString], sep: String): NodeSeq = {
+    transSeq(in, Text(sep)) { x =>
+      val annots = annot(x.info.is)
+      val prio = JMDictRecord.calculatePriority(x :: Nil)
+      <span><span class={s"dict-rw dict-prio-$prio"}>{x.value.is}</span><span class="dict-rd-tag">{annots}</span></span>
+    }
   }
 
   def rendMeaning(m: JMDictMeaning): NodeSeq = {
-    val pos: NodeSeq = m.info.is flatMap { s => {
-        val lng = JMDictAnnotations.safeValueOf(s).long
-        <div title={lng} class="dict-pos">{s}</div>
-      }
+    val pos: NodeSeq = {
+      val tmp = annot(m.info.is)
+      if (tmp.isEmpty) tmp
+      else Text("(") ++ <span class="dict-mean-tag">{tmp}</span> ++ Text(") ")
     }
-    val bdy = m.vals.is.filter(l => LangUtil.okayLang(l.loc)).flatMap(l => <span class="dict-mean">{l.str}</span>)
-    pos ++ bdy
+    val bdy = m.vals.is.filter(l => LangUtil.okayLang(l.loc)).map(l => l.str).mkString("; ")
+    pos ++ <span class="dict-mean">{bdy}</span>
+  }
+
+
+  def annot(m: List[String]): NodeSeq = {
+    transSeq(m, Text(", ")) { s =>
+      val lng = JMDictAnnotations.safeValueOf(s).long
+      <span title={lng}>{s}</span>
+    }
+  }
+
+  def processMeanings(ms: List[JMDictMeaning]): NodeSeq = {
+    ms.tail match {
+      case Nil => <div>{rendMeaning(ms.head)}</div>
+      case _ =>
+        val inner = ms.flatMap(m => <li>{rendMeaning(m)}</li>)
+        <ol class="m-ent">{inner}</ol>
+    }
   }
 
   def list(in: NodeSeq): NodeSeq = {
     val q = S.param("query").openOr("")
-    JMDictRecord.query(q, None, 50) flatMap { o =>
+    JMDictRecord.query(q, None, 50, true) flatMap { o =>
       bind("je", in,
-        "writing" -> reduce(o.writing.is, ", "),
-        "reading" -> reduce(o.reading.is, ", "),
-        "body" -> o.meaning.is.flatMap(m => <div class="m-ent">{rendMeaning(m)}</div>))
+        "writing" -> renderRW(o.writing.is, ", "),
+        "reading" -> renderRW(o.reading.is, ", "),
+        "body" -> processMeanings(o.meaning.is)
+      )
     }
   }
 }

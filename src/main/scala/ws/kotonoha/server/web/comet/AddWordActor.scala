@@ -47,18 +47,20 @@ import ws.kotonoha.server.actors.ForUser
 case class InvalidStringException(str: String) extends Exception("String " + str + " is not valid")
 
 case class Candidate(writing: String, reading: Option[String], meaning: Option[String]) {
-  def toQuery: JObject = {
+  def toQuery(re: Boolean = false): JObject = {
     import ws.kotonoha.server.util.KBsonDSL._
-    //def regex(s: String) = "$regex" -> ("^" + s + "$")
+    def x(s: String): JValue = if (re) regex(s) else s
+    def regex(s: String) = "$regex" -> ("^" + s + ".*$")
+
     if (writing.length > 0 && UnicodeUtil.isKana(writing)) {
-      "$or" -> List("reading.value" -> writing, "writing.value" -> writing)
+      "$or" -> List("reading.value" -> x(writing), "writing.value" -> x(writing))
     } else if (writing.length == 0 && reading.isDefined) {
       val rd = reading.get
-      "$or" -> List("reading.value" -> rd, "writing.value" -> rd)
+      "$or" -> List("reading.value" -> x(rd), "writing.value" -> x(rd))
     } else {
-      val p1 = ("writing.value" -> writing)
+      val p1 = ("writing.value" -> x(writing))
       if (reading.isDefined) {
-        p1 ~ ("reading.value" -> reading.get)
+        p1 ~ ("reading.value" -> x(reading.get))
       } else p1
     }
   }
@@ -168,7 +170,7 @@ trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor wi
 
   def findEntries() = {
     val patterns = everything.map {
-      _.toQuery
+      _.toQuery()
     }
     val dicQ: JObject = "$or" -> patterns
     val dics = JMDictRecord.findAll(dicQ)

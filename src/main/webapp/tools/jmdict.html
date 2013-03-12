@@ -38,14 +38,39 @@
         display: table-row;
       }
 
-      .dict-pos {
+      .dict-mean-tag {
         color: #a52a2a;
         font-style: italic;
-        display: block;
       }
 
-      .dict-mean {
-        display: block;
+      .dict-rd-tag {
+        color: #a52a2a;
+        font-style: italic;
+        font-size: 0.7em;
+        vertical-align: super;
+      }
+
+      .dict-pos span {
+        margin-right: 3pt;
+      }
+
+      .dict-mean:after {
+      }
+
+      .dict-rw {
+        margin-left: 0.2em;
+      }
+
+      .dict-prio-2 {
+        color: deepskyblue;
+      }
+
+      .dict-prio-1 {
+        color: green;
+      }
+
+      .dict-prio-0 {
+        color: #808080;
       }
     </style>
   </head_merge>
@@ -55,6 +80,13 @@
     </label>
     <input type="submit">
   </form>
+  <div>
+    <p>Writings and readings color coding:
+      <span class="dict-prio-2">Frequent</span>,
+      <span class="dict-prio-1">Common</span>,
+      <span class="dict-prio-0">Uncommon</span>.
+    </p>
+  </div>
   <div class="lift:JMDict.list dict-entry" xmlns:je="jmdict-entry">
     <div>
       <div class="nihongo">

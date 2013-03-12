@@ -24,6 +24,7 @@ import net.liftweb.json.JsonAST.JObject
 import net.liftweb.mongodb.Limit
 import ws.kotonoha.akane.dict.jmdict.{Priority, LocString}
 import ws.kotonoha.server.web.comet.Candidate
+import ws.kotonoha.server.math.MathUtil
 
 /**
  * @author eiennohito
@@ -65,9 +66,9 @@ class JMDictRecord private() extends MongoRecord[JMDictRecord] with LongPk[JMDic
 }
 
 object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with DictDatabase {
-  def query(w: String, rd: Option[String], max: Int) = {
+  def query(w: String, rd: Option[String], max: Int, re: Boolean = false) = {
     val c = Candidate(w, rd, None)
-    forCandidate(c, max)
+    forCandidate(c, max, re)
   }
 
   def sorted(recs: List[JMDictRecord], c: Candidate = null) = {
@@ -81,8 +82,8 @@ object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with
     }
   }
 
-  def forCandidate(cand: Candidate, limit: Int) = {
-    val jv = cand.toQuery
+  def forCandidate(cand: Candidate, limit: Int, re: Boolean = false) = {
+    val jv = cand.toQuery(re)
     sorted(JMDictRecord.findAll(jv, Limit(limit)), cand)
   }
 
@@ -92,15 +93,15 @@ object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with
         _.value
       }
     }.map {
-      case "news1" => 1
-      case "news2" => 2
-      case "ichi1" => 1
-      case "ichi2" => 2
-      case "spec1" => 1
-      case "spec2" => 2
-      case "gai1" => 1
-      case "gai2" => 2
-      case s if s.startsWith("nf") => (s.substring(2).toInt / 24) + 1
+      case "news1" => 2
+      case "news2" => 1
+      case "ichi1" => 2
+      case "ichi2" => 1
+      case "spec1" => 2
+      case "spec2" => 1
+      case "gai1" => 2
+      case "gai2" => 1
+      case s if s.startsWith("nf") => 2 - (s.substring(2).toInt / 24)
       case _ => 0
     }
 
@@ -108,7 +109,7 @@ object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with
     if (cnt == 0) 0
     else {
       val sum = x.fold(0)(_ + _)
-      sum / cnt
+      Math.round(sum.toDouble / cnt).toInt
     }
   }
 }
