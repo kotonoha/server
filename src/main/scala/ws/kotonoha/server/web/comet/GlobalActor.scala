@@ -21,6 +21,7 @@ import ws.kotonoha.server.actors.lift.{ExecJs, DestroyActor, RegisterPerUserActo
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import org.bson.types.ObjectId
 import com.typesafe.scalalogging.slf4j.Logging
+import org.joda.time.DateTime
 
 /**
  * @author eiennohito
@@ -28,6 +29,7 @@ import com.typesafe.scalalogging.slf4j.Logging
  */
 
 case class ActorUser(user: ObjectId)
+case class NavigateEvent(path: String, date: DateTime)
 
 class GlobalActor extends NamedCometActor with AkkaInterop with Logging with ReleaseAkka {
   def render = defaultHtml

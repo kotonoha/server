@@ -71,12 +71,25 @@ object JMDict extends Logging {
     }
   }
 
+  def renderMeToo(rec: JMDictRecord) = {
+    val w = rec.writing.is.map(_.value.is).headOption.getOrElse("")
+    val r = rec.reading.is.map(_.value.is).headOption
+    if (r.isDefined) {
+      val cl = s"lift:ThisToo?wr=$w&rd=${r.get}"
+      <div class={cl}></div>
+    } else if (w != "") {
+      val cl = s"lift:ThisToo?wr=$w"
+      <div class={cl}></div>
+    } else NodeSeq.Empty
+  }
+
   def list(in: NodeSeq): NodeSeq = {
     val q = S.param("query").openOr("")
     JMDictRecord.query(q, None, 50, true) flatMap { o =>
       bind("je", in,
         "writing" -> renderRW(o.writing.is, ", "),
         "reading" -> renderRW(o.reading.is, ", "),
+        "metoo" -> renderMeToo(o),
         "body" -> processMeanings(o.meaning.is)
       )
     }

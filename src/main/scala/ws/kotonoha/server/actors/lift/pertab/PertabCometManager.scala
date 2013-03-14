@@ -1,14 +1,15 @@
 package com.fmpwizard.cometactor.pertab
 package namedactor
 
-import net.liftweb.actor.LiftActor
-import net.liftweb.common.{Box, Logger}
-import akka.actor.{Props, ActorRef, Actor}
+import net.liftweb.common.Box
+import akka.actor.{ActorLogging, Props, ActorRef, Actor}
 import ws.kotonoha.server.actors.KotonohaMessage
 import scala.concurrent.Await
 import akka.pattern.ask
 import concurrent.duration._
 import ws.kotonoha.server.actors.lift.{PerUserMessage, PerUserActorSvc}
+import akka.actor.Status.Failure
+import net.liftweb.util.Helpers
 
 
 /**
@@ -38,31 +39,31 @@ case class FreeNamedComet(nc: NamedComet) extends NamedCometMessage
 case object Count
 
 
-class PertabCometManager extends Actor with Logger {
+class PertabCometManager extends Actor with ActorLogging {
 
   private val listeners = new collection.mutable.HashMap[NamedComet, ActorRef]
   private lazy val perUser = context.actorOf(Props[PerUserActorSvc])
 
-  def listenerFor(nc: NamedComet): ActorRef = synchronized {
-    listeners.get(nc) match {
-      case Some(a) => info("Our map is %s".format(listeners)); a
+  def listenerFor(nc: NamedComet): Unit = {
+    if (nc == null) {
+      sender ! Failure(new NullPointerException("parameter nc is null"))
+      return
+    }
+    val act = listeners.get(nc) match {
+      case Some(a) => log.info("Our map is {}", listeners); a
       case None => {
-        val ret = context.actorOf(Props(new CometDispatcher(nc, self)))
+        val ret = context.actorOf(Props(new CometDispatcher(nc, self)), nc.name.openOr(Helpers.nextFuncName))
         listeners += nc -> ret
-        info("Our map is %s".format(listeners))
+        log.info("Our map is {}", listeners)
         ret
       }
     }
+    sender ! act
   }
 
   override def receive = {
-    case LookupNamedComet(nc) => sender ! listenerFor(nc)
-    case FreeNamedComet(nc) => {
-      listeners.get(nc).map ( a => {
-        val cnt = Await.result(ask(a, Count)(2 seconds).mapTo[Int], 2 seconds)
-        if (cnt == 0) { listeners.remove(nc).map(context.stop(_)) }
-      })
-    }
+    case LookupNamedComet(nc) => listenerFor(nc)
+    case FreeNamedComet(nc) => listeners.remove(nc).foreach(context.stop(_))
     case msg: PerUserMessage => perUser.forward(msg)
   }
 }

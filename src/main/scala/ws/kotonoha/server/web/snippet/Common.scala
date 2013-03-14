@@ -22,6 +22,7 @@ import org.joda.time.DateTime
 import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
 import ws.kotonoha.server.web.comet.ActorUser
 import ws.kotonoha.server.records.UserRecord
+import net.liftweb.http.SessionVar
 
 /**
  * @author eiennohito
@@ -42,9 +43,13 @@ object Common {
 }
 
 object GlobalComet extends InsertNamedComet {
+  object actorName extends SessionVar[String] (
+    UserRecord.currentUserId map {u => s"global_$u" } openOr(super.name)
+  )
+
   def cometClass = "GlobalActor"
 
   override def messages = UserRecord.currentId.map(p => ActorUser(p)).toList
 
-  override def name = UserRecord.currentId map {u => "user"+u} openOr(super.name)
+  override def name = actorName.is
 }

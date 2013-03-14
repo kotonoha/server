@@ -32,7 +32,6 @@ case class RegisterPerUserActor(user: ObjectId, actor: ActorRef) extends PerUser
 case class DestroyActor(user: ObjectId) extends PerUserMessage
 case class CmdForUser(user: ObjectId, cmd: JsCmd) extends PerUserMessage
 case class Bcast(cmd: JsCmd) extends PerUserMessage
-
 case class ExecJs(cmd: JsCmd)
 
 class PerUserActorSvc extends Actor {

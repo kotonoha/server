@@ -26,7 +26,7 @@ resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/"
 libraryDependencies += "fuku.eb4j" % "eb4j-tools" % "1.0.5"
 
 libraryDependencies ++= {
-  val liftVersion = "2.5-M4" // Put the current/latest lift version here
+  val liftVersion = "2.5-RC2" // Put the current/latest lift version here
   Seq(
     "net.liftweb" %% "lift-util" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),
     "net.liftweb" %% "lift-json-ext" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),

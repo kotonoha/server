@@ -35,9 +35,11 @@ object AddFormActorSnippet extends InsertNamedComet {
    * No need to touch the render method (I hope)
    */
   def cometClass = "AddWordActor"
+
+  override def name = UserRecord.currentUserId.map("add" + _).openOr(super.name)
 }
 
-object AddWordActorSnippet extends InsertNamedComet {
+object ApproveWordActorSnippet extends InsertNamedComet {
 
   /**
    * These are the two val(s) you would have to
@@ -46,12 +48,7 @@ object AddWordActorSnippet extends InsertNamedComet {
    */
   def cometClass = "ApproveWordActor"
 
-  override def name = {
-    S.param("list") match {
-      case Full(XOid(lid)) => "list" + lid
-      case _ => "user" + UserRecord.currentUserId.openOr(super.name)
-    }
-  }
+  override def name = UserRecord.currentUserId.map("approve" + _).openOr(super.name)
 
   override def messages = {
     Cleanup :: (S.param("list") match {

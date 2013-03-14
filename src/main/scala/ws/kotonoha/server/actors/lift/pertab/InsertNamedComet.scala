@@ -2,8 +2,9 @@ package com.fmpwizard.cometactor.pertab
 package namedactor
 
 import scala.xml.NodeSeq
-import net.liftweb.http.S
+import net.liftweb.http.{SessionVar, S}
 import net.liftweb.common.Full
+import net.liftweb.util.StringHelpers
 
 
 /**
@@ -19,7 +20,7 @@ import net.liftweb.common.Full
  *
  *
  */
-trait InsertNamedComet {
+trait InsertNamedComet { self =>
   /**
    * These are the two val(s) you would have to
    * override after extending this trait.
@@ -27,16 +28,26 @@ trait InsertNamedComet {
    */
   def cometClass: String
 
-  def name = net.liftweb.util.Helpers.nextFuncName
+  private lazy val savedName = new SessionVar[String](net.liftweb.util.Helpers.nextFuncName) {
+    override protected def __nameSalt = self.getClass.getName
+  }
+
+  def name = savedName.is
 
   def messages = List[AnyRef]()
 
+  def enabled = true
+
   final def render(xhtml: NodeSeq): NodeSeq = {
-    for (sess <- S.session) {
-      messages foreach (
-        sess.sendCometActorMessage(cometClass, Full(name), _)
-      )
+    if (enabled) {
+      for (sess <- S.session) {
+        messages foreach (
+          sess.sendCometActorMessage(cometClass, Full(name), _)
+          )
+      }
+      <lift:comet type={cometClass} name={name}>{xhtml}</lift:comet>
+    } else {
+      NodeSeq.Empty
     }
-    <lift:comet type={cometClass} name={name}>{xhtml}</lift:comet>
   }
 }

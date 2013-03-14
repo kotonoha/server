@@ -13,7 +13,7 @@ import concurrent.ExecutionContext
 
 trait NamedCometActor extends CometActor with Logger with AkkaInterop {
 
-  private val namedComet = NamedComet(this.getClass.getName, name)
+  private def namedComet = NamedComet(this.getClass.getName, name)
   private implicit val timeout: Timeout = 1 second
   private implicit val ec: ExecutionContext = akkaServ.context
 

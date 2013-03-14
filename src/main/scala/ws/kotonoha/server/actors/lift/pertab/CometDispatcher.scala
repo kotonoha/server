@@ -2,18 +2,18 @@ package com.fmpwizard.cometactor.pertab
 package namedactor
 
 import net.liftweb.http.CometActor
-import net.liftweb.common.{Full, Logger}
-import akka.actor.{ActorRef, Actor}
+import net.liftweb.common.Full
+import akka.actor.{PoisonPill, ActorLogging, ActorRef, Actor}
 
 
 /**
  * This class keeps a list of comet actors that need to update the UI
  */
-class CometDispatcher(nm: NamedComet, listener: ActorRef) extends Actor with Logger {
+class CometDispatcher(nm: NamedComet, listener: ActorRef) extends Actor with ActorLogging {
 
   def name = nm.name
 
-  info("DispatcherActor got name: %s".format(name))
+  log.info("DispatcherActor got name: {}", name)
   private var toUpdate = new collection.mutable.HashSet[CometActor]
 
 
@@ -21,14 +21,14 @@ class CometDispatcher(nm: NamedComet, listener: ActorRef) extends Actor with Log
     /**
      * if we do not have this actor in the list, add it (register it)
      */
-    case RegisterCometActor(actor, Full(name)) => {
+    case RegisterCometActor(actor, _) => {
       toUpdate += actor
     }
 
     case UnregisterCometActor(actor) => {
-      info("before %s".format(toUpdate))
+      log.info("before {}", toUpdate)
       toUpdate -= actor
-      info("after %s".format(toUpdate))
+      log.info("after {}", toUpdate)
       if (toUpdate.size == 0) {
         listener ! FreeNamedComet(nm)
       }
@@ -46,7 +46,7 @@ class CometDispatcher(nm: NamedComet, listener: ActorRef) extends Actor with Log
       toUpdate.foreach {
         x => {
           x ! msg
-          info("We will update this comet actor: %s showing name: %s".format(x, name))
+          log.info("We will update this comet actor: {} showing name: {}", x, name)
         }
       }
     }
