@@ -17,7 +17,7 @@
 package ws.kotonoha.server.web.comet
 
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
-import ws.kotonoha.server.actors.lift.AkkaInterop
+import ws.kotonoha.server.actors.lift.{ToAkka, AkkaInterop}
 import com.typesafe.scalalogging.slf4j.Logging
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import net.liftweb.http.js.{JsExp, JE}
@@ -25,6 +25,9 @@ import net.liftweb.json.{Extraction, DefaultFormats}
 import ws.kotonoha.server.records.{WordRecord, UserRecord}
 import org.bson.types.ObjectId
 import ws.kotonoha.server.records.events.AddWordRecord
+import scala.collection.mutable
+import ws.kotonoha.server.actors.model.{SimilarWordsRequest, PresentStatus}
+import ws.kotonoha.server.actors.ForUser
 
 /**
  * @author eiennohito
@@ -34,38 +37,42 @@ import ws.kotonoha.server.records.events.AddWordRecord
 case class ProcessThisToo(c: Candidate, id: String)
 
 class ThisTooActor extends NamedCometActor with AkkaInterop with Logging with ReleaseAkka {
-  import com.foursquare.rogue.LiftRogue._
-
   def render = <head_merge>
     <lift:cpres.js src="tools/this_too"></lift:cpres.js>
   </head_merge>
 
   lazy val userId = UserRecord.currentId
 
-  def noWords(id: ObjectId, c: Candidate) = {
-    val q = WordRecord where (_.user eqs id) and (_.writing eqs c.writing)
-    val cnt = q.andOpt(c.reading)((a, b) => a.reading eqs (b)) count()
-    cnt == 0
-  }
+  val storage = new mutable.HashMap[Candidate, String]()
 
-  def noAdds(uid: ObjectId, c: Candidate) = {
-    val q = AddWordRecord where (_.user eqs uid) and (_.writing eqs c.writing)
-    val cnt = q.andOpt(c.reading)((m,r) => m.reading eqs r) count()
-    cnt == 0
-  }
+  implicit val formats = DefaultFormats
 
+  import JsExp._
   def thisToo(cand: Candidate, id: String, uid: ObjectId): Unit = {
-    import JsExp._
-    implicit val formats = DefaultFormats
-    if (noWords(uid, cand) && noAdds(uid, cand)) {
-      val jv = Extraction.decompose(cand)
-      partialUpdate(JE.Call("resolve_thistoo", JE.Str(id), jv).cmd)
+    toAkka(ForUser(uid, SimilarWordsRequest(cand)))
+    storage.update(cand, id)
+  }
+
+  def replyToClient(ps: PresentStatus): Unit = {
+    if (!ps.fullMatch) {
+      storage.get(ps.cand) match {
+        case Some(id) =>
+          val cand = ps.cand
+          val jv = Extraction.decompose(cand)
+          storage.remove(cand)
+          partialUpdate(JE.Call("resolve_thistoo", JE.Str(id), jv).cmd)
+        case _ =>
+      }
+    } else {
+      storage.remove(ps.cand)
     }
   }
 
   override def lowPriority = {
     case ProcessThisToo(c, id) => if (userId.isDefined) thisToo(c, id, userId.get)
+    case ps: PresentStatus => replyToClient(ps)
   }
 }
+
 
 

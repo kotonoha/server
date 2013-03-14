@@ -32,18 +32,23 @@ import ws.kotonoha.server.records.events.MarkEventRecord
 import net.liftweb.json.JsonAST.JObject
 import ws.kotonoha.server.learning.ProcessMarkEvents
 import ws.kotonoha.server.actors.SaveRecord
+import ws.kotonoha.server.web.comet.Candidate
 
 trait WordMessage extends KotonohaMessage
 
 case class RegisterWord(word: WordRecord, state: WordStatus.Value = WordStatus.Approved) extends WordMessage
-
 case class ChangeWordStatus(word: ObjectId, status: WordStatus.Value) extends WordMessage
-
 case class MarkAllWordCards(word: ObjectId, mark: Int) extends WordMessage
-
 case class MarkForDeletion(word: ObjectId) extends WordMessage
-
 case object DeleteReadyWords extends WordMessage
+case class SimilarWordsRequest(cand: Candidate) extends WordMessage
+
+case class PresentStatus(cand: Candidate, present: List[SimilarWord], queue: List[SimilarWord]) {
+  def fullMatch = {
+    present.exists(w => w.writings.contains(cand.writing)) || queue.exists(w => w.writings.contains(cand.writing))
+  }
+}
+
 
 class WordActor extends UserScopedActor with ActorLogging {
 
@@ -55,6 +60,12 @@ class WordActor extends UserScopedActor with ActorLogging {
   implicit val timeout: Timeout = 1 second
   implicit val dispatcher = context.dispatcher
 
+  def findSimilar(cand: Candidate): Unit = {
+    val ws = SimilarWords.similarWords(uid, cand)
+    val adds = SimilarWords.similarAdds(uid, cand)
+    sender ! PresentStatus(cand, ws, adds)
+  }
+
   override def receive = {
     case RegisterWord(word, st) => registerWord(word, st)
     case ChangeWordStatus(word, stat) => changeWordStatus(word, stat)
@@ -64,6 +75,7 @@ class WordActor extends UserScopedActor with ActorLogging {
       WordRecord where (_.id eqs word) modify (_.deleteOn setTo (now.plusDays(1))) updateOne()
       self ! ChangeWordStatus(word, WordStatus.Deleting)
     }
+    case SimilarWordsRequest(c) => findSimilar(c)
   }
 
   def checkReadingWriting(word: WordRecord) = {
