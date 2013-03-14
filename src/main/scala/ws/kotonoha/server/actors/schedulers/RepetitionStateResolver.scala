@@ -148,6 +148,10 @@ class RepetitionStateResolver(uid: ObjectId) {
 
   def resolveState(): State.State = {
     import State._
+
+    if (scheduledCnt > 3 * lastAvg / 2)
+      return AfterRest
+
     val bline = lastAvg / 10
 
     val noold = scheduledCnt < bline
@@ -159,9 +163,7 @@ class RepetitionStateResolver(uid: ObjectId) {
       case _ => //do nothing
     }
 
-    if (scheduledCnt > 3 * lastAvg / 2)
-      AfterRest
-    else Normal
+    Normal
   }
 }
 
