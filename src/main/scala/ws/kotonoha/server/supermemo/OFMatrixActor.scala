@@ -107,27 +107,27 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
     def apply(rep: Int, diff: Double) = new MatrixCoordinate(rep, MathUtil.round(diff, 1))
   }
 
-  var lastSave = OFArchiveRecord where (_.user eqs user) orderDesc (_.timestamp) select (_.timestamp) get()
+  private var lastSave = OFArchiveRecord where (_.user eqs user) orderDesc (_.timestamp) select (_.timestamp) get()
 
-  val matrix = OFMatrixRecord.forUser(user)
+  private val matrix = OFMatrixRecord.forUser(user)
 
-  @volatile var elements: Map[MatrixCoordinate, OFElementRecord] = lookupElements(matrix)
+  private var elements: Map[MatrixCoordinate, OFElementRecord] = lookupElements(matrix)
 
-  def lookupElements(record: OFMatrixRecord) = {
+  private def lookupElements(record: OFMatrixRecord) = {
     val elems = OFElementRecord where (_.matrix eqs matrix.id.is) fetch()
     elems.map {
       e => Crd(e.n.is, e.ef.is) -> e
     }.toMap
   }
 
-  def apply(rep: Int, diff: Double) = {
+  def apply(rep: Int, diff: Double) = synchronized {
     elements.get(Crd(rep, diff)) match {
       case Some(v) => v.value.is
       case None => diff
     }
   }
 
-  def archive(): Unit = {
+  private def archive(): Unit = {
     val items = elements map {
       case (p, v) => OFElement(p.rep, p.diff, v.value.is)
     }
@@ -140,7 +140,7 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
     lastSave = Some(now)
   }
 
-  def checkArchive(): Unit = {
+  private def checkArchive(): Unit = {
     lastSave match {
       case None => archive()
       case Some(t) => {
@@ -152,7 +152,7 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
     }
   }
 
-  def update(rep: Int, diff: Double, value: Double): Unit = {
+  def update(rep: Int, diff: Double, value: Double): Unit = synchronized {
     checkArchive()
     val mc = Crd(rep, diff)
     logger.debug("updating OF matrix element (%d, %f) to %f".format(mc.rep, mc.diff, value))
