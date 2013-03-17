@@ -52,6 +52,8 @@ case class WebMark(card: String, mode: Int, time: Double, mark: Int, remaining: 
 case object UpdateNum
 
 trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
+  import akka.pattern.ask
+
   def self = this
 
   var userId: ObjectId = null
@@ -124,15 +126,19 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
 
   def processMark(mark: WebMark): Unit = {
     import DateTimeUtils._
-    if (mark.remaining < 5) {
-      uact ! LoadWords(15, 0)
-    }
+
     val me = MarkEventRecord.createRecord
     val cid = new ObjectId(mark.card)
     me.card(cid).mark(mark.mark).mode(mark.mode).time(mark.time)
     me.user(userId)
     me.datetime(now)
-    uact ! ProcessMarkEvent(me)
+    val f = (uact ? ProcessMarkEvent(me))
+    f.onSuccess {
+      case x: Int =>
+        if (mark.remaining < 5) {
+          uact ! LoadWords(15, mark.remaining)
+        }
+    }
   }
 
   override def lowPriority = {
