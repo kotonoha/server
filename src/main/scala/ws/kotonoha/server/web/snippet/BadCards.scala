@@ -47,19 +47,7 @@ trait UserActor extends Logging { self: Akka =>
 
   implicit val timeout: Timeout = 10 seconds
 
-  private object userActorS extends SessionVar[Future[ActorRef]](create)
-
-  def userActor = {
-    val p = Promise[ActorRef]()
-    userActorS.is.onComplete {
-      case util.Success(af) => p.complete(util.Success(af))
-      case util.Failure(ex) => {
-        logger.warn("Can't get user actor", ex)
-        p.completeWith(create).future.foreach { _ => userActorS.set(p.future) }
-      }
-    }
-    p.future
-  }
+  def userActor = create
 
   private def create: Future[ActorRef] = {
     UserRecord.currentId match {
