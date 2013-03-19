@@ -88,17 +88,19 @@ object Parser extends Akka with ReleaseAkka {
         }
         val jlist = new JList[Token]()
         val result = fact.analyze(s, jlist)
-        val xml = result.map( w =>
+        val xml = result.flatMap( w =>
           bind("jw", in,
           "surf" -> w.getSurface,
           "basic" -> w.getMorpheme.getBasicForm,
           "conj" -> w.getMorpheme.getConjugationalForm,
+          "ctype" -> w.getMorpheme.getConjugationalType,
+          "addit" -> w.getMorpheme.getAdditionalInformation,
           "read" -> w.getMorpheme.getReadings.mkString(","),
           "writ" -> w.getMorpheme.getPronunciations.mkString(","),
           "pos" -> w.getMorpheme.getPartOfSpeech
           )
         )
-        xml.reduce(_++_) /*++ parseMecab(s)*/ ++ parseJuman(s)
+        xml /*++ parseMecab(s)*/ ++ parseJuman(s)
       }
       case _ => <br />
     }

@@ -18,7 +18,8 @@ package ws.kotonoha.server.actors.tags.auto
 
 import ws.kotonoha.server.actors.UserScopedActor
 import ws.kotonoha.akane.unicode.UnicodeUtil
-import ws.kotonoha.server.records.dictionary.{JMDictRecord, KanjidicRecord}
+import ws.kotonoha.server.records.dictionary.{KanjidicRecord}
+import ws.kotonoha.server.dict.kanjidic.Kanjidic
 
 /**
  * @author eiennohito
@@ -61,20 +62,5 @@ class KanjidicTagger extends UserScopedActor {
         case None => sender ! PossibleTags(Nil)
       }
     }
-  }
-}
-
-object Kanjidic {
-
-  import com.foursquare.rogue.LiftRogue._
-
-  def inWord(s: String) = entries(UnicodeUtil.kanji(s))
-
-  def entries(kanji: List[String]) = {
-    val q = KanjidicRecord where (_.literal in kanji)
-    val data = q fetch()
-    data.map {
-      i => i.literal.is -> i
-    }.toMap
   }
 }

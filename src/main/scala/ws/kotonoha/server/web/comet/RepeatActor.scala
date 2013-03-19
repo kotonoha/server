@@ -52,8 +52,6 @@ case class WebMark(card: String, mode: Int, time: Double, mark: Int, remaining: 
 case object UpdateNum
 
 trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
-  import akka.pattern.ask
-
   def self = this
 
   var userId: ObjectId = null
@@ -61,6 +59,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   var count = 0
 
   lazy val today = new RepetitionStateResolver(userId).today
+  implicit def context = akkaServ.context
 
   def render = {
     val js = JsCmds.Function("send_to_actor", List("obj"), jsonSend(JsRaw("obj")))
@@ -125,6 +124,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   }
 
   def processMark(mark: WebMark): Unit = {
+    import concurrent.duration._
     import DateTimeUtils._
 
     val me = MarkEventRecord.createRecord
@@ -132,7 +132,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     me.card(cid).mark(mark.mark).mode(mark.mode).time(mark.time)
     me.user(userId)
     me.datetime(now)
-    val f = (uact ? ProcessMarkEvent(me))
+    val f = akka.pattern.ask(uact, ProcessMarkEvent(me))(10 seconds)
     f.onSuccess {
       case x: Int =>
         if (mark.remaining < 5) {

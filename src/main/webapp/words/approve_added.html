@@ -65,8 +65,9 @@
       <span id="counter" class="counter ng-cloak" ng-show="cur != total">Showing {{cur + 1}} of {{total}}</span>
       <span id="status-string" ng-show="!loaded"><b>Please wait, loading...</b></span>
     </div>
+    <div class="similar-block">
+    </div>
     <h2 ng-show="cur != total">Word card</h2>
-
     <div class="row-fluid" ng-show="cur != total">
       <div class="span8 center" id="left">
         <form id="main-form">
@@ -95,9 +96,9 @@
             </table>
           </div>
           <div class="button-pane" ng-show="btns_visible">
-            <button class="btn" ng-click="save('approved')"><i class="icon-ok-sign"></i> Save as good</button>
+            <button class="btn btn-success" ng-click="save('approved')"><i class="icon-ok-sign"></i> Save as good</button>
             <button class="btn" ng-click="save('new')"><i class="icon-question-sign"></i> Save, don't learn</button>
-            <button class="btn" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
+            <button class="btn btn-warning" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
           </div>
           <h2>Examples</h2>
 
@@ -123,9 +124,9 @@
           </div>
         </form>
         <div class="button-pane" ng-show="btns_visible">
-          <button class="btn" ng-click="save('approved')"><i class="icon-ok-sign"></i> Save as good</button>
+          <button class="btn btn-success" ng-click="save('approved')"><i class="icon-ok-sign"></i> Save as good</button>
           <button class="btn" ng-click="save('new')"><i class="icon-question-sign"></i> Save, don't learn</button>
-          <button class="btn" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
+          <button class="btn btn-warning" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
         </div>
       </div>
       <div class="span4" id="right">
@@ -146,7 +147,7 @@
               <div class="dict-entry" ng-repeat="de in dic.data">
                 <div>
                   <span class="nihongo" ng-click="copyDicEntry(de)">{{de.writing}}({{de.reading}})</span>
-                  <button href="javascript:void(0)" ng-click="addFromDic(de, $event)" class="btn btn-mini"><i
+                  <button href="javascript:void(0)" ng-show="de.showToo" ng-click="addFromDic(de, $event)" class="btn btn-mini"><i
                     class="icon-plus"></i> this too
                   </button>
                 </div>
@@ -154,6 +155,9 @@
               </div>
             </div>
           </div>
+        </div>
+        <div class="row">
+
         </div>
       </div>
     </div>

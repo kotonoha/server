@@ -129,10 +129,6 @@ class WarodaiParserTest extends org.scalatest.FunSuite with org.scalatest.matche
     crd.successful should be (true)
   }
 
-  test("parse lineends") {
-    "\n\r\n\n\r\r\n"
-  }
-
   test("body parser parses text") {
     val text = "Western) западный."
     val pr = WarodaiBodyParser.text(text)
