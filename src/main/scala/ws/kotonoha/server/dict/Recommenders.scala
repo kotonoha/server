@@ -21,6 +21,7 @@ import ws.kotonoha.akane.conjuation.{AdjI, Verb}
 import net.liftweb.json.JsonAST.{JObject, JValue}
 import ws.kotonoha.server.records.dictionary.JMDictRecord
 import net.liftweb.mongodb.Limit
+import ws.kotonoha.akane.unicode.KanaUtil
 
 /**
  * @author eiennohito
@@ -44,7 +45,9 @@ case class RecommendedSubresult(item: JMDictRecord, title: String, prio: Int) {
     val mn = item.meaning.is.map { m =>
       val b = m.info.is.mkString("(", ", ", ") ")
       val e = m.vals.is.filter(ls => lngs.contains(ls.loc)).map(_.str).mkString(", ")
-      b + e
+      if (b.length > 3)
+        b + e
+      else e
     }
     RecommendItem(item.id.is, title, rd, wr, mn)
   }
@@ -131,9 +134,10 @@ class SimpleJukugoRecommender(prio: Int) extends RecommenderBlock {
       val kuns = ki.rmgroups.is.flatMap(_.onyomi)
       val lit = ki.literal.is
       kuns.flatMap { rd =>
-        val c1 = Candidate(s"$lit.", Some(s"$rd"), None)
-        val c2 = Candidate(s".$lit", Some(s".*$rd"), None)
-        List(new RecommendChunk(c1, prio, "juku"), new RecommendChunk(c2, prio, "juku"))
+        val kana = KanaUtil.kataToHira(rd)
+        val c1 = Candidate(s"$lit.", Some(s"$kana"), None)
+        val c2 = Candidate(s".$lit", Some(s".*$kana"), None)
+        List(new RecommendChunk(c1, prio, "juku", true), new RecommendChunk(c2, prio, "juku", true))
       }
     }
   }

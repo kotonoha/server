@@ -17,7 +17,7 @@
 package ws.kotonoha.server.actors.recommend
 
 import ws.kotonoha.server.actors.{KotonohaMessage, UserScopedActor}
-import ws.kotonoha.server.dict.{RecommenderReply, Recommender}
+import ws.kotonoha.server.dict.{RecommendedSubresult, Recommender}
 import akka.actor.ActorRef
 import ws.kotonoha.akane.{ParsedQuery, JumanEntry}
 import ws.kotonoha.server.actors.interop.ParseSentence
@@ -40,6 +40,8 @@ case class RecommendRequest(writ: Option[String], read: Option[String], juman: L
 
 case class InternalRequest(snd: ActorRef, c: RecommendRequest, juman: List[JumanEntry])
 
+case class RecommenderReply(req: RecommendRequest, entries: List[RecommendedSubresult])
+
 class RecommendActor extends UserScopedActor {
   import akka.pattern.{ask, pipe}
   import scala.concurrent.duration._
@@ -53,7 +55,7 @@ class RecommendActor extends UserScopedActor {
 
   def internalProcess(msg: RecommendRequest, who: ActorRef) {
     val res = rec.process(msg)
-    who ! RecommenderReply(res)
+    who ! RecommenderReply(msg, res)
   }
 
   def receive = {

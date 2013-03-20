@@ -27,17 +27,15 @@ import ws.kotonoha.server.actors.model._
 import net.liftweb.http.CometActor
 import net.liftweb.json.JsonAST._
 import net.liftweb.http.js.JsCmds
-import akka.actor.{PoisonPill, Props}
-import scala.Left
+import akka.actor.{ActorRef, PoisonPill, Props}
 import scala.Some
 import ws.kotonoha.server.actors.{SaveRecord, UpdateRecord}
 import net.liftweb.common.Full
-import scala.Right
 import ws.kotonoha.server.actors.model.WordData
 import net.liftweb.json.{DefaultFormats, Extraction, NoTypeHints, Serialization}
 import ws.kotonoha.server.actors.interop.ParseSentence
 import ws.kotonoha.akane.ParsedQuery
-import ws.kotonoha.server.util.DateTimeUtils
+import ws.kotonoha.server.util.{LangUtil, DateTimeUtils}
 import ws.kotonoha.akane.juman.JumanUtil
 import net.liftweb.json.ext.JodaTimeSerializers
 import com.typesafe.scalalogging.slf4j.Logging
@@ -45,6 +43,8 @@ import concurrent.{Promise, Future, ExecutionContext}
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.tags.{AddTag, TagWord, TagParser}
 import ws.kotonoha.server.actors.tags.auto.{PossibleTags, PossibleTagRequest}
+import ws.kotonoha.server.actors.recommend.{RecommenderReply, RecommendRequest}
+import ws.kotonoha.server.dict.{RecommendedSubresult}
 
 
 /**
@@ -73,7 +73,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
   lazy val root = akkaServ.global
   val self = this
   private val uid = UserRecord.currentId.get
-  lazy val uact = akkaServ.userActor(uid)
+  var uact: ActorRef = _
 
   import concurrent.duration._
   import akka.pattern.{ask => apa}
@@ -86,14 +86,18 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
 
   implicit val ec: ExecutionContext = akkaServ.context
 
-  lazy val wordCreator = {
+  var wordCreator : ActorRef = _
+
+  def createCreator() = {
+    uact = akkaServ.userActor(uid)
     val a = createActor(Props[WordCreateActor], parent = uact)
     logger.info("Word creator actor created successfully")
-    a
+    wordCreator = a
   }
 
   override def localShutdown {
-    wordCreator ! PoisonPill
+    if (wordCreator != null)
+      wordCreator ! PoisonPill
     super.localShutdown
   }
 
@@ -189,6 +193,11 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
 
   def prepare() = {
     logger.debug("prepare is called")
+    if (wordCreator != null) {
+      wordCreator ! PoisonPill
+    }
+    createCreator()
+
     selector = new WordDataCalculator()
     self ! PublishNext
     self ! PublishNext
@@ -201,7 +210,12 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     n match {
       case Some(f) => {
         f.onComplete {
-          case util.Success(wd) => self ! DoRenderAndDisplay(wd)
+          case util.Success(wd) =>
+            val rd = wd.word.reading.is.headOption
+            val wr = wd.word.writing.is.headOption
+            val req = RecommendRequest(wr, rd, Nil)
+            uact ! req
+            self ! DoRenderAndDisplay(wd)
           case util.Failure(e) => logger.error("Error in displaying word", e); self ! PublishNext
         }
       }
@@ -260,6 +274,9 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     val r = card.reading.split(",").toList.map(_.trim).headOption
     val req = PossibleTagRequest(w, r)
     wordCreator ! req
+
+    val rec = RecommendRequest(Some(w), r, Nil)
+    uact ! rec
   }
 
   def process(js: JValue): Unit = {
@@ -286,6 +303,17 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
         val data = js \ "data"
         val c = Extraction.extract[DictCard](data)
         processRetag(c)
+      }
+      case JString("ignore-rec") => {
+        (js \ "id") match {
+          case JInt(id) =>
+            val wid = id.toLong
+            val rec = RecommendationIgnore.createRecord
+            rec.user(uid)
+            rec.jmdict(wid)
+            uact ! SaveRecord(rec)
+          case _ => //do nothing
+        }
       }
       case _ => logger.info("Invalid message " + js)
     }
@@ -366,6 +394,15 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     ngMessage(jv)
   }
 
+  def processRecommended(req: RecommendRequest, results: List[RecommendedSubresult]): Unit = {
+    val data = results.map(_.format(LangUtil.langs.toSet))
+    val jv =
+      ("cmd" -> "recommend") ~
+      ("request" -> Extraction.decompose(req)) ~
+      ("response" -> Extraction.decompose(data))
+    ngMessage(jv)
+  }
+
   override def lowPriority = {
     case PrepareWords => list = Empty; prepare()
     case l: WordList => list = Full(l); prepare()
@@ -375,6 +412,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     case RemoveItem(hid) => displaying -= hid
     case PossibleTags(tags) => pushTags(tags)
     case Boolean => // do nothing
+    case RecommenderReply(req, info) => processRecommended(req, info)
   }
 
   override def highPriority = {

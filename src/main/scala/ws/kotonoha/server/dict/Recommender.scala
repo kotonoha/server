@@ -24,16 +24,15 @@ import ws.kotonoha.server.web.comet.Candidate
 import java.util.{ArrayList => JList}
 import net.java.sen.dictionary.Token
 import ws.kotonoha.akane.JumanEntry
-import ws.kotonoha.server.records.RecommendationIgnore
+import ws.kotonoha.server.records.{WordRecord, WordCardRecord, RecommendationIgnore}
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.recommend.RecommendRequest
+import ws.kotonoha.server.records.events.AddWordRecord
 
 /**
  * @author eiennohito
  * @since 14.03.13 
  */
-
-case class RecommenderReply(entries: List[RecommendedSubresult])
 
 case class DoRecommend(writing: String, reading: String, kanji: List[String], kinfo: Map[String, KanjidicRecord], juman: List[JumanEntry])
 
@@ -81,7 +80,7 @@ class Recommender(uid: ObjectId) {
 
 
   def preprocess(cand: RecommendRequest): List[RecommendedSubresult] = {
-    (cand.read, cand.writ) match {
+    (cand.writ, cand.read) match {
       case (None, None) => Nil
       case (Some(writ), None) => //preprocessNoreading(writ, cand.juman)
         Nil
@@ -101,6 +100,11 @@ class Recommender(uid: ObjectId) {
 
   def process(cand: RecommendRequest) = {
     val data = preprocess(cand)
-    data.sortBy(_.prio)
+    val wrs = data.flatMap(_.item.writing.is.map(_.value.is))
+    val dbwrs = WordRecord where (_.user eqs uid) and (_.writing in wrs) select(_.writing) fetch()
+    val addwrs = AddWordRecord where (_.user eqs uid) and (_.processed eqs false) select(_.writing) fetch()
+    val set = (addwrs ++ dbwrs.flatten).toSet
+    val filtered = data.filter(_.item.writing.is.exists(x => !set.contains(x.value.is)))
+    filtered.sortBy(_.prio).distinct
   }
 }

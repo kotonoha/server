@@ -57,19 +57,55 @@
       div.selections {
         margin-bottom: 1em;
       }
+
+      .rec-item {
+        float: left;
+        height: 2.6cm;
+        width: 4cm;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        border: 1px dotted #808080;
+        text-overflow: clip;
+        display: inline-block;
+        position: relative;
+        margin: 1mm;
+        padding: 1mm;
+      }
+
+      .rec-container {
+        height: 3cm;
+        overflow-y: hidden;
+      }
+
+      .trim {
+        text-overflow: ellipsis;
+        word-break: break-all;
+        line-break: loose;
+      }
     </style>
   </head_merge>
   <div class="lift:ApproveWordActorSnippet" ng-controller="AddWord">
     <div id="status">
       <span ng-show="loaded && cur == total">Nothing to add now, pal</span>
-      <span id="counter" class="counter ng-cloak" ng-show="cur != total">Showing {{cur + 1}} of {{total}}</span>
       <span id="status-string" ng-show="!loaded"><b>Please wait, loading...</b></span>
     </div>
-    <div class="similar-block">
+    <div class="rec-container">
+      <ul>
+        <li class="rec-item" ng-hide="r.processed" ng-repeat="r in recommended">
+          <div>
+            <button class="btn btn-mini" ng-click="process_recomendation(r, $event)"><i class="icon-plus"></i> add this</button>
+            <button class="btn btn-mini pull-right" ng-click="mark_rec_ignored(r, $event)"><i class="icon-remove-circle"></i> ignore</button>
+          </div>
+          <div class="nihongo">
+            {{r.writings[0]}} {{"(" + r.readings[0] + ")"}}
+          </div>
+          <div class="trim">{{r.meanings[0]}}</div>
+        </li>
+      </ul>
     </div>
-    <h2 ng-show="cur != total">Word card</h2>
     <div class="row-fluid" ng-show="cur != total">
       <div class="span8 center" id="left">
+        <h3>Word card ({{cur + 1}}/{{total}})</h3>
         <form id="main-form">
           <div id="word-card">
             <table>
@@ -100,7 +136,7 @@
             <button class="btn" ng-click="save('new')"><i class="icon-question-sign"></i> Save, don't learn</button>
             <button class="btn btn-warning" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
           </div>
-          <h2>Examples</h2>
+          <h3>Examples</h3>
 
           <div id="word-examples" style="display: table" ng-show="cur != total">
             <div class="selections">
@@ -155,9 +191,6 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="row">
-
         </div>
       </div>
     </div>
