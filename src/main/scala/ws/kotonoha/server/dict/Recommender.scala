@@ -26,19 +26,14 @@ import net.java.sen.dictionary.Token
 import ws.kotonoha.akane.JumanEntry
 import ws.kotonoha.server.records.RecommendationIgnore
 import org.bson.types.ObjectId
+import ws.kotonoha.server.actors.recommend.RecommendRequest
 
 /**
  * @author eiennohito
  * @since 14.03.13 
  */
 
-/**
- *
- * @param writ Word writing
- * @param read word reading
- * @param juman juman analyze results
- */
-case class RecommendRequest(writ: Option[String], read: Option[String], juman: List[JumanEntry])
+case class RecommenderReply(entries: List[RecommendedSubresult])
 
 case class DoRecommend(writing: String, reading: String, kanji: List[String], kinfo: Map[String, KanjidicRecord], juman: List[JumanEntry])
 
@@ -102,5 +97,10 @@ class Recommender(uid: ObjectId) {
         val ignored = RecommendationIgnore where (_.user eqs uid) select(_.jmdict) fetch()
         selector.flatMap(x => x.apply(ir)).flatMap(x => x.select(ignored))
     }
+  }
+
+  def process(cand: RecommendRequest) = {
+    val data = preprocess(cand)
+    data.sortBy(_.prio)
   }
 }

@@ -22,6 +22,7 @@ import learning._
 import model.{CardMessage, WordMessage, CardActor, WordActor}
 import tags.{TagMessage, TagActor}
 import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
+import ws.kotonoha.server.actors.recommend.{RecommenderMessage, RecommendActor}
 
 /**
  * @author eiennohito
@@ -55,6 +56,7 @@ class UserGuardActor extends UserScopedActor with ActorLogging {
   val dictActor = context.actorOf(Props[DictionaryActor], "dict")
   val exampleActor = context.actorOf(Props[ExampleActor], "example")
   val tagActor = context.actorOf(Props[TagActor], tags)
+  val recommender = context.actorOf(Props[RecommendActor], "recommend")
 
   def dispatch(msg: KotonohaMessage) {
     users ! PingUser(uid)
@@ -69,6 +71,7 @@ class UserGuardActor extends UserScopedActor with ActorLogging {
       case _: DictionaryMessage => dictActor.forward(msg)
       case _: ExampleMessage => exampleActor.forward(msg)
       case _: TagMessage => tagActor.forward(msg)
+      case _: RecommenderMessage => recommender.forward(msg)
     }
   }
 
