@@ -75,9 +75,14 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
 
   lazy val tagger = context.actorOf(Props[WordAutoTagger], "tagger")
 
+  def firstElem(s: String) = {
+    val parts = s.split("[,、]")
+    parts.head
+  }
+
   def prepareWord(rec: AddWordRecord): Future[WordData] = {
-    val wr = rec.writing.is
-    val rd: Option[String] = rec.reading.valueBox
+    val wr = firstElem(rec.writing.is)
+    val rd: Option[String] = rec.reading.valueBox.map{ firstElem }
     val jf = (userActor ? DictQuery(jmdict, wr, rd, 5)).mapTo[SearchResult]
     val wf = (userActor ? DictQuery(warodai, wr, rd, 5)).mapTo[SearchResult]
     val exs = jf.flatMap {
