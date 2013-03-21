@@ -76,7 +76,7 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
   lazy val tagger = context.actorOf(Props[WordAutoTagger], "tagger")
 
   def firstElem(s: String) = {
-    val parts = s.split("[,、]")
+    val parts = s.split("[,、･]")
     parts.head
   }
 
@@ -114,13 +114,18 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
     }
     val tags = jf.flatMap {
       jm =>
-        val req = jm.entries.headOption.flatMap(e =>
-          (e.writings.headOption, e.readings.headOption) match {
-            case (Some(w), r) => Some(PossibleTagRequest(w, r))
-            case (None, o@Some(r)) => Some(PossibleTagRequest(r, o))
-            case (None, None) => None
-          }
-        )
+        val req = jm.entries.headOption match {
+          case Some(e) =>
+            (e.writings.headOption, e.readings.headOption) match {
+              case (Some(w), r) => Some(PossibleTagRequest(w, r))
+              case (None, o@Some(r)) => Some(PossibleTagRequest(r, o))
+              case (None, None) => None //rly wtf dude
+            }
+          case None =>
+            val wx = firstElem(rec.writing.is)
+            val rx: Option[String] = rec.reading.valueBox.map(firstElem)
+            Some(PossibleTagRequest(wx, rx))
+        }
         req match {
           case Some(s) => (tagger ? s).mapTo[PossibleTags]
           case None => Future.successful(PossibleTags(Nil))

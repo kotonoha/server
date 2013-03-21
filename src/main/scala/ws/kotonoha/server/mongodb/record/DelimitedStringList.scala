@@ -163,7 +163,7 @@ class DelimitedStringList[Parent <: BsonRecord[Parent]] (p: Parent, delims: Stri
   private def setStr(in: String) = setBox(Full(parseItems(in)))
 
   ///use if you want to have string is, not the list one
-  def stris = encode.openTheBox
+  def stris = encode.openOrThrowException("was empty")
 
   def encode = valueBox map (_.mkString(delim))
 

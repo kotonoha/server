@@ -270,8 +270,8 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
   }
 
   def processRetag(card: DictCard): Unit = {
-    val w = card.writing.split(",").toList.map(_.trim).head
-    val r = card.reading.split(",").toList.map(_.trim).headOption
+    val w = card.writing.split("[,、]").toList.map(_.trim).head
+    val r = card.reading.split("[,、]").toList.map(_.trim).headOption
     val req = PossibleTagRequest(w, r)
     wordCreator ! req
 
@@ -314,6 +314,11 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
             uact ! SaveRecord(rec)
           case _ => //do nothing
         }
+      }
+      case JString("recalc-recs") => {
+        val jv = js \ "data"
+        val objs = Extraction.extract[List[RecommendRequest]](jv)
+        objs.foreach(uact ! _)
       }
       case _ => logger.info("Invalid message " + js)
     }
@@ -396,6 +401,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
 
   def processRecommended(req: RecommendRequest, results: List[RecommendedSubresult]): Unit = {
     val data = results.map(_.format(LangUtil.langs.toSet))
+    if (data.isEmpty) return
     val jv =
       ("cmd" -> "recommend") ~
       ("request" -> Extraction.decompose(req)) ~

@@ -8,6 +8,7 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
   nextItems = []
   $scope.cur = 0
   $scope.total = 0
+  recCacheValid = false
   recCache = []
 
   $scope.tagNfo = []
@@ -16,6 +17,14 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
     $scope.total = obj.total;
 
   display_recommendation = ->
+    if (!recCacheValid)
+      recs = [x.req for x in recCache]
+      cmd =
+        cmd: "recalc-recs"
+        data: recs
+      svc.toActor(cmd)
+      recCache = []
+      return
     get_elem = ->
       wr = $scope.word.writing
       for r,i in recCache
@@ -26,6 +35,9 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
     item = get_elem()
     if (item != null)
       $scope.recommended = item
+
+  invalidate_rec_cache = ->
+    recCacheValid = false
 
   display = () ->
     $scope.waiting = false
@@ -105,10 +117,14 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
     Array.prototype.splice.apply(old, tags)
 
   handleRecommend = (req, resp) ->
+    if (!recCacheValid)
+      display_recommendation()
+    recCacheValid = true
     recCache.push({req: req, resp: resp})
     $scope.$apply -> display_recommendation()
 
   $scope.process_recomendation = (item, ev) ->
+    invalidate_rec_cache()
     $(ev.target).parents('.rec-item').hide -> $scope.apply -> item.processed = true
     x = {}
     x.writing = item.writings.join(",")
@@ -121,6 +137,7 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
     svc.toActor(cmd)
 
   $scope.mark_rec_ignored = (item, ev) ->
+    invalidate_rec_cache()
     $(ev.target).parents('.rec-item').hide -> $scope.apply -> item.processed = true
     cmd =
       cmd: "ignore-rec"
