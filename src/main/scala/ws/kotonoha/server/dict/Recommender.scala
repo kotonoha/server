@@ -28,6 +28,7 @@ import ws.kotonoha.server.records.{WordRecord, WordCardRecord, RecommendationIgn
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.recommend.RecommendRequest
 import ws.kotonoha.server.records.events.AddWordRecord
+import scala.collection.mutable
 
 /**
  * @author eiennohito
@@ -103,7 +104,10 @@ class Recommender(uid: ObjectId) {
     val wrs = data.flatMap(_.item.writing.is.map(_.value.is))
     val dbwrs = WordRecord where (_.user eqs uid) and (_.writing in wrs) select(_.writing) fetch()
     val addwrs = AddWordRecord where (_.user eqs uid) and (_.processed eqs false) select(_.writing) fetch()
-    val set = (addwrs ++ dbwrs.flatten).toSet
+    val set = new mutable.HashSet[String]()
+    cand.writ.foreach(set += _)
+    set ++= addwrs
+    set ++= dbwrs.flatten
     val filtered = data.filter(_.item.writing.is.exists(x => !set.contains(x.value.is)))
     filtered.sortBy(_.prio).distinct
   }

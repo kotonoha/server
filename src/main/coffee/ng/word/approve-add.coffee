@@ -8,11 +8,24 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
   nextItems = []
   $scope.cur = 0
   $scope.total = 0
+  recCache = []
 
   $scope.tagNfo = []
 
   updateIndices = (obj) ->
     $scope.total = obj.total;
+
+  display_recommendation = ->
+    get_elem = ->
+      wr = $scope.word.writing
+      for r,i in recCache
+        if wr.search(r.req.writ) != -1
+          recCache.splice(i, 1)
+          return r.resp
+      return null
+    item = get_elem()
+    if (item != null)
+      $scope.recommended = item
 
   display = () ->
     $scope.waiting = false
@@ -22,6 +35,7 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
     $scope.dics = obj.dics
     $scope.tags = obj.tags
     updateIndices(obj)
+    display_recommendation()
 
   processNext = ->
     $scope.recommended = []
@@ -91,7 +105,8 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
     Array.prototype.splice.apply(old, tags)
 
   handleRecommend = (req, resp) ->
-    $scope.$apply -> $scope.recommended = resp
+    recCache.push({req: req, resp: resp})
+    $scope.$apply -> display_recommendation()
 
   $scope.process_recomendation = (item, ev) ->
     $(ev.target).parents('.rec-item').hide -> $scope.apply -> item.processed = true

@@ -411,7 +411,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     case DoRenderAndDisplay(wd) => renderAndPush(wd)
     case RemoveItem(hid) => displaying -= hid
     case PossibleTags(tags) => pushTags(tags)
-    case Boolean => // do nothing
+    case x: Boolean => // do nothing
     case RecommenderReply(req, info) => processRecommended(req, info)
   }
 
