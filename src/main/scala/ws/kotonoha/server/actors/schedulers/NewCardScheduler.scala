@@ -62,14 +62,14 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
 
   def bannedTags(lims: Map[String, Int], usg: Map[String, Int] = usage()): List[String] = {
     val ks = usg filter {
-      case (tag, cnt) => cnt > lims(tag)
+      case (tag, cnt) => cnt >= lims(tag)
     }
     ks.keys.toList
   }
 
   def query(cnt: Int, ignore: Vector[ObjectId], banned: List[String]) = {
-    log.debug("new query: ignore ids: {}, banned tags: [{}]", ignore.length, banned.mkString(", "))
-    Queries.newCards(uid) and (_.id nin ignore) and (_.tags nin banned) orderDesc
+    log.debug("new query: ignored words: {}, banned tags: [{}]", ignore.length, banned.mkString(", "))
+    Queries.newCards(uid) and (_.word nin ignore) and (_.tags nin banned) orderDesc
       (_.priority) select(_.id, _.tags, _.cardMode, _.word) fetch (cnt)
   }
 
@@ -108,7 +108,7 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
 
     @tailrec
     def rec(rem: Int, usg: Map[String, Int], banned: List[String], prev: Vector[CacheItem]): Vector[CacheItem] = {
-      val ignore = (cached ++ prev).map(_.cid)
+      val ignore = (cached ++ prev).map(_.word)
       val objs = query(cnt, ignore, banned) map (CacheItem.tupled)
       val bldr = new VectorBuilder[CacheItem]()
 

@@ -25,7 +25,7 @@ class NewCardSchedulerTest extends TestWithAkka with FreeSpec with ShouldMatcher
   val uid = createUser()
   val usvc = kta.userContext(uid)
 
-  def createCard(wid: ObjectId = new ObjectId(), tags: List[String] = Nil) = {
+  def createCard(wid: => ObjectId = new ObjectId(), tags: List[String] = Nil) = {
     val card = WordCardRecord.createRecord
     card.word(wid).user(uid).learning(Empty).notBefore(new DateTime).enabled(true).tags(tags)
     card.save(WriteConcern.Safe)
@@ -42,7 +42,7 @@ class NewCardSchedulerTest extends TestWithAkka with FreeSpec with ShouldMatcher
       cleanup(cards)
     }
 
-    "selects 2 cards from 8 when there is a limit on tags" - {
+    "selects 2 cards from 8 when there is a limit on tags" in {
       val empty = Seq.fill(3)(createCard())
       val full = Seq.fill(5)(createCard(tags = List("tag")))
       val ti = UserTagInfo.createRecord.user(uid).tag("tag").limit(2).save(WriteConcern.Safe)
@@ -53,6 +53,24 @@ class NewCardSchedulerTest extends TestWithAkka with FreeSpec with ShouldMatcher
       val scheds = NewCardSchedule where (_.user eqs uid) and (_.tag eqs "tag") fetch()
       scheds should have length (2)
       cleanup(empty, full, Seq(ti), scheds)
+    }
+
+    "makes a right decision about banned tags" in {
+      val empty = Seq.fill(3)(createCard())
+      val full = Seq.fill(5)(createCard(tags = List("tag1")))
+      val ti = UserTagInfo.createRecord.user(uid).tag("tag1").limit(1).save(WriteConcern.Safe)
+      actor.receive(CardRequest(State.Normal, 20, 0, 0, 10), testActor)
+      val cards = receiveOne(1 second).asInstanceOf[PossibleCards]
+      actor.receive(CardsSelected(cards.cards.length))
+      val scheds = NewCardSchedule where (_.user eqs uid) and (_.tag eqs "tag1") fetch()
+      scheds should have length (1)
+      val empty2 = Seq.fill(10)(createCard())
+      val und = actor.underlyingActor
+      val lims = und.limits()
+      val banned = und.bannedTags(lims)
+      banned should be (List("tag1"))
+
+      cleanup(empty, full, Seq(ti), empty2)
     }
   }
 }
