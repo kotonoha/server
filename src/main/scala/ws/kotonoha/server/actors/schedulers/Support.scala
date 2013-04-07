@@ -28,22 +28,35 @@ import com.typesafe.scalalogging.slf4j.Logging
  * @since 26.02.13 
  */
 
+trait Source {
+  def provider: CardProvider
+  def weight(req: CardRequest): Double
+}
 
-case class Source(provider: CardProvider, weight: Double)
+object Source {
+  def apply(prov: CardProvider, w: Double) = new StaticSource(prov, w)
+  def apply(prov: CardProvider, base: Double, fn: (CardRequest, Double) => Double) = new DynamicSoruce(prov, base, fn)
+}
+
+class StaticSource(val provider: CardProvider, w: Double) extends Source {
+  def weight(req: CardRequest) = w
+}
+
+class DynamicSoruce(val provider: CardProvider, base: Double, tf: (CardRequest, Double) => Double) extends Source {
+  def weight(req: CardRequest) = tf(req, base)
+}
+
+class ReqInfo(val weights: Array[Double]) {
+  lazy val maxw = weights.last
+}
 
 class CardMixer(input: List[Source]) extends Logging {
-
   import java.util.Arrays.binarySearch
 
-  private val weights = input.map(_.weight).scanLeft(0.0) {
-    _ + _
-  } toArray
-
-  private val maxw = weights(weights.length - 1)
   private val count = input.length
   private val rng = new Random()
 
-  private def combine(in: Array[List[ReviewCard]], limit: Int): (List[Int], List[ReviewCard]) = {
+  private def combine(in: Array[List[ReviewCard]], limit: Int, ri: ReqInfo): (List[Int], List[ReviewCard]) = {
     val selected = new Array[Int](count)
 
     def stream(trials: Int): Stream[ReviewCard] = {
@@ -51,8 +64,8 @@ class CardMixer(input: List[Source]) extends Logging {
         return Stream.Empty
       }
 
-      val v = rng.nextDouble() * maxw
-      val crd = binarySearch(weights, v)
+      val v = rng.nextDouble() * ri.maxw
+      val crd = binarySearch(ri.weights, v)
       val pos = if (crd > 0) (crd max count - 1) else -(crd + 2)
       in(pos) match {
         case x :: xs =>
@@ -67,15 +80,21 @@ class CardMixer(input: List[Source]) extends Logging {
     (selected.toList, data)
   }
 
+  def calcReqInfo(request: CardRequest): ReqInfo = {
+    val weights = input.map(x => x.weight(request)).toArray
+    new ReqInfo(weights)
+  }
+
   def process(req: CardRequest)(implicit ec: ExecutionContext): Future[List[ReviewCard]] = {
-    val basic = input.map{ src =>
-      val lim = Math.ceil(req.limit * src.weight * 1.5 / maxw).toInt
+    val ri = calcReqInfo(req)
+    val basic = input.zip(ri.weights).map{ case (src, weight) =>
+      val lim = Math.ceil(req.limit * weight * 1.5 / ri.maxw).toInt
       src.provider.request(req.copy(limit = lim))
     }
     val rewrap = Future.sequence(basic)
     rewrap.map {
       lst =>
-        val (cnt, data) = combine(lst.toArray, req.limit)
+        val (cnt, data) = combine(lst.toArray, req.limit, ri)
         logger.debug(s"Made a selection [${req.state}] -> (${cnt.mkString(", ")}})")
         cnt.zip(input).foreach {
           case (cnt, src) => src.provider.selected(cnt)
