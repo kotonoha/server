@@ -1,7 +1,7 @@
 package com.fmpwizard.cometactor.pertab
 package namedactor
 
-import net.liftweb.common.{Full, Logger}
+import net.liftweb.common.{Box, Full, Logger}
 import ws.kotonoha.server.actors.lift.AkkaInterop
 import akka.actor.ActorRef
 import akka.util.Timeout
@@ -9,6 +9,7 @@ import concurrent.duration._
 import ws.kotonoha.server.util.DateTimeUtils._
 import net.liftweb.http.CometActor
 import concurrent.ExecutionContext
+import net.liftweb.util.Helpers.TimeSpan
 
 
 trait NamedCometActor extends CometActor with Logger with AkkaInterop {
@@ -35,5 +36,5 @@ trait NamedCometActor extends CometActor with Logger with AkkaInterop {
   }
 
   // time out the comet actor if it hasn't been on a page for 2 minutes
-  override def lifespan = Full(2 minutes)
+  override def lifespan: Box[TimeSpan] = Full(5 minutes)
 }

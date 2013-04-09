@@ -17,10 +17,10 @@
 package ws.kotonoha.server.web.comet
 
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
-import ws.kotonoha.server.actors.lift.AkkaInterop
+import ws.kotonoha.server.actors.lift.{Ping, AkkaInterop}
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import net.liftweb.http.RenderOut
-import net.liftweb.common.{Empty, Full}
+import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.js.{JE, JsCmds}
 import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadWords}
 import util.Random
@@ -37,6 +37,7 @@ import org.bson.types.ObjectId
 import akka.actor.{Status, ActorRef}
 import com.typesafe.scalalogging.slf4j.Logging
 import ws.kotonoha.server.actors.schedulers.{RepetitionStateResolver, ReviewCard}
+import net.liftweb.util.Helpers.TimeSpan
 
 /**
  * @author eiennohito
@@ -52,6 +53,9 @@ case class WebMark(card: String, mode: Int, time: Double, mark: Int, remaining: 
 case object UpdateNum
 
 trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
+  import DateTimeUtils._
+  import concurrent.duration._
+
   def self = this
 
   var userId: ObjectId = null
@@ -60,6 +64,10 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
 
   lazy val today = new RepetitionStateResolver(userId).today
   implicit def context = akkaServ.context
+
+  akkaServ.system.scheduler.schedule(5 minutes, 1 minute, sender, Ping)
+
+  var last = now
 
   def render = {
     val js = JsCmds.Function("send_to_actor", List("obj"), jsonSend(JsRaw("obj")))
@@ -149,14 +157,23 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     }
     case RecieveJson(o) => processJson(o)
     case WordsAndCards(words, cards, seq) => publish(words, cards, seq)
-    case m: WebMark => processMark(m)
+    case m: WebMark =>
+      last = now
+      processMark(m)
     case UpdateNum => {
       partialUpdate(SetHtml("rpt-num", Text(s"Repeated $count word(s) in session, ${today + count} today")))
       count += 1
     }
     case _: Int => //do nothing
     case Status.Failure(ex) => logger.error("error in akka", ex)
+    case Ping =>
+      val dur = new org.joda.time.Duration(last, now)
+      if (dur.getStandardMinutes > 5) {
+        partialUpdate(Call("learning_timeout").cmd)
+      }
   }
+
+  override def lifespan: Box[TimeSpan] = Full(15 minutes)
 }
 
 class RepeatActor extends RepeatActorT with ReleaseAkka
