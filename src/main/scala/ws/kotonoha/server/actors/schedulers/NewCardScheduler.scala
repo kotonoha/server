@@ -20,7 +20,7 @@ import ws.kotonoha.server.actors.UserScopedActor
 import org.bson.types.ObjectId
 import ws.kotonoha.server.records.events.NewCardSchedule
 import com.foursquare.rogue.Iter
-import ws.kotonoha.server.records.UserTagInfo
+import ws.kotonoha.server.records.{WordCardRecord, UserTagInfo}
 import util.Random
 import collection.immutable.VectorBuilder
 import akka.actor.ActorLogging
@@ -168,6 +168,18 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
     cached = cached.drop(cnt)
   }
 
+  def preloadToday(): Unit = {
+    val today = NewCardSchedule where (_.user eqs uid) and (_.date gt now.minusDays(1)) select(_.card) fetch()
+    val data = WordCardRecord where (_.id in today) and (_.learning exists(false)) select(_.id, _.tags, _.cardMode, _.word) fetch()
+    cached = data.map(CacheItem.tupled).toVector
+  }
+
+  override def preStart() {
+    super.preStart()
+    self ! LoadUnscheduled
+  }
+
+
   def receive = {
     case c: CardRequest =>
       val entries = select(c.reqLength)
@@ -175,5 +187,8 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
         cid => ReviewCard(cid, "New")
       })
     case CardsSelected(cnt) => commit(cnt)
+    case LoadUnscheduled => preloadToday()
   }
 }
+
+case object LoadUnscheduled
