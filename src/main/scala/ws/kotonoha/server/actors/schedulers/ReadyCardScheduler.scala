@@ -51,7 +51,9 @@ class ReadyCardScheduler extends UserScopedActor {
   }
 
   def receive = {
-    case CardRequest(state, _, _, _, cnt) =>
+    case c: CardRequest =>
+      val cnt = c.reqLength
+      val state = c.state
       val data = state match {
         case State.AfterRest =>
           val nearnow = queryNearNow(cnt / 2)

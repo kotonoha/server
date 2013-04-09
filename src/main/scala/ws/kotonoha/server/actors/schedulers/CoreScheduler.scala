@@ -34,6 +34,16 @@ object State extends Enumeration {
   val Initial, Normal, AfterRest, NewStarvation, ReadyStarvation, TotalStarvation = Value
 }
 
+object SelectMutators {
+  def modifyNewSelector(part: Double, req: CardRequest): Double = {
+    val count = req.next.take(3).sum + req.ready + req.today
+    val lvl = req.normalLvl * 4
+    val ratio = count.toDouble / lvl
+    if (ratio < 1) part
+    else 0
+  }
+}
+
 
 class CoreScheduler extends UserScopedActor with ActorLogging {
 
@@ -50,7 +60,7 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
 
   implicit val timeout: Timeout = 10 seconds
 
-  val mixers = Map(
+  lazy val mixers = Map(
     State.Initial -> CardMixer(
       Source(ready, 1),
       Source(newcard, 1),
@@ -109,7 +119,13 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
       normalLvl = resolver.normal,
       curSession = current,
       today = resolver.today.toInt,
-      limit = cnt
+      ready = resolver.scheduledCnt.toInt,
+      border = resolver.borderline.toInt,
+      bad = resolver.badCount.toInt,
+      reqLength = cnt,
+      limits = Limits(0, 0),
+      base = resolver.lastAvg.toInt,
+      next = resolver.nextTotal.toSeq
     )
     val mixer = mixers(state)
     log.debug("For user {} scheduler state = {}", uid, state)

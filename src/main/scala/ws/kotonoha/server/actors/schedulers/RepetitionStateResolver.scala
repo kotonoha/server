@@ -146,13 +146,15 @@ class RepetitionStateResolver(uid: ObjectId) {
     WordCardRecord.enabledFor(uid) and (_.learning exists true) count()
   }
 
+  def borderline = lastAvg / 10 + 1
+
   def resolveState(): State.State = {
     import State._
 
     if (scheduledCnt > 3 * lastAvg / 2)
       return AfterRest
 
-    val bline = lastAvg / 10
+    val bline = borderline
 
     val noold = scheduledCnt < bline
     val nonew = newAvailable < bline

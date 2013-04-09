@@ -38,8 +38,8 @@ class BadCardScheduler extends UserScopedActor {
   }
 
   def receive = {
-    case CardRequest(_, _, _, _, cnt) =>
-      sender ! PossibleCards(loadBadCards(cnt).map {
+    case c: CardRequest =>
+      sender ! PossibleCards(loadBadCards(c.reqLength).map {
         cid => ReviewCard(cid, "Bad")
       })
     case _: CardsSelected =>

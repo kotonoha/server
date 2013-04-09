@@ -169,8 +169,8 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
   }
 
   def receive = {
-    case CardRequest(_, _, _, _, cnt) =>
-      val entries = select(cnt)
+    case c: CardRequest =>
+      val entries = select(c.reqLength)
       sender ! PossibleCards(entries.map {
         cid => ReviewCard(cid, "New")
       })

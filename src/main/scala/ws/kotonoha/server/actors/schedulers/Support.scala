@@ -88,13 +88,13 @@ class CardMixer(input: List[Source]) extends Logging {
   def process(req: CardRequest)(implicit ec: ExecutionContext): Future[List[ReviewCard]] = {
     val ri = calcReqInfo(req)
     val basic = input.zip(ri.weights).map{ case (src, weight) =>
-      val lim = Math.ceil(req.limit * weight * 1.5 / ri.maxw).toInt
-      src.provider.request(req.copy(limit = lim))
+      val lim = Math.ceil(req.reqLength * weight * 1.5 / ri.maxw).toInt
+      src.provider.request(req.copy(reqLength = lim))
     }
     val rewrap = Future.sequence(basic)
     rewrap.map {
       lst =>
-        val (cnt, data) = combine(lst.toArray, req.limit, ri)
+        val (cnt, data) = combine(lst.toArray, req.reqLength, ri)
         logger.debug(s"Made a selection [${req.state}] -> (${cnt.mkString(", ")}})")
         cnt.zip(input).foreach {
           case (cnt, src) => src.provider.selected(cnt)
@@ -124,7 +124,11 @@ object ReviewCard {
   def apply(cid: ObjectId, source: String) = new ReviewCard(cid, source, 0)
 }
 
-case class CardRequest(state: State.State, normalLvl: Int, curSession: Int, today: Int, limit: Int)
+case class Limits(total: Int, fresh: Int)
+
+case class CardRequest(state: State.State, normalLvl: Int, curSession: Int,
+                       today: Int, ready: Int, border: Int, bad: Int,
+                       reqLength: Int, limits: Limits, base: Int, next: Seq[Int])
 
 case class PossibleCards(cards: List[ReviewCard])
 
@@ -141,7 +145,7 @@ object ActorSupport {
   import scala.languageFeature.implicitConversions
   import akka.pattern.ask
 
-  implicit def actor2CardProvicer(actor: => ActorRef)
+  implicit def actor2CardProvider(actor: => ActorRef)
                                  (implicit ec: ExecutionContext, timeout: Timeout) = {
     new CardProvider {
       def request(req: CardRequest) = {

@@ -41,8 +41,8 @@ class OldBalancingScheduler extends UserScopedActor {
   }
 
   def receive = {
-    case CardRequest(_, _, _, _, cnt) =>
-      sender ! PossibleCards(query(cnt).map {
+    case c: CardRequest =>
+      sender ! PossibleCards(query(c.reqLength).map {
         cid => ReviewCard(cid, "OldBalancing")
       })
     case _: CardsSelected => //
