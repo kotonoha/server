@@ -41,14 +41,19 @@ trait StatusTrait extends KotonohaRest with OauthRestHelper {
 
   serve {
     case "api" :: "status" :: Nil Get req => {
-      UserRecord.currentId match {
-        case Full(id) => {
-          val user = UserRecord.find(id).openOrThrowException("I am here?")
-          val cards = WordCardRecord where (_.user eqs id) and (_.notBefore lt now) and
-            (_.learning subfield (_.intervalEnd) before now) count()
-          PlainTextResponse("You are user " + user.username.is + " and have " + cards + " cards scheduled")
+      async(userId) { uid =>
+
+        val user = UserRecord.find(uid).openOrThrowException("Non-existent user")
+        val x = Future.successful(new RepetitionStateResolver(uid))
+
+        x.map { r =>
+          val bldr = new StringBuilder
+          bldr.append("Hello, ").append(user.username.is).append("! ")
+          bldr.append("You have ").append(r.scheduledCnt).append(" cards ready, ")
+          bldr.append(r.badCount).append(" bad cards, ").append(r.newAvailable).append(" new cards available for learning. ")
+          bldr.append("You have repeated ").append(r.today).append(" cards today.")
+          Full(PlainTextResponse(bldr.result()))
         }
-        case _ => PlainTextResponse("Should not get this", 320)
       }
     }
     case List("api",  "ofmatrix") Get req => {
