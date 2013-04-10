@@ -3,6 +3,7 @@ package ws.kotonoha.server.kanji
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import java.io.{PrintWriter, FileInputStream, InputStreamReader, ByteArrayInputStream}
+import ws.kotonoha.akane.kanji.KanjiTagger
 
 /*
  * Copyright 2012 eiennohito

@@ -19,6 +19,7 @@ package ws.kotonoha.server.util
 import net.liftweb.json._
 import org.bson.types.ObjectId
 import net.liftweb.json.JsonAST.JString
+import scala.reflect.ClassTag
 
 /**
  * @author eiennohito
@@ -32,5 +33,18 @@ object OidSerializer extends Serializer[ObjectId] {
 
   override def deserialize(implicit format: Formats) = {
     case (_, JString(s)) => new ObjectId(s)
+  }
+}
+
+object EnumToStringSerializer {
+  def instance[T <: Enumeration](meta: T)(implicit t: ClassTag[T]) = {
+    new Serializer[meta.Value] {
+      def deserialize(implicit format: Formats) = {
+        case (_, JString(s)) => meta.withName(s)
+      }
+      def serialize(implicit format: Formats) = {
+        case x: meta.Value => JString(x.toString)
+      }
+    }
   }
 }

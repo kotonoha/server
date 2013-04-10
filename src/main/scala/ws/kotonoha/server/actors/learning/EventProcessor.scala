@@ -11,6 +11,7 @@ import concurrent.Future
 import com.mongodb.casbah.WriteConcern
 import ws.kotonoha.server.records.events.{ChangeWordStatusEventRecord, MarkEventRecord}
 import org.bson.types.ObjectId
+import ws.kotonoha.server.records.misc.CardSchedule
 
 /*
  * Copyright 2012 eiennohito
@@ -91,6 +92,21 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
         mr.lapse(0)
       }
     }
+
+    val scheds = CardSchedule where (_.user eqs card.user.is) and (_.card eqs card.id.is) orderDesc(_.date) fetch()
+    if (scheds.length > 1) {
+      log.warning("multiple schedules: {}", scheds)
+    }
+
+    if (!scheds.isEmpty) {
+      val head = scheds.head
+      mr.source(head.source.is)
+      mr.seq(head.seq.is)
+      mr.bundle(head.bundle.is)
+
+      scheds.foreach { x => mongo ! DeleteRecord(x) }
+    }
+
     mongo ! SaveRecord(mr)
   }
 

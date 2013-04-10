@@ -47,7 +47,9 @@ class DynamicSoruce(val provider: CardProvider, base: Double, tf: (CardRequest, 
 }
 
 class ReqInfo(val weights: Array[Double]) {
-  lazy val maxw = weights.last
+  lazy val maxw = weights.sum
+
+  def cumulative = weights.scan(0.0)(_+_)
 }
 
 class CardMixer(input: List[Source]) extends Logging {
@@ -59,13 +61,15 @@ class CardMixer(input: List[Source]) extends Logging {
   private def combine(in: Array[List[ReviewCard]], limit: Int, ri: ReqInfo): (List[Int], List[ReviewCard]) = {
     val selected = new Array[Int](count)
 
+    val cumulative = ri.cumulative
+
     def stream(trials: Int): Stream[ReviewCard] = {
       if (trials > count * 2) {
         return Stream.Empty
       }
 
       val v = rng.nextDouble() * ri.maxw
-      val crd = binarySearch(ri.weights, v)
+      val crd = binarySearch(cumulative, v)
       val pos = if (crd > 0) (crd max count - 1) else -(crd + 2)
       in(pos) match {
         case x :: xs =>

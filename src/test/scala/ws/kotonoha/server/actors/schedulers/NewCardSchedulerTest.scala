@@ -36,7 +36,7 @@ class NewCardSchedulerTest extends TestWithAkka with FreeSpec with ShouldMatcher
 
     "selects 2 cards" in {
       val cards = Seq.fill(2)(createCard())
-      actor.receive(CardRequest(State.Normal, 20, 0, 0, 10), testActor)
+      actor.receive(Requests.ready(10), testActor)
       val msg = receiveOne(1 second).asInstanceOf[PossibleCards]
       msg.cards should have length (2)
       cleanup(cards)
@@ -46,7 +46,7 @@ class NewCardSchedulerTest extends TestWithAkka with FreeSpec with ShouldMatcher
       val empty = Seq.fill(3)(createCard())
       val full = Seq.fill(5)(createCard(tags = List("tag")))
       val ti = UserTagInfo.createRecord.user(uid).tag("tag").limit(2).save(WriteConcern.Safe)
-      actor.receive(CardRequest(State.Normal, 20, 0, 0, 10), testActor)
+      actor.receive(Requests.ready(10), testActor)
       val msg = receiveOne(1 second).asInstanceOf[PossibleCards]
       msg.cards should have length (5)
       actor.receive(CardsSelected(5))
@@ -59,7 +59,7 @@ class NewCardSchedulerTest extends TestWithAkka with FreeSpec with ShouldMatcher
       val empty = Seq.fill(3)(createCard())
       val full = Seq.fill(5)(createCard(tags = List("tag1")))
       val ti = UserTagInfo.createRecord.user(uid).tag("tag1").limit(1).save(WriteConcern.Safe)
-      actor.receive(CardRequest(State.Normal, 20, 0, 0, 10), testActor)
+      actor.receive(Requests.ready(10), testActor)
       val cards = receiveOne(1 second).asInstanceOf[PossibleCards]
       actor.receive(CardsSelected(cards.cards.length))
       val scheds = NewCardSchedule where (_.user eqs uid) and (_.tag eqs "tag1") fetch()

@@ -23,6 +23,7 @@ import ws.kotonoha.server.records.WordCardRecord
 import akka.util.Timeout
 import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadCards}
 import akka.pattern.pipe
+import ws.kotonoha.server.records.misc.{CardSchedule, ScheduleRecord}
 
 /**
  * @author eiennohito
@@ -49,6 +50,7 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
 
   import ActorSupport._
   import concurrent.duration._
+  import ws.kotonoha.server.util.DateTimeUtils._
 
   lazy val resolver = new RepetitionStateResolver(uid)
 
@@ -100,16 +102,31 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
 
   var current = 0
 
+  val tid = (hashCode() & 0xf) << 16
+
   def seqnum() = {
     val timepart = System.currentTimeMillis() / 1000
-    val res = (timepart << 24) | current
+    val res = ((timepart << 24) | current) ^ tid
     current += 1
     if (current > (1 << 24)) current = 0
     res
   }
 
+  def dump(req: CardRequest, cards: List[ReviewCard]): Unit = {
+    val date = now
+
+    val arch = ScheduleRecord.createRecord
+    arch.user(uid).date(date).cards(cards).req(req).save
+
+    cards.foreach { card =>
+      val rec = CardSchedule.createRecord
+      rec.card(card.cid).source(card.source).seq(card.seq).user(uid).date(date).bundle(arch.id.is).save
+    }
+  }
+
   def receive = {
     case LoadCards(cnt, _) => loadCards(cnt)
+    case DumpSelection(req, cards) => dump(req, cards)
   }
 
   def loadCards(cnt: Int) {
@@ -134,7 +151,10 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
         val outsec = seq.map {
           c => c.copy(seq = seqnum())
         }
+        self ! DumpSelection(req, outsec)
         WordsAndCards(Nil, Nil, outsec)
     } pipeTo sender
   }
 }
+
+case class DumpSelection(req: CardRequest, cards: List[ReviewCard])
