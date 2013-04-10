@@ -1,3 +1,6 @@
 [submodule "akane"]
 	path = akane
 	url = git@github.com:kotonoha/akane.git
+[submodule "knockoff"]
+	path = knockoff
+	url = git@github.com:kotonoha/knockoff.git
