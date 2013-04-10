@@ -15,6 +15,8 @@ in_last = (cid) ->
       return true
   false
 
+update_link = null
+
 window.publish_new = (list) ->
   parsed = $.parseJSON(list)
   items = (it for it in parsed when not in_last(it.cid))
@@ -36,12 +38,15 @@ display_next = ->
   if items?.length != 0
     next = items.shift()
     item = next
+    if (update_link != null)
+      update_link(item)
     display_item(next)
     time = now()
     if (last.length >= 12)
       last.shift()
     last.push(item.cid)
   else
+    if update_link != null then update_link(null)
     display_no_items()
 
 mark_displayed = (mark) ->
@@ -99,12 +104,15 @@ eventmap =
   53: 5, 98: 5  # 5 and b
 
 
-$(document).ready -> (
+$(document).ready ->
   $(document).keyup (event) ->
     state = 'up'
     return
 
   $(document).keydown (event) ->
+    if (event.which == 32)
+      event.stopPropagation()
+      event.preventDefault()
     if (state != 'up')
       return
     state = 'down'
@@ -119,7 +127,9 @@ $(document).ready -> (
         mark = eventmap[event.which]
         mark_displayed(mark) if mark
       when MODE_NEXT
-        if (event.which == 32) then display_next()
+        if (event.which == 32)
+          display_next()
+          return false
     return
 
   $("#mark1").click -> mark_displayed(1)
@@ -131,9 +141,10 @@ $(document).ready -> (
   $("#show-next").click( -> display_next(); false )
   $("#show-answer").click( -> show_answer(); false )
 
-  $("#edit-link").click ->
-    if (item?)
-      window.open("../words/detail?w=#{item.wid}", '_blank')
-
-    false
-)
+window.RepeatController = ($scope) ->
+  $scope.wid = null
+  update_link = (item) ->
+    $scope.$apply ->
+      if (item == null)
+        $scope.wid = null
+      else $scope.wid = item.wid
