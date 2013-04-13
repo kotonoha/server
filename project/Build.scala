@@ -102,7 +102,7 @@ object KotonohaBuild extends Build {
       compile in Compile <<= (compile in Compile).dependsOn(CoffeeKeys.coffee in compileJs),
       copyResources in Compile <<= (copyResources in Compile).dependsOn(unzipJars)
     )
-  ) dependsOn(model, akane)
+  ) dependsOn(model, akane, knockoff)
 
   lazy val model = Project(
     id = "model",
@@ -113,6 +113,12 @@ object KotonohaBuild extends Build {
   lazy val akane = Project(
     id = "akane",
     base = file("akane"),
+    settings = buildSettings
+  )
+
+  lazy val knockoff = Project(
+    id = "knockoff",
+    base = file("knockoff"),
     settings = buildSettings
   )
 
