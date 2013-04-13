@@ -18,7 +18,7 @@ import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.web.rest._
 import admin.{Stats, OFHistory}
-import model.Words
+import ws.kotonoha.server.web.rest.model.{Cards, Words}
 import ws.kotonoha.server.actors.lift.Ping
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import ws.kotonoha.server.web.snippet.ClasspathResource
@@ -115,6 +115,7 @@ class Boot extends Logging {
     LiftRules.dispatch.append(Words)
     LiftRules.dispatch.append(Stats)
     LiftRules.dispatch.append(Grants)
+    LiftRules.dispatch.append(Cards)
     LiftRules.dispatch.append(Juman)
 
     LiftRules.dispatch.append(OFHistory)

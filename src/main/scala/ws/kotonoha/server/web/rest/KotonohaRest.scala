@@ -20,9 +20,7 @@ import net.liftweb.http.rest.RestContinuation
 import ws.kotonoha.server.actors.ioc.Akka
 import net.liftweb.common._
 import net.liftweb.http._
-import scala.Left
 import net.liftweb.common.Full
-import scala.Right
 import ws.kotonoha.server.records.UserRecord
 import org.bson.types.ObjectId
 import com.typesafe.scalalogging.slf4j.Logging

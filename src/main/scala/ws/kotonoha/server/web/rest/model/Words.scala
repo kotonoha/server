@@ -19,22 +19,27 @@ package ws.kotonoha.server.web.rest.model
 import ws.kotonoha.server.web.rest.KotonohaRest
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.util.unapply.{XOid, XHexLong}
-import ws.kotonoha.server.records.{WordStatus, WordRecord, UserRecord}
+import ws.kotonoha.server.records.{WordCardRecord, WordStatus, WordRecord, UserRecord}
 import net.liftweb.http._
 import net.liftweb.common.{Failure, Box, Full}
-import net.liftweb.json.JsonAST.{JInt, JField, JValue, JString}
+import net.liftweb.json.JsonAST._
 import ws.kotonoha.server.actors.model.{MarkForDeletion, ChangeWordStatus}
 import ws.kotonoha.server.tools.JsonAstUtil
 import ws.kotonoha.server.actors.model.ChangeWordStatus
 import net.liftweb.http.OkResponse
-import net.liftweb.json.JsonAST.JField
-import net.liftweb.json.JsonAST.JString
-import net.liftweb.json.JsonAST.JInt
 import ws.kotonoha.server.actors.model.MarkForDeletion
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.ForUser
 import ws.kotonoha.server.actors.tags.{TagParser, TagWord}
 import concurrent.Future
+import ws.kotonoha.server.actors.model.ChangeWordStatus
+import net.liftweb.http.OkResponse
+import net.liftweb.common.Full
+import ws.kotonoha.server.actors.tags.TagWord
+import net.liftweb.json.JsonAST.JField
+import net.liftweb.json.JsonAST.JString
+import net.liftweb.json.JsonAST.JInt
+import ws.kotonoha.server.actors.model.MarkForDeletion
 
 /**
  * @author eiennohito
@@ -112,6 +117,12 @@ object Words extends KotonohaRest with ReleaseAkka {
       } else {
         ForbiddenResponse()
       }
+    }
+    case XOid(wid) :: "cards" :: Nil Get req => {
+      val cards = userId map { uid =>
+        WordCardRecord where (_.word eqs wid) and (_.user eqs uid) fetch()
+      } map { ws => JsonResponse(JArray(ws.map(_.asJValue)))}
+      Full(cards.openOr(ForbiddenResponse()))
     }
   })
 }
