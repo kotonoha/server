@@ -71,7 +71,9 @@ class UserActorManager extends Actor with ActorLogging {
     case PingUser(uid) => lifetime.get(uid) foreach( lifetime += uid -> _ )
     case UserActor(uid) => sender ! userActor(uid)
     case ForUser(uid, msg) => userActor(uid).forward(msg)
-    case InitUsers => create(new ObjectId()) ! PoisonPill //perform classes loading
+    case InitUsers =>
+      val actor = create(new ObjectId()) //lasy loading
+      context.system.scheduler.scheduleOnce(10 seconds, actor, PoisonPill) //and kill in 10 secs
   }
 
   case object Ping
