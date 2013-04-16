@@ -28,13 +28,14 @@ import ws.kotonoha.server.records.events.AddWordRecord
 import scala.collection.mutable
 import ws.kotonoha.server.actors.model.{SimilarWordsRequest, PresentStatus}
 import ws.kotonoha.server.actors.ForUser
+import net.liftweb.json.JsonAST.{JString, JField, JObject}
 
 /**
  * @author eiennohito
  * @since 13.03.13 
  */
 
-case class ProcessThisToo(c: Candidate, id: String)
+case class ProcessThisToo(candidate: Candidate, id: String, src: String)
 
 class ThisTooActor extends NamedCometActor with AkkaInterop with Logging with ReleaseAkka {
   def render = <head_merge>
@@ -43,24 +44,26 @@ class ThisTooActor extends NamedCometActor with AkkaInterop with Logging with Re
 
   lazy val userId = UserRecord.currentId
 
-  val storage = new mutable.HashMap[Candidate, String]()
+  val storage = new mutable.HashMap[Candidate, ProcessThisToo]()
 
   implicit val formats = DefaultFormats
 
   import JsExp._
-  def thisToo(cand: Candidate, id: String, uid: ObjectId): Unit = {
+  def thisToo(ptt: ProcessThisToo, uid: ObjectId): Unit = {
+    val cand = ptt.candidate
     toAkka(ForUser(uid, SimilarWordsRequest(cand)))
-    storage.update(cand, id)
+    storage.update(cand, ptt)
   }
 
   def replyToClient(ps: PresentStatus): Unit = {
     if (!ps.fullMatch) {
       storage.get(ps.cand) match {
-        case Some(id) =>
+        case Some(ptt) =>
           val cand = ps.cand
-          val jv = Extraction.decompose(cand)
+          val part = JObject(JField("source", JString(ptt.src)) :: Nil)
+          val jv = Extraction.decompose(cand).merge(part)
           storage.remove(cand)
-          partialUpdate(JE.Call("resolve_thistoo", JE.Str(id), jv).cmd)
+          partialUpdate(JE.Call("resolve_thistoo", JE.Str(ptt.id), jv).cmd)
         case _ =>
       }
     } else {
@@ -69,7 +72,7 @@ class ThisTooActor extends NamedCometActor with AkkaInterop with Logging with Re
   }
 
   override def lowPriority = {
-    case ProcessThisToo(c, id) => if (userId.isDefined) thisToo(c, id, userId.get)
+    case o: ProcessThisToo => if (userId.isDefined) thisToo(o, userId.get)
     case ps: PresentStatus => replyToClient(ps)
   }
 }

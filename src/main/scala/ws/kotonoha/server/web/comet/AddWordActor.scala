@@ -146,6 +146,7 @@ trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor wi
         r.group(lid)
         r.user(uid)
         r.tags(ops.ops)
+        r.source("default")
         r.save
     }
     partialUpdate(RedirectTo(s"/words/approve_added?list=$lid"))

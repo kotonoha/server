@@ -44,8 +44,9 @@ object ThisToo {
         val rd: Option[String] = S.attr("rd")
         val wr = S.attr("wr") openOr("")
         val c = Candidate(wr, rd, None)
+        val s = S.attr("src") openOr("this-too")
         val (ns, id) = makeNodeSeq(c)
-        S.session.flatMap(_.findComet(A.cometClass, Full(A.name))).foreach(_ ! ProcessThisToo(c, id))
+        S.session.flatMap(_.findComet(A.cometClass, Full(A.name))).foreach(_ ! ProcessThisToo(c, id, s))
         ns
       case _ => NodeSeq.Empty
     }

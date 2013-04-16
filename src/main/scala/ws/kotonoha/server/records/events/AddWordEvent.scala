@@ -49,6 +49,8 @@ class AddWordRecord private() extends MongoRecord[AddWordRecord] with ObjectIdPk
     override def formats = DefaultFormats + TagOps
   }
 
+  object source extends StringField(this, 100)
+
 }
 
 object AddWordRecord extends AddWordRecord with MongoMetaRecord[AddWordRecord] with NamedDatabase

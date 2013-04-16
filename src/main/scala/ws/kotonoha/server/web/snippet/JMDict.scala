@@ -75,10 +75,10 @@ object JMDict extends Logging {
     val w = rec.writing.is.map(_.value.is).headOption.getOrElse("")
     val r = rec.reading.is.map(_.value.is).headOption
     if (r.isDefined) {
-      val cl = s"lift:ThisToo?wr=$w&rd=${r.get}"
+      val cl = s"lift:ThisToo?wr=$w&rd=${r.get}&src=jmdict"
       <div class={cl}></div>
     } else if (w != "") {
-      val cl = s"lift:ThisToo?wr=$w"
+      val cl = s"lift:ThisToo?wr=$w&src=jmdict"
       <div class={cl}></div>
     } else NodeSeq.Empty
   }

@@ -176,6 +176,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
       awr.reading(wc.reading)
       awr.meaning(wc.meaning)
       awr.tags(displaying.head._2.init.tags.valueBox)
+      awr.source("recommendation")
       total_ += 1
       items = awr :: items
       uact ! SaveRecord(awr)
