@@ -91,9 +91,10 @@ trait LearningRest extends KotonohaRest {
     case "mark" :: Nil JsonPost reqV => {
       val t = new Timer()
       val (json, req) = reqV
+      val client = clientName
       async(userId) {
         id =>
-          val marks = json.children flatMap (MarkEventRecord.fromJValue(_)) map (_.user(id))
+          val marks = json.children flatMap (MarkEventRecord.fromJValue(_)) map (_.client(client).user(id))
           logger.info("posing %d marks for user %s".format(marks.length, id))
           val count = userAsk[List[Int]](id, ProcessMarkEvents(marks))
           count map {

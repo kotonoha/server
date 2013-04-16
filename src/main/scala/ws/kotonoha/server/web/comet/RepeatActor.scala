@@ -138,6 +138,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     val me = MarkEventRecord.createRecord
     val cid = new ObjectId(mark.card)
     me.card(cid).mark(mark.mark).mode(mark.mode).time(mark.time)
+    me.client("web-repeat")
     me.user(userId)
     me.datetime(now)
     val f = akka.pattern.ask(uact, ProcessMarkEvent(me))(10 seconds)

@@ -58,12 +58,17 @@ trait OauthRestHelper extends RestHelper {
   }
 
   def check(msg: OAuthMessage): Boolean = {
-    val user = restUser.value.openTheBox
-    val client = restClient.value.openTheBox
-    val assessor = new OAuthAccessor(client, Full(user.tokenSecret.is), Empty)
-    val validated = validator.validateMessage(msg, assessor)
+    val validated = (restUser.value, restClient.value) match {
+      case (Full(user), Full(client)) =>
+        val assessor = new OAuthAccessor(client, Full(user.tokenSecret.is), Empty)
+        validator.validateMessage(msg, assessor)
+      case _ => Empty
+    }
+
     !validated.isEmpty
   }
+
+  def clientName: String = restClient.value.map(_.name.is).openOr("passthrough")
 
   def needAuth = true
 

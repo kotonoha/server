@@ -56,6 +56,7 @@ class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with Object
 
   object bundle extends ObjectIdField(this)
 
+  object client extends StringField(this, 100)
 }
 
 object MarkEventRecord extends MarkEventRecord with KotonohaMongoRecord[MarkEventRecord] with MongoMetaRecord[MarkEventRecord] with NamedDatabase
