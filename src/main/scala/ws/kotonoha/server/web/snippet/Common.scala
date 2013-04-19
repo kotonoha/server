@@ -22,7 +22,7 @@ import org.joda.time.DateTime
 import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
 import ws.kotonoha.server.web.comet.ActorUser
 import ws.kotonoha.server.records.UserRecord
-import net.liftweb.http.SessionVar
+import net.liftweb.http.{DispatchSnippet, SessionVar}
 
 /**
  * @author eiennohito
@@ -53,3 +53,4 @@ object GlobalComet extends InsertNamedComet {
 
   override def name = actorName.is
 }
+

@@ -21,9 +21,10 @@ import admin.{Stats, OFHistory}
 import ws.kotonoha.server.web.rest.model.{Cards, Words}
 import ws.kotonoha.server.actors.lift.Ping
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import ws.kotonoha.server.web.snippet.ClasspathResource
+import ws.kotonoha.server.web.snippet.{ModeSnippet, ClasspathResource}
 import com.typesafe.scalalogging.slf4j.Logging
 import scala.xml.{NodeSeq, Text}
+import ws.kotonoha.server.web.loc.WikiLoc
 
 
 /**
@@ -80,6 +81,7 @@ class Boot extends Logging {
           Menu.i("Approve & Review") / "words" / "approve_added",
           Menu.i("Detail") / "words" / "detail" >> Hidden
           ),
+        Menu.i("Wiki") / "wiki",
         Menu.i("Tools") / "tools" / "index" submenus(
           Menu.i("Test parser") / "tools" / "parser",
           Menu.i("Comet test") / "tools" / "comet_test",
@@ -89,13 +91,16 @@ class Boot extends Logging {
           Menu.i("Stroke orders") / "tools" / "kakijyun",
           Menu.i("Additional") / "tools" / "addit_info",
           Menu.i("Sandbox") / "tools" / "sandbox" >> If(() => Props.devMode, "Inaccessible")
-          ),
+      ),
         Menu.i("Oauth") / "oauth" >> Hidden submenus (
           Menu.i("OAuth request") / "oauth" / "request"
-          ),
+      ),
+        wikiPages,
         static
       )
     }
+
+    def wikiPages = Menu(new WikiLoc)
 
     // more complex because this menu allows anything in the
     // /static path to be visible
@@ -158,7 +163,10 @@ class Boot extends Logging {
     })
 
     LiftRules.snippetDispatch.append(
-      Map("cpres" -> ClasspathResource)
+      Map(
+        "cpres" -> ClasspathResource,
+        "mode" -> ModeSnippet
+      )
     )
   }
 }
