@@ -67,7 +67,7 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
 
   def update(in: JValue) = {
     val x = Extraction.extract[Data](in)
-    val xhtml = WikiRenderer.parseMarkdown(x.src)
+    val xhtml = WikiRenderer.parseMarkdown(x.src, pageInfo.mkPath)
     val w = new java.io.StringWriter(65536) //64k buffer
     S.htmlProperties.htmlWriter(Group(xhtml), w)
     val cmd = ("cmd" -> "preview") ~ ("src" -> w.toString)

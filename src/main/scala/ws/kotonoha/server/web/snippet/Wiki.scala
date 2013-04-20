@@ -38,8 +38,11 @@ class Wiki(page: WikiPage, sess: LiftSession) extends Logging {
 
   def editUri = ("/wiki" :: page.path).mkString("/") + "?mode=edit"
 
+  def historyUri = ("/wiki" :: page.path).mkString("/") + "?mode=history"
+
   def editPanel =
     <div class="pull-right">
+      <a href={historyUri} class="btn" title="History"><i class="icon-time"></i> History</a>
       <a href={editUri} class="btn" title="Edit"><i class="icon-pencil"></i> Edit</a>
     </div>
 
@@ -51,7 +54,7 @@ class Wiki(page: WikiPage, sess: LiftSession) extends Logging {
   }
 
   def renderMarkdown(db: WikiPageRecord): NodeSeq = {
-    WikiRenderer.parseMarkdown(db.source.is)
+    WikiRenderer.parseMarkdown(db.source.is, db.path.is)
   }
 
   def edit: NodeSeq = {
@@ -67,7 +70,7 @@ class Wiki(page: WikiPage, sess: LiftSession) extends Logging {
   def render(ns: NodeSeq): NodeSeq = {
     S.request.flatMap(_.param("mode")) match {
       case Full("edit") => edit
-      case Full("history") => Nil //implement history
+      case Full("history") => <p>Implement me</p> //implement history
       case _ => normal
     }
   }
