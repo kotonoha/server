@@ -22,11 +22,40 @@ package ws.kotonoha.server.wiki.template
  */
 
 object AddWord extends Template {
+  def previewAddBtn = <button class="btn btn-mini"><i class="icon-plus"></i> add this</button>
+
   def apply(args: String) = {
     args.split(":") match {
-      case Array(wr, rd) => <lift:ThisToo writing={wr} reading={rd} />
-      case Array(wr) => <lift:ThisToo writing={wr} />
+      case Array(wr, rd) =>
+        val btn = if (preview) previewAddBtn
+        else <lift:ThisToo wr={wr} rd={rd} src="wiki" /> ;
+        <span>
+          <span class="nihongo">
+            <ruby><rb>{wr}</rb><rt>{rd}</rt></ruby>
+          </span>
+          {btn}
+        </span>
+      case Array(wr) =>
+        val btn = if (preview) previewAddBtn
+        else <lift:ThisToo writing={wr} src="wiki" /> ;
+        <span>
+          <span class="nihongo">{wr}</span>{btn}
+        </span>
       case _ => Nil
     }
+  }
+}
+
+object AddWordBtn extends Template {
+  import AddWord.previewAddBtn
+
+  def apply(args: String) = args.split(":") match {
+    case Array(wr, rd) =>
+      if (preview) previewAddBtn
+      else <lift:ThisToo wr={wr} rd={rd} src="wiki" />
+    case Array(wr) =>
+      if (preview) previewAddBtn
+      else <lift:ThisToo writing={wr} src="wiki" />
+    case _ => Nil
   }
 }

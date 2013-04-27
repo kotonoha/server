@@ -17,7 +17,7 @@
 package ws.kotonoha.server.wiki
 
 import scala.xml.{Group, Node}
-import ws.kotonoha.server.wiki.template.AddWord
+import ws.kotonoha.server.wiki.template.{AddWordBtn, AddWord}
 
 /**
  * @author eiennohito
@@ -25,12 +25,15 @@ import ws.kotonoha.server.wiki.template.AddWord
  */
 object WikiTemplates {
   def apply(invocation: String): Node = {
-    val ns = invocation.split(":", 1) match {
+    val ns = invocation.split(":", 2) match {
       case Array(template) => tempaltes.get(template).map(t => t(""))
       case Array(template, args) => tempaltes.get(template).map(t => t(args))
     }
     Group(ns.getOrElse(Nil))
   }
 
-  val tempaltes = Map("addword" -> AddWord)
+  val tempaltes = Map(
+    "addword" -> AddWord,
+    "addwordbtn" -> AddWordBtn
+  )
 }

@@ -17,10 +17,17 @@
 package ws.kotonoha.server.wiki.template
 
 import scala.xml.NodeSeq
+import scala.util.DynamicVariable
 
 /**
  * @author eiennohito
  * @since 20.04.13 
  */
 
-trait Template extends (String => NodeSeq)
+object TemplateParams {
+  object preview extends DynamicVariable[Boolean](false)
+}
+
+trait Template extends (String => NodeSeq) {
+  def preview = TemplateParams.preview.value
+}

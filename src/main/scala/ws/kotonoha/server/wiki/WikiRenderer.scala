@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 import ws.kotonoha.server.records.WikiPageRecord
 import net.liftweb.util.Props
 
-object LinkCache {
+object WikiLinkCache {
   import com.foursquare.rogue.LiftRogue._
   /**
    * @param url should begin with /wiki/
@@ -38,6 +38,8 @@ object LinkCache {
         res
     } else x.booleanValue()
   }
+
+  def update(url: String, to: Boolean) = cache.put(url, to)
 
   private def lookupDb(path: String): Boolean = {
     val raw = path.substring(6) // remove /wiki/
@@ -66,7 +68,7 @@ object WikiRenderer {
     if (idx == -1) {
       val uri = URI.create("/wiki/main")
       val uris = uri.resolve(base).resolve(url).toString
-      val kind = if (LinkCache.check(uris)) UrlKind.Internal else UrlKind.Nonexistent
+      val kind = if (WikiLinkCache.check(uris)) UrlKind.Internal else UrlKind.Nonexistent
       Some(WikiUrl(url, uris, kind, false))
     } else {
       val end = url.substring(idx + 1)

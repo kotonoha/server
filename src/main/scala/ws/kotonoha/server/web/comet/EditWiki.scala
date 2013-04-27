@@ -25,10 +25,13 @@ import net.liftweb.http.js.JsCmds
 import net.liftweb.json.{DefaultFormats, Extraction}
 import ws.kotonoha.server.records.{UserRecord, WikiPageRecord}
 import org.bson.types.ObjectId
-import ws.kotonoha.server.wiki.WikiRenderer
-import scala.xml.Group
+import ws.kotonoha.server.wiki.{WikiLinkCache, WikiRenderer}
+import scala.xml.{NodeSeq, Group}
 import com.typesafe.scalalogging.slf4j.Logging
 import net.liftweb.http.js.JsCmds.RedirectTo
+import ws.kotonoha.server.wiki.template.TemplateParams
+import com.tristanhunt.knockoff.{SanitizationEvent, SanitizationChangeSupport}
+import scala.collection.mutable.ListBuffer
 
 /**
  * @author eiennohito
@@ -67,11 +70,22 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
 
   def update(in: JValue) = {
     val x = Extraction.extract[Data](in)
-    val xhtml = WikiRenderer.parseMarkdown(x.src, pageInfo.mkPath)
+    val xhtml: NodeSeq = makePage(x)
     val w = new java.io.StringWriter(65536) //64k buffer
     S.htmlProperties.htmlWriter(Group(xhtml), w)
     val cmd = ("cmd" -> "preview") ~ ("src" -> w.toString)
     ngMessage(cmd)
+  }
+
+
+  def makePage(x: Data): NodeSeq = {
+    val errors = new ListBuffer[SanitizationEvent]
+    val xhtml = TemplateParams.preview.withValue(true) {
+      SanitizationChangeSupport.withSink(errors += _) {
+        WikiRenderer.parseMarkdown(x.src, pageInfo.mkPath)
+      }
+    }
+    xhtml
   }
 
   def save(in: JValue): Unit = {
@@ -82,6 +96,7 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
     val wpr = WikiPageRecord.createRecord
     wpr.editor(UserRecord.currentId).parent(id).path(path).datetime(now).source(x.src)
     wpr.save
+    WikiLinkCache.update(path, true)
     partialUpdate(RedirectTo("/wiki/" + path))
   }
 
