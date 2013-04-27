@@ -25,6 +25,7 @@ import ws.kotonoha.server.web.snippet.{ModeSnippet, ClasspathResource}
 import com.typesafe.scalalogging.slf4j.Logging
 import scala.xml.{NodeSeq, Text}
 import ws.kotonoha.server.web.loc.WikiLoc
+import net.liftweb.actor.{ILAExecute, LAScheduler}
 
 
 /**
@@ -46,6 +47,22 @@ class Boot extends Logging {
     //Bootstrap lazy akka
     ReleaseAkkaMain.global ! Ping
     ReleaseAkkaMain.global ! InitUsers
+
+    val ec = ReleaseAkkaMain.context.prepare()
+
+    val liftex = new ILAExecute {
+      def shutdown() {}
+
+      def execute(f: () => Unit) {
+        ec.execute(new Runnable {
+          def run() = { f() }
+        })
+      }
+    }
+
+    Schedule.maxThreadPoolSize = 4
+    LAScheduler.createExecutor = () => liftex
+
 
     // where to search snippet
     LiftRules.addToPackages("ws.kotonoha.server.web")
