@@ -46,7 +46,13 @@ object ThisToo {
         val c = Candidate(wr, rd, None)
         val s = S.attr("src") openOr("this-too")
         val (ns, id) = makeNodeSeq(c)
-        S.session.flatMap(_.findComet(A.cometClass, Full(A.name))).foreach(_ ! ProcessThisToo(c, id, s))
+
+        S.session.foreach(
+          _.sendCometActorMessage(A.cometClass, Full(A.name),
+            ProcessThisToo(c, id, s)
+          )
+        )
+
         ns
       case _ => NodeSeq.Empty
     }
