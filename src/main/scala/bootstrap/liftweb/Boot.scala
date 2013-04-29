@@ -60,7 +60,8 @@ class Boot extends Logging {
       }
     }
 
-    Schedule.maxThreadPoolSize = 4
+    Schedule.threadPoolSize = 1
+    Schedule.maxThreadPoolSize = 16
     LAScheduler.createExecutor = () => liftex
 
 

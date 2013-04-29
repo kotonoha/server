@@ -8,6 +8,7 @@ MODE_ANSWER = 1
 MODE_NEXT = 2
 mode = -1
 state = 'up'
+timeout = 15 * 60 * 1000 #15 minutes
 
 in_last = (cid) ->
   for id in last
@@ -22,6 +23,11 @@ window.publish_new = (list) ->
   items = (it for it in parsed when not in_last(it.cid))
   display_next() if item == null
 
+window.learning_timeout = ->
+  if (update_link) then update_link(null)
+  $("#rpt-num").text("Repeat form is stale, please reload page.")
+  $(".card-data").hide(0)
+
 display_no_items = ->
   $('#button-pane').hide()
 
@@ -34,7 +40,12 @@ display_item = (item) ->
   $("#example-pane").html(item.examples);
   $("#word-additional").html(item.additional);
 
+check_stale = ->
+  if (now() - time > timeout)
+    document.location.reload()
+
 display_next = ->
+  check_stale()
   if items?.length != 0
     next = items.shift()
     item = next
@@ -50,6 +61,7 @@ display_next = ->
     display_no_items()
 
 mark_displayed = (mark) ->
+  check_stale()
   mode = MODE_NEXT
   $('#mark-pane').hide()
   $('#next-word-pane').show()

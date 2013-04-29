@@ -65,13 +65,19 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   lazy val today = new RepetitionStateResolver(userId).today
   implicit def context = akkaServ.context
 
-  akkaServ.system.scheduler.schedule(5 minutes, 1 minute, sender, Ping)
+  val cancellable = akkaServ.system.scheduler.schedule(5 minutes, 1 minute)(self ! Ping)
 
   var last = now
 
   def render = {
     val js = JsCmds.Function("send_to_actor", List("obj"), jsonSend(JsRaw("obj")))
     RenderOut(Full(defaultHtml), Empty, Full(jsonToIncludeInCode & js), Empty, ignoreHtmlOnJs = true)
+  }
+
+
+  override def localShutdown {
+    cancellable.cancel()
+    super.localShutdown
   }
 
   override def receiveJson = {
@@ -169,8 +175,9 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     case Status.Failure(ex) => logger.error("error in akka", ex)
     case Ping =>
       val dur = new org.joda.time.Duration(last, now)
-      if (dur.getStandardMinutes > 5) {
+      if (dur.getStandardMinutes > 13) {
         partialUpdate(Call("learning_timeout").cmd)
+        cancellable.cancel()
       }
   }
 
