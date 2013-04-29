@@ -161,7 +161,7 @@ class SafeXHTMLWriter(urls: String => Option[WikiUrl]) {
         val base = <a href={x.url} title={title.getOrElse(null)}>{spans.flatMap(spanToXHTML)}</a>
         val withFollow =
           if (x.nofollow)
-            base % new UnprefixedAttribute("nofollow", "true", Null)
+            base % new UnprefixedAttribute("nofollow", "true", new UnprefixedAttribute("target", "blank", Null))
           else base
         val result = x.kind match {
           case UrlKind.External => <i class="icon-globe"></i> ++ withFollow
