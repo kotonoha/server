@@ -97,8 +97,9 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
     wpr.editor(UserRecord.currentId).parent(id).path(path).datetime(now).source(x.src)
     wpr.comment(x.comment).size(x.src.length)
     wpr.save
-    WikiLinkCache.update(path, true)
-    partialUpdate(RedirectTo("/wiki/" + path))
+    val wikipath = "/wiki/" + path
+    WikiLinkCache.update(wikipath, true)
+    partialUpdate(RedirectTo(wikipath))
   }
 
   override def receiveJson = {
