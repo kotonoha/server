@@ -247,8 +247,10 @@ trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor wi
         val mer = MarkEventRecord.createRecord
         mer.user(uid)
         mer.card(r.id.is)
+        mer.mode(r.cardMode.is)
         mer.datetime(DateTimeUtils.now)
         mer.mark(1)
+        mer.client("add-form")
         mer.time(0)
     }
 
