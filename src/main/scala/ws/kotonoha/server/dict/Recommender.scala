@@ -108,7 +108,7 @@ class Recommender(uid: ObjectId) {
     cand.writ.foreach(set += _)
     set ++= addwrs
     set ++= dbwrs.flatten
-    val filtered = data.filter(_.item.writing.is.exists(x => !set.contains(x.value.is)))
+    val filtered = data.filterNot(_.item.writing.is.exists(x => set.contains(x.value.is)))
     filtered.sortBy(_.prio).distinct
   }
 }
