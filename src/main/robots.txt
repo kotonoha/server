@@ -1,0 +1,4 @@
+User-Agent: *
+Disallow: /user_mgt/
+Disallow: /learning/
+Disallow: /words/
