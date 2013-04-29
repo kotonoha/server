@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  ~ Copyright 2012 eiennohito
+  ~ Copyright 2012-2013 eiennohito
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,10 +18,28 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
-  <div xmlns:lift="lift">
-    <lift:comet type="CometTest" xmlns:time="current-time">
-      Current time: <time:time></time:time>
-    </lift:comet>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Edit date</th>
+        <th>Page</th>
+        <th>Editor</th>
+        <th>Comment</th>
+        <th>Source size</th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr class="wiki-item lift:WikiEdits.render">
+      <td><span class="date"></span></td>
+      <td><span class="page"></span></td>
+      <td><span class="user"></span></td>
+      <td><span class="comment"></span></td>
+      <td><span class="size"></span></td>
+    </tr>
+    </tbody>
+  </table>
+  <div xmlns:nav="http://lift/navigation" class="pagination lift:WikiEdits.pagination">
+    <nav:zoomedpages></nav:zoomedpages>
   </div>
 </div>
 </body>

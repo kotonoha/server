@@ -85,8 +85,9 @@ class Boot extends Logging {
 
     def sitemap = {
       SiteMap(
-        Menu.i("Home") / "index",
-        Menu.i("Client Authorizations") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter,
+        Menu.i("Home") / "index" submenus(
+          Menu.i("Client Authorizations") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter
+          ),
         Menu.i("Learning") / "learning" / "index" >> loggedin submenus(
           Menu.i("Repetition") / "learning" / "repeat",
           Menu.i("OF Matrix") / "learning" / "ofmatrix",
@@ -102,12 +103,11 @@ class Boot extends Logging {
         Menu.i("Wiki") / "wiki",
         Menu.i("Tools") / "tools" / "index" submenus(
           Menu.i("Test parser") / "tools" / "parser",
-          Menu.i("Comet test") / "tools" / "comet_test",
           Menu.i("JMDict") / "tools" / "jmdict",
           Menu.i("Warodai") / "tools" / "warodai",
           Menu.i("Examples") / "tools" / "examples",
           Menu.i("Stroke orders") / "tools" / "kakijyun",
-          Menu.i("Additional") / "tools" / "addit_info",
+          Menu.i("Last wiki edits") / "tools" / "wikiedits",
           Menu.i("Sandbox") / "tools" / "sandbox" >> If(() => Props.devMode, "Inaccessible")
       ),
         Menu.i("Oauth") / "oauth" >> Hidden submenus (
