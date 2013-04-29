@@ -17,7 +17,7 @@
 package ws.kotonoha.server.web.comet
 
 import net.liftweb.http.{S, CometActor}
-import net.liftweb.common.Full
+import net.liftweb.common.{Box, Full}
 import ws.kotonoha.server.actors.lift.NgLiftActor
 import ws.kotonoha.server.web.loc.WikiPage
 import net.liftweb.json.JsonAST.{JValue, JString, JObject}
@@ -38,7 +38,7 @@ import scala.collection.mutable.ListBuffer
  * @since 17.04.13 
  */
 
-case class Data(src: String)
+case class Data(src: String, comment: Option[String])
 case class Save(obj: JValue)
 
 class EditWiki extends CometActor with NgLiftActor with Logging {
@@ -95,6 +95,7 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
     val id = WikiPageRecord where (_.path eqs path) orderDesc(_.datetime) select(_.id) get()
     val wpr = WikiPageRecord.createRecord
     wpr.editor(UserRecord.currentId).parent(id).path(path).datetime(now).source(x.src)
+    wpr.comment(x.comment).size(x.src.length)
     wpr.save
     WikiLinkCache.update(path, true)
     partialUpdate(RedirectTo("/wiki/" + path))
@@ -110,6 +111,9 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
         case JString("save") =>
           //save(data)
           self ! Save(data)
+          JsCmds.Noop
+        case _ =>
+          logger.warn("invalid json: " + obj)
           JsCmds.Noop
       }
   }

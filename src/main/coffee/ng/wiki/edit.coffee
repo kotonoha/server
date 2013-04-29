@@ -24,6 +24,7 @@ mod.controller 'WikiEditPage', ["$scope", "WikiEdit", (ctx, edit) ->
       cmd: "update"
       data:
         src: ctx.src
+        comment: ctx.comment
 
   process_send = (timeout) ->
     console.log("called process_send", timeout)
@@ -66,7 +67,7 @@ mod.controller 'WikiEditPage', ["$scope", "WikiEdit", (ctx, edit) ->
   ctx.save = (e) ->
     cmd =
       cmd: "save"
-      data: { src: ctx.src }
+      data: { src: ctx.src, comment: ctx.comment }
     edit.toActor(cmd)
     return
 

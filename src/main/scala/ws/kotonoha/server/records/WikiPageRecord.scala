@@ -19,7 +19,7 @@ package ws.kotonoha.server.records
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
 import net.liftweb.mongodb.record.field.{ObjectIdField, ObjectIdPk}
-import net.liftweb.record.field.StringField
+import net.liftweb.record.field.{LongField, StringField}
 
 /**
  * @author eiennohito
@@ -35,7 +35,9 @@ class WikiPageRecord private() extends MongoRecord[WikiPageRecord] with ObjectId
   }
   object editor extends ObjectIdField(this)
   object datetime extends JodaDateField(this)
+  object size extends LongField(this, 0)
 
+  object comment extends StringField(this, 1024)
   object source extends StringField(this, 1024 * 1024) //1m
 }
 

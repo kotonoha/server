@@ -18,23 +18,28 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main">
-  <script class="lift:cpres.ng?src=wiki/edit"></script>
-  <div ng-controller="WikiEditPage">
-    <div>
-      <label for="source"><b>Source</b></label>
-      <textarea class="span9" rows="10" id="source" ng-model="src"></textarea>
-      <label for="comment"><b>Short commentary</b></label>
-      <input type="text" class="span9" id="comment" ng-model="comment"></textarea>
-    </div>
-    <div>
-      <button class="btn" ng-click="save()">Save</button>
-      <button class="btn" ng-click="cancel()">Cancel</button>
-    </div>
-    <h4>Preview</h4>
-    <div class="well span10">
-      <div id="preview"></div>
-    </div>
+  <div class="pull-right">
+    <span class="backlink">Here be link to page itself</span>
   </div>
+  <h2>Last 50 revisions</h2>
+  <table class="table span10">
+    <thead>
+      <tr>
+        <th>Modification date</th>
+        <th>User</th>
+        <th>Comment</th>
+        <th>Size</th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr class="wiki-history-entry">
+      <td><span class="date"></span></td>
+      <td><span class="username"></span></td>
+      <td><span class="comment"></span></td>
+      <td><span class="size"></span></td>
+    </tr>
+    </tbody>
+  </table>
 </div>
 </body>
 </html>
