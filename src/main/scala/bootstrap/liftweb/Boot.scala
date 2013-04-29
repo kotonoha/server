@@ -92,7 +92,8 @@ class Boot extends Logging {
           Menu.i("Repetition") / "learning" / "repeat",
           Menu.i("OF Matrix") / "learning" / "ofmatrix",
           Menu.i("Words for review") / "learning" / "bad_cards",
-          Menu.i("Tags") / "learning" / "tags"
+          Menu.i("Tags") / "learning" / "tags",
+          Menu.i("History") / "learning" / "history"
           ),
         admin,
         Menu.i("Words") / "words" / "index" >> loggedin submenus(

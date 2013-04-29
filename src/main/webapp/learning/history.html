@@ -18,27 +18,27 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Edit date</th>
-        <th>Page</th>
-        <th>Editor</th>
-        <th>Comment</th>
-        <th>Source size</th>
-      </tr>
-    </thead>
-    <tbody>
-    <tr class="wiki-item lift:WikiEdits.render">
-      <td><span class="date"></span></td>
-      <td><span class="page"></span></td>
-      <td><span class="user"></span></td>
-      <td><span class="comment"></span></td>
-      <td><span class="size"></span></td>
-    </tr>
-    </tbody>
-  </table>
-  <div xmlns:nav="http://lift/navigation" class="pagination lift:WikiEdits.pagination">
+<table class="table">
+  <thead>
+  <tr>
+    <th>Date</th>
+    <th>Word</th>
+    <th>Card</th>
+    <th>Mark</th>
+    <th>Answer time</th>
+    <th>Client</th>
+  </tr>
+  </thead>
+  <tr class="lift:LearningHistory.marks">
+    <td><span class="date"></span></td>
+    <td class="nihongo"><span class="word"></span></td>
+    <td><span class="kind"></span></td>
+    <td><span class="mark"></span></td>
+    <td><span class="showtime"></span></td>
+    <td><span class="client"></span></td>
+  </tr>
+</table>
+  <div class="lift:LearningHistory.paginate" xmlns:nav="http://lift/nav">
     <nav:zoomedpages>&nbsp;</nav:zoomedpages>
   </div>
 </div>
