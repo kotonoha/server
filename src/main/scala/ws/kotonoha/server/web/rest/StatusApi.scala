@@ -28,6 +28,7 @@ import net.liftweb.common.Full
 import ws.kotonoha.server.util.Stat
 import ws.kotonoha.server.actors.schedulers.ScheduledCardCounts
 import net.liftweb.json.JsonAST.JArray
+import net.liftweb.util.Props
 
 /**
  * @author eiennohito
@@ -48,6 +49,8 @@ trait StatusTrait extends KotonohaRest with OauthRestHelper {
 
         x.map { r =>
           val bldr = new StringBuilder
+          if (!Props.productionMode)
+            bldr.append("Warning: This is a debug kotonoha server!\n")
           bldr.append("Hello, ").append(user.username.is).append("! ")
           bldr.append("You have ").append(r.scheduledCnt).append(" cards ready, ")
           bldr.append(r.badCount).append(" bad cards, ").append(r.newAvailable).append(" new cards available for learning. ")
