@@ -19,7 +19,7 @@ package ws.kotonoha.server.web.comet
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import ws.kotonoha.server.actors.lift.{Ping, AkkaInterop}
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.http.RenderOut
+import net.liftweb.http.{ShutDown, S, RenderOut}
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.js.{JE, JsCmds}
 import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadWords}
@@ -177,7 +177,7 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
       val dur = new org.joda.time.Duration(last, now)
       if (dur.getStandardMinutes > 13) {
         partialUpdate(Call("learning_timeout").cmd)
-        cancellable.cancel()
+        self ! ShutDown
       }
   }
 
