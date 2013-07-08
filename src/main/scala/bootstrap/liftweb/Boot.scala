@@ -108,6 +108,7 @@ class Boot extends Logging {
           Menu.i("Warodai") / "tools" / "warodai",
           Menu.i("Examples") / "tools" / "examples",
           Menu.i("Stroke orders") / "tools" / "kakijyun",
+          Menu.i("Kanji") / "tools" / "kanji" >> If(() => Props.devMode, "Not debug"),
           Menu.i("Last wiki edits") / "tools" / "wikiedits",
           Menu.i("Sandbox") / "tools" / "sandbox" >> If(() => Props.devMode, "Inaccessible")
       ),
