@@ -11,6 +11,8 @@ moduleName := "kotonoha"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 
+resolvers += "java.net" at "http://download.java.net/maven/2"
+
 libraryDependencies ++=
 					Seq("org.scalaz" %% "scalaz-core" % "6.0.4",
 						"com.jsuereth" %% "scala-arm" % "1.2",
@@ -41,7 +43,7 @@ libraryDependencies ++= {
 
 libraryDependencies ++= {
   Seq(
-    "org.mongodb" %% "casbah" % "2.5.0-SNAPSHOT" exclude("org.specs2", "*")
+    "org.mongodb" %% "casbah" % "2.5.0" exclude("org.specs2", "*")
   )
 }
 
@@ -59,7 +61,7 @@ libraryDependencies ++= {
 libraryDependencies +=  "org.mortbay.jetty" % "jetty" % "6.1.22" % "container"
 
 libraryDependencies ++=  {
-  val rogueVer = "2.0.0-RC2-SNAPSHOT"
+  val rogueVer = "2.2.0"
   Seq(
     "com.foursquare" %% "rogue-lift" % rogueVer intransitive(),
     "com.foursquare" %% "rogue-core" % rogueVer intransitive(),
