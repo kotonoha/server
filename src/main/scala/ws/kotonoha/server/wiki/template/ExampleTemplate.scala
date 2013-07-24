@@ -12,3 +12,7 @@ object ExampleTemplate extends Template {
     <span class="nihongo example">{WikiRenderer.parseMarkdown(in, url)}</span>
   }
 }
+
+object JapaneseTemplate extends Template {
+  def apply(in: String) = <span>{in}</span>
+}
