@@ -101,7 +101,7 @@ class WordCardRecord private() extends MongoRecord[WordCardRecord] with ObjectId
 
 object WordCardRecord extends WordCardRecord with KotonohaMongoRecord[WordCardRecord] with MongoMetaRecord[WordCardRecord] with NamedDatabase {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def enabledFor(id: ObjectId) = {
     this where (_.user eqs id) and (_.enabled eqs true)

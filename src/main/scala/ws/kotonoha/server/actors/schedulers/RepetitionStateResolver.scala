@@ -29,7 +29,7 @@ import ws.kotonoha.server.records.WordCardRecord
  */
 class RepetitionStateResolver(uid: ObjectId) {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   val snap = DateTimeUtils.snapTime(uid)

@@ -49,7 +49,7 @@ import ws.kotonoha.server.actors.model.MarkForDeletion
 object Words extends KotonohaRest with ReleaseAkka {
   import ws.kotonoha.server.actors.UserSupport._
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def updateWord(updated: JValue, user: ObjectId, wid: ObjectId): Future[Box[LiftResponse]] = {
     val rec = WordRecord where (_.id eqs (wid)) and (_.user eqs (user)) get()

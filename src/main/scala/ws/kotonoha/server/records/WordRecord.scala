@@ -81,7 +81,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
 }
 
 object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with KotonohaMongoRecord[WordRecord] with NamedDatabase {
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   def myApproved = {
     myAll and (_.status eqs WordStatus.Approved)
   }

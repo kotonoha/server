@@ -24,7 +24,7 @@ import ws.kotonoha.server.records.WikiPageRecord
 import net.liftweb.util.Props
 
 object WikiLinkCache {
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   /**
    * @param url should begin with /wiki/
    * @return

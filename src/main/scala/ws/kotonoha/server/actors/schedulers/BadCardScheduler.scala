@@ -29,7 +29,7 @@ import ws.kotonoha.server.actors.UserScopedActor
  */
 class BadCardScheduler extends UserScopedActor {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   def loadBadCards(cnt: Int) = {

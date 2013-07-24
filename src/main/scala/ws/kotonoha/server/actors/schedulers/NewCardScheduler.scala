@@ -35,7 +35,7 @@ import collection.mutable.ListBuffer
 
 class NewCardScheduler extends UserScopedActor with ActorLogging {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   case class CacheItem(cid: ObjectId, tags: List[String], mode: Int, word: ObjectId)

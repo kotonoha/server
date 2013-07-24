@@ -26,7 +26,7 @@ import ws.kotonoha.server.records.dictionary.KanjidicRecord
 
 object Kanjidic {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def inWord(s: String) = entries(UnicodeUtil.kanji(s))
 

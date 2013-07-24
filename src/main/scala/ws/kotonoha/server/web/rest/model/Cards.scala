@@ -32,7 +32,7 @@ import ws.kotonoha.server.records.WordCardRecord
  */
 
 object Cards extends KotonohaRest with ReleaseAkka {
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   serve ("api" / "model" / "cards" prefix {
     case XOid(cid) :: Nil Get req =>

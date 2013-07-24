@@ -29,7 +29,7 @@ import ws.kotonoha.server.util.Formatting
  */
 
 object WikiEdits extends DispatchSnippet {
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   object paginator extends RequestVar[EditPaginator](new EditPaginator)
 
@@ -64,7 +64,7 @@ object WikiEdits extends DispatchSnippet {
 case class WikiEdit(path: String, date: DateTime, user: ObjectId, comment: String, size: Long)
 
 class EditPaginator extends PaginatorSnippet[WikiEdit] {
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
 
   override def itemsPerPage = 50

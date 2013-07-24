@@ -58,7 +58,7 @@ case class CardProcessed(cid: ObjectId)
 
 class ChildProcessor extends UserScopedActor with ActorLogging {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   implicit val timeout = Timeout(5000 milliseconds)

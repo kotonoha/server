@@ -37,7 +37,7 @@ class GrantRecord private() extends MongoRecord[GrantRecord] with LongPk[GrantRe
 }
 
 object GrantRecord extends GrantRecord with MongoMetaRecord[GrantRecord] with NamedDatabase {
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   def revokeRole(user: ObjectId, role: String): Unit = {
     GrantRecord where (_.user eqs (user)) and (_.role eqs (role)) bulkDelete_!!(WriteConcern.NORMAL)
   }

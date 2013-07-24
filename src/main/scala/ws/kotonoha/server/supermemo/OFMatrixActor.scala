@@ -43,7 +43,7 @@ class OFMatrixActor(user: ObjectId, matrix: OFMatrixHolder) extends Actor with A
     case o: UpdateMatrix => updateMatrix(o)
   }
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def calcLastValues(records: List[MarkEventRecord], um: UpdateMatrix) = {
     val dr = (um.curRep - 1) max 1
@@ -94,7 +94,7 @@ class OFMatrixActor(user: ObjectId, matrix: OFMatrixHolder) extends Actor with A
 
 class OFMatrixHolder(user: ObjectId) extends Logging {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import DateTimeUtils._
 
   case class MatrixCoordinate(rep: Int, diff: Double) {

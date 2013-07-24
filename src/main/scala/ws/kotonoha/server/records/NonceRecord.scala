@@ -57,7 +57,7 @@ class NonceRecord private() extends MongoRecord[NonceRecord] with ObjectIdPk[Non
 
 object NonceRecord extends NonceRecord with MongoMetaRecord[NonceRecord] with NamedDatabase with OAuthNonceMeta with KotonohaMongoRecord[NonceRecord] {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def create(consumerKey: String, token: String, timestamp: Long, nonce: String) {
     val rec = createRecord.

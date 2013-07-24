@@ -18,7 +18,7 @@ import org.bson.types.ObjectId
 
 object OauthRequest extends Akka with ReleaseAkka {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import concurrent.duration._
 
   def dateRenderer = {

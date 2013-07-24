@@ -37,7 +37,7 @@ import net.liftweb.util.{Props => LP}
 
 class TagActor extends UserScopedActor with ActorLogging {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   implicit val timeout: Timeout = 10 seconds
 
@@ -140,7 +140,7 @@ class TagActor extends UserScopedActor with ActorLogging {
 }
 
 class PriorityCache (uid: ObjectId) {
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def apply(tag: String): Int = cache(tag)
   def update(tag: String, prio: Int): Unit = mycache = cache.updated(tag, prio)

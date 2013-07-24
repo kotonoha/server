@@ -34,7 +34,7 @@ import ws.kotonoha.server.util.ResponseUtil
 
 object OFHistory extends KotonohaRest with ReleaseAkka {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.KBsonDSL._
   import ws.kotonoha.server.util.DateTimeUtils._
 

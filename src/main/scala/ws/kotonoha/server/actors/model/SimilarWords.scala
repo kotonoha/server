@@ -29,7 +29,7 @@ import ws.kotonoha.server.records.events.AddWordRecord
 case class SimilarWord(id: ObjectId, writings: List[String], readings: List[String])
 
 object SimilarWords {
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def noWords(id: ObjectId, c: Candidate) = {
     val q = WordRecord where (_.user eqs id) and (_.writing eqs c.writing)

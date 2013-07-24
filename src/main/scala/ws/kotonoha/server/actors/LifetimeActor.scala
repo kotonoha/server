@@ -26,7 +26,7 @@ case object FindStaleLifetimeObjs extends LifetimeMessage
 
 class LifetimeActor extends KotonohaActor {
   import concurrent.duration._
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   def registerLifetime(value: Lifetime, duration: FiniteDuration) = {

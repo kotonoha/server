@@ -54,7 +54,7 @@ class CardActor extends UserScopedActor with ActorLogging {
 
   import concurrent.duration._
   import akka.pattern.{ask, pipe}
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import DateTimeUtils._
 
   implicit val timeout: Timeout = 1 second

@@ -36,7 +36,7 @@ class ExampleSentenceRecord private() extends MongoRecord[ExampleSentenceRecord]
 
 object ExampleSentenceRecord extends ExampleSentenceRecord with MongoMetaRecord[ExampleSentenceRecord] with DictDatabase {
   override def collectionName = "ex.sentences"
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def langOf(id: Long): String = {
     val lang = ExampleSentenceRecord where (_.id eqs id) select(_.lang) get()

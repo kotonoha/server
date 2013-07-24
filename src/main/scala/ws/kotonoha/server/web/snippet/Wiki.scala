@@ -38,7 +38,7 @@ import ws.kotonoha.server.util.Formatting
 case class WikiHistoryItem(id: ObjectId, user: String, date: DateTime, comment: String, size: Long)
 
 class Wiki(page: WikiPage, sess: LiftSession) extends Logging {
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   private val loggedIn = UserRecord.currentUserId.isDefined
 

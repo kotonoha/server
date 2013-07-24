@@ -20,7 +20,7 @@ import ws.kotonoha.server.records.events.NewCardSchedule
 class NewCardSchedulerTest extends TestWithAkka with FreeSpec with ShouldMatchers {
   implicit val sender = testActor
   import concurrent.duration._
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   val uid = createUser()
   val usvc = kta.userContext(uid)

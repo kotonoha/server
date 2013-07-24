@@ -48,7 +48,7 @@ with BeforeAndAfterAll {
   import akka.pattern._
   import concurrent.duration._
   import ws.kotonoha.server.records._
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import DateTimeUtils._
 
   var user: UserRecord = _

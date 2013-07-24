@@ -12,7 +12,7 @@ import com.mongodb.casbah.WriteConcern
 object OrphanFinder {
   MongoDbInit.init()
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def main(args: Array[String]) {
 
@@ -35,7 +35,7 @@ object OrphanFinder {
 object OrphanedCardsCleaner {
   MongoDbInit.init()
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def main(args: Array[String]) {
     var count = 0

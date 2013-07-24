@@ -37,7 +37,7 @@ object LearningHistory extends DispatchSnippet {
 
 
   def renderMarks(ns: NodeSeq): NodeSeq = {
-    import com.foursquare.rogue.LiftRogue._
+    import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
     import net.liftweb.util.Helpers._
 
     val marks = paginator.is.page
@@ -91,7 +91,7 @@ object LearningHistory extends DispatchSnippet {
 }
 
 class LearningHistoryPaginator(uid: ObjectId) extends PaginatorSnippet[MarkEventRecord] {
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   override def itemsPerPage = 200
 

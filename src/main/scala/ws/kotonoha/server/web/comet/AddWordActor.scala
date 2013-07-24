@@ -109,7 +109,7 @@ object Candidate {
 trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor with Logging {
 
   import ws.kotonoha.server.util.KBsonDSL._
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import net.liftweb.{json => j}
 
   val self = this

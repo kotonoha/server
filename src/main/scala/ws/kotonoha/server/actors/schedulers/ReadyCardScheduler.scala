@@ -27,7 +27,7 @@ import util.Random
 
 class ReadyCardScheduler extends UserScopedActor {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def queryNearNow(cnt: Int) = {
     val q = Queries.scheduled(uid) and (_.learning.subfield(_.intervalLength) lt 7.0) orderDesc

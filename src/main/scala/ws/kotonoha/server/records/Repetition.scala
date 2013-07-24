@@ -27,7 +27,7 @@ import org.bson.types.ObjectId
  * @since 29.01.12
  */
 
-import com.foursquare.rogue.LiftRogue._
+import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
 
 class ItemLearningDataRecord private() extends BsonRecord[ItemLearningDataRecord] {

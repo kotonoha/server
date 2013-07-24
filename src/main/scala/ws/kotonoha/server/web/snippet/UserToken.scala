@@ -39,7 +39,7 @@ import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateToken}
 trait UserToken extends Akka {
 
   import Helpers._
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
   import ws.kotonoha.server.actors.UserSupport._
 

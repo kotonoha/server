@@ -33,7 +33,7 @@ import ws.kotonoha.server.supermemo.OFMatrixHolder
 
 class LowRepBigIntScheduler extends UserScopedActor {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   lazy val of = new OFMatrixHolder(uid)

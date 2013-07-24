@@ -34,7 +34,7 @@ case class MatrixDiffEntry(rep: Long, ef: Double, value: Double, diff: Double, m
 
 object MatrixDiffCalculator {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   private case class Crd(rep: Long, diff: Double)

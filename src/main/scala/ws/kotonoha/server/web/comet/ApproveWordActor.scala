@@ -77,7 +77,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
 
   import concurrent.duration._
   import akka.pattern.{ask => apa}
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.KBsonDSL._
 
   private implicit val timeout = Timeout(10 seconds)

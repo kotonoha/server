@@ -31,7 +31,7 @@ import com.mongodb.casbah.WriteConcern
 
 class TagService extends KotonohaActor {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   val sid = new ObjectId(0, 0, 0)
 
@@ -74,7 +74,7 @@ class TagService extends KotonohaActor {
 
 object Tags {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   private[tags] def updateAliases(m: Map[String, String]): Unit = {
     aliases_ = m

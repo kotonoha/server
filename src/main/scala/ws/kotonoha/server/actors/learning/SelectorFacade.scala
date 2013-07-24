@@ -32,7 +32,7 @@ import ws.kotonoha.server.actors.schedulers.CoreScheduler
 
 class SelectorFacade extends UserScopedActor {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   def loadReviewList(max: Int) {
@@ -63,7 +63,7 @@ class SelectorFacade extends UserScopedActor {
 
 class CardSelectorFacade extends UserScopedActor with ActorLogging {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def createResult(wac: WordsAndCards): WordsAndCards = {
     val cards = wac.cards

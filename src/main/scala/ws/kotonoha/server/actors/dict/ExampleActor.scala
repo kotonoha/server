@@ -71,7 +71,7 @@ object ExampleSearch {
   }
 
   def loadExamples(eids: List[ExampleIds]) = {
-    import com.foursquare.rogue.LiftRogue._
+    import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
     val ids = (eids flatMap (ei => List(ei.jap) ++ ei.other.map(_.right))).distinct
     val recs = (ExampleSentenceRecord where (_.id in ids) fetch() map (r => r.id.is -> r)).toMap
     eids.flatMap(r => {

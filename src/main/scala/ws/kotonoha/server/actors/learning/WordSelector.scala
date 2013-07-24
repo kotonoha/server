@@ -38,7 +38,7 @@ import schedulers.ReviewCard
 
 class WordSelector extends UserScopedActor with ActorLogging {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def calculateMax(maxInt: Int, firstPerc: Double, overMax: Double) = {
     def ceil(x: Double): Int = math.round(math.ceil(x)).asInstanceOf[Int]
@@ -122,7 +122,7 @@ case class LoadNewCards(uid: ObjectId, maxNew: Int)
 
 class CardLoader extends UserScopedActor with ActorLogging {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   override def receive = {
     case LoadScheduled(uid, max) => {

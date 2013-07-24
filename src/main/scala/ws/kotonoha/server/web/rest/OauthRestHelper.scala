@@ -29,7 +29,7 @@ import net.liftweb.common.Full
 
 trait OauthRestHelper extends RestHelper {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   private object restUser extends ThreadGlobal[Box[UserTokenRecord]]
   private object restClient extends ThreadGlobal[Box[ClientRecord]]

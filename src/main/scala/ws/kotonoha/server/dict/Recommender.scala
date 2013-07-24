@@ -72,7 +72,7 @@ object Recommender {
 
 class Recommender(uid: ObjectId) {
   import Recommender._
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   lazy val longjuku = List(kanji(100), kun(50), on(30))
   lazy val shortjuku = List(kun(100), on(75), juku(25))

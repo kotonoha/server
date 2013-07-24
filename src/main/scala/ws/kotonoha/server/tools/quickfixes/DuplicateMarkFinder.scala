@@ -14,7 +14,7 @@ object DuplicateMarkFinder {
 
   import ws.kotonoha.server.util.DateTimeUtils._
   import concurrent.duration._
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def main(args: Array[String]) {
     MongoDbInit.init()

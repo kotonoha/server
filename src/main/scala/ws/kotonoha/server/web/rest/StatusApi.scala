@@ -37,7 +37,7 @@ import net.liftweb.util.Props
 
 trait StatusTrait extends KotonohaRest with OauthRestHelper {
 
-  import com.foursquare.rogue.LiftRogue._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   serve {

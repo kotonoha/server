@@ -58,7 +58,7 @@ class CardSelectorCache extends UserScopedActor with ActorLogging {
   }
 
   def load(cids: Traversable[ObjectId]) = {
-    import com.foursquare.rogue.LiftRogue._
+    import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
     WordCardRecord where (_.id in cids) fetch()
   }
 
