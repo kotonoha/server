@@ -26,8 +26,11 @@ import scala.util.DynamicVariable
 
 object TemplateParams {
   object preview extends DynamicVariable[Boolean](false)
+  object url extends DynamicVariable[String]("")
 }
 
 trait Template extends (String => NodeSeq) {
   def preview = TemplateParams.preview.value
+
+  def url = TemplateParams.url.value
 }

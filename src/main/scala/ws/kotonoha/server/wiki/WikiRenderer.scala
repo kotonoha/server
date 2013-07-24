@@ -82,7 +82,7 @@ object WikiRenderer {
 
   def analyzeUrls(base: String, urls: Set[String]) = {
     urls.flatMap {
-      case url@offsite(_*) => url -> WikiUrl(url, url, UrlKind.External, true) :: Nil
+      case url@offsite(_*) => url -> WikiUrl(url, url, UrlKind.External, nofollow = true) :: Nil
       case url@onsite(_*) => handleInternal(base, url).map { url -> _ }
       case _ => Nil
     } toMap
@@ -101,7 +101,7 @@ object WikiRenderer {
 
     val renderer = new SafeXHTMLWriter(urldata.lift)
 
-    ast.flatMap(renderer.blockToXHTML(_))
+    ast.flatMap(renderer.blockToXHTML)
   }
 }
 

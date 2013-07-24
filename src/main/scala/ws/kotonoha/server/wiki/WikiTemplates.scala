@@ -16,8 +16,8 @@
 
 package ws.kotonoha.server.wiki
 
-import scala.xml.{Group, Node}
-import ws.kotonoha.server.wiki.template.{AddWordBtn, AddWord}
+import scala.xml.{NodeSeq, Group, Node}
+import ws.kotonoha.server.wiki.template.{Template, ExampleTemplate, AddWordBtn, AddWord}
 
 /**
  * @author eiennohito
@@ -32,8 +32,9 @@ object WikiTemplates {
     Group(ns.getOrElse(Nil))
   }
 
-  val tempaltes = Map(
+  val tempaltes = Map[String, Template] (
     "addword" -> AddWord,
-    "addwordbtn" -> AddWordBtn
+    "addwordbtn" -> AddWordBtn,
+    "ex" -> ExampleTemplate
   )
 }

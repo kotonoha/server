@@ -82,7 +82,9 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
     val errors = new ListBuffer[SanitizationEvent]
     val xhtml = TemplateParams.preview.withValue(true) {
       SanitizationChangeSupport.withSink(errors += _) {
-        WikiRenderer.parseMarkdown(x.src, pageInfo.mkPath)
+        TemplateParams.url.withValue(x.src) {
+          WikiRenderer.parseMarkdown(x.src, pageInfo.mkPath)
+        }
       }
     }
     xhtml
