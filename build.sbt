@@ -64,8 +64,9 @@ libraryDependencies ++=  {
   val rogueVer = "2.2.0"
   Seq(
     "com.foursquare" %% "rogue-lift" % rogueVer intransitive(),
-    "com.foursquare" %% "rogue-core" % rogueVer intransitive(),
-    "com.foursquare" %% "rogue-field" % rogueVer intransitive()
+    "com.foursquare" %% "rogue-field" % rogueVer intransitive(),
+    "com.foursquare" %% "rogue-index" % rogueVer intransitive(),
+    "com.foursquare" %% "rogue-core" % rogueVer intransitive()
   )
 }
 
