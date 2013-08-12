@@ -19,16 +19,16 @@ libraryDependencies ++=
             "javax.transaction" % "jta" % "1.0.1B" % "provided"
 					)
 
-libraryDependencies += "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.1"
+libraryDependencies += "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2"
 
-libraryDependencies +=  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.1"
+libraryDependencies +=  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
 
 resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/"
 
 libraryDependencies += "fuku.eb4j" % "eb4j-tools" % "1.0.5"
 
 libraryDependencies ++= {
-  val liftVersion = "2.5-RC2" // Put the current/latest lift version here
+  val liftVersion = "2.5.1" // Put the current/latest lift version here
   Seq(
     "net.liftweb" %% "lift-util" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),
     "net.liftweb" %% "lift-json-ext" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),
@@ -36,21 +36,21 @@ libraryDependencies ++= {
     "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",
     "net.liftweb" %% "lift-mongodb-record" % liftVersion exclude("org.mongodb", "mongo-java-driver"),
     "net.liftweb" %% "lift-json-scalaz" % liftVersion exclude("org.scalaz", "scalaz-core_2.9.1"),
-    "net.liftmodules" %% "oauth" % ("2.5-M4-1.2"),
+    "net.liftmodules" %% "oauth_2.5" % ("1.2"),
     "net.liftweb" %% "lift-testkit" % liftVersion % "test",
 	  "javax.servlet" % "servlet-api" % "2.5" % "provided")
 }
 
 libraryDependencies ++= {
   Seq(
-    "org.mongodb" %% "casbah" % "2.5.0" exclude("org.specs2", "*")
+    "org.mongodb" %% "casbah" % "2.6.2" exclude("org.specs2", "*")
   )
 }
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= {
-  val akkaVer = "2.1.1"
+  val akkaVer = "2.2.0"
   Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVer,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVer,
@@ -70,7 +70,7 @@ libraryDependencies ++=  {
   )
 }
 
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.9" % "compile"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.13" % "compile"
 
 libraryDependencies += "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
 
