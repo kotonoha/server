@@ -26,7 +26,7 @@ import akka.actor.SupervisorStrategy.Restart
  */
 
 class GlobalActor extends Actor with ActorLogging {
-  override def supervisorStrategy() = OneForOneStrategy(maxNrOfRetries = 10, 1 hour) {
+  override def supervisorStrategy() = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 hour, loggingEnabled = true) {
     case e => log.error(e, "Error in global actor"); Restart
   }
 
