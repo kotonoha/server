@@ -17,7 +17,9 @@
 package ws.kotonoha.server.japanese.parsing
 
 import net.liftweb.util.Props
-import ws.kotonoha.akane.juman.PipeExecutor
+import ws.kotonoha.akane.juman.JumanPipeExecutor
+import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
+import ws.kotonoha.akane.config.Configuration
 
 /**
  * @author eiennohito
@@ -26,17 +28,16 @@ import ws.kotonoha.akane.juman.PipeExecutor
 
 object Juman {
 
-  lazy val jumanPath = {
-    Props.get("juman.path", "juman") //call from $PATH by default
+
+  lazy val config = {
+    import scala.collection.JavaConversions._
+    val props = Props.props
+    val base = ConfigFactory.defaultOverrides()
+    val parsed = ConfigFactory.parseMap(props)
+    Configuration.makeConfigFor("kotonoha").withFallback(parsed).withFallback(base)
   }
 
-  lazy val jumanArgs: List[String] = {
-    Props.get("juman.args")
-  }.toList.flatMap(_.split(" ").map(_.trim))
-
-  lazy val jumanEncoding: Option[String] = Props.get("juman.encoding")
-
   def pipeExecutor = {
-    new PipeExecutor(jumanPath, jumanArgs, jumanEncoding)
+    JumanPipeExecutor.apply(config)
   }
 }

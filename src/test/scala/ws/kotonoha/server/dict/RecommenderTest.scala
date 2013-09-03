@@ -22,6 +22,7 @@ import ws.kotonoha.server.test.MongoDb
 import ws.kotonoha.server.japanese.parsing.Juman
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.recommend.RecommendRequest
+import ws.kotonoha.akane.juman.JumanPipeExecutor
 
 /**
  * @author eiennohito
@@ -29,7 +30,8 @@ import ws.kotonoha.server.actors.recommend.RecommendRequest
  */
 
 class RecommenderTest extends FreeSpec with ShouldMatchers with MongoDb {
-  val juman = Juman.pipeExecutor
+  val juman = JumanPipeExecutor.apply()
+
   "recommender" - {
     val rec = new Recommender(new ObjectId())
     "should give something for watashi" in {
