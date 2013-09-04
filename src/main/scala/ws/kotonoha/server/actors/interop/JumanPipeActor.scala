@@ -34,7 +34,10 @@ case object JumanActor extends JumanMessage
 class JumanRouter extends Actor {
   lazy val children = context.actorOf(Props[JumanPipeActor].withRouter(RoundRobinRouter(4)))
 
+  lazy val knpActor = context.actorOf(Props[KnpPipeActor])
+
   override def receive = {
+    case msg: KnpMessage => knpActor.forward(msg)
     case msg: JumanMessage => children.forward(msg)
   }
 }

@@ -17,16 +17,18 @@
 package ws.kotonoha.server.web.rest
 
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.http.{InMemoryResponse, ForbiddenResponse}
+import net.liftweb.http.{JsonResponse, BadResponse, InMemoryResponse, ForbiddenResponse}
 import net.liftweb.common.{Empty, Failure, Full}
 import ws.kotonoha.akane.statistics.UniqueWordsExtractor
-import ws.kotonoha.server.actors.interop.JumanActor
+import ws.kotonoha.server.actors.interop.{KnpRequest, JumanActor}
 import akka.actor.ActorRef
-import scala.concurrent.Await
+import scala.concurrent.{Future, Await}
 import concurrent.duration._
 import ws.kotonoha.akane.parser.{AozoraStringInput, AozoraParser}
 import ws.kotonoha.akane.juman.JumanDaihyou
 import ws.kotonoha.server.japanese.Stopwords
+import ws.kotonoha.akane.pipe.knp.KnpNode
+import net.liftweb.json.{DefaultFormats, Extraction}
 
 /**
  * @author eiennohito
@@ -69,5 +71,20 @@ object Juman extends KotonohaRest with ReleaseAkka {
         }
       }
     }
+  })
+
+  serve("api" / "knp" prefix {
+    case "analyze" :: Nil Get req =>
+      val request = req.param("q")
+      request match {
+        case Empty => Full(BadResponse())
+        case Full(x) if x.length > 200 => Full(BadResponse())
+        case Full(x) =>
+          val req = (akkaServ ? KnpRequest(x)).mapTo[KnpNode]
+          async(req) { x =>
+            val jvalue = Extraction.decompose(x)(DefaultFormats)
+            Future.successful(Full(JsonResponse(jvalue)))
+          }
+      }
   })
 }

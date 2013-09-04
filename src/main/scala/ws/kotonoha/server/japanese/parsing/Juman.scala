@@ -20,6 +20,8 @@ import net.liftweb.util.Props
 import ws.kotonoha.akane.juman.JumanPipeExecutor
 import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
 import ws.kotonoha.akane.config.Configuration
+import ws.kotonoha.akane.pipe.knp.KnpPipeParser
+import scala.concurrent.ExecutionContext
 
 /**
  * @author eiennohito
@@ -39,5 +41,9 @@ object Juman {
 
   def pipeExecutor = {
     JumanPipeExecutor.apply(config)
+  }
+
+  def knpExecutor(implicit ec: ExecutionContext) = {
+    KnpPipeParser.apply(config)
   }
 }
