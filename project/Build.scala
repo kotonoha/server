@@ -21,7 +21,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import sbt._
 import inc.Analysis
 import Keys._
-import com.github.siasia.{PluginKeys => WPK, WebPlugin}
+import com.earldouglas.xsbtwebplugin.{PluginKeys => WPK, WebPlugin}
 
 
 object Settings {
