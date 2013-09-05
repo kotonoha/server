@@ -20,10 +20,14 @@ class KnpPipeActor extends Actor {
 
   def receive = {
     case KnpRequest(s) =>
-      val answer = analyzer.parse(s)
-      answer match {
-        case Some(n) => sender ! KnpResponse(s, n)
-        case None => sender ! Failure(new KnpException)
+      if (s == "") {
+        sender ! KnpResponse(s, new KnpNode(-15, "", Nil, Nil, Nil))
+      } else {
+        val answer = analyzer.parse(s)
+        answer match {
+          case Some(n) => sender ! KnpResponse(s, n)
+          case None => sender ! Failure(new KnpException)
+        }
       }
   }
 }

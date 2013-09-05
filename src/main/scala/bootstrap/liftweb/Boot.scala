@@ -110,6 +110,7 @@ class Boot extends Logging {
           Menu.i("Stroke orders") / "tools" / "kakijyun",
           Menu.i("Kanji") / "tools" / "kanji" >> If(() => Props.devMode, "Not debug"),
           Menu.i("Last wiki edits") / "tools" / "wikiedits",
+          Menu.i("Depencency Tree") / "tools" / "knp" >> If(() => Props.devMode, "Not avaliable"),
           Menu.i("Sandbox") / "tools" / "sandbox" >> If(() => Props.devMode, "Inaccessible")
       ),
         Menu.i("Oauth") / "oauth" >> Hidden submenus (
