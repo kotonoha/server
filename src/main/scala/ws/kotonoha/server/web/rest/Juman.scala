@@ -20,7 +20,7 @@ import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import net.liftweb.http.{JsonResponse, BadResponse, InMemoryResponse, ForbiddenResponse}
 import net.liftweb.common.{Empty, Failure, Full}
 import ws.kotonoha.akane.statistics.UniqueWordsExtractor
-import ws.kotonoha.server.actors.interop.{KnpRequest, JumanActor}
+import ws.kotonoha.server.actors.interop.{KnpResponse, KnpRequest, JumanActor}
 import akka.actor.ActorRef
 import scala.concurrent.{Future, Await}
 import concurrent.duration._
@@ -80,7 +80,7 @@ object Juman extends KotonohaRest with ReleaseAkka {
         case Empty => Full(BadResponse())
         case Full(x) if x.length > 200 => Full(BadResponse())
         case Full(x) =>
-          val req = (akkaServ ? KnpRequest(x)).mapTo[KnpNode]
+          val req = (akkaServ ? KnpRequest(x)).mapTo[KnpResponse]
           async(req) { x =>
             val jvalue = Extraction.decompose(x)(DefaultFormats)
             Future.successful(Full(JsonResponse(jvalue)))
