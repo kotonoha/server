@@ -17,14 +17,15 @@
 package ws.kotonoha.server.actors
 
 import akka.actor.Actor
-import org.apache.lucene.store.SimpleFSDirectory
-import java.io.File
+import org.apache.lucene.store.{FSDirectory, SimpleFSDirectory}
+import java.io.{Closeable, File}
 import org.apache.lucene.analysis.gosen.GosenAnalyzer
 import org.apache.lucene.util.Version
 import org.apache.lucene.queryParser.QueryParser
 import org.apache.lucene.index.IndexReader
 import org.apache.lucene.search.{TopScoreDocCollector, IndexSearcher}
-import net.liftweb.util.Props
+import ws.kotonoha.server.KotonohaConfig
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author eiennohito
@@ -34,21 +35,41 @@ import net.liftweb.util.Props
 trait SearchMessage extends KotonohaMessage
 case class SearchQuery(query: String, max: Int = 20) extends SearchMessage
 
-class ExampleSearchActor extends Actor {
-
-  val dir = new SimpleFSDirectory(new File(Props.get("lucene.indexdir").get))
+class Searcher(directory: FSDirectory) extends Closeable {
   val ga = new GosenAnalyzer(Version.LUCENE_35)
   val parser = new QueryParser(Version.LUCENE_35, "text", ga)
-  val ir = IndexReader.open(dir)
+  val ir = IndexReader.open(directory)
   val searcher = new IndexSearcher(ir)
 
-
-  def findDocs(q: String, max: Int): List[Long] = {
+  def topIds(q: String, max: Int) = {
     val query = parser.parse(q)
     val collector = TopScoreDocCollector.create(max, true)
     searcher.search(query, collector)
     val docs = collector.topDocs()
     docs.scoreDocs.map(d => searcher.doc(d.doc).get("id").toLong).toList
+  }
+
+  def close() {
+    ir.close()
+    directory.close()
+  }
+}
+
+class ExampleSearchActor extends Actor with Logging {
+
+  val searcher = {
+    val dirname = KotonohaConfig.safeString("lucene.indexdir")
+    val result = dirname.map(s => new Searcher(new SimpleFSDirectory(new File(s))))
+    if (result.isEmpty)
+      logger.warn("Can not search for examples, lucene.indexdir is not configured, will do nothing")
+    result
+  }
+
+  def findDocs(q: String, max: Int): List[Long] = {
+    searcher match {
+      case None => Nil
+      case Some(s) => s.topIds(q, max)
+    }
   }
 
   override def receive = {
@@ -59,7 +80,6 @@ class ExampleSearchActor extends Actor {
   }
 
   override def postStop() {
-    ir.close()
-    dir.close()
+    searcher.foreach(_.close())
   }
 }

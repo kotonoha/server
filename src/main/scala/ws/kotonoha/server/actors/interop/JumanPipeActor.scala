@@ -18,9 +18,9 @@ package ws.kotonoha.server.actors.interop
 
 import ws.kotonoha.server.actors.KotonohaMessage
 import akka.actor.{Props, Actor}
-import ws.kotonoha.server.japanese.parsing.Juman
 import ws.kotonoha.akane.{JumanQuery, ParsedQuery}
 import akka.routing.RoundRobinRouter
+import ws.kotonoha.server.KotonohaConfig
 
 /**
  * @author eiennohito
@@ -44,7 +44,7 @@ class JumanRouter extends Actor {
 
 class JumanPipeActor extends Actor {
 
-  lazy val exec = Juman.pipeExecutor
+  lazy val exec = KotonohaConfig.jumanExecutor
 
   override def receive = {
     case JumanQuery(q) => sender ! ParsedQuery(exec.parse(q))

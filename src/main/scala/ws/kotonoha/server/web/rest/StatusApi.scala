@@ -17,13 +17,11 @@
 package ws.kotonoha.server.web.rest
 
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.common.Full
 import net.liftweb.http.{JsonResponse, PlainTextResponse}
 import ws.kotonoha.server.records._
 import concurrent.Future
-import ws.kotonoha.server.actors.schedulers.{ScheduledCardCounts, RepetitionStateResolver}
+import ws.kotonoha.server.actors.schedulers.RepetitionStateResolver
 import net.liftweb.json.{Extraction, DefaultFormats}
-import ws.kotonoha.server.util.Stat
 import net.liftweb.common.Full
 import ws.kotonoha.server.util.Stat
 import ws.kotonoha.server.actors.schedulers.ScheduledCardCounts
@@ -38,7 +36,6 @@ import net.liftweb.util.Props
 trait StatusTrait extends KotonohaRest with OauthRestHelper {
 
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
-  import ws.kotonoha.server.util.DateTimeUtils._
 
   serve {
     case "api" :: "status" :: Nil Get req => {

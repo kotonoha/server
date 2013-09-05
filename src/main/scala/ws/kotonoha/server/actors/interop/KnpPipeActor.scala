@@ -1,9 +1,9 @@
 package ws.kotonoha.server.actors.interop
 
 import akka.actor.Actor
-import ws.kotonoha.server.japanese.parsing.Juman
 import ws.kotonoha.akane.pipe.knp.KnpNode
 import akka.actor.Status.Failure
+import ws.kotonoha.server.KotonohaConfig
 
 /**
  * @author eiennohito
@@ -16,7 +16,7 @@ case class KnpResponse(surface: String, node: KnpNode)
 class KnpException extends RuntimeException("error in knp")
 
 class KnpPipeActor extends Actor {
-  lazy val analyzer = Juman.knpExecutor(context.dispatcher)
+  lazy val analyzer = KotonohaConfig.knpExecutor(context.dispatcher)
 
   def receive = {
     case KnpRequest(s) =>

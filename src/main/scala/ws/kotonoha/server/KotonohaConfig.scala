@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.japanese.parsing
+package ws.kotonoha.server
 
 import net.liftweb.util.Props
 import ws.kotonoha.akane.juman.JumanPipeExecutor
-import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
+import com.typesafe.config.{ConfigException, ConfigFactory}
 import ws.kotonoha.akane.config.Configuration
 import ws.kotonoha.akane.pipe.knp.KnpPipeParser
 import scala.concurrent.ExecutionContext
@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext
  * @since 20.08.12
  */
 
-object Juman {
+object KotonohaConfig {
 
 
   lazy val config = {
@@ -39,11 +39,24 @@ object Juman {
     Configuration.makeConfigFor("kotonoha").withFallback(parsed).withFallback(base)
   }
 
-  def pipeExecutor = {
+  def jumanExecutor = {
     JumanPipeExecutor.apply(config)
   }
 
   def knpExecutor(implicit ec: ExecutionContext) = {
     KnpPipeParser.apply(config)
   }
+
+  def safe[T](f: => T): Option[T] = try {
+    Some(f)
+  } catch {
+    case e: ConfigException.Missing => None
+    case e: ConfigException.WrongType => None
+  }
+
+  def string(name: String) = config.getString(name)
+  def safeString(name: String) = safe { string(name) }
+
+  def int(name: String) = config.getInt(name)
+  def safeInt(name: String) = safe { int(name) }
 }

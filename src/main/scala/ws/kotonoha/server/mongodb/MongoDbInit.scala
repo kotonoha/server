@@ -1,13 +1,12 @@
 package ws.kotonoha.server.mongodb
 
-import net.liftweb.util.Props
 import net.liftweb.mongodb.{MongoDB, MongoIdentifier, MongoMeta}
 import com.mongodb.{ServerAddress, Mongo}
 import com.typesafe.scalalogging.slf4j.Logging
-import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import org.bson.{Transformer, BSON}
 import org.joda.time.DateTime
 import ws.kotonoha.server.util.DateTimeUtils
+import ws.kotonoha.server.KotonohaConfig
 
 /*
  * Copyright 2012 eiennohito
@@ -59,13 +58,13 @@ object MongoDbInit extends Logging {
 
   def init(): Unit = synchronized {
     if (!inited) {
-      val server = Props.get("db.server").get
-      val dbname = Props.get("db.name").get
-      val dictname = Props.get("dict.name", "dict")
+      val server = KotonohaConfig.string("db.server")
+      val dbname = KotonohaConfig.string("db.name")
+      val dictname = KotonohaConfig.safeString("db.dict").getOrElse("dict")
 
       logger.info(s"using on server $server database $dbname")
 
-      val sa = new ServerAddress(server, Props.getInt("db.port", ServerAddress.defaultPort()))
+      val sa = new ServerAddress(server, KotonohaConfig.safeInt("db.port").getOrElse(ServerAddress.defaultPort()))
       MongoDB.defineDb(DbId, new Mongo(sa), dbname)
       MongoDB.defineDb(DictId, new Mongo(sa), dictname)
       addHooks()
@@ -75,12 +74,12 @@ object MongoDbInit extends Logging {
 }
 
 object DbId extends MongoIdentifier {
-  val dbName = Props.get("db.name", "kotonoha")
+  val dbName = KotonohaConfig.safeString("db.name").getOrElse("kotonoha")
   def jndiName = dbName
 }
 
 object DictId extends MongoIdentifier {
-  val dbName = Props.get("dict.name", "dict")
+  val dbName = KotonohaConfig.safeString("dict.name").getOrElse("dict")
   def jndiName = dbName
 }
 

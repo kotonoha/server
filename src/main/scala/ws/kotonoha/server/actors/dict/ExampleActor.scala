@@ -19,10 +19,11 @@ package ws.kotonoha.server.actors.dict
 import akka.actor.Actor
 import ws.kotonoha.server.actors.KotonohaMessage
 import java.io.File
-import net.liftweb.util.{Props => LP}
 import ws.kotonoha.server.records.dictionary.ExampleSentenceRecord
 import ws.kotonoha.server.dict.{TatoebaLink, TatoebaLinks}
 import akka.event.LoggingReceive
+import ws.kotonoha.server.KotonohaConfig
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author eiennohito
@@ -59,7 +60,23 @@ class ExampleActor extends Actor {
   }
 }
 
-object ExampleSearcher extends TatoebaLinks(new File(LP.get("example.index").get))
+object ExampleSearcher extends Logging {
+  val links = {
+    val file = KotonohaConfig.safeString("example.index").map(new File(_))
+    file match {
+      case Some(x) => new TatoebaLinks(x)
+      case None =>
+        logger.warn("example.index is not specified in config, examples will not work")
+        null
+    }
+  }
+
+  def from(id: Long) = {
+    if (links != null)
+      links.from(id)
+    else Iterator.empty
+  }
+}
 
 object ExampleSearch {
   def translationsWithLangs(ids: List[Long], langs: List[String]) = {

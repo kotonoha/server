@@ -19,10 +19,10 @@ package ws.kotonoha.server.dict
 import org.scalatest.FreeSpec
 import org.scalatest.matchers.ShouldMatchers
 import ws.kotonoha.server.test.MongoDb
-import ws.kotonoha.server.japanese.parsing.Juman
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.recommend.RecommendRequest
 import ws.kotonoha.akane.juman.JumanPipeExecutor
+import ws.kotonoha.server.KotonohaConfig
 
 /**
  * @author eiennohito
