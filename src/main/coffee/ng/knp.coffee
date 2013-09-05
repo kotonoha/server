@@ -41,6 +41,10 @@ update_tree = (elem, object, oldval) ->
         .attr("class", "node")
         .attr('transform', (d) -> "translate(#{width - d.y}, #{height - d.x})")
 
+  work = enter.filter((d) -> d?.kind?.length == 7).append('g').attr('class','work')
+  work.append('circle').attr('r', 15).attr('cx', -19).attr('cy', -10)
+  work.append('text').text((d) => d.kind.substr(6, 1)).attr('text-anchor', 'center').attr('dx', -23).attr('dy', -4)
+
 
   enter.append('text')
       .selectAll('tspan').data((d) -> d.surface)
