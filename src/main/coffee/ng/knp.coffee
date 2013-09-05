@@ -25,10 +25,8 @@ update_tree = (elem, object, oldval) ->
       .attr('transform', 'translate(0, 25)')
     else svge.select('g')
 
-  nodes = tree.nodes(rootnode).reverse()
+  nodes = tree.nodes(rootnode)
   links = tree.links(nodes)
-
-  nodes.forEach (n) -> n.y = n.depth * 90
 
   identify = (d) ->
       d.id = i
@@ -39,7 +37,6 @@ update_tree = (elem, object, oldval) ->
 
   enter = node.enter().append("g")
         .attr("class", "node")
-        .attr('transform', (d) -> "translate(#{width - d.y}, #{height - d.x})")
 
   work = enter.filter((d) -> d?.kind?.length == 7).append('g').attr('class','work')
   work.append('circle').attr('r', 15).attr('cx', -19).attr('cy', -10)
@@ -47,17 +44,36 @@ update_tree = (elem, object, oldval) ->
 
 
   enter.append('text')
-      .selectAll('tspan').data((d) -> d.surface)
-      .enter().append('tspan')
-        .text((d) -> d.surface).attr('text-anchor', 'end')
-
-
+    .selectAll('tspan').data((d) -> d.surface)
+    .enter().append('tspan')
+    .text((d) -> d.surface).attr('text-anchor', 'end')
 
   node.exit().remove()
 
   elems = {}
+  widths = []
+  node.each (d) ->
+    elems[d.id] = this
+    if (d.depth == widths.length)
+      widths.push(0)
+    mw = widths[d.depth]
+    bb = this.getBBox()
+    if (mw < bb.width)
+      widths[d.depth] = bb.width
 
-  node.each (d) -> elems[d.id] = this
+  ys = [0]
+  t = 0
+  for w in [0..widths.length]
+    t += widths[w]
+    t += 25
+    ys.push(t)
+
+  nodes.forEach((n) -> n.y = ys[n.depth])
+
+
+  enter.attr('transform', (d) -> "translate(#{width - d.y}, #{height - d.x})")
+
+
 
   link = de.selectAll('path.link').data(links, identify)
 
