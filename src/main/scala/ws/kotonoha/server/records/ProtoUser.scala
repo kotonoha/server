@@ -26,13 +26,13 @@ import _root_.scala.xml.{NodeSeq, Text}
 import _root_.net.liftweb.util.Helpers._
 import _root_.net.liftweb.util._
 import _root_.net.liftweb.common._
-import S._
 import _root_.net.liftweb.proto.{ProtoUser => GenProtoUser}
-import net.liftweb.mongodb.record.{MongoRecord, MongoId, MongoMetaRecord}
-import _root_.net.liftweb.json.JsonDSL._
+import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
+import ws.kotonoha.server.util.KBsonDSL._
 
 import net.liftweb.record.field._
-import net.liftweb.mongodb.record.field.{ObjectIdPk, LongPk, MongoPasswordField}
+import net.liftweb.mongodb.record.field.{ObjectIdPk, MongoPasswordField}
+import com.typesafe.scalalogging.slf4j.Logging
 
 trait UserIdAsString {
   def userIdAsString: String
@@ -41,7 +41,7 @@ trait UserIdAsString {
  * ProtoUser is a base class that gives you a "User" that has a first name,
  * last name, email, etc.
  */
-trait ProtoUser[T <: ProtoUser[T]] extends MongoRecord[T] with UserIdAsString with ObjectIdPk[T] {
+trait ProtoUser[T <: ProtoUser[T]] extends MongoRecord[T] with UserIdAsString with ObjectIdPk[T] with Logging {
   self: T =>
 
   /**
@@ -81,7 +81,7 @@ trait ProtoUser[T <: ProtoUser[T]] extends MongoRecord[T] with UserIdAsString wi
   /**
    * The string name for the first name field
    */
-  def firstNameDisplayName = ??("first.name")
+  def firstNameDisplayName = S.?("first.name")
 
   /**
    * The last field for the User.  You can override the behavior
@@ -102,7 +102,7 @@ trait ProtoUser[T <: ProtoUser[T]] extends MongoRecord[T] with UserIdAsString wi
   /**
    * The last name string
    */
-  def lastNameDisplayName = ??("last.name")
+  def lastNameDisplayName = S.?("last.name")
 
   /**
    * The email field for the User.  You can override the behavior
@@ -121,11 +121,11 @@ trait ProtoUser[T <: ProtoUser[T]] extends MongoRecord[T] with UserIdAsString wi
       case Full(email) => {
         owner.meta.findAll("email", email) match {
 					    case Nil => Nil
-					    case usr :: Nil if (usr.id == owner.id) => Empty
-					    case _ => Text(S.??("unique.email.address"))
+					    case usr :: Nil if usr.id.is == owner.id.is => Empty
+					    case _ => Text(S.?("unique.email.address"))
 				    }
       }
-      case _ => Text(S.??("unique.email.address"))
+      case _ => Text(S.?("unique.email.address"))
     }
 
     override def displayName = owner.emailDisplayName
@@ -136,7 +136,7 @@ trait ProtoUser[T <: ProtoUser[T]] extends MongoRecord[T] with UserIdAsString wi
   /**
    * The email first name
    */
-  def emailDisplayName = ??("email.address")
+  def emailDisplayName = S.?("email.address")
 
   /**
    * The password field for the User.  You can override the behavior
@@ -156,7 +156,7 @@ trait ProtoUser[T <: ProtoUser[T]] extends MongoRecord[T] with UserIdAsString wi
   /**
    * The display name for the password field
    */
-  def passwordDisplayName = ??("password")
+  def passwordDisplayName = S.?("password")
 
   /**
    * The superuser field for the User.  You can override the behavior
@@ -434,11 +434,11 @@ trait MegaProtoUser[T <: MegaProtoUser[T]] extends ProtoUser[T]{
   /**
    * The string for the timezone field
    */
-  def timezoneDisplayName = ??("time.zone")
+  def timezoneDisplayName = S.?("time.zone")
 
   /**
    * The string for the locale field
    */
-  def localeDisplayName = ??("locale")
+  def localeDisplayName = S.?("locale")
 
 }
