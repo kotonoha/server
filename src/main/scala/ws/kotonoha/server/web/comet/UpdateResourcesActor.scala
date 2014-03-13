@@ -158,6 +158,8 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with Logging {
 
     processKanjidic(dir)
 
+    processWarodai(dir)
+
     message("finished processing resources")
 
   }
