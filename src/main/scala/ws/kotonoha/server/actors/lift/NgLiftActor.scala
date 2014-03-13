@@ -68,7 +68,7 @@ trait NgLiftActor extends LiftActor {
 
   def render: RenderOut = {
     val js = s"angular.module('$module').factory('$svcName', $function);"
-    RenderOut(Empty, Empty, Full(JsCmds.Run(js) & jsonToIncludeInCode), Empty, true)
+    RenderOut(Empty, Empty, Full(JsCmds.Run(js) & jsonToIncludeInCode), Empty, ignoreHtmlOnJs = true)
   }
 
   def ngMessage(msg: JValue) = {
