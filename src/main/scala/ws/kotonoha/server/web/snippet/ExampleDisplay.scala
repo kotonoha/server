@@ -52,10 +52,9 @@ trait ExampleDisplay extends Akka {
   //small wtf, build list of examples and translations from query, asynchronously ftw
   def docs: List[ExampleEntry] = {
     val f = (akkaServ ? SearchQuery(query.is)).mapTo[List[Long]]
-    val fs = f map {
+    val fs = f flatMap  {
       cand =>
-        val ids = ExampleSearch.translationsWithLangs(cand, LangUtil.langs)
-        ExampleSearch.loadExamples(ids)
+        (akkaServ ? FullLoadExamples(cand, LangUtil.langs)).mapTo[List[ExampleEntry]]
     }
     Await.result(fs, 5 seconds)
   }

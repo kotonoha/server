@@ -51,6 +51,11 @@ object TatoebaLinkParser {
 
   def produceExampleLinks(links: Path, sentences: Path, bin: Path) {
     val map = parseCodes(sentences)
+
+    if (bin.exists) {
+      bin.delete(force = true)
+    }
+
     val rf = new FileOutputStream(bin.path, false)
     val chn = rf.getChannel
     val buf = ByteBuffer.allocate(8 * 4)

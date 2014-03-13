@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.actors.dict
 
-import akka.actor.Actor
+import akka.actor.{ActorLogging, Actor}
 import ws.kotonoha.server.actors.KotonohaMessage
 import java.io.File
 import ws.kotonoha.server.records.dictionary.ExampleSentenceRecord
@@ -40,31 +40,53 @@ case class ExampleIds(jap: Long, other: List[TatoebaLink])
 
 case class ExampleEntry(jap: ExampleSentenceRecord, other: List[ExampleSentenceRecord])
 
-class ExampleActor extends Actor {
+case class FullLoadExamples(ids: List[Long], langs: List[String]) extends ExampleMessage
 
-  val exampleSearcher = //new TatoebaLinks(new File(LP.get("example.index").get))
-    ExampleSearcher
+class ExampleActor extends Actor with ActorLogging {
+
+  var exampleSearcher: ExampleSearch = null //new TatoebaLinks(new File(LP.get("example.index").get))
+
+  override def preStart() = {
+    try {
+      val searcher = new ExampleSearcher()
+      val search = new ExampleSearch(searcher)
+      exampleSearcher = search
+    } catch {
+      case e: Exception => log.error(e, "couldn't insantiate example actor, will return empty result")
+    }
+  }
 
   override def postStop() {
     super.postStop()
-    //exampleSearcher.close()
   }
 
   override def receive = LoggingReceive {
-    case LoadExamples(eids) => {
-      sender ! ExampleSearch.loadExamples(eids)
-    }
-    case TranslationsWithLangs(ids, lang) => {
-      sender ! ExampleSearch.translationsWithLangs(ids, lang)
-    }
+    case LoadExamples(eids) =>
+      if (exampleSearcher != null)
+        sender ! exampleSearcher.loadExamples(eids)
+      else sender ! Nil
+    case TranslationsWithLangs(ids, lang) =>
+      if (exampleSearcher != null)
+        sender ! exampleSearcher.translationsWithLangs(ids, lang)
+      else sender ! Nil
+    case FullLoadExamples(ids, langs) =>
+      if (exampleSearcher != null) {
+        val eids = exampleSearcher.translationsWithLangs(ids, langs)
+        sender ! exampleSearcher.loadExamples(eids)
+      } else {
+        sender ! Nil
+      }
   }
 }
 
-object ExampleSearcher extends Logging {
+class ExampleSearcher extends Logging {
   val links = {
     val file = KotonohaConfig.safeString("example.index").map(new File(_))
     file match {
-      case Some(x) => new TatoebaLinks(x)
+      case Some(x) if x.exists() => new TatoebaLinks(x)
+      case Some(_) =>
+        logger.warn("example.index file does not exist, examples will not work")
+        null
       case None =>
         logger.warn("example.index is not specified in config, examples will not work")
         null
@@ -78,11 +100,11 @@ object ExampleSearcher extends Logging {
   }
 }
 
-object ExampleSearch {
+class ExampleSearch(search: ExampleSearcher) {
   def translationsWithLangs(ids: List[Long], langs: List[String]) = {
     ids map {
       id =>
-        val other = ExampleSearcher.from(id).filter(t => langs.contains(t.rightLang))
+        val other = search.from(id).filter(t => langs.contains(t.rightLang))
         ExampleIds(id, other.toList)
     }
   }

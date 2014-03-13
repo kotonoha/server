@@ -47,6 +47,7 @@ object LuceneExampleIndexer {
       config = new IndexWriterConfig(Version.LUCENE_35, ga)
       w <- resource.managed(new IndexWriter(index, config))
     } {
+      w.deleteAll()
       docs(d => w.addDocument(d))
     }
   }
