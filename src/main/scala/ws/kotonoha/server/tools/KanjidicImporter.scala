@@ -23,6 +23,7 @@ import net.liftweb.json.{DefaultFormats, Extraction}
 import net.liftweb.mongodb.{MongoDB, JObjectParser}
 import net.liftweb.json.JsonAST.JObject
 import ws.kotonoha.server.records.dictionary.KanjidicRecord
+import java.io.InputStream
 
 /**
  * @author eiennohito
@@ -36,15 +37,19 @@ object KanjidicImporter {
     MongoDbInit.init()
     val path = Path.fromString(args(0))
     for (is <- path.inputStream) {
-      val p = Kanjidic2Parser.parse(is)
-      MongoDB.useCollection(DictId, KanjidicRecord.collectionName)(c => {
-        c.drop()
-        for (i <- p) {
-          val jv = Extraction.decompose(i)
-          val jo = JObjectParser.parse(jv.asInstanceOf[JObject])
-          c.save(jo)
-        }
-      })
+      importKanjidic(is)
     }
+  }
+
+  def importKanjidic(is: InputStream) {
+    val p = Kanjidic2Parser.parse(is)
+    MongoDB.useCollection(DictId, KanjidicRecord.collectionName)(c => {
+      c.drop()
+      for (i <- p) {
+        val jv = Extraction.decompose(i)
+        val jo = JObjectParser.parse(jv.asInstanceOf[JObject])
+        c.save(jo)
+      }
+    })
   }
 }

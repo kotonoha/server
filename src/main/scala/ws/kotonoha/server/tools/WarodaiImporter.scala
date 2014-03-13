@@ -16,13 +16,12 @@
 
 package ws.kotonoha.server.tools
 
-import scalax.file.Path
-import java.io.{InputStreamReader, FileInputStream}
-import collection.immutable.PagedSeq
-import util.parsing.input.StreamReader
+import java.io.{BufferedReader, InputStreamReader, FileInputStream}
 import ws.kotonoha.server.dict.WarodaiParser
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.dictionary.WarodaiRecord
+import scala.util.parsing.input.StreamReader
+import ws.kotonoha.akane.unicode.UnicodeUtil
 
 /**
  * @author eiennohito
@@ -32,22 +31,42 @@ import ws.kotonoha.server.records.dictionary.WarodaiRecord
 /**
  * Usage: first parameter is filename, second is arguments
  */
-object WarodaiImporter extends App {
-  MongoDbInit.init()
-  val fn = args(0)
-  val enc = args(1)
+object WarodaiImporter {
 
-  val inp = new FileInputStream(fn)
-  val reader = new InputStreamReader(inp, enc)
-  val input = StreamReader(reader)
-  val words = WarodaiParser.cards(input).get.toArray
+  def main(args: Array[String]) {
+    MongoDbInit.init()
+    val fn = args(0)
+    val enc = args(1)
 
-  for (word <- words) {
-    val rec = WarodaiRecord.createRecord
-    val hdr = word.header
-    val pos = hdr.id
-    rec.posNum(pos.num).posPage(pos.page).posVol(pos.vol).
-    readings(hdr.readings).writings(hdr.writings).rusReadings(hdr.rusReadings).
-    body(word.body).save
+    importWarodai(fn, enc)
   }
+
+  def importWarodai(filename: String, encoding: String) = {
+    val inp = new FileInputStream(filename)
+    val reader = new BufferedReader(new InputStreamReader(inp, encoding))
+
+    var skipping = true
+    while (skipping) {
+      reader.mark(1024)
+      val line = reader.readLine()
+      if (UnicodeUtil.hasKana(line) || UnicodeUtil.hasKanji(line)) {
+        reader.reset()
+        skipping = false
+      }
+    }
+
+    val input = StreamReader(reader)
+
+    val words = WarodaiParser.cards(input).get.toArray
+
+    for (word <- words) {
+      val rec = WarodaiRecord.createRecord
+      val hdr = word.header
+      val pos = hdr.id
+      rec.posNum(pos.num).posPage(pos.page).posVol(pos.vol).
+        readings(hdr.readings).writings(hdr.writings).rusReadings(hdr.rusReadings).
+        body(word.body).save
+    }
+  }
+
 }

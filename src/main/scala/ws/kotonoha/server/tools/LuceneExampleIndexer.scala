@@ -36,15 +36,19 @@ object LuceneExampleIndexer {
     MongoDbInit.init()
     val path = args(0)
 
-    val ga = new GosenAnalyzer(Version.LUCENE_35)
-    val index = new SimpleFSDirectory(new File(path))
-    val config = new IndexWriterConfig(Version.LUCENE_35, ga)
-    val w = new IndexWriter(index, config)
+    createIndex(path)
+  }
 
-    docs(d => w.addDocument(d))
 
-    w.close()
-
+  def createIndex(path: String) {
+    for {
+      ga <- resource.managed(new GosenAnalyzer(Version.LUCENE_35))
+      index <- resource.managed(new SimpleFSDirectory(new File(path)))
+      config = new IndexWriterConfig(Version.LUCENE_35, ga)
+      w <- resource.managed(new IndexWriter(index, config))
+    } {
+      docs(d => w.addDocument(d))
+    }
   }
 
   def makeDoc(rec: ExampleSentenceRecord): Document = {

@@ -18,21 +18,25 @@ package ws.kotonoha.server.web.comet
 
 import net.liftweb.http.CometActor
 import ws.kotonoha.server.actors.lift.NgLiftActor
-import net.liftweb.json.JsonAST.{JString, JValue}
+import net.liftweb.json.JsonAST.JValue
 import com.typesafe.scalalogging.slf4j.Logging
 import java.net.{URI, URL}
 import scalax.file.Path
 import resource.Resource
-import java.util.zip.GZIPInputStream
+import java.util.zip.{ZipFile, GZIPInputStream}
 import scalax.io.StandardOpenOption
 import org.apache.commons.io.IOUtils
-import ws.kotonoha.server.tools.JMDictImporter
+import ws.kotonoha.server.tools._
+import ws.kotonoha.server.KotonohaConfig
+import scala.Some
+import net.liftweb.json.JsonAST.JString
 
 /**
  * @author eiennohito
  * @since 2014-03-13
  */
 class UpdateResourcesActor extends CometActor with NgLiftActor with Logging {
+
   import ws.kotonoha.server.util.KBsonDSL._
   import ws.kotonoha.server.util.DateTimeUtils.now
   import Resource._
@@ -46,21 +50,94 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with Logging {
   override def svcName = "UpdateResourcesSvc"
 
   def processJMDict(dir: Path, uri: URI): Unit = {
-    val conn = uri.toURL.openConnection()
-    for (fs <- resource.managed(conn.getInputStream)) {
-      val gz = new GZIPInputStream(fs)
-      val outFile = dir / "jmdict"
-      message(s"downloading jmdict to $outFile")
-      for (outfs <- outFile.outputStream(StandardOpenOption.Create)) {
-        val size = IOUtils.copy(gz, outfs)
-        message(s"successfully downloaded jmdict: $size bytes")
-      }
-    }
-    for (input <- (dir / "jmdict").inputStream()) {
+    val outFile = dir / "jmdict.xml.gz"
+    download(uri.toURL, outFile)
+    for (input <- outFile.inputStream()) {
       message("importing jmdict")
-      JMDictImporter.process(input)
+      JMDictImporter.process(new GZIPInputStream(input))
       message("finished importing jmdict")
     }
+  }
+
+  def download(url: URL, path: Path) = {
+    message(s"downloading $url to $path")
+    for (ifs <- resource.managed(url.openStream());
+         ofs <- path.outputStream(StandardOpenOption.Create)) {
+      IOUtils.copy(ifs, ofs)
+      message(s"downloading $url succeeded")
+    }
+  }
+
+  def processTatoeba(dir: Path, sentsUrl: String, linksUrl: String, tagsUrl: String) = {
+    val sentences = dir / "sentences.csv"
+    download(new URL(sentsUrl), sentences)
+
+    val links = dir / "links.csv"
+    download(new URL(linksUrl), links)
+
+    val tags = dir / "tags.csv"
+    download(new URL(tagsUrl), tags)
+
+    message("importing tags and sentences to mongo")
+    TatoebaSentenceImporter.importTaggedSentences(tags, sentences)
+    message("finished importing tags and sentences")
+
+    KotonohaConfig.safeString("lucene.indexdir") match {
+      case None => message("ERROR: lucene.indexdir is not configured! please reconfigure paths")
+      case Some(ld) =>
+        message("creating lucene index for example sentences")
+        LuceneExampleIndexer.createIndex(ld)
+        message("index was successuflly created")
+    }
+
+    KotonohaConfig.safeString("example.index") match {
+      case None => message("ERROR: example.index is not configured!")
+      case Some(ei) =>
+        message("creating example link index")
+        TatoebaLinkParser.produceExampleLinks(links, sentences, Path.fromString(ei))
+    }
+
+  }
+
+  def processKanjidic(dir: Path) = {
+    val url = "http://www.csse.monash.edu.au/~jwb/kanjidic2/kanjidic2.xml.gz"
+
+    val file = dir / "kanjidic.xml.gz"
+
+    download(new URL(url), file)
+
+    for (is <- file.inputStream()) {
+      val stream = new GZIPInputStream(is)
+      message("importing kanjidic")
+      KanjidicImporter.importKanjidic(stream)
+      message("kanjidic imported")
+    }
+  }
+
+  def processWarodai(dir: Path) = {
+    val url = "http://e-lib.ua/dic/download/ewarodai.zip"
+
+    val archive = dir / "warodai.zip"
+    val textfile = dir / "warodai.txt"
+
+    download(new URL(url), archive)
+
+    val zip = new ZipFile(archive.path)
+    val entry = zip.getEntry("ewarodai.txt")
+    if (entry == null) {
+      message("ERROR: no ewarodai.txt in archive")
+    } else {
+      for {
+        is <- resource.managed(zip.getInputStream(entry))
+        os <- textfile.outputStream(StandardOpenOption.Create)
+      } {
+        IOUtils.copy(is, os)
+      }
+    }
+
+    message("importing warodai")
+    WarodaiImporter.importWarodai(textfile.path, "UTF-16LE")
+    message("imported warodai")
   }
 
   def startImport(): Unit = {
@@ -73,6 +150,15 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with Logging {
     val jmdictUrl = URI.create("ftp://ftp.monash.edu.au/pub/nihongo/JMdict.gz")
 
     processJMDict(dir, jmdictUrl)
+
+    processTatoeba(dir,
+      "http://tatoeba.org/files/downloads/sentences.csv",
+      "http://tatoeba.org/files/downloads/links.csv",
+      "http://tatoeba.org/files/downloads/tags.csv")
+
+    processKanjidic(dir)
+
+    message("finished processing resources")
 
   }
 

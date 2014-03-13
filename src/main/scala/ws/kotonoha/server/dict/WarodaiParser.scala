@@ -16,8 +16,8 @@
 
 package ws.kotonoha.server.dict
 
-import util.parsing.combinator.RegexParsers
 import xml._
+import scala.util.parsing.combinator.RegexParsers
 
 /**
  * @author eiennohito

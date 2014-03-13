@@ -44,7 +44,13 @@ object TatoebaLinkParser {
     val fl = Path.fromString(args(0))
     val links = fl / "links.csv"
     val bin = fl / "links.bin"
-    val map = parseCodes(fl / "sentences.csv")
+    val sentences = fl / "sentences.csv"
+
+    produceExampleLinks(links, sentences, bin)
+  }
+
+  def produceExampleLinks(links: Path, sentences: Path, bin: Path) {
+    val map = parseCodes(sentences)
     val rf = new FileOutputStream(bin.path, false)
     val chn = rf.getChannel
     val buf = ByteBuffer.allocate(8 * 4)
@@ -73,6 +79,7 @@ object TatoebaLinkParser {
  *
  * I don't really use this one.
  */
+@deprecated
 object TatoebaImporter {
 
   def loadLinks(links: Input) = {
@@ -132,7 +139,12 @@ object TatoebaSentenceImporter {
     val dir = args(0)
     val path = Path.fromString(dir)
     val tags = path / "tags.csv"
+    val sentences = path / "sentences.csv"
+    importTaggedSentences(tags, sentences)
+  }
+
+  def importTaggedSentences(tags: Input, sentences: Input) {
     val map = loadTags(tags)
-    load(path / "sentences.csv", map)
+    load(sentences, map)
   }
 }

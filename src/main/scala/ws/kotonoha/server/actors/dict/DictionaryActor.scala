@@ -22,7 +22,7 @@ import akka.actor.{Props, Actor, ActorRef}
 import ws.kotonoha.server.util.LangUtil
 import ws.kotonoha.server.records.dictionary.{WarodaiRecord, JMDictRecord}
 import ws.kotonoha.server.dict.WarodaiBodyParser
-import util.parsing.input.CharSequenceReader
+import scala.util.parsing.input.CharSequenceReader
 
 /**
  * @author eiennohito
