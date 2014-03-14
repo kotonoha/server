@@ -34,6 +34,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 trait SearchMessage extends KotonohaMessage
 case class SearchQuery(query: String, max: Int = 20) extends SearchMessage
+case object CloseLucene extends SearchMessage
+case object ReloadLucene extends SearchMessage
 
 class Searcher(directory: FSDirectory) extends Closeable {
   val ga = new GosenAnalyzer(Version.LUCENE_35)
@@ -57,9 +59,11 @@ class Searcher(directory: FSDirectory) extends Closeable {
 
 class ExampleSearchActor extends Actor with Logging {
 
-  val searcher = {
+  var searcher = createSearcher
+
+  def createSearcher: Option[Searcher] = {
     val dirname = KotonohaConfig.safeString("lucene.indexdir")
-    val result = dirname.map(s => new Searcher(new SimpleFSDirectory(new File(s))))
+    val result = dirname.map(new File(_)).filter(_.exists()).map(s => new Searcher(new SimpleFSDirectory(s)))
     if (result.isEmpty)
       logger.warn("Can not search for examples, lucene.indexdir is not configured, will do nothing")
     result
@@ -77,6 +81,12 @@ class ExampleSearchActor extends Actor with Logging {
       val docs = if (q.length == 0) Nil else findDocs(q, max)
       sender ! docs
     }
+    case CloseLucene =>
+      searcher.map(_.close())
+      searcher = None
+    case ReloadLucene =>
+      searcher.map(_.close())
+      searcher = createSearcher
   }
 
   override def postStop() {
