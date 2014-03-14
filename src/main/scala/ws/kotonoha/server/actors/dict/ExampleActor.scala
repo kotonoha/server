@@ -18,7 +18,7 @@ package ws.kotonoha.server.actors.dict
 
 import akka.actor.{ActorLogging, Actor}
 import ws.kotonoha.server.actors.KotonohaMessage
-import java.io.File
+import java.io.{Closeable, File}
 import ws.kotonoha.server.records.dictionary.ExampleSentenceRecord
 import ws.kotonoha.server.dict.{TatoebaLink, TatoebaLinks}
 import akka.event.LoggingReceive
@@ -42,11 +42,19 @@ case class ExampleEntry(jap: ExampleSentenceRecord, other: List[ExampleSentenceR
 
 case class FullLoadExamples(ids: List[Long], langs: List[String]) extends ExampleMessage
 
+case object CloseExampleIndex extends ExampleMessage
+case object LoadExampleIndex extends ExampleMessage
+
 class ExampleActor extends Actor with ActorLogging {
 
   var exampleSearcher: ExampleSearch = null //new TatoebaLinks(new File(LP.get("example.index").get))
 
   override def preStart() = {
+    loadIndex()
+    super.preStart()
+  }
+
+  def loadIndex() = {
     try {
       val searcher = new ExampleSearcher()
       val search = new ExampleSearch(searcher)
@@ -76,10 +84,19 @@ class ExampleActor extends Actor with ActorLogging {
       } else {
         sender ! Nil
       }
+    case CloseExampleIndex =>
+      if (exampleSearcher != null)
+        exampleSearcher.close()
+      exampleSearcher = null
+    case LoadExampleIndex =>
+      if (exampleSearcher != null) {
+        exampleSearcher.close()
+      }
+      loadIndex()
   }
 }
 
-class ExampleSearcher extends Logging {
+class ExampleSearcher extends Logging with Closeable {
   val links = {
     val file = KotonohaConfig.safeString("example.index").map(new File(_))
     file match {
@@ -98,9 +115,20 @@ class ExampleSearcher extends Logging {
       links.from(id)
     else Iterator.empty
   }
+
+  def close() = {
+    if (links != null) {
+      links.close()
+    }
+  }
 }
 
-class ExampleSearch(search: ExampleSearcher) {
+class ExampleSearch(search: ExampleSearcher) extends Closeable {
+
+  def close() = {
+    search.close()
+  }
+
   def translationsWithLangs(ids: List[Long], langs: List[String]) = {
     ids map {
       id =>
