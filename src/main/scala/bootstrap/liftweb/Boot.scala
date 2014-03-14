@@ -70,13 +70,14 @@ class Boot extends Logging {
 
     val loggedin = If(UserRecord.loggedIn_? _, "You are not logged in")
     // Build SiteMap
-    val admin = Menu.i("Admin") / "admin" / "index" >> If(() => UserRecord.isAdmin, "Only administrators allowed here") submenus(
+    def admin = Menu.i("Admin") / "admin" / "index" >> If(() => UserRecord.isAdmin, "Only administrators allowed here") submenus(
       Menu.i("Client List") / "admin" / "clients",
       Menu.i("Access list") / "admin" / "access",
       Menu.i("Configuration") / "admin" / "config",
       Menu.i("Debug") / "admin" / "debug",
       Menu.i("Global learning") / "admin" / "learning",
-      Menu.i("OF history") / "admin" / "ofhistory"
+      Menu.i("OF history") / "admin" / "ofhistory",
+      Menu.i("Load resources") / "admin" / "resources"
       )
 
     val emptyLink: LinkText[Unit] = new LinkText({ case _ => Nil })

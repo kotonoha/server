@@ -26,9 +26,9 @@
             </div>
         </form>
         <div class="messages">
-            <div class="message" ng-repeat="m in message">
-                <span>{{m.date | date:short}}</span>
-                <span>{{m.message}</span>
+            <div class="message" ng-repeat="m in messages">
+                <span>{{m.date.$dt | date:short}}</span>
+                <span>{{m.message}}</span>
             </div>
         </div>
     </div>
@@ -38,7 +38,9 @@
             svc.callback = function(obj) {
                 switch(obj.cmd) {
                     case 'message':
-                        scope.messages.push(obj.data);
+                        scope.$apply(function() {
+                            scope.messages.push(obj.data);
+                        });
                         break;
                     default:
                         console.log(obj);

@@ -34,6 +34,8 @@ import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.actors.{ReloadLucene, CloseLucene}
 import ws.kotonoha.server.actors.dict.{LoadExampleIndex, CloseExampleIndex}
 import net.liftweb.http.js.JsCmds.Reload
+import net.liftweb.common.Full
+import scala.concurrent.Future
 
 /**
  * @author eiennohito
@@ -174,9 +176,19 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
 
   }
 
+  implicit val ec = akkaServ.context
+
   def processJson(jv: JValue): Unit = {
     jv \ "cmd" match {
-      case JString("start") => startImport()
+      case JString("start") =>
+        val f = Future { startImport() }
+        f.onComplete {
+          case scala.util.Success(_) => message("successfull completion")
+          case scala.util.Failure(e) =>
+            message("error in loading data")
+            logger.error("exception for loading data", e)
+        }
+      case _ => logger.info(s"invalid command for updating resources: $jv")
     }
   }
 
@@ -186,6 +198,11 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
 
   def message(msg: String) = {
     logger.info(msg)
-    ngMessage(("date" -> now) ~ ("message" -> msg))
+    ngMessage(
+      ("cmd" -> "message") ~
+      ("data" ->  ("date" -> now) ~ ("message" -> msg)  )
+    )
   }
+
+  override def render = super.render.copy(xhtml = Full(this.defaultHtml))
 }
