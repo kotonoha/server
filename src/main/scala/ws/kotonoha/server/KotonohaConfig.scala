@@ -20,7 +20,7 @@ import net.liftweb.util.Props
 import ws.kotonoha.akane.juman.JumanPipeExecutor
 import com.typesafe.config.{ConfigException, ConfigFactory}
 import ws.kotonoha.akane.config.Configuration
-import ws.kotonoha.akane.pipe.knp.KnpPipeParser
+import ws.kotonoha.akane.pipe.knp.KnpTreePipeParser
 import scala.concurrent.ExecutionContext
 
 /**
@@ -44,7 +44,7 @@ object KotonohaConfig {
   }
 
   def knpExecutor(implicit ec: ExecutionContext) = {
-    KnpPipeParser.apply(config)
+    KnpTreePipeParser.apply(config)
   }
 
   def safe[T](f: => T): Option[T] = try {
