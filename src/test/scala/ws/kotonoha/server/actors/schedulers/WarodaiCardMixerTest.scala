@@ -26,7 +26,7 @@ import org.bson.types.ObjectId
  * @since 28.02.13 
  */
 
-class CardMixerTest extends FreeSpec with ShouldMatchers {
+class WarodaiCardMixerTest extends FreeSpec with ShouldMatchers {
   implicit val ec = ExecutionContext.global
 
   import concurrent.duration._

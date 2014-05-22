@@ -17,11 +17,12 @@
 package ws.kotonoha.server.tools
 
 import java.io.{BufferedReader, InputStreamReader, FileInputStream}
-import ws.kotonoha.server.dict.WarodaiParser
+import ws.kotonoha.server.dict.{WarodaiCard, WarodaiParser}
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.dictionary.WarodaiRecord
 import scala.util.parsing.input.StreamReader
 import ws.kotonoha.akane.unicode.UnicodeUtil
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author eiennohito
@@ -31,7 +32,7 @@ import ws.kotonoha.akane.unicode.UnicodeUtil
 /**
  * Usage: first parameter is filename, second is arguments
  */
-object WarodaiImporter {
+object WarodaiImporter extends Logging {
 
   def main(args: Array[String]) {
     MongoDbInit.init()
@@ -57,16 +58,23 @@ object WarodaiImporter {
 
     val input = StreamReader(reader)
 
-    val words = WarodaiParser.cards(input).get.toArray
+    val words = WarodaiParser.cards(input) match {
+      case WarodaiParser.Success(words, _) =>
+        saveWords(words)
+      case f =>
+        logger.warn(s"Unable to parse warodai dictionarty\n$f")
+    }
 
+  }
+
+  def saveWords(words: List[WarodaiCard]): Any = {
     for (word <- words) {
       val rec = WarodaiRecord.createRecord
       val hdr = word.header
-      val pos = hdr.id
-      rec.posNum(pos.num).posPage(pos.page).posVol(pos.vol).
+      val warId = hdr.id
+      rec.warodaiId(warId).
         readings(hdr.readings).writings(hdr.writings).rusReadings(hdr.rusReadings).
         body(word.body).save
     }
   }
-
 }

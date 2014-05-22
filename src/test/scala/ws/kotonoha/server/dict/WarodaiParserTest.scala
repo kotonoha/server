@@ -16,7 +16,8 @@
 
 package ws.kotonoha.server.dict
 
-import util.parsing.input.CharSequenceReader
+import scala.util.parsing.input.CharSequenceReader
+
 
 class WarodaiParserTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
 
@@ -50,24 +51,24 @@ class WarodaiParserTest extends org.scalatest.FunSuite with org.scalatest.matche
   }
 
   test("parses identifier correctly") {
-    val text = "〔1;1;8〕"
+    val text = "〔1-001-1-07〕"
     val pr = identifier(text)
     pr.successful should be (true)
-    pr.get.num should equal (8)
+    pr.get should equal ("1-001-1-07")
   }
 
   test("parses what identifier correctly") {
     val text = "〔1;0185(-0184)〕"
     val pr = identifier(text)
     pr.successful should be (true)
-    pr.get.num should equal (184)
+    pr.get should be ("1;0185(-0184)")
   }
 
   test("parses what2 identifier correctly") {
       val text = "〔1;0368(-0367,+0369)〕"
       val pr = identifier(text)
       pr.successful should be (true)
-      pr.get.num should equal (367)
+      pr.get should equal ("1;0368(-0367,+0369)")
     }
 
   test("parses whole header") {

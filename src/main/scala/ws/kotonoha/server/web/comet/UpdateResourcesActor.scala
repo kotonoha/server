@@ -20,7 +20,7 @@ import net.liftweb.http.CometActor
 import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
 import net.liftweb.json.JsonAST.JValue
 import com.typesafe.scalalogging.slf4j.Logging
-import java.net.{URI, URL}
+import java.net._
 import scalax.file.Path
 import resource.Resource
 import java.util.zip.{ZipFile, GZIPInputStream}
@@ -36,6 +36,9 @@ import ws.kotonoha.server.actors.dict.{LoadExampleIndex, CloseExampleIndex}
 import net.liftweb.http.js.JsCmds.Reload
 import net.liftweb.common.Full
 import scala.concurrent.Future
+import net.liftweb.common.Full
+import scala.Some
+import net.liftweb.json.JsonAST.JString
 
 /**
  * @author eiennohito
@@ -67,7 +70,16 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
 
   def download(url: URL, path: Path) = {
     message(s"downloading $url to $path")
-    for (ifs <- resource.managed(url.openStream());
+    val conn = KotonohaConfig.safeString("dl.http.proxy.addr") match {
+      case Some(addr) =>
+        val proxyConfig = new Proxy(
+          Proxy.Type.HTTP,
+          new InetSocketAddress(addr, KotonohaConfig.safeInt("dl.http.proxy.port").getOrElse(8080))
+        )
+        url.openConnection(proxyConfig)
+      case _ => url.openConnection()
+    }
+    for (ifs <- resource.managed(conn.getInputStream);
          ofs <- path.outputStream(StandardOpenOption.Create)) {
       IOUtils.copy(ifs, ofs)
       message(s"downloading $url succeeded")
@@ -159,7 +171,7 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
 
     message(s"using $dir as temporary directory")
 
-    val jmdictUrl = URI.create("ftp://ftp.monash.edu.au/pub/nihongo/JMdict.gz")
+    val jmdictUrl = URI.create("http://ftp.monash.edu.au/pub/nihongo/JMdict.gz")
 
     processJMDict(dir, jmdictUrl)
 

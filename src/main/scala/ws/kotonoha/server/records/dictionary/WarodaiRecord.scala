@@ -32,9 +32,7 @@ import net.liftweb.mongodb.Limit
 class WarodaiRecord private() extends MongoRecord[WarodaiRecord] with LongPk[WarodaiRecord] {
   def meta = WarodaiRecord
 
-  object posVol extends IntField(this)
-  object posPage extends IntField(this)
-  object posNum extends IntField(this)
+  object warodaiId extends StringField(this, 50)
 
   object readings extends MongoListField[WarodaiRecord, String](this)
   object writings extends MongoListField[WarodaiRecord, String](this)

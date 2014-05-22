@@ -24,12 +24,16 @@ import scala.util.parsing.combinator.RegexParsers
  * @since 05.04.12
  */
 
-case class Identifier(vol: Int, page: Int, num: Int)
-case class Header(readings: List[String], writings: List[String], rusReadings: List[String], id: Identifier)
-case class Card(header: Header, body: String)
+case class Header(readings: List[String], writings: List[String], rusReadings: List[String], id: String)
+case class WarodaiCard(header: Header, body: String)
 
+/**
+ * Parses a warodai file format from
+ * http://e-lib.ua
+ *
+ * Warodai is a Japanese-English dictionary.
+ */
 object WarodaiParser extends RegexParsers {
-
 
   override def skipWhitespace = false
 
@@ -40,10 +44,7 @@ object WarodaiParser extends RegexParsers {
 
   def ws = literal(" ").*
 
-  def idwhat = (";" ~> uint) | ("(" ~> sint <~ (rep("," ~ sint) ~ opt(")")))
-
-  def identifier = (("〔" ~> uint <~ (opt(" ") ~ ";" ~ opt(" "))) ~ uint ) ~ idwhat <~ "〕" ^^
-    { case vol ~ page ~ entry =>  Identifier(vol, page, entry) }
+  def identifier = "〔" ~> "[^〕]+".r <~ "〕"
 
   def rusReading = "(" ~> rep1sep( regex("[^\\,)]+".r), ", ") <~ ")"
 
@@ -60,11 +61,11 @@ object WarodaiParser extends RegexParsers {
   }
 
   def fullcard = (header <~ endl) ~ body ^^ {
-    case hdr ~ body => Card(hdr, body)
+    case hdr ~ body => WarodaiCard(hdr, body)
   }
 
-  def emptycard : Parser[Card] = (header <~ guard(endl ~ endl)) map {
-    case h: Header => Card(h, "")
+  def emptycard : Parser[WarodaiCard] = (header <~ guard(endl ~ endl)) map {
+    case h: Header => WarodaiCard(h, "")
   }
 
   def card = fullcard | emptycard
