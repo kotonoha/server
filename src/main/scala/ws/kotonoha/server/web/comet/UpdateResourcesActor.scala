@@ -167,6 +167,10 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
   def startImport(): Unit = {
     //download jmdict
 
+    message("starting processing:")
+    message(s"lucene path: ${KotonohaConfig.safeString("lucene.indexdir")}")
+    message(s"example index dir: ${KotonohaConfig.safeString("example.index")}")
+
     val dir = Path.createTempDirectory(prefix = "kotonoha", suffix = "import")
 
     message(s"using $dir as temporary directory")
