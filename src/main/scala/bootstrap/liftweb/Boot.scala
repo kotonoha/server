@@ -26,6 +26,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 import scala.xml.{NodeSeq, Text}
 import ws.kotonoha.server.web.loc.WikiLoc
 import net.liftweb.actor.{ILAExecute, LAScheduler}
+import ws.kotonoha.server.KotonohaConfig
+import scala.util.control.NonFatal
 
 
 /**
@@ -33,8 +35,30 @@ import net.liftweb.actor.{ILAExecute, LAScheduler}
  * to modify lift's environment
  */
 class Boot extends Logging {
+
+  def checkAdiminAccount() = {
+    import ws.kotonoha.server.util.KBsonDSL._
+    val admins = UserRecord.count("superUser" -> true)
+    if (admins == 0) {
+      val rec = UserRecord.createRecord
+      val email = KotonohaConfig.safeString("admin.email").getOrElse("admin@(none)")
+      rec.email(email)
+      rec.password.setPassword(KotonohaConfig.safeString("admin.password").getOrElse("admin"))
+      rec.superUser(true)
+      rec.validated(true)
+      try {
+        rec.save
+        logger.info(s"Created a new superUser with email $email")
+      } catch {
+        case NonFatal(t) => logger.error("There was no admin account present and creating it failed")
+      }
+    }
+  }
+
   def boot {
     MongoDbInit.init()
+
+    checkAdiminAccount()
 
     /*val c = Pointer.allocateByte()
     c.set(0.toByte)
