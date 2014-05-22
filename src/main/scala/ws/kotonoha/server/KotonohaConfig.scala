@@ -30,7 +30,6 @@ import scala.concurrent.ExecutionContext
 
 object KotonohaConfig {
 
-
   lazy val config = {
     import scala.collection.JavaConversions._
     val props = Props.props

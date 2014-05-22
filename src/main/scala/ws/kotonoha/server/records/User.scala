@@ -11,6 +11,7 @@ import ws.kotonoha.server.util.{UserUtil, DateTimeUtils}
 import net.liftweb.http.S
 import net.liftweb.http.provider.HTTPCookie
 import org.bson.types.ObjectId
+import ws.kotonoha.server.KotonohaConfig
 
 /*
  * Copyright 2012 eiennohito
@@ -101,9 +102,15 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
   private val authCookie = "koto-auth"
 
   private def deleteCookie() {
-    val p = if (S.contextPath == "") "/" else S.contextPath
+    val p = conPath
     val cook = HTTPCookie(authCookie, "").setPath(p)
     S.deleteCookie(cook)
+  }
+
+  private def conPath: String = {
+    KotonohaConfig.safeString("context.path").getOrElse {
+      if (S.contextPath == "") "/" else S.contextPath
+    }
   }
 
   autologinFunc = Full({
@@ -145,7 +152,7 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
 
   def updateCookie(id: ObjectId) {
     val s = UserUtil.cookieAuthFor(id, S.request.flatMap(_.userAgent).openOr("none"))
-    val p = if (S.contextPath == "") "/" else S.contextPath
+    val p = conPath
     S.addCookie(HTTPCookie(authCookie, s).setMaxAge(60 * 24 * 30 * 1000).setPath(p))
   }
 }
