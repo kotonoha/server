@@ -1,3 +1,7 @@
 Kotonoha is a yet another flashcard software for learning japanese words.
 
 Unlike anki, it is specialized only for japanese and has focus on quick new word addition.
+
+When you create a server the admin account is created automatically.
+Default username/password is admin@(none) / admin,
+but you can change them or setup in a configuration file.
