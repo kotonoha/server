@@ -23,6 +23,7 @@ import lift.{LiftMessage, LiftActorService}
 import com.fmpwizard.cometactor.pertab.namedactor.{NamedCometMessage, PertabCometManager}
 import akka.actor.SupervisorStrategy.Restart
 import tags.{TagMessage, TagService}
+import ws.kotonoha.server.actors.dict.{ExampleMessage, ExampleActor}
 
 /**
  * @author eiennohito
@@ -41,6 +42,7 @@ class ServiceActor extends Actor with ActorLogging {
   lazy val cometActor = context.actorOf(Props[PertabCometManager], "comet")
   lazy val clientActor = context.actorOf(Props[ClientRegistry], "clients")
   lazy val tagSvc = context.actorOf(Props[TagService], "tags")
+  lazy val globalExampleSvc = context.actorOf(Props[ExampleActor], "examples")
 
   override def receive = {
     case msg: DbMessage => mongo.forward(msg)
@@ -52,6 +54,7 @@ class ServiceActor extends Actor with ActorLogging {
     case msg: NamedCometMessage => cometActor.forward(msg)
     case msg: ClientMessage => clientActor.forward(msg)
     case msg: TagMessage => tagSvc.forward(msg)
+    case msg: ExampleMessage => globalExampleSvc.forward(msg)
     case msg => log.warning("invalid message came to service actor root {}", msg)
   }
 
