@@ -31,7 +31,7 @@ import ws.kotonoha.server.KotonohaConfig
 import scala.Some
 import net.liftweb.json.JsonAST.JString
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import ws.kotonoha.server.actors.{ReloadLucene, CloseLucene}
+import ws.kotonoha.server.actors.{TellAllUsers, ReloadLucene, CloseLucene}
 import ws.kotonoha.server.actors.dict.{LoadExampleIndex, CloseExampleIndex}
 import net.liftweb.http.js.JsCmds.Reload
 import net.liftweb.common.Full
@@ -88,7 +88,9 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
 
   def processTatoeba(dir: Path, sentsUrl: String, linksUrl: String, tagsUrl: String) = {
     toAkka(CloseLucene)
+    toAkka(TellAllUsers(CloseLucene))
     toAkka(CloseExampleIndex)
+    toAkka(TellAllUsers(CloseExampleIndex))
 
     val sentences = dir / "sentences.csv"
     download(new URL(sentsUrl), sentences)
@@ -112,6 +114,7 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
     }
 
     toAkka(ReloadLucene)
+    toAkka(TellAllUsers(ReloadLucene))
 
     KotonohaConfig.safeString("example.index") match {
       case None => message("ERROR: example.index is not configured!")
@@ -121,6 +124,7 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
     }
 
     toAkka(LoadExampleIndex)
+    toAkka(TellAllUsers(LoadExampleIndex))
   }
 
   def processKanjidic(dir: Path) = {

@@ -22,7 +22,7 @@ import org.joda.time.DateTime
 import concurrent.duration._
 import scala.Some
 import akka.actor.SupervisorStrategy.Restart
-import concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 
 /**
  * @author eiennohito
@@ -66,11 +66,21 @@ class UserActorManager extends Actor with ActorLogging {
     context.system.scheduler.schedule(15 minutes, 5 minutes, self, Ping)
   }
 
+  import akka.pattern.ask
+  import akka.util.Timeout
+  import scala.concurrent.duration._
+
   override def receive = {
     case Ping => checkLife()
     case PingUser(uid) => lifetime.get(uid) foreach( lifetime += uid -> _ )
     case UserActor(uid) => sender ! userActor(uid)
     case ForUser(uid, msg) => userActor(uid).forward(msg)
+    case AskAllUsers(msg) =>
+      val answer = userMap.map {
+        case (u, a) => a.ask(msg)(Timeout(5 seconds)).map(u -> _)
+      }.toList
+      sender ! Future.sequence(answer)
+    case TellAllUsers(msg) => userMap.values.foreach(_ ! msg)
     case InitUsers =>
       val actor = create(new ObjectId()) //lasy loading
       context.system.scheduler.scheduleOnce(10 seconds, actor, PoisonPill) //and kill in 10 secs
@@ -85,5 +95,7 @@ class UserActorManager extends Actor with ActorLogging {
 
 case class UserActor(uid: ObjectId)
 case class ForUser(user: ObjectId, msg: AnyRef)
+case class AskAllUsers(msg: AnyRef)
+case class TellAllUsers(msg: AnyRef)
 case class PingUser(uid: ObjectId)
 case object InitUsers
