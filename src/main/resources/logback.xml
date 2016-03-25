@@ -14,8 +14,7 @@
   ~ limitations under the License.
   -->
 
-<configuration>
-  <appender name="mongo" class="ws.kotonoha.server.util.MongoAppender"/>
+<configuration debug="true">
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <charset>UTF-8</charset>
@@ -23,8 +22,9 @@
     </encoder>
   </appender>
 
+  <logger name="org.mongodb.driver" level="INFO"/>
+
   <root level="debug">
     <appender-ref ref="console"/>
-    <appender-ref ref="mongo"/>
   </root>
 </configuration>

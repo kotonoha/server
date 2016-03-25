@@ -16,29 +16,25 @@
 
 package ws.kotonoha.server.learning
 
-import org.scalatest.FreeSpec
-import org.scalatest.matchers.ShouldMatchers
-import ws.kotonoha.server.mongodb.MongoDbInit
-import net.liftweb.mongodb.record.MongoRecord
-import akka.testkit.{TestKit, TestActorRef}
-import akka.actor.{Props, ActorSystem}
-import ws.kotonoha.server.supermemo.{ProcessMark, SM6}
-import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord}
-import scala.concurrent.Await
-import akka.util.Timeout
+import akka.actor.Props
 import org.bson.types.ObjectId
-import ws.kotonoha.server.test.{KotonohaTestAkka, TestWithAkka}
+import ws.kotonoha.server.actors.schedulers.AkkaFree
+import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord}
+import ws.kotonoha.server.supermemo.{ProcessMark, SM6}
+
+import scala.concurrent.Await
 
 /**
  * @author eiennohito
  * @since 24.05.12
  */
 
-import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow}
-import concurrent.duration._
 import akka.pattern.ask
+import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow}
 
-class SM6Test extends TestWithAkka with FreeSpec with ShouldMatchers {
+import scala.concurrent.duration._
+
+class SM6Test extends AkkaFree {
   "First time learning" - {
     val id = new ObjectId()
     val sm6 = kta.userContext(id).userActor(Props[SM6], "sm6")

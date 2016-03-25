@@ -1,12 +1,13 @@
 package ws.kotonoha.server.mongodb
 
-import net.liftweb.mongodb.{MongoDB, MongoIdentifier, MongoMeta}
-import com.mongodb.{ServerAddress, Mongo}
+import com.mongodb.{MongoClient, MongoClientOptions, MongoClientURI}
 import com.typesafe.scalalogging.{StrictLogging => Logging}
-import org.bson.{Transformer, BSON}
+import net.liftweb.mongodb.{MongoDB, MongoMeta}
+import net.liftweb.util.ConnectionIdentifier
+import org.bson.{BSON, Transformer}
 import org.joda.time.DateTime
-import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.server.KotonohaConfig
+import ws.kotonoha.server.util.DateTimeUtils
 
 /*
  * Copyright 2012 eiennohito
@@ -56,29 +57,49 @@ object MongoDbInit extends Logging {
     BSON.addEncodingHook(classOf[DateTime], dateToMongo)
   }
 
+  private var client: MongoClient = null
+
   def init(): Unit = synchronized {
     if (!inited) {
-      val server = KotonohaConfig.string("db.server")
-      val dbname = KotonohaConfig.string("db.name")
-      val dictname = KotonohaConfig.safeString("db.dict").getOrElse("dict")
 
-      logger.info(s"using on server $server database $dbname")
+      val dbname = KotonohaConfig.string("mongo.data")
+      val dictname = KotonohaConfig.safeString("mongo.dict").getOrElse("dict")
 
-      val sa = new ServerAddress(server, KotonohaConfig.safeInt("db.port").getOrElse(ServerAddress.defaultPort()))
-      MongoDB.defineDb(DbId, new Mongo(sa), dbname)
-      MongoDB.defineDb(DictId, new Mongo(sa), dictname)
-      addHooks()
-      inited = true
+
+      val co = new MongoClientOptions.Builder()
+      val uri = new MongoClientURI(KotonohaConfig.string("mongo.uri"), co)
+
+      logger.info(s"using on server ${uri.getHosts.get(0)}")
+
+      client = new MongoClient(uri)
+
+      try { client.fsync(false) } catch {
+        case e: Exception =>
+          e.printStackTrace()
+      }
+
+      register(client, dbname, dictname)
     }
+  }
+
+  def register(cliobj: MongoClient, dbname: String, dictname: String): Unit = {
+    MongoDB.defineDb(DbId, cliobj, dbname)
+    MongoDB.defineDb(DictId, cliobj, dictname)
+    addHooks()
+    inited = true
+  }
+
+  def stop(): Unit = {
+    client.close()
   }
 }
 
-object DbId extends MongoIdentifier {
+object DbId extends ConnectionIdentifier {
   val dbName = KotonohaConfig.safeString("db.name").getOrElse("kotonoha")
   def jndiName = dbName
 }
 
-object DictId extends MongoIdentifier {
+object DictId extends ConnectionIdentifier {
   val dbName = KotonohaConfig.safeString("dict.name").getOrElse("dict")
   def jndiName = dbName
 }

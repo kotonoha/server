@@ -72,7 +72,7 @@ class UserActorManager extends Actor with ActorLogging {
 
   override def receive = {
     case Ping => checkLife()
-    case PingUser(uid) => lifetime.get(uid) foreach( lifetime += uid -> _ )
+    case PingUser(uid) => userActor(uid)
     case UserActor(uid) => sender ! userActor(uid)
     case ForUser(uid, msg) => userActor(uid).forward(msg)
     case AskAllUsers(msg) =>
@@ -93,9 +93,10 @@ class UserActorManager extends Actor with ActorLogging {
   }
 }
 
-case class UserActor(uid: ObjectId)
-case class ForUser(user: ObjectId, msg: AnyRef)
-case class AskAllUsers(msg: AnyRef)
-case class TellAllUsers(msg: AnyRef)
-case class PingUser(uid: ObjectId)
-case object InitUsers
+trait MessageForUser
+case class UserActor(uid: ObjectId) extends MessageForUser
+case class ForUser(user: ObjectId, msg: AnyRef) extends MessageForUser
+case class AskAllUsers(msg: AnyRef) extends MessageForUser
+case class TellAllUsers(msg: AnyRef) extends MessageForUser
+case class PingUser(uid: ObjectId) extends MessageForUser
+case object InitUsers extends MessageForUser

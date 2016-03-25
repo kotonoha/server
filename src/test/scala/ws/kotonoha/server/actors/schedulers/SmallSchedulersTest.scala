@@ -16,9 +16,6 @@
 
 package ws.kotonoha.server.actors.schedulers
 
-import ws.kotonoha.server.test.TestWithAkka
-import org.scalatest.FreeSpec
-import org.scalatest.matchers.ShouldMatchers
 import org.bson.types.ObjectId
 
 /**
@@ -26,7 +23,7 @@ import org.bson.types.ObjectId
  * @since 02.03.13 
  */
 
-class SmallSchedulersTest extends TestWithAkka with FreeSpec with ShouldMatchers {
+class SmallSchedulersTest extends AkkaFree {
   val uid = new ObjectId()
 
   val uctx = kta.userContext(uid)

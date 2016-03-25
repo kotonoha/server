@@ -1,29 +1,47 @@
 package ws.kotonoha.server.actors.schedulers
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FreeSpec
-import ws.kotonoha.server.akka.AkkaTest
-import ws.kotonoha.server.test.TestWithAkka
-import ws.kotonoha.server.records.{UserTagInfo, WordCardRecord, UserRecord}
-import akka.actor.Props
-import org.bson.types.ObjectId
-import net.liftweb.common.Empty
-import org.joda.time.DateTime
+import akka.actor.ActorRef
+import akka.testkit.TestActorRef
 import com.mongodb.casbah.WriteConcern
+import net.liftweb.common.Empty
+import org.bson.types.ObjectId
+import org.joda.time.DateTime
+import org.scalatest.{FreeSpecLike, Matchers}
+import ws.kotonoha.server.actors.AkkaFun
+import ws.kotonoha.server.mongo.MongoAwareTest
 import ws.kotonoha.server.records.events.NewCardSchedule
+import ws.kotonoha.server.records.{UserRecord, UserTagInfo, WordCardRecord}
+import ws.kotonoha.server.test.{TestWithAkka, UserContext}
 
 /**
  * @author eiennohito
  * @since 06.03.13 
  */
 
-class NewCardSchedulerTest extends TestWithAkka with FreeSpec with ShouldMatchers {
+abstract class AkkaFree extends TestWithAkka with FreeSpecLike with Matchers
+
+class NewCardSchedulerTest extends AkkaFree with MongoAwareTest {
   implicit val sender = testActor
-  import concurrent.duration._
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
-  val uid = createUser()
-  val usvc = kta.userContext(uid)
+  import concurrent.duration._
+
+
+  var uid: ObjectId = null
+  var usvc: UserContext = null
+  var actor: TestActorRef[NewCardScheduler] = null
+
+  override protected def beforeAll() = {
+    super.beforeAll()
+    uid = createUser()
+    usvc = kta.userContext(uid)
+    actor = usvc.userActor[NewCardScheduler]("ncs")
+  }
+
+  override protected def afterAll() = {
+    UserRecord.delete("_id", uid)
+    super.afterAll()
+  }
 
   def createCard(wid: => ObjectId = new ObjectId(), tags: List[String] = Nil) = {
     val card = WordCardRecord.createRecord
@@ -32,7 +50,6 @@ class NewCardSchedulerTest extends TestWithAkka with FreeSpec with ShouldMatcher
   }
 
   "newcardscheduler" - {
-    val actor = usvc.userActor[NewCardScheduler]("ncs")
 
     "selects 2 cards" in {
       val cards = Seq.fill(2)(createCard())

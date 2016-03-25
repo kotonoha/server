@@ -137,19 +137,19 @@ class WordActor extends UserScopedActor with ActorLogging {
   }
 
   def registerWord(word: WordRecord, st: WordStatus.Value) {
-    val wordid = word.id.is
-    val priF = (tags ? CalculatePriority(word.tags.is)).mapTo[Priority]
-    var fl = List(ask(mongo, SaveRecord(word)))
+    val wordid = word.id.get
+    val priF = (tags ? CalculatePriority(word.tags.get)).mapTo[Priority]
+    var futures = List(ask(mongo, SaveRecord(word)))
     if (checkReadingWriting(word)) {
-      fl ::= priF flatMap {
+      futures ::= priF flatMap {
         p => card ? RegisterCard(wordid, CardMode.READING, p.prio)
       }
     }
-    fl ::= priF flatMap {
+    futures ::= priF flatMap {
       p => card ? RegisterCard(wordid, CardMode.WRITING, p.prio)
     }
 
-    val s = Future.sequence(fl.map(_.mapTo[Boolean])).flatMap(_ => self ? ChangeWordStatus(wordid, st))
+    val s = Future.sequence(futures.map(_.mapTo[Boolean])).flatMap(_ => self ? ChangeWordStatus(wordid, st))
     s map {
       x => wordid
     } pipeTo sender

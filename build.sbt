@@ -43,7 +43,7 @@ libraryDependencies ++= {
 
 libraryDependencies ++= {
   Seq(
-    "org.mongodb" %% "casbah" % "3.1.1" exclude("org.specs2", "*")
+    "org.mongodb" %% "casbah" % "2.8.2" exclude("org.specs2", "*")
   )
 }
 

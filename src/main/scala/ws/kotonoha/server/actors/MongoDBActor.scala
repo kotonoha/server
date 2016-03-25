@@ -35,16 +35,15 @@ case class RegisterMongo(mongo: ActorRef)
 
 class MongoDBActor extends Actor with ActorLogging {
   override def receive = {
-    case SaveRecord(rec) => {
+    case SaveRecord(rec) =>
       log.debug("saving object {}", rec)
       try {
-        rec.save(WriteConcern.JournalSafe)
+        rec.save(WriteConcern.Acknowledged)
         sender ! true
       } catch {
         case e: Throwable => log.error(e, "Cant' save X"); sender ! Failure(e)
       }
-    }
-    case UpdateRecord(rec) => rec.save; sender ! true
+    case UpdateRecord(rec) => rec.save(WriteConcern.Acknowledged); sender ! true
     case DeleteRecord(rec) => sender ! rec.delete_!
   }
 }

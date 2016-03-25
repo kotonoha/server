@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.util
 
-import org.scalatest.FreeSpec
+import org.scalatest.{FreeSpec, Matchers}
 import org.scalatest.matchers.ShouldMatchers
 import org.joda.time.DateTime
 import ws.kotonoha.server.util
@@ -26,7 +26,7 @@ import ws.kotonoha.server.util
  * @since 03.03.13 
  */
 
-class DateTimeUtilsTest extends FreeSpec with ShouldMatchers {
+class DateTimeUtilsTest extends FreeSpec with Matchers {
 
   import util.DateTimeUtils._
 
@@ -46,7 +46,7 @@ class DateTimeUtilsTest extends FreeSpec with ShouldMatchers {
       }
 
       "sets time to 0500 yesterday if time is before that today" in {
-        val dt = new DateTime(2013, 3, 3, 04, 15, 11)
+        val dt = new DateTime(2013, 3, 3, 4, 15, 11)
         val time = snapTime(dt)
         time should have(
           'getYear(dt.getYear()),

@@ -34,11 +34,7 @@ class GlobalActor extends Actor with ActorLogging {
   val user = context.actorOf(Props[UserActorManager], GlobalActor.userName)
 
   override def receive = {
-    case x: ForUser => user.forward(x)
-    case x: UserActor => user.forward(x)
-    case x: TellAllUsers => user.forward(x)
-    case x: AskAllUsers => user.forward(x)
-    case InitUsers => user.forward(InitUsers)
+    case x: MessageForUser => user.forward(x)
     case x => svcs.forward(x)
   }
 }

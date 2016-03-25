@@ -98,13 +98,14 @@ class CardActor extends UserScopedActor with ActorLogging {
     }
     case RegisterCard(word, mode, pri) => {
       val card = WordCardRecord.createRecord
-      card.user(uid).word(word).cardMode(mode).learning(Empty).notBefore(now).priority(pri)
+      val time = now.minusMinutes(5)
+      card.user(uid).word(word).cardMode(mode).learning(Empty).notBefore(time).priority(pri)
       val s = sender
       ask(mongo, SaveRecord(card)) pipeTo (s)
     }
     case ClearNotBefore(card) => {
       log.debug("Clearning not before for card id {}", card)
-      val q = WordCardRecord where (_.id eqs card) modify (_.notBefore setTo (Empty))
+      val q = WordCardRecord where (_.id eqs card) modify (_.notBefore setTo now.minusSeconds(5))
       q updateOne()
     }
     case ScheduleLater(card, interval) => {

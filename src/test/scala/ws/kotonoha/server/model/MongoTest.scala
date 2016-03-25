@@ -15,66 +15,61 @@
  */
 package ws.kotonoha.server.model
 
-import org.scalatest.{FunSuite, BeforeAndAfterAll, BeforeAndAfter}
-import net.liftweb.common.Empty
-import akka.util.Timeout
-import ws.kotonoha.server.util.DateTimeUtils
-import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow}
-import ws.kotonoha.server.actors.model.CardActor
-import ws.kotonoha.server.actors.learning._
-import org.bson.types.ObjectId
-import org.scalatest.matchers.ShouldMatchers
-import ws.kotonoha.server.test.TestWithAkka
 import akka.actor.Props
 import akka.testkit.CallingThreadDispatcher
+import akka.util.Timeout
 import com.mongodb.WriteConcern
-import concurrent.{Future, Await}
+import net.liftweb.common.{Empty, Full}
+import org.bson.types.ObjectId
 import org.joda.time.DateTime
-import ws.kotonoha.server.actors.learning.LoadWords
-import ws.kotonoha.server.learning.ProcessMarkEvents
-import net.liftweb.common.Full
-import ws.kotonoha.server.learning.ProcessMarkEvent
-import ws.kotonoha.server.actors.model.SchedulePaired
-import ws.kotonoha.server.actors.learning.LoadCards
-import ws.kotonoha.server.actors.learning.WordsAndCards
-import ws.kotonoha.server.actors.model.RegisterWord
-import ws.kotonoha.server.actors.PingUser
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
+import ws.kotonoha.server.actors.learning.{LoadCards, LoadWords, WordsAndCards, _}
+import ws.kotonoha.server.actors.model.{CardActor, RegisterWord, SchedulePaired}
+import ws.kotonoha.server.actors.{AkkaFun, PingUser}
+import ws.kotonoha.server.learning.{ProcessMarkEvent, ProcessMarkEvents}
+import ws.kotonoha.server.mongo.MongoAwareTest
 import ws.kotonoha.server.records.events.MarkEventRecord
+import ws.kotonoha.server.test.UserContext
+import ws.kotonoha.server.util.DateTimeUtils
+import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow}
+
+import scala.concurrent.{Await, Future}
 
 
-class MongoTest extends TestWithAkka with FunSuite with ShouldMatchers with BeforeAndAfter
-with BeforeAndAfterAll {
+class MongoTest extends AkkaFun with BeforeAndAfter
+with BeforeAndAfterAll with MongoAwareTest {
 
-  import akka.pattern._
-  import concurrent.duration._
-  import ws.kotonoha.server.records._
-  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import DateTimeUtils._
+  import akka.pattern._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
+  import ws.kotonoha.server.records._
+
+  import concurrent.duration._
 
   var user: UserRecord = _
 
-  def userId = user.id.is
+  def userId = user.id.get
 
-  lazy val ucont = kta.userContext(userId)
-  implicit val executor = kta.context
+  var ucont: UserContext = null
+  implicit def executor = kta.context
 
   override def beforeAll() {
-    user = UserRecord.createRecord.save
+    super.beforeAll()
     WordCardRecord.createRecord
     WordRecord.createRecord
   }
 
-  override def afterAll() {
-    user.delete_!
-  }
-
   before {
+    user = UserRecord.createRecord.save
+    ucont = kta.userContext(userId)
     kta ! PingUser(userId)
   }
 
   after {
-    WordRecord where (_.user eqs user.id.is) bulkDelete_!! (WriteConcern.NORMAL)
-    WordCardRecord where (_.user eqs user.id.is) bulkDelete_!! (WriteConcern.NORMAL)
+    WordRecord where (_.user eqs userId) bulkDelete_!! WriteConcern.NORMAL
+    WordCardRecord where (_.user eqs userId) bulkDelete_!! WriteConcern.NORMAL
+    user.delete_!
+    user = null
   }
 
   test("saving word for user") {
@@ -117,6 +112,7 @@ with BeforeAndAfterAll {
     ex.translation("This example is piece of shit!")
     rec.writing("例").reading("れい").meaning("example")
     rec.user(userId).examples(List(ex))
+    rec.status(WordStatus.Approved)
     rec
   }
 
@@ -164,7 +160,8 @@ with BeforeAndAfterAll {
     val fs = Future.sequence(1 to 5 map {
       x => saveWordAsync
     })
-    Await.ready(fs, 5 seconds)
+    val ids = Await.result(fs, 5 seconds)
+    ids should have size (5)
 
     val ar = kta.userContext(userId).userActor[CardLoader]("usa")
     ar.receive(LoadNewCards(userId, 10), testActor)
@@ -176,17 +173,18 @@ with BeforeAndAfterAll {
     val fs = Future.sequence(1 to 5 map {
       x => saveWordAsync
     })
-    Await.ready(fs, 5 seconds)
+    Await.result(fs, 5 seconds)
 
     val wlen = WordRecord where (_.user eqs userId) count()
     wlen should equal(5)
     val clen = WordCardRecord where (_.user eqs userId) count()
     clen should equal(10)
 
-    val sel = ask(ucont.actor, LoadCards(6, 0)).mapTo[List[WordCardRecord]]
-    val words = Await.result(sel, 1 second)
-    words.length should be >= (1)
-    val groups = words groupBy {
+    val sel = ask(ucont.actor, LoadCards(6, 0)).mapTo[WordsAndCards]
+    val wac = Await.result(sel, 1 second)
+    val cards = wac.cards
+    cards.length should be >= (1)
+    val groups = cards groupBy {
       w => w.word.is
     }
     for ((id, gr) <- groups) {
@@ -202,7 +200,7 @@ with BeforeAndAfterAll {
     val fs = Future.sequence(1 to 5 map {
       x => saveWordAsync
     })
-    Await.ready(fs, 1000 milli)
+    Await.result(fs, 2.seconds)
 
     val wicF = ask(ucont.actor, LoadWords(5, 0)).mapTo[WordsAndCards]
     val wic = Await.result(wicF, 5 seconds)
@@ -212,7 +210,7 @@ with BeforeAndAfterAll {
     event.card(card.id.is).mark(5.0).mode(card.cardMode.is).time(2.3142)
     event.user(userId)
 
-    Await.ready(ask(ucont.actor, ProcessMarkEvents(List(event))), 5 seconds)
+    Await.result(ask(ucont.actor, ProcessMarkEvents(List(event))), 5 seconds)
     val updatedCard = WordCardRecord.find(card.id.is).get
     updatedCard.learning.valueBox.isEmpty should be(false)
   }
@@ -223,7 +221,7 @@ with BeforeAndAfterAll {
     val fs = Future.sequence(1 to 2 map {
       x => saveWordAsync
     })
-    Await.ready(fs, 1500 milli)
+    Await.result(fs, 1500 milli)
 
     (ucont.actor ! LoadWords(5, 0))(testActor)
     val wic = receiveOne(5 minutes).asInstanceOf[WordsAndCards]

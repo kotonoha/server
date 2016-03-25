@@ -16,20 +16,18 @@
 
 package ws.kotonoha.server.dict
 
-import org.scalatest.FreeSpec
-import org.scalatest.matchers.ShouldMatchers
-import ws.kotonoha.server.test.MongoDb
 import org.bson.types.ObjectId
-import ws.kotonoha.server.actors.recommend.RecommendRequest
+import org.scalatest.{FreeSpec, Matchers}
 import ws.kotonoha.akane.juman.JumanPipeExecutor
-import ws.kotonoha.server.KotonohaConfig
+import ws.kotonoha.server.actors.recommend.RecommendRequest
+import ws.kotonoha.server.mongo.MongoAwareTest
 
 /**
  * @author eiennohito
  * @since 20.03.13 
  */
 
-class RecommenderTest extends FreeSpec with ShouldMatchers with MongoDb {
+class RecommenderTest extends FreeSpec with Matchers with MongoAwareTest {
   val juman = JumanPipeExecutor.apply()
 
   "recommender" - {

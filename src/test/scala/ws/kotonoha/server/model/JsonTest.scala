@@ -46,8 +46,8 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     gb.create()
   }
 
-  val wid = new ObjectId(10, 11, 12)
-  val cid = new ObjectId(10, 11, 13)
+  val wid = ObjectId.createFromLegacyFormat(10, 11, 12)
+  val cid = ObjectId.createFromLegacyFormat(10, 11, 13)
 
   def card = WordCardRecord.createRecord.word(wid).cardMode(CardMode.READING)
 
@@ -144,6 +144,7 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     val l2 = obj.getCards.map(_.getWord).toList.distinct.length
     val l3 = obj.getCards.map(_.getId).toList.distinct.length
 
-    l2 should equal(l3)
+    l2 shouldBe 45
+    l3 shouldBe 46
   }
 }

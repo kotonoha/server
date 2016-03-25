@@ -6,10 +6,13 @@ import net.liftweb.json.DefaultFormats
 import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
 import com.mongodb.MapReduceCommand
 import java.util.HashMap
+
 import org.bson.types.Code
 import ws.kotonoha.server.mongodb.mapreduce.DateCounter
 import net.liftweb.json.JsonAST._
-import ws.kotonoha.server.test.MongoDb
+import org.scalatest.Matchers
+import ws.kotonoha.server.mongo.MongoAwareTest
+
 import collection.JavaConversions
 
 /*
@@ -31,7 +34,7 @@ import collection.JavaConversions
 
 case class Result(idx: Int,  count: Double)
 
-class MapReduceTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers with MongoDb {
+class MapReduceTest extends org.scalatest.FunSuite with Matchers with MongoAwareTest {
   import net.liftweb.mongodb.BsonDSL._
   implicit val formats = DefaultFormats
   test("simple mapreduce -- count users") {

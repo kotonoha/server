@@ -26,8 +26,7 @@ import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord, UserR
  * @since 27.02.13 
  */
 
-class RepetitionStateResolverTest extends TestWithAkka with FreeSpec with
-ShouldMatchers with BeforeAndAfterAll {
+class RepetitionStateResolverTest extends AkkaFree with BeforeAndAfterAll {
 
   import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow, _}
 

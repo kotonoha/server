@@ -16,16 +16,17 @@
 
 package ws.kotonoha.server.actors
 
-import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
-import ws.kotonoha.server.records.ClientRecord
+import org.scalatest.{FunSuiteLike, Matchers}
 import ws.kotonoha.server.actors.auth.AddClient
-import scala.concurrent.Await
-import concurrent.duration._
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FunSuite
+import ws.kotonoha.server.records.ClientRecord
 import ws.kotonoha.server.test.TestWithAkka
 
-class ClientTest extends TestWithAkka with FunSuite with ShouldMatchers {
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
+abstract class AkkaFun extends TestWithAkka with FunSuiteLike with Matchers
+
+class ClientTest extends AkkaFun {
   test("clients creates and deletes") {
     val client = ClientRecord.name("test")
     Await.result(kta ? AddClient(client), 2 seconds)

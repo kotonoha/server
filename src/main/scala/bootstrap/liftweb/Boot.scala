@@ -58,6 +58,8 @@ class Boot extends Logging {
   def boot {
     MongoDbInit.init()
 
+    LiftRules.unloadHooks.append(() => MongoDbInit.stop())
+
     checkAdiminAccount()
 
     /*val c = Pointer.allocateByte()

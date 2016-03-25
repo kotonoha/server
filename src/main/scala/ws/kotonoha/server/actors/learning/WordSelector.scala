@@ -133,8 +133,9 @@ class CardLoader extends UserScopedActor with ActorLogging {
       sender ! scheduled
     }
     case LoadNewCards(uid, max) => {
-      val query = WordCardRecord.enabledFor(uid) and (_.learning exists false) and
-        (_.notBefore exists false) orderAsc (_.createdOn)
+      val query = WordCardRecord.enabledFor(uid) and (_.learning exists false) or (
+        x => x.where(_.notBefore exists false), x => x.where(_.notBefore before DateTime.now)
+        ) orderAsc (_.createdOn)
       val newCards = query fetch (max)
       log.debug(s"Loading new cards: got ${newCards.size} of $max")
       sender ! newCards

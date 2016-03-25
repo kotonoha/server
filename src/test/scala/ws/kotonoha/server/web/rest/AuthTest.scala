@@ -16,21 +16,21 @@
 
 package ws.kotonoha.server.web.rest
 
-import net.liftweb.mockweb.MockWeb
-import org.scribe.builder.ServiceBuilder
-import org.scribe.model.{Token, Verb, OAuthRequest}
-import net.liftweb.mocks.MockHttpServletRequest
-import org.scribe.services.TimestampServiceImpl
-import net.liftweb.http._
-import net.liftweb.common.Full
-import org.scalatest.BeforeAndAfterAll
-import org.apache.commons.httpclient.util.EncodingUtil
-import ws.kotonoha.server.records.{AuthCode, UserTokenRecord, ClientRecord}
 import com.google.gson.Gson
-import ws.kotonoha.server.rest.{AuthObject, KotonohaApi}
-import net.liftweb.json.{DefaultFormats, Printer, JsonAST, Extraction}
+import net.liftweb.common.Full
+import net.liftweb.http._
+import net.liftweb.json.{DefaultFormats, Extraction, JsonAST, Printer}
+import net.liftweb.mocks.MockHttpServletRequest
+import net.liftweb.mockweb.MockWeb
+import org.apache.commons.httpclient.util.EncodingUtil
 import org.bson.types.ObjectId
-import ws.kotonoha.server.test.MongoDb
+import org.scalatest.Matchers
+import org.scribe.builder.ServiceBuilder
+import org.scribe.model.{OAuthRequest, Token, Verb}
+import org.scribe.services.TimestampServiceImpl
+import ws.kotonoha.server.mongo.MongoAwareTest
+import ws.kotonoha.server.records.{AuthCode, ClientRecord, UserTokenRecord}
+import ws.kotonoha.server.rest.{AuthObject, KotonohaApi}
 
 
 object OAuthBasedService extends OauthRestHelper {
@@ -57,7 +57,7 @@ object OAuthRequestMock {
 }
 
 
-class AuthTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers with BeforeAndAfterAll with MongoDb {
+class AuthTest extends org.scalatest.FunSuite with Matchers with MongoAwareTest {
   import ws.kotonoha.server.util.SecurityUtil._
 
   test("oauth get service works") {
@@ -138,6 +138,7 @@ class AuthTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
   }
 
   override protected def beforeAll() {
+    super.beforeAll()
     client.save
     token.save
   }
@@ -145,5 +146,6 @@ class AuthTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
   override protected def afterAll() {
     client.delete_!
     token.delete_!
+    super.afterAll()
   }
 }

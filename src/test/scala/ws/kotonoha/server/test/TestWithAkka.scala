@@ -16,19 +16,23 @@
 
 package ws.kotonoha.server.test
 
-import akka.testkit.{TestProbe, TestKit}
+import akka.testkit.{TestKit, TestProbe}
 import akka.util.Timeout
 import net.liftweb.mongodb.record.MongoRecord
+
 import concurrent.duration._
 import ws.kotonoha.server.records.UserRecord
 import org.joda.time.DateTime
+import ws.kotonoha.server.mongo.MongoAwareTest
+
+import scala.concurrent.Await
 import scala.util.Random
 
 /**
  * @author eiennohito
  * @since 08.01.13 
  */
-class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) extends TestKit(kta.system) with MongoDb {
+class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) extends TestKit(kta.system) with MongoAwareTest {
   implicit val timeout: Timeout = 5 minutes
 
 
@@ -51,4 +55,9 @@ class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) e
   }
 
   def probe = TestProbe()(kta.system)
+
+  override protected def afterAll() = {
+    Await.result(kta.system.terminate(), 10.seconds)
+    super.afterAll()
+  }
 }
