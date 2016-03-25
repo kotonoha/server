@@ -41,6 +41,20 @@ case object UserId
 
 import GlobalActor._
 
+object ActorUtil {
+  def actFor(arp: ActorRefFactory, path: ActorPath, timeout: Timeout = 5.seconds): ActorRef = {
+    val sel = arp.actorSelection(path)
+    val fut = sel.resolveOne()(timeout)
+    Await.result(fut, timeout.duration)
+  }
+
+  implicit class aOf(val arp: ActorRefFactory) extends AnyVal {
+    def actFor(path: ActorPath, timeout: Timeout = 5.seconds): ActorRef = ActorUtil.actFor(arp, path, timeout)
+  }
+}
+
+import ActorUtil.aOf
+
 trait KotonohaActor extends Actor {
 
   def globalPath = context.system.child(globalName)
@@ -50,11 +64,11 @@ trait KotonohaActor extends Actor {
   def svcPath = globalPath / svcName
 
   lazy val users = {
-    context.actorFor(userPath)
+    context.actFor(userPath)
   }
 
   lazy val services = {
-    context.actorFor(svcPath)
+    context.actFor(svcPath)
   }
 
   implicit val ec: ExecutionContext = context.system.dispatcher
@@ -62,7 +76,7 @@ trait KotonohaActor extends Actor {
 
 trait RootActor { this: KotonohaActor =>
   lazy val root = {
-    context.actorFor(globalPath)
+    context.actFor(globalPath)
   }
 }
 
@@ -78,13 +92,14 @@ trait UserScopedActor extends KotonohaActor {
     userActorPath / "guard"
   }
 
-  def scoped(name: String) = context.actorFor(guardActorPath / name)
+  def scoped(name: String) = context.actFor(guardActorPath / name)
 
   lazy val userActor = {
-    context.actorFor(userActorPath)
+    context.actFor(userActorPath)
   }
 
   lazy val uid = {
+    import akka.pattern.ask
     implicit val timeout: Timeout = 1 minute
     val f = (userActor ? UserId).mapTo[ObjectId]
     Await.result(f, 1 minute)

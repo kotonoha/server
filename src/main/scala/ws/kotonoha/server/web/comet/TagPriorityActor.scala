@@ -25,7 +25,7 @@ import net.liftweb.json.{DefaultFormats, Extraction}
 import ws.kotonoha.server.records.{UserTagInfo, UserRecord}
 import ws.kotonoha.server.actors.ForUser
 import ws.kotonoha.server.actors.tags.{Taglist, TaglistRequest, UpdateTagPriority}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 /**
  * @author eiennohito

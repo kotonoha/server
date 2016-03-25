@@ -32,7 +32,7 @@ import ws.kotonoha.server.actors.learning.LoadReviewList
 import ws.kotonoha.server.actors.learning.WordsAndCards
 import ws.kotonoha.server.web.rest.EmptyUserException
 import akka.util.Timeout
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import concurrent.{Await, Promise, Future}
 
 /**

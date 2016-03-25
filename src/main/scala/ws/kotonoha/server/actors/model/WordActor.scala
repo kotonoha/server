@@ -90,8 +90,10 @@ class WordActor extends UserScopedActor with ActorLogging {
     }
   }
 
-  lazy val mongo = context.actorFor(guardActorPath / "mongo")
-  lazy val card = context.actorFor(guardActorPath / "card")
+  import ActorUtil.aOf
+
+  lazy val mongo = context.actFor(guardActorPath / "mongo")
+  lazy val card = context.actFor(guardActorPath / "card")
   lazy val tags = scoped("tags")
 
   def markAllCards(word: ObjectId, mark: Int) {

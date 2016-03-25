@@ -25,7 +25,7 @@ import org.apache.lucene.queryParser.QueryParser
 import org.apache.lucene.index.IndexReader
 import org.apache.lucene.search.{TopScoreDocCollector, IndexSearcher}
 import ws.kotonoha.server.KotonohaConfig
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 /**
  * @author eiennohito

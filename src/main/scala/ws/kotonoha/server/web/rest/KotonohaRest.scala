@@ -23,7 +23,7 @@ import net.liftweb.http._
 import net.liftweb.common.Full
 import ws.kotonoha.server.records.UserRecord
 import org.bson.types.ObjectId
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import akka.util.Timeout
 import concurrent.{duration, Promise, Future}
 import reflect.ClassTag

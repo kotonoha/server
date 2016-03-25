@@ -16,18 +16,17 @@
 
 package ws.kotonoha.server.dict
 
-import ws.kotonoha.server.records.dictionary.{JMDictRecord, KanjidicRecord}
-import ws.kotonoha.server.dict.kanjidic.Kanjidic
-import ws.kotonoha.akane.unicode.{KanaUtil, UnicodeUtil}
-import net.java.sen.SenFactory
-import ws.kotonoha.server.web.comet.Candidate
 import java.util.{ArrayList => JList}
-import net.java.sen.dictionary.Token
-import ws.kotonoha.akane.JumanEntry
-import ws.kotonoha.server.records.{WordRecord, WordCardRecord, RecommendationIgnore}
+
 import org.bson.types.ObjectId
+import ws.kotonoha.akane.pipe.juman.JumanEntry
+import ws.kotonoha.akane.unicode.UnicodeUtil
 import ws.kotonoha.server.actors.recommend.RecommendRequest
+import ws.kotonoha.server.dict.kanjidic.Kanjidic
+import ws.kotonoha.server.records.dictionary.KanjidicRecord
 import ws.kotonoha.server.records.events.AddWordRecord
+import ws.kotonoha.server.records.{RecommendationIgnore, WordRecord}
+
 import scala.collection.mutable
 
 /**

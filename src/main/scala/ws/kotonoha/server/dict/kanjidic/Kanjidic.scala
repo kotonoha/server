@@ -30,11 +30,11 @@ object Kanjidic {
 
   def inWord(s: String) = entries(UnicodeUtil.kanji(s))
 
-  def entries(kanji: List[String]) = {
+  def entries(kanji: List[String]): Map[String, KanjidicRecord] = {
     val q = KanjidicRecord where (_.literal in kanji)
     val data = q fetch()
     data.map {
-      i => i.literal.is -> i
+      i => i.literal.get -> i
     }.toMap
   }
 }

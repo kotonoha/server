@@ -21,7 +21,7 @@ import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import net.liftweb.http.js.JsCmds.{RedirectTo, _Noop}
 import net.liftweb.json.JsonAST.JValue
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import ws.kotonoha.server.util.parsing.AddStringParser
 import util.parsing.input.CharSequenceReader
 import ws.kotonoha.akane.unicode.UnicodeUtil

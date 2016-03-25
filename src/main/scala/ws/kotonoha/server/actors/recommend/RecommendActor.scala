@@ -19,9 +19,9 @@ package ws.kotonoha.server.actors.recommend
 import ws.kotonoha.server.actors.{KotonohaMessage, UserScopedActor}
 import ws.kotonoha.server.dict.{RecommendedSubresult, Recommender}
 import akka.actor.ActorRef
-import ws.kotonoha.akane.{ParsedQuery, JumanEntry}
 import ws.kotonoha.server.actors.interop.ParseSentence
 import akka.util.Timeout
+import ws.kotonoha.akane.pipe.juman.{JumanEntry, ParsedQuery}
 
 /**
  * @author eiennohito

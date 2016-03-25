@@ -24,7 +24,7 @@ import org.joda.time.Duration
 import scala.Some
 import ws.kotonoha.server.math.MathUtil
 import org.bson.types.ObjectId
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import com.mongodb.WriteConcern
 
 /**

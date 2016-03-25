@@ -16,35 +16,37 @@
 
 package ws.kotonoha.server.web.comet
 
-import ws.kotonoha.server.actors.lift.{NgLiftActor, AkkaInterop}
+import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import akka.util.Timeout
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import ws.kotonoha.server.records._
 import events.AddWordRecord
-import net.liftweb.common.{Empty, Box}
+import net.liftweb.common.{Box, Empty}
 import ws.kotonoha.server.actors.model._
 import net.liftweb.http.CometActor
 import net.liftweb.json.JsonAST._
 import net.liftweb.http.js.JsCmds
 import akka.actor.{ActorRef, PoisonPill, Props}
-import scala.Some
+
+import scala.util
 import ws.kotonoha.server.actors.{SaveRecord, UpdateRecord}
 import net.liftweb.common.Full
 import ws.kotonoha.server.actors.model.WordData
 import net.liftweb.json.{DefaultFormats, Extraction, NoTypeHints, Serialization}
 import ws.kotonoha.server.actors.interop.ParseSentence
-import ws.kotonoha.akane.ParsedQuery
-import ws.kotonoha.server.util.{LangUtil, DateTimeUtils}
+import ws.kotonoha.server.util.{DateTimeUtils, LangUtil}
 import ws.kotonoha.akane.juman.JumanUtil
 import net.liftweb.json.ext.JodaTimeSerializers
-import com.typesafe.scalalogging.slf4j.Logging
-import concurrent.{Promise, Future, ExecutionContext}
+import com.typesafe.scalalogging.{StrictLogging => Logging}
+
+import concurrent.{ExecutionContext, Future, Promise}
 import org.bson.types.ObjectId
-import ws.kotonoha.server.actors.tags.{AddTag, TagWord, TagParser}
-import ws.kotonoha.server.actors.tags.auto.{PossibleTags, PossibleTagRequest}
-import ws.kotonoha.server.actors.recommend.{RecommenderReply, RecommendRequest}
-import ws.kotonoha.server.dict.{RecommendedSubresult}
+import ws.kotonoha.akane.pipe.juman.ParsedQuery
+import ws.kotonoha.server.actors.tags.{AddTag, TagParser, TagWord}
+import ws.kotonoha.server.actors.tags.auto.{PossibleTagRequest, PossibleTags}
+import ws.kotonoha.server.actors.recommend.{RecommendRequest, RecommenderReply}
+import ws.kotonoha.server.dict.RecommendedSubresult
 
 
 /**
@@ -118,6 +120,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
 
   private class WordDataCalculator extends Logging {
 
+    import ws.kotonoha.server.util.KBsonDSL._
     import DateTimeUtils._
 
     private def q = list match {

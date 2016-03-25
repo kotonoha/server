@@ -26,7 +26,7 @@ import com.earldouglas.xsbtwebplugin.{PluginKeys => WPK, WebPlugin}
 
 object Settings {
 
-  val ourScalaVer = "2.10.2"
+  val ourScalaVer = "2.11.8"
 
   val buildOrganization = "ws.kotonoha"
 

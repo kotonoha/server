@@ -22,7 +22,7 @@ import ws.kotonoha.server.web.rest.model.{Cards, Words}
 import ws.kotonoha.server.actors.lift.Ping
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import ws.kotonoha.server.web.snippet.{ModeSnippet, ClasspathResource}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import scala.xml.{NodeSeq, Text}
 import ws.kotonoha.server.web.loc.WikiLoc
 import net.liftweb.actor.{ILAExecute, LAScheduler}

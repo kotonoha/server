@@ -63,7 +63,9 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
 
   implicit val timeout = Timeout(5000 milliseconds)
 
-  var mongo: ActorRef = context.actorFor(guardActorPath / "mongo")
+  import ActorUtil.aOf
+
+  var mongo: ActorRef = context.actFor(guardActorPath / "mongo")
   var sm6: ActorRef = context.actorOf(Props[SM6], "sm6")
 
   def processWs(ws: ChangeWordStatusEventRecord) = {

@@ -7,7 +7,7 @@ import net.liftweb.http._
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.util.ResponseUtil
 import ws.kotonoha.server.learning.{ProcessWordStatusEvent, ProcessMarkEvents}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import ws.kotonoha.server.records.events.{ChangeWordStatusEventRecord, AddWordRecord, MarkEventRecord}
 
 

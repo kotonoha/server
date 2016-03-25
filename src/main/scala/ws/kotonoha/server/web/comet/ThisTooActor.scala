@@ -18,7 +18,7 @@ package ws.kotonoha.server.web.comet
 
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import ws.kotonoha.server.actors.lift.{ToAkka, AkkaInterop}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import net.liftweb.http.js.{JsExp, JE}
 import net.liftweb.json.{Extraction, DefaultFormats}

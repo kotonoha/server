@@ -32,7 +32,7 @@ import ws.kotonoha.server.util.KBsonDSL._
 
 import net.liftweb.record.field._
 import net.liftweb.mongodb.record.field.{ObjectIdPk, MongoPasswordField}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 trait UserIdAsString {
   def userIdAsString: String

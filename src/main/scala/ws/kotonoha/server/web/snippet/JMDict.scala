@@ -20,7 +20,7 @@ import scala.xml.{Text, NodeSeq}
 import net.liftweb.http.S
 import ws.kotonoha.server.util.LangUtil
 import ws.kotonoha.server.records.dictionary.{JMDictAnnotations, JMDictMeaning, JMString, JMDictRecord}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 /**
  * @author eiennohito

@@ -33,7 +33,7 @@ class TagService extends KotonohaActor {
 
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
-  val sid = new ObjectId(0, 0, 0)
+  val sid = ObjectId.createFromLegacyFormat(0, 0, 0)
 
   def addAlias(from: String, to: String): Unit = {
     val alias = TagAlias.createRecord

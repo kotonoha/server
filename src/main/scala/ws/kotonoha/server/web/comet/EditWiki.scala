@@ -27,7 +27,7 @@ import ws.kotonoha.server.records.{UserRecord, WikiPageRecord}
 import org.bson.types.ObjectId
 import ws.kotonoha.server.wiki.{WikiLinkCache, WikiRenderer}
 import scala.xml.{NodeSeq, Group}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.http.js.JsCmds.RedirectTo
 import ws.kotonoha.server.wiki.template.TemplateParams
 import com.tristanhunt.knockoff.{SanitizationEvent, SanitizationChangeSupport}

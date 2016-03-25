@@ -16,23 +16,20 @@
 
 package ws.kotonoha.server.mongodb.mapreduce
 
-import com.mongodb.casbah.query.Imports._
+import java.util
+
+import com.mongodb.MapReduceCommand
+import com.mongodb.MapReduceCommand.OutputType
 import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
-import ws.kotonoha.server.mongodb.{ProjectOperator, MatchOperator, GroupOperator}
-import org.joda.time.DateTime
-import net.liftweb.json.JsonAST._
-import net.liftweb.mongodb.JObjectParser
-import net.liftweb.json.{Extraction, DefaultFormats}
-import net.liftweb.json.ext.JodaTimeSerializers
+import com.mongodb.casbah.query.Imports._
+import net.liftweb.json.DefaultFormats
+import net.liftweb.json.JsonAST.{JArray, JField, JString, _}
 import net.liftweb.json.scalaz.JsonScalaz._
-import scalaz.{Failure, Success}
-import scala.Some
-import net.liftweb.json.JsonAST.JArray
-import net.liftweb.json.JsonAST.JField
-import net.liftweb.json.JsonAST.JString
-import org.bson.types.{Code, CodeWScope}
-import com.mongodb.casbah.map_reduce.MapReduceCommand
+import net.liftweb.mongodb.JObjectParser
+import org.joda.time.DateTime
 import ws.kotonoha.server.records.events.MarkEventRecord
+
+import scalaz.Success
 
 /**
  * @author eiennohito
@@ -41,15 +38,14 @@ import ws.kotonoha.server.records.events.MarkEventRecord
 
 case class RepeatStat(user: ObjectId, date: DateTime, avgMark: Double, total: Long)
 
-object LearningStats extends GroupOperator with MatchOperator with ProjectOperator {
-
+object LearningStats {
   import ws.kotonoha.server.util.DateTimeUtils._
 
   def recentLearning(days: Int) = {
     val dbo = MongoDBObject.newBuilder
     dbo += "aggregate" -> "markeventrecords"
     dbo += "pipeline" -> MongoDBList(
-      $match("datetime" $gt now.minusDays(10)),
+      MongoDBObject("$match" -> ("$datetime" $gt now.minusDays(10))),
       MongoDBObject(
         "$project" -> MongoDBObject(
           "_id" -> 0,
@@ -92,38 +88,28 @@ object LearningStats extends GroupOperator with MatchOperator with ProjectOperat
     }
     jobj match {
       case JArray(a) => a flatMap {
-        parseJson(_, day2Dates)
+        parseJson(_, day2Dates)(DefaultFormats)
       }
       case _ => Nil
     }
   }
 
-  def parseJson(in: JValue, day2Dates: Map[Int, DateTime]): List[RepeatStat] = {
-    import scalaz._
-    import Scalaz._
+  def parseJson(in: JValue, day2Dates: Map[Int, DateTime])(implicit formats: DefaultFormats): List[RepeatStat] = {
 
-    import net.liftweb.json.scalaz.JsonScalaz._
+    val id = in \ "_id"
+    val user = (id \ "user").extractOpt[ObjectId]
+    val day = (id \ "day").extractOpt[Int].flatMap(day2Dates.get)
+    val ma = (in \ "mark").extractOpt[Double]
+    val mt = (in \ "total").extractOpt[Long]
 
-    val id = in \ ("_id")
-
-    def date(d: Int): Result[DateTime] = {
-      day2Dates.get(d) match {
-        case Some(c) => c.success
-        case _ => Fail("date", "Have no such date")
-      }
-    }
-
-    val ua = field[ObjectId]("user")(id)
-    val da = field[Int]("day")(id) flatMap (date _)
-    val ma = field[Double]("mark")(in)
-    val mt = field[Long]("total")(in)
-    val x: Result[RepeatStat] = (ua |@| da |@| ma |@| mt) {
-      RepeatStat
-    }
-    x match {
-      case Success(c) => List(c)
-      case _ => Nil
-    }
+    if (
+      user.isDefined &&
+      day.isDefined &&
+      ma.isDefined &&
+      mt.isDefined
+    ) List(RepeatStat(
+      user.get, day.get, ma.get, mt.get
+    )) else Nil
   }
 
   def recentLearningMR(days: Int) = {
@@ -164,21 +150,25 @@ object LearningStats extends GroupOperator with MatchOperator with ProjectOperat
         }
       """
 
-    val midnight = now.toDateMidnight
+    val midnight = now.withTimeAtStartOfDay()
     val date = midnight.minusDays(days).toDate
     val scope = DBObject("now" -> midnight.plusDays(1).getMillis)
-    val mapF = new CodeWScope(map, scope)
-    val reduceF = new CodeWScope(reduce, DBObject())
     val q = "datetime" $gt date
-    val cmd = DBObject(
-      "mapReduce" -> MarkEventRecord.collectionName,
-      "map" -> mapF,
-      "reduce" -> reduceF,
-      "query" -> q,
-      "out" -> DBObject("inline" -> true)
-    )
+
     val res = MarkEventRecord.useColl(c => {
-      c.mapReduce(cmd)
+      val mrc = new MapReduceCommand(
+        c,
+        map,
+        reduce,
+        null,
+        OutputType.INLINE,
+        q
+      )
+      val smap = new util.HashMap[String, AnyRef]()
+      val millis: java.lang.Long = midnight.plusDays(1).getMillis
+      smap.put("now", millis)
+      mrc.setScope(smap)
+      c.mapReduce(mrc)
     })
     implicit val formats = DefaultFormats
     import scala.collection.JavaConversions._

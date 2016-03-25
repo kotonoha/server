@@ -2,7 +2,7 @@ package ws.kotonoha.server.mongodb
 
 import net.liftweb.mongodb.{MongoDB, MongoIdentifier, MongoMeta}
 import com.mongodb.{ServerAddress, Mongo}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import org.bson.{Transformer, BSON}
 import org.joda.time.DateTime
 import ws.kotonoha.server.util.DateTimeUtils

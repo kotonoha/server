@@ -23,7 +23,7 @@ import ws.kotonoha.server.records.dictionary.ExampleSentenceRecord
 import ws.kotonoha.server.dict.{TatoebaLink, TatoebaLinks}
 import akka.event.LoggingReceive
 import ws.kotonoha.server.KotonohaConfig
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 /**
  * @author eiennohito

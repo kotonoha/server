@@ -22,7 +22,7 @@ import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.dictionary.WarodaiRecord
 import scala.util.parsing.input.StreamReader
 import ws.kotonoha.akane.unicode.UnicodeUtil
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 /**
  * @author eiennohito

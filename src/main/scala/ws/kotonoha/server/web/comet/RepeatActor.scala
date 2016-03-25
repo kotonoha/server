@@ -35,7 +35,7 @@ import net.liftweb.json.JsonAST.{JField, JObject, JValue}
 import net.liftweb.http.js.JsCmds.SetHtml
 import org.bson.types.ObjectId
 import akka.actor.{Status, ActorRef}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import ws.kotonoha.server.actors.schedulers.{RepetitionStateResolver, ReviewCard}
 import net.liftweb.util.Helpers.TimeSpan
 

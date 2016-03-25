@@ -19,18 +19,22 @@ package ws.kotonoha.server.web.snippet
 import net.liftweb.http.S
 import net.liftweb.common.Full
 import net.java.sen.SenFactory
-
 import java.util.{ArrayList => JList}
+
 import net.java.sen.dictionary.Token
+
 import scala.collection.JavaConversions._
 import xml.{Elem, NodeSeq}
 import ws.kotonoha.akane.mecab.{InfoExtractor, MecabParser}
 import ws.kotonoha.server.util.Strings
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
-import ws.kotonoha.akane.ParsedQuery
+
 import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
+
+import ws.kotonoha.akane.pipe.juman.ParsedQuery
 import ws.kotonoha.server.actors.interop.ParseSentence
+
 import concurrent.duration.Duration
 
 /**

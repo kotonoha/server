@@ -22,7 +22,7 @@ import net.liftweb.http.S
 import net.liftweb.common.{Full, Box}
 import ws.kotonoha.server.dict.WarodaiBodyParser
 import util.parsing.input.CharSequenceReader
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 /**
  * @author eiennohito

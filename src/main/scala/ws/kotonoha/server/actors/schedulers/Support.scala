@@ -21,7 +21,7 @@ import org.bson.types.ObjectId
 import util.Random
 import akka.actor.ActorRef
 import akka.util.Timeout
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 /**
  * @author eiennohito

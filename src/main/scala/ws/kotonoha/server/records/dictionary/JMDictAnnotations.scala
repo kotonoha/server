@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.records.dictionary
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 
 
 /**

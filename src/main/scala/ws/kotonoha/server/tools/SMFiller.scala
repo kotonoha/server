@@ -32,7 +32,7 @@ import java.util
 
 object SMFiller {
   import ws.kotonoha.server.util.DateTimeUtils._
-  val userId = new ObjectId(new util.Date(30), 50, 20)
+  val userId = ObjectId.createFromLegacyFormat(30, 50, 20)
 
   val akka = ReleaseAkkaMain
 

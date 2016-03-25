@@ -31,7 +31,7 @@ import ws.kotonoha.server.records.{JodaDateField, DateJsonFormat}
  * @since 06.03.12
  */
 
-object LogLevel extends Enumeration(0, "TRACE", "DEBUG", "WARN", "ERROR") {
+object LogLevel extends Enumeration(0) {
   type LogLevel = Value
 
   val TRACE, DEBUG, WARN, ERROR = Value

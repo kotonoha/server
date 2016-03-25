@@ -24,7 +24,7 @@ import ws.kotonoha.server.records.{WikiPageRecord, UserRecord}
 import ws.kotonoha.server.wiki.WikiRenderer
 import net.liftweb.common.{Empty, Full}
 import net.liftweb.util.Helpers
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import ws.kotonoha.server.util.unapply.XOid

@@ -22,7 +22,7 @@ import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import net.liftweb.json.JsonAST.{JString, JValue}
 import ws.kotonoha.server.actors.interop.{KnpResponse, KnpRequest}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.json.{DefaultFormats, Extraction}
 
 /**

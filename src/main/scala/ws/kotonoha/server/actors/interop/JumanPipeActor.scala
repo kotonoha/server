@@ -17,9 +17,9 @@
 package ws.kotonoha.server.actors.interop
 
 import ws.kotonoha.server.actors.KotonohaMessage
-import akka.actor.{Props, Actor}
-import ws.kotonoha.akane.{JumanQuery, ParsedQuery}
-import akka.routing.RoundRobinRouter
+import akka.actor.{Actor, Props}
+import akka.routing.{RoundRobinPool}
+import ws.kotonoha.akane.pipe.juman.{JumanQuery, ParsedQuery}
 import ws.kotonoha.server.KotonohaConfig
 
 /**
@@ -32,7 +32,7 @@ case class ParseSentence(s: String) extends JumanMessage
 case object JumanActor extends JumanMessage
 
 class JumanRouter extends Actor {
-  lazy val children = context.actorOf(Props[JumanPipeActor].withRouter(RoundRobinRouter(4)))
+  lazy val children = context.actorOf(Props[JumanPipeActor].withRouter(RoundRobinPool(4)))
 
   lazy val knpActor = context.actorOf(Props[KnpPipeActor])
 

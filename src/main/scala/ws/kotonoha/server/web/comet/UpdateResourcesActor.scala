@@ -19,7 +19,7 @@ package ws.kotonoha.server.web.comet
 import net.liftweb.http.CometActor
 import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
 import net.liftweb.json.JsonAST.JValue
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.{StrictLogging => Logging}
 import java.net._
 import scalax.file.Path
 import resource.Resource
