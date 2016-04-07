@@ -17,12 +17,12 @@
 package ws.kotonoha.server.mongo
 
 import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FreeSpec
-import ws.kotonoha.server.mongodb.{NamedDatabase, MongoDbInit}
+import org.scalatest.{FreeSpec, Matchers}
+import ws.kotonoha.server.mongodb.{MongoDbInit, NamedDatabase}
 import net.liftweb.mongodb.record.field.LongPk
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
+import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.record.field.EnumField
-import ws.kotonoha.server.records.{WordStatus, WordRecord}
+import ws.kotonoha.server.records.{WordRecord, WordStatus}
 
 /**
  * @author eiennohito
@@ -41,7 +41,7 @@ class EnumTestRec private() extends MongoRecord[EnumTestRec] with LongPk[EnumTes
 
 object EnumTestRec extends EnumTestRec with MongoMetaRecord[EnumTestRec] with NamedDatabase
 
-class EnumFieldTest extends FreeSpec with ShouldMatchers {
+class EnumFieldTest extends FreeSpec with Matchers with MongoAwareTest {
   MongoDbInit.init()
 
   "Enum field test" - {

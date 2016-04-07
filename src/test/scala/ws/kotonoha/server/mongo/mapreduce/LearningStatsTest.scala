@@ -16,21 +16,20 @@
 
 package ws.kotonoha.server.mongo.mapreduce
 
-import org.scalatest.FreeSpec
+import org.scalatest.{FreeSpec, Matchers}
 import org.scalatest.matchers.ShouldMatchers
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.mongodb.mapreduce.LearningStats
 import net.liftweb.json.JsonAST.{JArray, JValue}
 import net.liftweb.mongodb.JObjectParser
 import net.liftweb.json.DefaultFormats
+import ws.kotonoha.server.mongo.MongoAwareTest
 
 
-class LearningStatsTest extends FreeSpec  with ShouldMatchers {
-  import scala.collection.JavaConversions._
+class LearningStatsTest extends FreeSpec  with Matchers with MongoAwareTest {
   implicit def formats = DefaultFormats
   "learningStats" - {
-    MongoDbInit.init()
-    "asd" in {
+    "don't blow up" in {
       val stats = LearningStats.recentLearningMR(10)
       val tdata = LearningStats.transformMrData(stats)
       tdata should not be Nil

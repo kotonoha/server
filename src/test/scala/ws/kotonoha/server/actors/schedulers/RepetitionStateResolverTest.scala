@@ -26,22 +26,12 @@ import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord, UserR
  * @since 27.02.13 
  */
 
-class RepetitionStateResolverTest extends AkkaFree with BeforeAndAfterAll {
+class RepetitionStateResolverTest extends AkkaWithUser {
 
   import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow, _}
 
-  override def afterAll() {
-    user.delete_!
-  }
-
-  val user = {
-    UserRecord.createRecord.save
-  }
-
-  def uid = user.id.is
-
   def registerCards() = {
-    (1 to 5) foreach {
+    (1 to 5) map {
       i =>
         val rec = WordCardRecord.createRecord
         rec.user(uid)
@@ -55,9 +45,10 @@ class RepetitionStateResolverTest extends AkkaFree with BeforeAndAfterAll {
 
   "RepetitionStateResolver" - {
     "don't throw exceptions in next method" in {
-      registerCards()
+      val cards = registerCards()
       val res = new RepetitionStateResolver(uid)
       println(res.next)
+      cleanup(cards)
     }
   }
 

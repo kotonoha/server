@@ -58,10 +58,10 @@ object WikiRenderer {
 
   val parser = new Discounter {}
 
-  val onsite = "(?:[\\p{L}\\p{N}\\\\\\.\\#@\\$%\\+&;\\-_~,\\?=/!]+|\\#(\\w)+)".r
+  val onsite = """(?:[\p{L}\p{N}\\\.\#@\$%\+&;\-_~,\?=/!]+|\#(\w)+)""".r
 
-  val offsite = ("\\s*(?:https?://|mailto:)[\\p{L}\\p{N}]" +
-        "[\\p{L}\\p{N}\\p{Zs}\\.\\#@\\$%\\+&;:\\-_~,\\?=/!\\(\\)]*\\s*").r
+  val offsite = ("""\s*(?:https?://|mailto:)[\p{L}\p{N}]""" +
+        """[\p{L}\p{N}\p{Zs}\.\#@\$%\+&;:\-_~,\?=/!\(\)]*\s*""").r
 
   def handleInternal(base: String, url: String): Option[WikiUrl] = {
     val idx = url.indexOf('#')

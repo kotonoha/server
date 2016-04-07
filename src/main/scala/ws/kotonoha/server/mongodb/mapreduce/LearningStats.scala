@@ -26,8 +26,10 @@ import net.liftweb.json.DefaultFormats
 import net.liftweb.json.JsonAST.{JArray, JField, JString, _}
 import net.liftweb.json.scalaz.JsonScalaz._
 import net.liftweb.mongodb.JObjectParser
+import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import ws.kotonoha.server.records.events.MarkEventRecord
+import ws.kotonoha.server.util.unapply.XOid
 
 import scalaz.Success
 
@@ -178,23 +180,26 @@ object LearningStats {
   case class UserMarks(user: ObjectId, reps: Map[Int, List[Int]])
 
 
-  def transformMrData(in: List[JValue]) = {
+  def transformMrData(in: List[JValue]): List[UserMarks] = {
     import scalaz._
     import Scalaz._
     //val ids = (in \\ "_id").
     implicit val formats = DefaultFormats
+
     def inner(in: JValue) = {
       //Extraction.extract[List[HiLvl]](in)
-      val id = field[String]("_id")(in) map (new ObjectId(_))
-      val mp = field[Map[String, List[Double]]]("value")(in) map {
+      val id = (in \ "_id").extractOpt[String].flatMap(XOid.unapply)
+      val mp = (in \ "value").extractOpt[Map[String, List[Double]]].map {
         o => o.map {
           case (i, j) => i.toInt -> j.map(_.toInt)
         }
       }
-      (id |@| mp) {
-        UserMarks
-      }
+      for {
+        x1 <- id
+        x2 <- mp
+      } yield UserMarks(x1, x2)
     }
-    in map inner flatMap (_.toOption)
+
+    in.flatMap(inner)
   }
 }

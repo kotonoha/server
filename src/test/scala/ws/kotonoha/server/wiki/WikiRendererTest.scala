@@ -16,15 +16,18 @@
 
 package ws.kotonoha.server.wiki
 
-import org.scalatest.FreeSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{FreeSpec, Matchers}
+import ws.kotonoha.server.mongo.MongoAwareTest
 
 /**
  * @author eiennohito
  * @since 20.04.13 
  */
 
-class WikiRendererTest extends FreeSpec with ShouldMatchers {
+class WikiRendererTest extends FreeSpec with Matchers with MongoAwareTest {
+
+
+
   "WikiRenderer" - {
     "has valid offsite matcher" in {
       val matcher = WikiRenderer.offsite
@@ -32,9 +35,29 @@ class WikiRendererTest extends FreeSpec with ShouldMatchers {
     }
 
     "analyzes urls correctly" in {
-      val set = Set("tools", "http://google.com", "tools/extra", "k#words")
-      val analyzed = WikiRenderer.analyzeUrls("main", set)
-      println(analyzed)
+      val data = Map(
+        "tools" -> false,
+        "http://google.com" -> true,
+        "tools/extra" -> false,
+        "k#words" -> false
+      )
+
+      val input = data.keys.toSet
+      val analyzed = WikiRenderer.analyzeUrls("main", input)
+      for ((k, v) <- analyzed) {
+        isExternal(v) shouldBe data(k)
+      }
     }
+  }
+
+  def isExternal(url: WikiUrl) = url.kind == UrlKind.External
+
+  override protected def beforeAll() = {
+    super.beforeAll()
+
+  }
+
+  override protected def afterAll() = {
+    super.afterAll()
   }
 }

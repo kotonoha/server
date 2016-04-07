@@ -101,3 +101,5 @@ buildInfoObject  := "BuildInfo"
 scanInterval in Compile := 0
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
+
+parallelExecution in Test := false

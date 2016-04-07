@@ -1,13 +1,11 @@
 package ws.kotonoha.server.actors.schedulers
 
-import akka.actor.ActorRef
 import akka.testkit.TestActorRef
 import com.mongodb.casbah.WriteConcern
 import net.liftweb.common.Empty
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
-import org.scalatest.{FreeSpecLike, Matchers}
-import ws.kotonoha.server.actors.AkkaFun
+import org.scalatest.{BeforeAndAfter, FreeSpecLike, Matchers}
 import ws.kotonoha.server.mongo.MongoAwareTest
 import ws.kotonoha.server.records.events.NewCardSchedule
 import ws.kotonoha.server.records.{UserRecord, UserTagInfo, WordCardRecord}
@@ -20,28 +18,35 @@ import ws.kotonoha.server.test.{TestWithAkka, UserContext}
 
 abstract class AkkaFree extends TestWithAkka with FreeSpecLike with Matchers
 
-class NewCardSchedulerTest extends AkkaFree with MongoAwareTest {
-  implicit val sender = testActor
-  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
+trait AkkaWithUser extends AkkaFree with MongoAwareTest with BeforeAndAfter {
+  protected var uid: ObjectId = null
+  protected var usvc: UserContext = null
+  protected var actor: TestActorRef[NewCardScheduler] = null
 
-  import concurrent.duration._
+  before {
+    beforeTest()
+  }
 
-
-  var uid: ObjectId = null
-  var usvc: UserContext = null
-  var actor: TestActorRef[NewCardScheduler] = null
-
-  override protected def beforeAll() = {
-    super.beforeAll()
+  protected def beforeTest(): Unit = {
     uid = createUser()
     usvc = kta.userContext(uid)
     actor = usvc.userActor[NewCardScheduler]("ncs")
   }
 
-  override protected def afterAll() = {
-    UserRecord.delete("_id", uid)
-    super.afterAll()
+  after {
+    afterTest()
   }
+
+  protected def afterTest(): Unit = {
+    UserRecord.delete("_id", uid)
+  }
+}
+
+class NewCardSchedulerTest extends AkkaWithUser {
+  implicit val sender = testActor
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
+
+  import concurrent.duration._
 
   def createCard(wid: => ObjectId = new ObjectId(), tags: List[String] = Nil) = {
     val card = WordCardRecord.createRecord
@@ -50,7 +55,6 @@ class NewCardSchedulerTest extends AkkaFree with MongoAwareTest {
   }
 
   "newcardscheduler" - {
-
     "selects 2 cards" in {
       val cards = Seq.fill(2)(createCard())
       actor.receive(Requests.ready(10), testActor)

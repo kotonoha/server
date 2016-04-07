@@ -31,8 +31,8 @@ class RecommenderTest extends FreeSpec with Matchers with MongoAwareTest {
   val juman = JumanPipeExecutor.apply()
 
   "recommender" - {
-    val rec = new Recommender(new ObjectId())
-    "should give something for watashi" in {
+    lazy val rec = new Recommender(new ObjectId())
+    "should give something for watashi" ignore {
       val wr = "私"
       val rd = "わたし"
       val jd = juman.parse(wr)
@@ -45,20 +45,25 @@ class RecommenderTest extends FreeSpec with Matchers with MongoAwareTest {
     val wr = "私"
     val rd = "わたし"
     val jum = juman.parse(wr)
-    val dr = DoRecommend(wr, rd, jum)
+    lazy val dr = DoRecommend(wr, rd, jum)
 
-    "kun recommender should give at least watashi" in {
+    "kun recommender should give at least watashi" ignore {
       val rec = new SingleKunRecommender(100)
       val res = rec.apply(dr)
       val processed = res.flatMap(_.select(Nil)).distinct
       processed.length should be >= (1)
     }
 
-    "jukugo recommender should give a lot of different things" in {
+    "jukugo recommender should give a lot of different things" ignore {
       val rec = new SimpleJukugoRecommender(100)
       val res = rec.apply(dr)
       val processed = res.flatMap(_.select(Nil)).distinct
       processed.length should be >= (1)
     }
+  }
+
+  override protected def afterAll() = {
+    super.afterAll()
+    juman.close()
   }
 }
