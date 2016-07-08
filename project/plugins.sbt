@@ -4,7 +4,7 @@ resolvers += Resolver.url("scalasbt", new URL("http://scalasbt.artifactoryonline
 
 resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
 
-libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "1.3.0.201202151440-r"
+libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "4.4.0.201606070830-r"
 
 resolvers += Resolver.url("sbt-plugin-releases",
   new URL("http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)

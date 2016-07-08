@@ -16,40 +16,24 @@
 
 package ws.kotonoha.server.actors.model
 
-import org.scalatest.{BeforeAndAfterAll, FreeSpec}
-import org.scalatest.matchers.ShouldMatchers
-import akka.actor.{ActorRef, Props, ActorSystem}
-import ws.kotonoha.server.actors.UserGuardActor
-import akka.testkit.TestActorRef
-import ws.kotonoha.server.actors.dict.{DictionaryEntry, SearchResult}
 import akka.util.Timeout
-import ws.kotonoha.server.mongodb.MongoDbInit
+import ws.kotonoha.server.actors.dict.{DictionaryEntry, SearchResult}
+import ws.kotonoha.server.actors.schedulers.AkkaWithUser
 
 /**
  * @author eiennohito
  * @since 22.10.12 
  */
 
-class WordCreateActorTest extends FreeSpec with ShouldMatchers with BeforeAndAfterAll {
+class WordCreateActorTest extends AkkaWithUser {
   import concurrent.duration._
-  implicit val system = ActorSystem()
-  var root: ActorRef = _
 
-  override def beforeAll() {
-    MongoDbInit.init()
-    root = system.actorOf(Props[UserGuardActor], "root")
-  }
-
-  override def afterAll() {
-    system.shutdown()
-    system.awaitTermination()
-  }
 
   implicit val to: Timeout = 10 seconds ;
 
   "WordCreateActorTest" - {
     "makes katakana-only to have hiragana readings and katakana writings" in {
-      val wca = TestActorRef(new WordCreateActor)
+      val wca = usvc.userActor[WordCreateActor]("wordcreate")
       val ac = wca.underlyingActor
       val sr = SearchResult(
         DictionaryEntry(Nil, "アメリカ" :: Nil, Nil ) :: Nil

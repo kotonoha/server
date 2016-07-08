@@ -79,10 +79,12 @@ class MapReduceTest extends org.scalatest.FunSuite with Matchers with MongoAware
       val v =  out.results() map (JObjectParser.serialize(_)) reduce (_++_)
       println(v)
 
-      val transf = v.transform {
+      val trans = v.transform {
         case JField("value", x) => JField("count", x \ "count")
         case JField("_id", y : JDouble) => JField("idx", JInt(y.values.toInt))
-      }.extract[List[Result]]
+      }
+
+      val transf = trans.extract[Result]
 
       println(transf)
     }
