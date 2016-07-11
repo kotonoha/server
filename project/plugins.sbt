@@ -11,4 +11,6 @@ addSbtPlugin("me.lessis" % "coffeescripted-sbt" % "0.2.3")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.4")
 
-addSbtPlugin("com.trueaccord.scalapb" % "sbt-scalapb" % "0.5.32")
+val scalaPbVersion = "0.5.32"
+
+addSbtPlugin("com.trueaccord.scalapb" % "sbt-scalapb" % scalaPbVersion)
