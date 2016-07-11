@@ -89,16 +89,16 @@ object Kotonoha {
   )
 
 
-  val liftVersion = "2.6.3"
+  val liftVersion = "2.6.3.di"
   // Put the current/latest lift version here
   val akkaVer = "2.4.8"
   val rogueVer = "2.5.0"
 
   val liftDeps = Seq(
-    "net.liftweb" %% "lift-util" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),
-    "net.liftweb" %% "lift-json-ext" % liftVersion % "compile->default" exclude("joda-time", "joda-time"),
-    "net.liftweb" %% "lift-webkit" % liftVersion % "compile->default",
-    "net.liftweb" %% "lift-wizard" % liftVersion % "compile->default",
+    "net.liftweb" %% "lift-util" % liftVersion exclude("joda-time", "joda-time"),
+    "net.liftweb" %% "lift-json-ext" % liftVersion exclude("joda-time", "joda-time"),
+    "net.liftweb" %% "lift-webkit" % liftVersion,
+    "net.liftweb" %% "lift-wizard" % liftVersion,
     "net.liftweb" %% "lift-mongodb-record" % liftVersion exclude("org.mongodb", "mongo-java-driver"),
     "net.liftweb" %% "lift-json-scalaz7" % liftVersion exclude("org.scalaz", "scalaz-core_2.9.1"),
     "net.liftmodules" %% "oauth_2.6" % "1.2-SNAPSHOT",
