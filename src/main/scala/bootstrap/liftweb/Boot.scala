@@ -8,7 +8,6 @@ package bootstrap.liftweb
 import net.liftweb._
 import util._
 import Helpers._
-
 import common._
 import http._
 import sitemap._
@@ -17,16 +16,19 @@ import ws.kotonoha.server.actors.{InitUsers, ReleaseAkkaMain}
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.web.rest._
-import admin.{Stats, OFHistory}
+import admin.{OFHistory, Stats}
 import ws.kotonoha.server.web.rest.model.{Cards, Words}
 import ws.kotonoha.server.actors.lift.Ping
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import ws.kotonoha.server.web.snippet.{ModeSnippet, ClasspathResource}
+import ws.kotonoha.server.web.snippet.{ClasspathResource, ModeSnippet}
 import com.typesafe.scalalogging.{StrictLogging => Logging}
+
 import scala.xml.{NodeSeq, Text}
 import ws.kotonoha.server.web.loc.WikiLoc
 import net.liftweb.actor.{ILAExecute, LAScheduler}
 import ws.kotonoha.server.KotonohaConfig
+import ws.kotonoha.server.ioc.{KotonohaIoc, KotonohaLiftInjector}
+
 import scala.util.control.NonFatal
 
 
@@ -55,7 +57,13 @@ class Boot extends Logging {
     }
   }
 
-  def boot {
+  def boot() = {
+    val config = KotonohaConfig.config
+
+    val ioc = new KotonohaIoc(config)
+
+    LiftRules.snippetInstantiation = Full(new KotonohaLiftInjector(ioc.injector))
+
     MongoDbInit.init()
 
     LiftRules.unloadHooks.append(() => MongoDbInit.stop())

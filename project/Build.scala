@@ -124,6 +124,8 @@ object Kotonoha {
     "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2",
     "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2",
 
+    "net.codingwell" %% "scala-guice" % "4.0.1",
+
     "org.scalaz" %% "scalaz-core" % "7.2.0",
     "com.jsuereth" %% "scala-arm" % "1.4",
     "javax.transaction" % "jta" % "1.0.1B" % "provided",

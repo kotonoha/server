@@ -19,7 +19,7 @@ package ws.kotonoha.server.web.snippet
 import net.liftweb.json.JsonAST.{JString, JArray, JObject}
 import net.liftweb.mongodb.{Limit, Skip}
 import net.liftweb.util.{Helpers, BindHelpers}
-import util.matching.Regex
+import scala.util.matching.Regex
 import xml.{Elem, Text, NodeSeq}
 import net.liftweb.common.{Full, Box}
 import net.liftweb.http.{RequestVar, SHtml, SortedPaginatorSnippet, S}

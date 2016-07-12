@@ -155,6 +155,8 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
     val p = conPath
     S.addCookie(HTTPCookie(authCookie, s).setMaxAge(60 * 24 * 30 * 1000).setPath(p))
   }
+
+  override def createRecord: UserRecord = super.createRecord.asInstanceOf[UserRecord]
 }
 
 object ClientStatus extends Enumeration {
