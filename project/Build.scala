@@ -57,6 +57,42 @@ object GitData {
   }
 }
 
+object Pbuf {
+
+  import com.trueaccord.scalapb.{ScalaPbPlugin => PB}
+
+  lazy val scalaPbVersion = "0.5.32"
+  lazy val grpcVersion = "0.14.1"
+
+  def pbScala(): Seq[Setting[_]] = {
+    val config = PB.protobufSettings ++ Seq(
+      PB.flatPackage in PB.protobufConfig := true,
+      PB.javaConversions in PB.protobufConfig := true,
+      PB.scalapbVersion := scalaPbVersion,
+      PB.runProtoc in PB.protobufConfig := (args =>
+        com.github.os72.protocjar.Protoc.runProtoc("-v300" +: args.toArray))
+    )
+
+    val runtimeDep =
+      libraryDependencies ++= Seq(
+        "com.trueaccord.scalapb" %% "scalapb-runtime" % scalaPbVersion % PB.protobufConfig,
+        "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % scalaPbVersion,
+        "io.grpc" % "grpc-stub" % grpcVersion,
+        "io.grpc" % "grpc-core" % grpcVersion,
+        "io.grpc" % "grpc-netty" % grpcVersion
+      )
+
+    config ++ Seq(
+      runtimeDep
+    )
+  }
+
+  def protoIncludes(files: Project*) = {
+    val paths = files.map(f => f.base / "src" / "main" / "protobuf")
+    Seq(PB.includePaths in PB.protobufConfig ++= paths)
+  }
+}
+
 
 object Kotonoha {
 
@@ -90,7 +126,6 @@ object Kotonoha {
 
 
   val liftVersion = "2.6.3.di"
-  // Put the current/latest lift version here
   val akkaVer = "2.4.8"
   val rogueVer = "2.5.0"
 
@@ -107,6 +142,7 @@ object Kotonoha {
 
   val akkaDeps = Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVer,
+    "com.typesafe.akka" %% "akka-stream" % akkaVer,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVer,
     "com.typesafe.akka" %% "akka-testkit" % akkaVer % "test"
   )

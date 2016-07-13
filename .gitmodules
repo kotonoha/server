@@ -4,3 +4,9 @@
 [submodule "knockoff"]
 	path = knockoff
 	url = git@github.com:kotonoha/knockoff.git
+[submodule "grpc-akka-stream"]
+	path = grpc-akka-stream
+	url = git@github.com:eiennohito/grpc-akka-stream-subrepo.git
+[submodule "examples-api"]
+	path = examples-api
+	url = git@github.com:kotonoha/examples-api.git
