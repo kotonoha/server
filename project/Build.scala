@@ -35,8 +35,15 @@ object Common {
   val buildSettings = Defaults.coreDefaultSettings ++ Seq(
     organization := buildOrganization,
     scalaVersion := ourScalaVer,
-    version := "0.2-SNAPSHOT"
+    version := "0.2-SNAPSHOT",
+    resolvers += "kyouni" at "http://lotus.kuee.kyoto-u.ac.jp/nexus/content/groups/public/",
+    excludeDependencies ++= Seq(
+      SbtExclusionRule("net.liftweb"),
+      SbtExclusionRule("javax.transaction")
+    )
   )
+
+
 }
 
 object GitData {
@@ -125,19 +132,20 @@ object Kotonoha {
   )
 
 
+  val liftPackage = "ws.kotonoha.liftweb"
   val liftVersion = "2.6.3.di"
   val akkaVer = "2.4.8"
   val rogueVer = "2.5.0"
 
   val liftDeps = Seq(
-    "net.liftweb" %% "lift-util" % liftVersion exclude("joda-time", "joda-time"),
-    "net.liftweb" %% "lift-json-ext" % liftVersion exclude("joda-time", "joda-time"),
-    "net.liftweb" %% "lift-webkit" % liftVersion,
-    "net.liftweb" %% "lift-wizard" % liftVersion,
-    "net.liftweb" %% "lift-mongodb-record" % liftVersion exclude("org.mongodb", "mongo-java-driver"),
-    "net.liftweb" %% "lift-json-scalaz7" % liftVersion exclude("org.scalaz", "scalaz-core_2.9.1"),
+    liftPackage %% "lift-util" % liftVersion exclude("joda-time", "joda-time"),
+    liftPackage %% "lift-json-ext" % liftVersion exclude("joda-time", "joda-time"),
+    liftPackage %% "lift-webkit" % liftVersion,
+    liftPackage %% "lift-wizard" % liftVersion,
+    liftPackage %% "lift-mongodb-record" % liftVersion exclude("org.mongodb", "mongo-java-driver"),
+    liftPackage %% "lift-json-scalaz7" % liftVersion exclude("org.scalaz", "scalaz-core_2.9.1"),
     "net.liftmodules" %% "oauth_2.6" % "1.2-SNAPSHOT",
-    "net.liftweb" %% "lift-testkit" % liftVersion % "test",
+    liftPackage %% "lift-testkit" % liftVersion % "test",
     "javax.servlet" % "servlet-api" % "2.5" % "provided")
 
   val akkaDeps = Seq(
@@ -168,7 +176,8 @@ object Kotonoha {
 
     "org.mongodb" %% "casbah" % "2.8.2" exclude("org.specs2", "*"),
 
-    "net.java.sen" % "lucene-gosen" % "2.1" exclude("org.slf4j", "slf4j-jdk14"),
+    "net.java.sen" % "lucene-gosen" % "2.1" exclude("org.slf4j", "slf4j-jdk14")
+        exclude("org.apache.solr", "*") exclude("org.apache.lucene", "lucene-test-framework"),
     "com.google.zxing" % "javase" % "3.2.1",
     "org.bouncycastle" % "bcprov-jdk15on" % "1.54",
 

@@ -16,16 +16,18 @@
 
 package ws.kotonoha.server.util
 
+import java.nio.ByteBuffer
 import java.security.SecureRandom
+
 import org.apache.commons.codec.binary.Hex
 import net.liftweb.util.SecurityHelpers
-import io.Codec
 import org.bouncycastle.crypto.engines.AESFastEngine
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher
 import org.bouncycastle.crypto.InvalidCipherTextException
 import org.apache.commons.lang.StringUtils
 import org.bouncycastle.crypto.modes.CFBBlockCipher
+import ws.kotonoha.akane.io.Charsets
 
 /**
  * @author eiennohito
@@ -78,7 +80,7 @@ object SecurityUtil {
       val decr = new Array[Byte](aes.getOutputSize(bytes.length))
       val len = aes.processBytes(bytes, 0, bytes.length, decr, 0)
       val l1 = aes.doFinal(decr, len)
-      new String(Codec.fromUTF8(decr), 0, len + l1)
+      new String(Charsets.utf8.decode(ByteBuffer.wrap(decr)).array(), 0, len + l1)
     } catch {
       case e: InvalidCipherTextException => "" //returns empty string on invalid cypher string
     }
