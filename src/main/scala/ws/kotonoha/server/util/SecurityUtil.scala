@@ -25,7 +25,7 @@ import org.bouncycastle.crypto.engines.AESFastEngine
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher
 import org.bouncycastle.crypto.InvalidCipherTextException
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.bouncycastle.crypto.modes.CFBBlockCipher
 import ws.kotonoha.akane.io.Charsets
 

@@ -165,9 +165,6 @@ object Kotonoha {
   val kotonohaRestDeps = Seq(
     "ch.qos.logback" % "logback-classic" % "1.1.7",
 
-    "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2",
-    "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2",
-
     "net.codingwell" %% "scala-guice" % "4.0.1",
 
     "org.scalaz" %% "scalaz-core" % "7.2.0",
