@@ -1,8 +1,8 @@
 package ws.kotonoha.server.actors.interop
 
 import akka.actor.Actor
-import ws.kotonoha.akane.pipe.knp.KnpNode
 import akka.actor.Status.Failure
+import ws.kotonoha.akane.analyzers.knp.raw.KnpNode
 import ws.kotonoha.server.KotonohaConfig
 
 /**

@@ -19,9 +19,9 @@ package ws.kotonoha.server.ioc
 import com.google.inject._
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
-import net.liftweb.common.{Empty, Full}
-import net.liftweb.http.{LiftSession, SnippetInstantiation}
-import net.liftweb.util.ThreadGlobal
+import net.liftweb.common.{Box, Empty, Full}
+import net.liftweb.http._
+import net.liftweb.util.{Helpers, ThreadGlobal, Vendor}
 
 /**
   * @author eiennohito
@@ -54,6 +54,22 @@ object KotonohaLiftSession {
 }
 
 class KotonohaLiftInjector(inj: Injector) extends SnippetInstantiation {
+  def cometCreation: Vendor[(CometCreationInfo) => Box[LiftCometActor]] = {
+    Vendor(internalCreate _)
+  }
+
+  private[this] val cometClz = classOf[LiftCometActor]
+
+  def internalCreate(c: CometCreationInfo): Box[LiftCometActor] = {
+    val tpe = c.contType
+    val clz = Helpers.findClass(tpe, LiftRules.buildPackage("comet"))
+    clz.flatMap { c =>
+      if (checkIfSuitable(c) && cometClz.isAssignableFrom(c)) {
+        Full(inj.getInstance(c).asInstanceOf[LiftCometActor])
+      } else Empty
+    }
+  }
+
   def checkIfSuitable(clz: Class[_]): Boolean = {
     val ctors = clz.getDeclaredConstructors
     ctors.exists(_.getAnnotation(classOf[Inject])!= null)

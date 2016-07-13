@@ -16,19 +16,18 @@
 
 package ws.kotonoha.server.web.rest
 
-import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.http.{JsonResponse, BadResponse, InMemoryResponse, ForbiddenResponse}
-import net.liftweb.common.{Empty, Failure, Full}
-import ws.kotonoha.akane.statistics.UniqueWordsExtractor
-import ws.kotonoha.server.actors.interop.{KnpResponse, KnpRequest, JumanActor}
 import akka.actor.ActorRef
-import scala.concurrent.{Future, Await}
-import concurrent.duration._
-import ws.kotonoha.akane.parser.{AozoraStringInput, AozoraParser}
-import ws.kotonoha.akane.juman.JumanDaihyou
-import ws.kotonoha.server.japanese.Stopwords
-import ws.kotonoha.akane.pipe.knp.KnpNode
+import net.liftweb.common.{Empty, Failure, Full}
+import net.liftweb.http.{BadResponse, ForbiddenResponse, InMemoryResponse, JsonResponse}
 import net.liftweb.json.{DefaultFormats, Extraction}
+import ws.kotonoha.akane.juman.JumanDaihyou
+import ws.kotonoha.akane.parser.{AozoraParser, AozoraStringInput}
+import ws.kotonoha.akane.statistics.UniqueWordsExtractor
+import ws.kotonoha.server.actors.interop.{JumanActor, KnpRequest, KnpResponse}
+import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import ws.kotonoha.server.japanese.Stopwords
+
+import scala.concurrent.Future
 
 /**
  * @author eiennohito

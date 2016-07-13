@@ -16,32 +16,33 @@
 
 package ws.kotonoha.server.web.rest
 
-import net.liftweb.http.rest.RestContinuation
-import ws.kotonoha.server.actors.ioc.Akka
-import net.liftweb.common._
-import net.liftweb.http._
-import net.liftweb.common.Full
-import ws.kotonoha.server.records.UserRecord
-import org.bson.types.ObjectId
-import com.typesafe.scalalogging.{StrictLogging => Logging}
 import akka.util.Timeout
-import concurrent.{duration, Promise, Future}
-import reflect.ClassTag
+import com.typesafe.scalalogging.{StrictLogging => Logging}
+import net.liftweb.common.{Full, _}
+import net.liftweb.http._
+import net.liftweb.http.rest.RestContinuation
+import org.bson.types.ObjectId
+import ws.kotonoha.server.actors.ioc.Akka
+import ws.kotonoha.server.records.UserRecord
+
+import scala.concurrent.{Future, Promise}
+import scala.language.implicitConversions
+import scala.reflect.ClassTag
 
 class EmptyUserException extends Exception("No user present")
 
 trait KotonohaRest extends OauthRestHelper with Logging with Akka {
-
-  import duration._
   import akka.pattern.ask
 
+  import scala.concurrent.duration._
+
   lazy implicit val scheduler = akkaServ.context
-  lazy implicit val timeout: Timeout = 20 seconds
+  lazy implicit val timeout: Timeout = 20.seconds
 
   def userId = UserRecord.currentId
 
   def userAsk[T](uid: Box[ObjectId], msg: AnyRef)(implicit m: ClassTag[T]): Future[T] = userId match {
-    case Full(uid) => userAsk[T](uid, msg)(m)
+    case Full(xid) => userAsk[T](xid, msg)(m)
     case _ => Promise[T].failure(new EmptyUserException).future
   }
 
@@ -53,15 +54,15 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
     }.mapTo[T]
   }
 
-  def async[Obj, Res <% LiftResponse](param: Future[Obj])(f: (Obj => Future[Box[Res]])) = {
+  def async[Obj, Res](param: Future[Obj])(f: (Obj => Future[Box[Res]]))(implicit rtf: Res => LiftResponse) = {
     RestContinuation.async({
-      case resp =>
+      resp =>
         param onComplete {
-          case util.Failure(ex) => {
+          case scala.util.Failure(ex) => {
             logger.error("Error in getting parameter", ex)
             resp(PlainTextResponse("Internal server error", 500))
           }
-          case util.Success(v) => {
+          case scala.util.Success(v) => {
             val fut = f(v)
             val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 20 seconds)
 
@@ -74,9 +75,9 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
     })
   }
 
-  def async[Obj, Res <% LiftResponse](param: Box[Obj])(f: (Obj => Future[Box[Res]])) = {
+  def async[Obj, Res](param: Box[Obj])(f: (Obj => Future[Box[Res]]))(implicit rtf: Res => LiftResponse) = {
     RestContinuation.async({
-      case resp =>
+      resp =>
         param match {
           case Empty => resp(PlainTextResponse("No response", 500))
           case b: EmptyBox => {
@@ -87,8 +88,8 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
             val tCancel = akkaServ.schedule(() => resp(PlainTextResponse("Sevice timeouted", 500)), 20 seconds)
 
             fut onComplete {
-              case util.Success(Full(r)) => tCancel.cancel(); resp(r)
-              case util.Failure(e) => logger.error("Error in executing rest:", e)
+              case scala.util.Success(Full(r)) => tCancel.cancel(); resp(r)
+              case scala.util.Failure(e) => logger.error("Error in executing rest:", e)
               case x@_ => logger.debug("found something: " + x)
             }
           }
@@ -100,7 +101,7 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
 
   class EmptyBoxException(msg: String = null, t: Throwable = null) extends RuntimeException(msg, t)
 
-  def kept[T <% LiftResponse](obj: T) = {
+  def kept[T](obj: T)(implicit cvf: T => LiftResponse) = {
     Promise[Box[LiftResponse]].success(Full(obj))
   }
 
@@ -114,5 +115,5 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
     }
   }
 
-  implicit def option2WrappedBox[T](in: Option[T]) = new WrappedBox[T](in)
+  implicit def option2WrappedBox[T](in: Option[T]): WrappedBox[T] = new WrappedBox[T](in)
 }

@@ -62,7 +62,9 @@ class Boot extends Logging {
 
     val ioc = new KotonohaIoc(config)
 
-    LiftRules.snippetInstantiation = Full(new KotonohaLiftInjector(ioc.injector))
+    val kotoLift = new KotonohaLiftInjector(ioc.injector)
+    LiftRules.snippetInstantiation = Full(kotoLift)
+    LiftRules.cometCreationFactory.default.set(kotoLift.cometCreation)
 
     MongoDbInit.init()
 
