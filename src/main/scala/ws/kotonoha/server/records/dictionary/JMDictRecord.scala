@@ -74,11 +74,11 @@ object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with
   def sorted(recs: List[JMDictRecord], c: Candidate = null) = {
     if (c != null && (c.isOnlyKana || c.sameWR)) {
       def penalty(r: JMDictRecord) = {
-        if (r.writing.is.length > 0) 10 else 0
+        if (r.writing.get.length > 0) 10 else 0
       }
-      recs.sortBy(r => -calculatePriority(r.writing.is) + penalty(r))
+      recs.sortBy(r => -calculatePriority(r.writing.get) + penalty(r))
     } else {
-      recs.sortBy(r => -calculatePriority(r.writing.is))
+      recs.sortBy(r => -calculatePriority(r.writing.get))
     }
   }
 
@@ -88,8 +88,8 @@ object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with
   }
 
   def calculatePriority(strs: List[JMString]): Int = {
-    val x = strs.flatMap {
-      _.priority.is.map {
+    val x = strs.flatMap { (y: JMString) =>
+      y.priority.get.map {
         _.value
       }
     }.map {

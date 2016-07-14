@@ -57,9 +57,9 @@ trait Clients extends Akka {
 
     objs.flatMap( o =>
       bind("cl", in,
-        "title" -> o.name.is,
-        "private" -> o.apiPrivate.is,
-        "public" -> o.apiPublic.is,
+        "title" -> o.name.get,
+        "private" -> o.apiPrivate.get,
+        "public" -> o.apiPublic.get,
         "delete" -> SHtml.button("delete", () => onDelete(o))
       )
     )

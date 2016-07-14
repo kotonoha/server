@@ -139,6 +139,8 @@ trait KotonohaMongoRecord[T <: BsonRecord[T]] extends KotonohaBsonMeta[T] {
     items.foreach(i => op.insert(i.asDBObject))
     op.execute(wc)
   }
+
+  override def createRecord: T = super.createRecord.asInstanceOf[T]
 }
 
 

@@ -50,26 +50,26 @@ object WordSnippet extends Akka with ReleaseAkka {
   object word extends RequestVar[Box[WordRecord]](wordId flatMap {WordRecord.find(_)})
 
   def save(rec: WordRecord) : JsCmd = {
-    rec.save
+    rec.save()
     SetHtml("status", <b>Saved!</b>)
   }
 
   def sna(rec: WordRecord): JsCmd = {
-    akkaServ ! ChangeWordStatus(rec.id.is, WordStatus.Approved)
+    akkaServ ! ChangeWordStatus(rec.id.get, WordStatus.Approved)
     SetHtml("word-status", Text("Approved")) & SetHtml("status", <b>Saved</b>)
   }
 
   def renderForm(in: NodeSeq): NodeSeq = {
     import Helpers._
     import ws.kotonoha.server.util.DateTimeUtils._
-     word.is match {
+     word.get match {
       case Full(w) => {
         bind("word", SHtml.ajaxForm(in),
-          "createdon" -> Formatting.format(w.createdOn.is),
+          "createdon" -> Formatting.format(w.createdOn.get),
           "writing" -> w.writing.toForm,
           "reading" -> w.reading.toForm,
           "meaning" -> w.meaning.toForm,
-          "status" -> w.status.is.toString,
+          "status" -> w.status.get.toString,
           "submit" -> SHtml.ajaxSubmit("Save", () => save(w)),
           "sna" -> SHtml.ajaxSubmit("Save & Approve", () => sna(w)))
       }
@@ -78,7 +78,7 @@ object WordSnippet extends Akka with ReleaseAkka {
   }
 
   def addExample(record: WordRecord) : JsCmd = {
-    val exs = record.examples.is
+    val exs = record.examples.get
     val w = record.examples(exs ++ List(ExampleRecord.createRecord))
     word(Full(w))
     SetHtml("extable", renderExamples)
@@ -94,9 +94,9 @@ object WordSnippet extends Akka with ReleaseAkka {
           <ex:translation></ex:translation>
         </td>
       </tr>
-    val inner = word.is match {
+    val inner = word.get match {
       case Full(w) => {
-        w.examples.is.flatMap {
+        w.examples.get.flatMap {
           ex =>
             bind("ex", templ,
               "example" -> ex.example.toForm,
@@ -151,7 +151,7 @@ object WordSnippet extends Akka with ReleaseAkka {
           sb.toString()
         }
 
-        val prd = new Period(now, il.intervalEnd.is)
+        val prd = new Period(now, il.intervalEnd.get)
         val negative = prd.getValues.count(_ < 0) > 0
         if (negative) {
           render(prd.negated()) + "ago"
@@ -160,9 +160,9 @@ object WordSnippet extends Akka with ReleaseAkka {
         }
       }
 
-      <div>Difficulty: {round(il.difficulty.is, 2)}</div> ++
-      <div>Scheduled on: {Formatting.format(il.intervalEnd.is)}, {period}</div> ++
-      <div>Has {il.repetition.is} repetition and {il.lapse.is} lapse</div>
+      <div>Difficulty: {round(il.difficulty.get, 2)}</div> ++
+      <div>Scheduled on: {Formatting.format(il.intervalEnd.get)}, {period}</div> ++
+      <div>Has {il.repetition.get} repetition and {il.lapse.get} lapse</div>
     }
     case _ => Text("")
   }
@@ -179,7 +179,7 @@ object WordSnippet extends Akka with ReleaseAkka {
     val cards = WordCardRecord where (_.word eqs wordId.get) orderAsc (_.cardMode) fetch()
     cards.flatMap { c =>
       bind("wc", in,
-        "mode" -> <h5>{mode(c.cardMode.is).+(" card")}</h5>,
+        "mode" -> <h5>{mode(c.cardMode.get).+(" card")}</h5>,
         "learning" -> renderLearning(c.learning.valueBox)
       )
     }
@@ -292,13 +292,13 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
 
     page.flatMap {i =>
       bind("word", in,
-        v(i.id.is),
-        "selected" -> <input type="checkbox" name={i.id.is.toString} /> ,
-        "addeddate" -> Formatting.format(i.createdOn.is),
+        v(i.id.get),
+        "selected" -> <input type="checkbox" name={i.id.get.toString} /> ,
+        "addeddate" -> Formatting.format(i.createdOn.get),
         "reading" -> i.reading.stris,
-        "writing" -> <a href={"detail?w="+ i.id.is.toString}>{i.writing.stris}</a>,
-        "meaning" -> Strings.substr(i.meaning.is, 50),
-        "status" -> i.status.is.toString
+        "writing" -> <a href={"detail?w="+ i.id.get.toString}>{i.writing.stris}</a>,
+        "meaning" -> Strings.substr(i.meaning.get, 50),
+        "status" -> i.status.get.toString
       )
     }
   }

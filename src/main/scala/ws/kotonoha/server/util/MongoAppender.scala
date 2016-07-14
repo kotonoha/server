@@ -77,7 +77,7 @@ class MongoAppender extends AppenderBase[ILoggingEvent] {
 
   def append(ev: ILoggingEvent) {
     import ws.kotonoha.server.util.DateTimeUtils._
-    if (!MongoDbInit.inited)
+    if (!MongoDbInit.ready)
       return
 
     val obj = LogRecord.createRecord.
@@ -88,6 +88,6 @@ class MongoAppender extends AppenderBase[ILoggingEvent] {
       message(ev.getFormattedMessage).
       throwable(LoggingThrowableR.map(ev.getThrowableProxy))
 
-    obj.save
+    obj.save()
   }
 }

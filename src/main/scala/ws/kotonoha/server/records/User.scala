@@ -59,10 +59,10 @@ class UserRecord private() extends MegaProtoUser[UserRecord] {
 
   object invite extends StringField(this, 32) {
     override def validate: List[FieldError] = {
-      if (!AppConfig().inviteOnly.is) {
+      if (!AppConfig().inviteOnly.get) {
         return Nil
       }
-      val v = is
+      val v = this.get
       InviteRecord.find("key" -> v) match {
         case Full(_) => Nil
         case _ => List(FieldError(this, "Can't register user without invitation"))
@@ -73,8 +73,8 @@ class UserRecord private() extends MegaProtoUser[UserRecord] {
   object status extends EnumField(this, UserStatus, UserStatus.Active)
 
   override def save = {
-    val r = super.save
-    InviteRecord.delete("key" -> invite.is)
+    val r = super.save()
+    InviteRecord.delete("key" -> invite.get)
     r
   }
 }
@@ -135,7 +135,7 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
   }
 
   onLogIn ::= ((u: UserRecord) => {
-    updateCookie(u.id.is)
+    updateCookie(u.id.get)
   })
 
   override def findUserByUserName(email: String) = {
@@ -156,7 +156,7 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
     S.addCookie(HTTPCookie(authCookie, s).setMaxAge(60 * 24 * 30 * 1000).setPath(p))
   }
 
-  override def createRecord: UserRecord = super.createRecord.asInstanceOf[UserRecord]
+  override def createRecord: UserRecord = super.createRecord
 }
 
 object ClientStatus extends Enumeration {
@@ -185,17 +185,17 @@ class ClientRecord private() extends MongoRecord[ClientRecord] with ObjectIdPk[C
 
   def user = null
 
-  def consumerKey = apiPublic.is
+  def consumerKey = apiPublic.get
 
-  def consumerSecret = apiPrivate.is
+  def consumerSecret = apiPrivate.get
 
-  def title = name.is
+  def title = name.get
 
   def applicationUri = null
 
   def callbackUri = null
 
-  def xdatetime = registeredDate.is.toDate
+  def xdatetime = registeredDate.get.toDate
 }
 
 object ClientRecord extends ClientRecord with MongoMetaRecord[ClientRecord] with NamedDatabase
@@ -215,7 +215,7 @@ class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with Object
 
   object createdOn extends JodaDateField(this)
 
-  def auth = AuthCode(AppConfig().baseUri.is, tokenPublic.is, tokenSecret.is)
+  def auth = AuthCode(AppConfig().baseUri.get, tokenPublic.get, tokenSecret.get)
 }
 
 object UserTokenRecord extends UserTokenRecord with MongoMetaRecord[UserTokenRecord] with NamedDatabase

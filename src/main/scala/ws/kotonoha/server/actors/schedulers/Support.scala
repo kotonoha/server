@@ -16,12 +16,13 @@
 
 package ws.kotonoha.server.actors.schedulers
 
-import concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import org.bson.types.ObjectId
-import util.Random
 import akka.actor.ActorRef
 import akka.util.Timeout
 import com.typesafe.scalalogging.{StrictLogging => Logging}
+
+import scala.util.Random
 
 /**
  * @author eiennohito
@@ -91,7 +92,7 @@ class CardMixer(input: List[Source]) extends Logging {
 
   def process(req: CardRequest)(implicit ec: ExecutionContext): Future[List[ReviewCard]] = {
     val ri = calcReqInfo(req)
-    val basic = input.zip(ri.weights).map{ case (src, weight) =>
+    val basic = input.zip(ri.weights).map { case (src, weight) =>
       val lim = Math.ceil(req.reqLength * weight * 1.5 / ri.maxw).toInt
       src.provider.request(req.copy(reqLength = lim))
     }
@@ -114,11 +115,10 @@ object CardMixer {
 
 case class ReviewCard(cid: ObjectId, source: String, seq: Long) {
   override def equals(obj: Any): Boolean = {
-    if (obj == null || !obj.isInstanceOf[ReviewCard]) {
-      return false
+    obj match {
+      case o: ReviewCard => o.cid.equals(cid)
+      case _ => false
     }
-    val o = obj.asInstanceOf[ReviewCard]
-    return cid.equals(o.cid)
   }
 
   override def hashCode() = cid.hashCode()

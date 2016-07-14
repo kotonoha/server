@@ -16,11 +16,14 @@
 
 package ws.kotonoha.server
 
+import java.nio.file.{Files, Paths}
+
 import net.liftweb.util.Props
 import ws.kotonoha.akane.juman.JumanPipeExecutor
 import com.typesafe.config.{ConfigException, ConfigFactory}
 import ws.kotonoha.akane.config.Configuration
 import ws.kotonoha.akane.pipe.knp.KnpTreePipeParser
+
 import scala.concurrent.ExecutionContext
 
 /**
@@ -34,8 +37,20 @@ object KotonohaConfig {
     import scala.collection.JavaConversions._
     val props = Props.props
     val base = ConfigFactory.defaultOverrides()
-    val parsed = ConfigFactory.parseMap(props)
-    Configuration.makeConfigFor("kotonoha").withFallback(parsed).withFallback(base)
+    val fromLift = ConfigFactory.parseMap(props)
+    var initial = Configuration.makeConfigFor("kotonoha")
+    if (initial.hasPath("cfg.include")) {
+      val includes = initial.getStringList("cfg.include")
+      val iter = includes.iterator()
+      while (iter.hasNext) {
+        val path = Paths.get(iter.next())
+        if (Files.exists(path)) {
+          val parsed = ConfigFactory.parseFileAnySyntax(path.toFile)
+          initial = parsed.withFallback(initial)
+        }
+      }
+    }
+    initial.withFallback(fromLift).withFallback(base).resolve()
   }
 
   def jumanExecutor = {

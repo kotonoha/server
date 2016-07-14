@@ -32,7 +32,7 @@ object Formatting {
     lazy val u = UserRecord.currentUser openOr UserRecord.createRecord
     lazy val locale = u.locale.isAsLocale
     lazy val tz = {
-      val t = u.timezone.is
+      val t = u.timezone.get
       val tz = TimeZone.getTimeZone(t)
       tz match {
         case null => DateTimeZone.forID("UTC")

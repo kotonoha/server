@@ -31,7 +31,7 @@ import ws.kotonoha.server.util.DateTimeUtils
  */
 
 object MongoDbInit extends Logging {
-  var inited = false
+  @volatile private var inited = false
 
   private val dateFromMongo = new Transformer {
     def transform(o: Any) = {
@@ -52,12 +52,12 @@ object MongoDbInit extends Logging {
     }
   }
 
-  def addHooks() {
+  def addHooks() = {
     BSON.addDecodingHook(classOf[DateTime], dateFromMongo)
     BSON.addEncodingHook(classOf[DateTime], dateToMongo)
   }
 
-  private var client: MongoClient = null
+  @volatile private var client: MongoClient = null
 
   def init(): Unit = synchronized {
     if (!inited) {
@@ -90,8 +90,13 @@ object MongoDbInit extends Logging {
   }
 
   def stop(): Unit = {
-    client.close()
+    if (inited) {
+      client.close()
+      inited = false
+    }
   }
+
+  def ready = inited
 }
 
 object DbId extends ConnectionIdentifier {

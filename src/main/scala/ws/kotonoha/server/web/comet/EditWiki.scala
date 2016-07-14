@@ -98,7 +98,7 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
     val wpr = WikiPageRecord.createRecord
     wpr.editor(UserRecord.currentId).parent(id).path(path).datetime(now).source(x.src)
     wpr.comment(x.comment).size(x.src.length)
-    wpr.save
+    wpr.save()
     val wikipath = "/wiki/" + path
     WikiLinkCache.update(wikipath, true)
     partialUpdate(RedirectTo(wikipath))
@@ -126,7 +126,7 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
   }
 
   def display(rec: WikiPageRecord): Unit = {
-    val src = rec.source.is
+    val src = rec.source.get
     val msg = ("cmd" -> "display") ~ ( "data" -> ("src" -> src) )
     ngMessage(msg)
   }
@@ -138,7 +138,7 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
       case None => //empty page
         ready()
       case Some(p) =>
-        pid = p.id.is
+        pid = p.id.get
         display(p)
     }
   }

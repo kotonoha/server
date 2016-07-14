@@ -42,14 +42,14 @@ class NonceRecord private() extends MongoRecord[NonceRecord] with ObjectIdPk[Non
   object timestamp extends JodaDateField(this)
 
   def value = new OAuthNonce {
-    def nonce = NonceRecord.this.nonce.is
+    def nonce = NonceRecord.this.nonce.get
 
-    def consumerKey = NonceRecord.this.consumerKey.is
+    def consumerKey = NonceRecord.this.consumerKey.get
 
-    def token = NonceRecord.this.token.is
+    def token = NonceRecord.this.token.get
 
     def timestamp = {
-      val cal: DateTime = NonceRecord.this.timestamp.is
+      val cal: DateTime = NonceRecord.this.timestamp.get
       cal.withZone(UTC).getMillis
     }
   }
@@ -62,7 +62,7 @@ object NonceRecord extends NonceRecord with MongoMetaRecord[NonceRecord] with Na
   def create(consumerKey: String, token: String, timestamp: Long, nonce: String) {
     val rec = createRecord.
       consumerKey(consumerKey).token(token).timestamp(new DateTime(timestamp, UTC)).nonce(nonce)
-    rec.save
+    rec.save()
   }
 
   def find(key: String, token: String, timestamp: Long, nonce: String) = {
