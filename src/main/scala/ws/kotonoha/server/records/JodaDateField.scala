@@ -1,21 +1,24 @@
 package ws.kotonoha.server.records
 
 import net.liftweb.record._
-import org.joda.time.{DateTime}
+import org.joda.time.DateTime
 import net.liftweb.json.DefaultFormats
 import net.liftweb.util.Helpers
-import net.liftweb.common.{Failure, Empty, Full, Box}
+import net.liftweb.common.{Box, Empty, Failure, Full}
 import net.liftweb.http.S
 import net.liftweb.http.S.SFuncHolder
-import xml.{Null, UnprefixedAttribute, NodeSeq}
+
+import xml.{NodeSeq, Null, UnprefixedAttribute}
 import net.liftweb.http.js.JE.{JsNull, Str}
 import net.liftweb.json.JsonAST.JValue
 import ws.kotonoha.server.util.DateTimeUtils
 import java.util
+
 import org.joda.time.format.ISODateTimeFormat
 import net.liftweb.mongodb.record.field.MongoFieldFlavor
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord}
-import com.mongodb.DBObject
+import com.mongodb.{DBObject, WriteConcern}
+import net.liftweb.mongodb.MongoMeta
 
 /**
  * @author eiennohito
@@ -115,8 +118,7 @@ class OptionalJodaDateField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
   }
 }
 
-trait KotonohaMongoRecord[T <: BsonRecord[T]] extends BsonMetaRecord[T] {
-  self: T =>
+trait KotonohaBsonMeta[T <: BsonRecord[T]] extends BsonMetaRecord[T] { self: T =>
   override def fieldDbValue(f: Field[_, T]) = {
     f.valueBox flatMap {
       case d: DateTime => {
@@ -126,6 +128,16 @@ trait KotonohaMongoRecord[T <: BsonRecord[T]] extends BsonMetaRecord[T] {
         super.fieldDbValue(f)
       }
     }
+  }
+}
+
+trait KotonohaMongoRecord[T <: BsonRecord[T]] extends KotonohaBsonMeta[T] {
+  self: T with MongoMeta[T] =>
+
+  def bulkInsert(items: TraversableOnce[T], wc: WriteConcern = WriteConcern.ACKNOWLEDGED) = {
+    val op = self.useColl(c => c.initializeUnorderedBulkOperation())
+    items.foreach(i => op.insert(i.asDBObject))
+    op.execute(wc)
   }
 }
 

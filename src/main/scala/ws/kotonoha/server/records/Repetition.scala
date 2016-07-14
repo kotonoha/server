@@ -43,7 +43,7 @@ class ItemLearningDataRecord private() extends BsonRecord[ItemLearningDataRecord
   object repetition extends IntField(this)
 }
 
-object ItemLearningDataRecord extends ItemLearningDataRecord with KotonohaMongoRecord[ItemLearningDataRecord] with BsonMetaRecord[ItemLearningDataRecord]
+object ItemLearningDataRecord extends ItemLearningDataRecord with KotonohaBsonMeta[ItemLearningDataRecord] with BsonMetaRecord[ItemLearningDataRecord]
 
 class OFMatrixRecord private() extends MongoRecord[OFMatrixRecord] with ObjectIdPk[OFMatrixRecord] with UserRef {
   def meta = OFMatrixRecord
@@ -58,7 +58,7 @@ object OFMatrixRecord extends OFMatrixRecord with MongoMetaRecord[OFMatrixRecord
       case None => {
         val mat = OFMatrixRecord.createRecord
         mat.user(userId)
-        mat.save
+        mat.save()
         mat
       }        
     }

@@ -41,8 +41,38 @@ object Common {
       SbtExclusionRule("net.liftweb"),
       SbtExclusionRule("javax.transaction")
     )
-  )
+  ) ++ scalacSupport
 
+  lazy val scalacSupport = Seq(
+    scalacOptions ++= {
+      val base = if (scalaVersion.value.startsWith("2.11.8")) {
+        Seq(
+          "-Ybackend:GenBCode",
+          "-Yopt:l:classpath",
+          "-Yopt-warnings"
+        )
+      } else Seq.empty
+      Seq(
+        "-target:jvm-1.8",
+        "-feature",
+        "-deprecation"
+      ) ++ base
+    },
+    scalacOptions in Compile ++= (if (scalaVersion.value.startsWith("2.11.8")) { Seq("-Ydelambdafy:method") } else { Seq.empty }),
+    scalacOptions in Test ++= (if (scalaVersion.value.startsWith("2.11.8")) { Seq("-Ydelambdafy:inline") } else { Seq.empty })
+  ) ++ compatSettings ++ {
+    if (ourScalaVer.endsWith("-SNAPSHOT")) {
+      resolvers += Resolver.sonatypeRepo("snapshots")
+    } else Seq.empty
+  }
+
+  private lazy val compatSettings = {
+    libraryDependencies ++= {
+      if (scalaVersion.value.startsWith("2.11")) {
+        Seq("org.scala-lang.modules" % "scala-java8-compat_2.11" % "0.7.0")
+      } else Seq.empty
+    }
+  }
 
 }
 
@@ -52,8 +82,8 @@ object GitData {
     val repository = builder.setGitDir(file("./.git"))
       .readEnvironment() // scan environment GIT_* variables
       .findGitDir() // scan up the file system tree
-      .build();
-    println("repository built")
+      .build()
+
     val head = repository.resolve("HEAD")
     println("head is " + head.name())
     val refwalk = new RevWalk(repository)
