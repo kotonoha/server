@@ -52,13 +52,13 @@ object DateTimeUtils {
 
   implicit def akkaToJodaDurations(dur: FiniteDuration): JodaDuration = new JodaDuration(dur.toMillis)
 
-  implicit def calendar2DateTime(c: Calendar) = new DateTime(c.getTimeInMillis)
+  implicit def calendar2DateTime(c: Calendar): DateTime = new DateTime(c.getTimeInMillis)
 
   implicit def akkaDurationToLiftTimeSpan(dur: FiniteDuration): TimeSpan = TimeSpan(dur.toMillis)
 
   implicit def liftTimeSpanToAkkaDuration(ts: TimeSpan): FiniteDuration = new FiniteDuration(ts.toMillis, TimeUnit.MILLISECONDS)
 
-  implicit def dur2Multipliable(dur: JodaDuration) = new MultipliableDuration(dur)
+  implicit def dur2Multipliable(dur: JodaDuration): MultipliableDuration = new MultipliableDuration(dur)
 
   val UTC = DateTimeZone.forID("UTC")
 
@@ -81,7 +81,7 @@ object DateTimeUtils {
       _.timezone.isAsTimeZone.getOffset(System.currentTimeMillis)
     }
     val dtz = tz map {
-      DateTimeZone.forOffsetMillis(_)
+      DateTimeZone.forOffsetMillis
     } openOr DateTimeZone.forID("UTC")
     dtz
   }
