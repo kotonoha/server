@@ -47,7 +47,7 @@ object LearningStats {
     val dbo = MongoDBObject.newBuilder
     dbo += "aggregate" -> "markeventrecords"
     dbo += "pipeline" -> MongoDBList(
-      MongoDBObject("$match" -> ("$datetime" $gt now.minusDays(10))),
+      MongoDBObject("$match" -> ("$datetime" $gt now.minusDays(days))),
       MongoDBObject(
         "$project" -> MongoDBObject(
           "_id" -> 0,

@@ -104,7 +104,7 @@ object DateTimeUtils {
 
   def tonight = {
     val dt = now
-    dt.toDateMidnight
+    dt.withTimeAtStartOfDay()
   }
 
   def last10midn = {

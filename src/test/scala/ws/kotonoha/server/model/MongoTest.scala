@@ -82,7 +82,7 @@ with BeforeAndAfterAll with MongoAwareTest {
     word.save
     word.id.valueBox.isEmpty should be(false)
 
-    val found = WordRecord.find(word.id.is)
+    val found = WordRecord.find(word.id.get)
     found.isEmpty should be(false)
     found.flatMap(_.createdOn.valueBox) should be(Full(time))
   }
@@ -92,7 +92,7 @@ with BeforeAndAfterAll with MongoAwareTest {
     rec.learning(Empty)
     rec.save
 
-    val rec2 = WordCardRecord.find(rec.id.is).openTheBox
+    val rec2 = WordCardRecord.find(rec.id.get).openTheBox
     rec2.learning.valueBox.isEmpty should be(true)
   }
 
@@ -102,7 +102,7 @@ with BeforeAndAfterAll with MongoAwareTest {
     rec.learning(l)
     rec.save
 
-    val rec2 = WordCardRecord.find(rec.id.is).openOrThrowException("Babah!")
+    val rec2 = WordCardRecord.find(rec.id.get).openOrThrowException("Babah!")
     rec2.learning.valueBox.isEmpty should be(false)
   }
 
@@ -132,7 +132,7 @@ with BeforeAndAfterAll with MongoAwareTest {
 
     val wOpt = WordRecord where (_.writing contains ("例")) and (_.user eqs userId) get()
     wOpt should not be (None)
-    val id = wOpt.get.id.is
+    val id = wOpt.get.id.get
     saved should equal(id)
     val cards = WordCardRecord where (_.word eqs id) fetch (50)
     cards should have length (2)
@@ -148,12 +148,12 @@ with BeforeAndAfterAll with MongoAwareTest {
     val card = cards.head
 
     val sched = ucont.userActor(Props[CardActor].withDispatcher(CallingThreadDispatcher.Id), "ca")
-    sched.receive(SchedulePaired(id, card.cardMode.is))
-    val cid = cards.last.id.is
+    sched.receive(SchedulePaired(id, card.cardMode.get))
+    val cid = cards.last.id.get
 
     val anotherCard = WordCardRecord.find(cid).get
     anotherCard.notBefore.value should not be (None)
-    anotherCard.notBefore.is should be >= (new DateTime)
+    anotherCard.notBefore.get should be >= (new DateTime)
   }
 
   test("getting new cards from actor") {
@@ -185,7 +185,7 @@ with BeforeAndAfterAll with MongoAwareTest {
     val cards = wac.cards
     cards.length should be >= (1)
     val groups = cards groupBy {
-      w => w.word.is
+      w => w.word.get
     }
     for ((id, gr) <- groups) {
       gr should have length (1)
@@ -207,11 +207,11 @@ with BeforeAndAfterAll with MongoAwareTest {
 
     val card = wic.cards.head
     val event = MarkEventRecord.createRecord
-    event.card(card.id.is).mark(5.0).mode(card.cardMode.is).time(2.3142)
+    event.card(card.id.get).mark(5.0).mode(card.cardMode.get).time(2.3142)
     event.user(userId)
 
     Await.result(ask(ucont.actor, ProcessMarkEvents(List(event))), 5 seconds)
-    val updatedCard = WordCardRecord.find(card.id.is).get
+    val updatedCard = WordCardRecord.find(card.id.get).openOrThrowException("ok")
     updatedCard.learning.valueBox.isEmpty should be(false)
   }
 
@@ -228,21 +228,21 @@ with BeforeAndAfterAll with MongoAwareTest {
 
     val card = wic.cards.head
     val event = MarkEventRecord.createRecord
-    val cid = card.id.is
-    event.card(cid).mark(5.0).mode(card.cardMode.is).datetime(dtNow.withDurationAdded(1 day, 0))
+    val cid = card.id.get
+    event.card(cid).mark(5.0).mode(card.cardMode.get).datetime(dtNow.withDurationAdded(1 day, 0))
     event.user(userId)
 
 
     val ev2 = MarkEventRecord.createRecord
-    ev2.card(cid).mark(5.0).mode(card.cardMode.is).datetime(dtNow.withDurationAdded(1 day, 2))
+    ev2.card(cid).mark(5.0).mode(card.cardMode.get).datetime(dtNow.withDurationAdded(1 day, 2))
     ev2.user(userId)
 
     val ev3 = MarkEventRecord.createRecord
-    ev3.card(cid).mark(5.0).mode(card.cardMode.is).datetime(dtNow.withDurationAdded(1 day, 9))
+    ev3.card(cid).mark(5.0).mode(card.cardMode.get).datetime(dtNow.withDurationAdded(1 day, 9))
     ev3.user(userId)
 
     val ev4 = MarkEventRecord.createRecord
-    ev4.card(cid).mark(1.0).mode(card.cardMode.is).datetime(dtNow.withDurationAdded(1 day, 14))
+    ev4.card(cid).mark(1.0).mode(card.cardMode.get).datetime(dtNow.withDurationAdded(1 day, 14))
     ev4.user(userId)
 
 
@@ -260,6 +260,6 @@ with BeforeAndAfterAll with MongoAwareTest {
 
     val updatedCard = WordCardRecord.find(cid).get
     updatedCard.learning.valueBox.isEmpty should be(false)
-    updatedCard.learning.value.lapse.is should be(2)
+    updatedCard.learning.value.lapse.get should be(2)
   }
 }

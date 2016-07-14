@@ -69,8 +69,8 @@ trait MongoAwareTest extends Suite with BeforeAndAfterAll { self: Suite =>
 class UpdateTest extends FreeSpec with Matchers with MongoAwareTest {
   "update in lift with bsonrecordfield" - {
     "works?" in {
-      val smt = Smt.createRecord
-      smt.save //saved 0 with
+      val smt: Smt = Smt.createRecord
+      smt.save(safe = true) //saved 0 with
 
       val smt1b = Smt.find(smt.id.get)
       smt1b should not be (Empty)

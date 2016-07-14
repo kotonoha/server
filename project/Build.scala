@@ -152,7 +152,8 @@ object Kotonoha {
     "com.typesafe.akka" %% "akka-actor" % akkaVer,
     "com.typesafe.akka" %% "akka-stream" % akkaVer,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVer,
-    "com.typesafe.akka" %% "akka-testkit" % akkaVer % "test"
+    "com.typesafe.akka" %% "akka-testkit" % akkaVer % Test,
+    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVer % Test
   )
 
   val rogueDeps = Seq(
