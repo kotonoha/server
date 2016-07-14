@@ -22,7 +22,7 @@ import com.mongodb.WriteConcern
 import net.liftweb.common.{Empty, Full}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, OneInstancePerTest}
 import ws.kotonoha.server.actors.learning.{LoadCards, LoadWords, WordsAndCards, _}
 import ws.kotonoha.server.actors.model.{CardActor, RegisterWord, SchedulePaired}
 import ws.kotonoha.server.actors.{AkkaFun, PingUser}
@@ -37,7 +37,7 @@ import scala.concurrent.{Await, Future}
 
 
 class MongoTest extends AkkaFun with BeforeAndAfter
-with BeforeAndAfterAll with MongoAwareTest {
+with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
 
   import DateTimeUtils._
   import akka.pattern._
