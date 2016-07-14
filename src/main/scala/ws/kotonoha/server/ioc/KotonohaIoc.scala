@@ -16,28 +16,57 @@
 
 package ws.kotonoha.server.ioc
 
+import java.lang.annotation.Annotation
+
 import com.google.inject._
+import com.google.inject.name.Names
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http._
 import net.liftweb.util.{Helpers, ThreadGlobal, Vendor}
+import ws.kotonoha.server.actors.GlobalActorsModule
+import ws.kotonoha.server.util.TryBox
+
+import scala.reflect.ClassTag
 
 /**
   * @author eiennohito
   * @since 2016/07/11
   */
-class KotonohaIoc(cfg: Config) {
+class KotonohaIoc(cfg: Config) extends AutoCloseable {
+  private val rman = new ResourceManager
+
   val injector = {
     val stage = Stage.DEVELOPMENT
-    Guice.createInjector(stage, new KotonohaMainModule(cfg))
+    Guice.createInjector(stage, new KotonohaMainModule(cfg, rman))
   }
+
+  def spawn[T](implicit tag: ClassTag[T]): T = {
+    injector.getInstance(tag.runtimeClass.asInstanceOf[Class[T]])
+  }
+
+  def spawnWithName[T](name: String)(implicit tag: ClassTag[T]): T = {
+    val key = Key.get(tag.runtimeClass.asInstanceOf[Class[T]], Names.named(name))
+    injector.getInstance(key)
+  }
+
+  def spawnWithAnn[T](ann: Annotation)(implicit tag: ClassTag[T]): T = {
+    val key = Key.get(tag.runtimeClass.asInstanceOf[Class[T]], ann)
+    injector.getInstance(key)
+  }
+
+  override def close() = rman.close()
 }
 
-class KotonohaMainModule(cfg: Config) extends ScalaModule {
+class KotonohaMainModule(cfg: Config, rm: ResourceManager) extends ScalaModule {
   override def configure() = {
     bind[Config].toInstance(cfg)
+    bind[Res].toInstance(rm)
     bind[LiftSession].toProvider[LiftSessionProviderInIoc]
+
+    install(new AkkaModule())
+    install(new GlobalActorsModule)
   }
 }
 
@@ -60,29 +89,29 @@ class KotonohaLiftInjector(inj: Injector) extends SnippetInstantiation {
 
   private[this] val cometClz = classOf[LiftCometActor]
 
-  def internalCreate(c: CometCreationInfo): Box[LiftCometActor] = {
-    val tpe = c.contType
+  def internalCreate(cci: CometCreationInfo): Box[LiftCometActor] = {
+    val tpe = cci.contType
     val clz = Helpers.findClass(tpe, LiftRules.buildPackage("comet"))
     clz.flatMap { c =>
       if (checkIfSuitable(c) && cometClz.isAssignableFrom(c)) {
-        Full(inj.getInstance(c).asInstanceOf[LiftCometActor])
+        val actor = inj.getInstance(c).asInstanceOf[LiftCometActor]
+        CometActorSetupHelper.setup(actor, Full(tpe), cci)
+        Full(actor)
       } else Empty
     }
   }
 
   def checkIfSuitable(clz: Class[_]): Boolean = {
     val ctors = clz.getDeclaredConstructors
-    ctors.exists(_.getAnnotation(classOf[Inject])!= null)
+    ctors.exists(_.getAnnotation(classOf[Inject]) != null)
   }
 
-  override def factoryFor[T](clz: Class[T]) = {
+  override def factoryFor[T](clz: Class[T]): Box[ConstructorType] = {
     implicit val mf = Manifest.classType[T](clz)
     if (checkIfSuitable(clz)) {
       Full(SnippetInstantiation { (pp, sess) =>
-        net.liftweb.util.ControlHelpers.tryo {
-          KotonohaLiftSession.sessionForIoc.doWith(sess) {
-            inj.getInstance(clz)
-          }
+        KotonohaLiftSession.sessionForIoc.doWith(sess) {
+          inj.getInstance(clz)
         }
       })
     } else Empty

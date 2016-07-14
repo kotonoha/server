@@ -68,6 +68,7 @@ class Boot extends Logging {
 
     MongoDbInit.init()
 
+    LiftRules.unloadHooks.append(() => ioc.close())
     LiftRules.unloadHooks.append(() => MongoDbInit.stop())
 
     checkAdiminAccount()
@@ -81,6 +82,7 @@ class Boot extends Logging {
     //LiftRules.unloadHooks.append(() => MecabInit.unload())
 
     //Bootstrap lazy akka
+    ReleaseAkkaMain.init(ioc)
     ReleaseAkkaMain.global ! Ping
     ReleaseAkkaMain.global ! InitUsers
 
@@ -215,10 +217,6 @@ class Boot extends Logging {
 
     // Make a transaction span the whole HTTP request
     //S.addAround(DB.buildLoanWrapper)
-
-    LiftRules.unloadHooks.append({
-      () => ReleaseAkkaMain.shutdown()
-    })
 
     LiftRules.snippetDispatch.append(
       Map(

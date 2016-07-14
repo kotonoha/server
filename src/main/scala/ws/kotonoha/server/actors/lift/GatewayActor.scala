@@ -91,15 +91,11 @@ class LiftActorService extends Actor {
   val actors = new collection.mutable.HashMap[CometActor, ActorRef]
 
   override def receive = {
-    case BindLiftActor(lift) => {
+    case BindLiftActor(lift) =>
       val ar = context.actorOf(Props(new LiftBridge(self, lift)))
       actors += (lift -> ar)
       sender ! ar
-    }
-    case UnbindLiftActor(lift) => {
-      actors.remove(lift) map {
-        _ ! PoisonPill
-      }
-    }
+    case UnbindLiftActor(lift) =>
+      actors.remove(lift) foreach { context.stop }
   }
 }

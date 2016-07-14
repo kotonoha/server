@@ -1,12 +1,5 @@
-package ws.kotonoha.server.web.snippet
-
-import com.google.inject.Inject
-
-import scala.concurrent.ExecutionContext
-import xml.NodeSeq
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2013 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +13,23 @@ import xml.NodeSeq
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * @author eiennohito
- * @since 03.03.12
- */
 
-class TestSnippet @Inject() (
-  ec: ExecutionContext
-) {
-  def render(x: NodeSeq): NodeSeq =  {
-    <em>help! {ec.toString}</em>
+package net.liftweb.http
+
+import net.liftweb.common.Box
+
+/**
+  * @author eiennohito
+  * @since 2016/07/14
+  */
+object CometActorSetupHelper {
+  def setup(actor: LiftCometActor, tpe: Box[String], msg: CometCreationInfo) = {
+    actor.callInitCometActor(
+      msg.session,
+      tpe,
+      msg.name,
+      msg.defaultXml,
+      msg.attributes
+    )
   }
 }

@@ -33,8 +33,9 @@ class UserActorManager extends Actor with ActorLogging {
   var userMap = Map[ObjectId, ActorRef]()
   var lifetime = Map[ObjectId, DateTime]()
 
-  def create(uid: ObjectId) = {
+  private def create(uid: ObjectId) = {
     val name = uid.toString
+    log.debug(s"trying to create an actor for uid ${name}")
     context.actorOf(Props(new PerUserActor(uid)), name)
   }
 
@@ -51,8 +52,8 @@ class UserActorManager extends Actor with ActorLogging {
   }
 
   def checkLife() {
-    val time = now minusMinutes (15)
-    val uids = lifetime.filter(_._2.isBefore(time)).map(_._1).toSet
+    val time = now.minusMinutes(15)
+    val uids = lifetime.filter(_._2.isBefore(time)).keySet
     val (stale, good) = userMap.partition(c => uids.contains(c._1))
     lifetime --= uids
     userMap = good
@@ -82,7 +83,7 @@ class UserActorManager extends Actor with ActorLogging {
       sender ! Future.sequence(answer)
     case TellAllUsers(msg) => userMap.values.foreach(_ ! msg)
     case InitUsers =>
-      val actor = create(new ObjectId()) //lasy loading
+      val actor = userActor(ObjectId.get()) //lasy loading
       context.system.scheduler.scheduleOnce(10 seconds, actor, PoisonPill) //and kill in 10 secs
   }
 

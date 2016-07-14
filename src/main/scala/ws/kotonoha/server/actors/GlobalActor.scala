@@ -16,9 +16,15 @@
 
 package ws.kotonoha.server.actors
 
-import akka.actor.{ActorLogging, OneForOneStrategy, Props, Actor}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, OneForOneStrategy, Props}
+
 import concurrent.duration._
 import akka.actor.SupervisorStrategy.Restart
+import akka.util.Timeout
+import com.google.inject.{Provides, Singleton}
+import net.codingwell.scalaguice.ScalaModule
+
+import scala.concurrent.Await
 
 /**
  * @author eiennohito
@@ -43,4 +49,35 @@ object GlobalActor {
   val globalName = "global"
   val svcName = "services"
   val userName = "users"
+}
+
+trait GlobalActors {
+  def services: ActorRef
+  def users: ActorRef
+  def global: ActorRef
+}
+
+class GlobalActorsModule extends ScalaModule {
+  override def configure() = {}
+
+  @Provides
+  @Singleton
+  def globalActors(
+    asys: ActorSystem
+  ): GlobalActors = {
+    val gact = asys.actorOf(Props[GlobalActor], GlobalActor.globalName)
+    val svcPath = gact.path / GlobalActor.svcName
+    val usrPath = gact.path / GlobalActor.userName
+
+    implicit val timeout: Timeout = 5.seconds
+    val svcF = asys.actorSelection(svcPath).resolveOne()
+    val usrF = asys.actorSelection(usrPath).resolveOne()
+
+    new GlobalActors {
+      override val global = gact
+      override val users = Await.result(usrF, 5.seconds)
+      override val services = Await.result(svcF, 5.seconds)
+    }
+  }
+
 }

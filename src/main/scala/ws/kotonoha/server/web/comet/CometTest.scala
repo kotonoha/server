@@ -16,14 +16,17 @@
 
 package ws.kotonoha.server.web.comet
 
+import com.google.inject.Inject
 import net.liftweb.util.Schedule
 import net.liftweb.http.js.JsCmds.SetHtml
 import org.joda.time.DateTime
+
 import xml.Text
 import net.liftweb.http.CometActor
 
-class CometTest extends CometActor {
+import scala.concurrent.ExecutionContext
 
+class CometTest @Inject() (implicit ec: ExecutionContext) extends CometActor {
   import net.liftweb.util.Helpers._
 
   var rnd: Double = _

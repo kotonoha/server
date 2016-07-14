@@ -16,23 +16,20 @@
 
 package ws.kotonoha.server.web.comet
 
+import com.google.inject.Inject
 import net.liftweb.actor.LiftActor
-import ws.kotonoha.server.actors.lift.{NgLiftActor, AkkaInterop}
+import net.liftweb.json.JsonAST.{JArray, JInt, JString}
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.http.{CometActor, PartialUpdateMsg, S, RenderOut}
-import net.liftweb.common.{Empty, Full}
-import net.liftweb.http.js.JE.{JsFunc, Call, JsRaw}
-import net.liftweb.util.Helpers
-import net.liftweb.http.js.JsCmds
-import net.liftweb.json.JsonAST.{JArray, JInt, JString, JValue}
+import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
 
+import scala.concurrent.ExecutionContext
 
 /**
  * @author eiennohito
  * @since 22.10.12 
  */
 
-class TestActor extends LiftActor with NgLiftActor with AkkaInterop with ReleaseAkka {
+class TestActor @Inject() (ec: ExecutionContext) extends LiftActor with NgLiftActor with AkkaInterop with ReleaseAkka {
   import ws.kotonoha.server.util.KBsonDSL._
 
   override protected def dontCacheRendering = true

@@ -161,14 +161,14 @@ class WordActor extends UserScopedActor with ActorLogging {
     val q = WordRecord where (_.deleteOn lt time) and (_.status eqs WordStatus.Deleting)
     q foreach {
       w => {
-        card ! DeleteCardsForWord(w.id.is)
+        card ! DeleteCardsForWord(w.id.get)
       }
     }
-    q bulkDelete_!! (WriteConcern.Normal)
-    context.system.scheduler.scheduleOnce(1 hour, users, ForUser(uid, DeleteReadyWords))
+    q.bulkDelete_!!(WriteConcern.Normal)
+    context.system.scheduler.scheduleOnce(1.hour, users, ForUser(uid, DeleteReadyWords))
   }
 
   override def preStart() {
-    context.system.scheduler.scheduleOnce(5 minutes, self, DeleteReadyWords)
+    context.system.scheduler.scheduleOnce(5.minutes, self, DeleteReadyWords)
   }
 }

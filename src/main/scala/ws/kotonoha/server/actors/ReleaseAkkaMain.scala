@@ -4,6 +4,8 @@ import concurrent.duration._
 import akka.actor._
 import akka.pattern.ask
 import org.bson.types.ObjectId
+import ws.kotonoha.server.ioc.KotonohaIoc
+
 import concurrent.{Await, ExecutionContext}
 
 
@@ -24,9 +26,9 @@ import concurrent.{Await, ExecutionContext}
  */
 
 /**
- * @author eiennohito
- * @since 01.02.12
- */
+  * @author eiennohito
+  * @since 01.02.12
+  */
 
 trait AkkaMain {
   def !(x: AnyRef) = global ! x
@@ -48,10 +50,7 @@ trait AkkaMain {
     system.scheduler.scheduleOnce(delay, runnable)(context)
   }
 
-  def shutdown() {
-    system.shutdown()
-    system.awaitTermination()
-  }
+  def shutdown() {}
 
   def userActorF(uid: ObjectId) = {
     (this ? UserActor(uid)).mapTo[ActorRef]
@@ -63,15 +62,19 @@ trait AkkaMain {
 }
 
 object ReleaseAkkaMain extends AkkaMain {
-  val system = ActorSystem("k")
+  def init(ioc: KotonohaIoc) = {
+    system = ioc.spawn[ActorSystem]
+    global = ioc.spawn[GlobalActors].global
 
-  lazy val global = system.actorOf(Props[GlobalActor], GlobalActor.globalName)
+    system.eventStream.subscribe(
+      system.actorOf(Props(new Actor with ActorLogging {
+        override def receive = {
+          case d: DeadLetter => log.info("Got a " + d)
+        }
+      })), classOf[DeadLetter])
+  }
 
-  system.eventStream.subscribe(
-    system.actorOf(Props(new Actor with ActorLogging {
-      override def receive = {
-        case d: DeadLetter => log.info("Got a " + d)
-      }
-    })), classOf[DeadLetter]
-  )
+  @volatile var system: ActorSystem = null
+
+  @volatile var global: ActorRef = null
 }

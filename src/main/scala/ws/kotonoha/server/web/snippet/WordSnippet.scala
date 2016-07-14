@@ -97,7 +97,7 @@ object WordSnippet extends Akka with ReleaseAkka {
     val inner = word.get match {
       case Full(w) => {
         w.examples.get.flatMap {
-          ex =>
+          (ex: ExampleRecord) =>
             bind("ex", templ,
               "example" -> ex.example.toForm,
               "translation" -> ex.translation.toForm)
@@ -119,7 +119,7 @@ object WordSnippet extends Akka with ReleaseAkka {
   def renderExamples(in: NodeSeq): NodeSeq = {
     val inner = renderExamples
     in.head.flatMap {
-      case e: Elem => Elem(e.prefix, e.label, e.attributes, e.scope, e.child ++ inner : _*)
+      case e: Elem => Elem(e.prefix, e.label, e.attributes, e.scope, false, e.child ++ inner : _*)
       case _ => in
     }
   }
@@ -135,7 +135,7 @@ object WordSnippet extends Akka with ReleaseAkka {
           val list = List("Year" -> years(), "Month" -> months(), "Week" -> weeks(), "Day" -> days(), "Hour" -> hours(), "Minute" -> minutes(), "Second" -> seconds())
           val sb = new StringBuilder
           list.foreach {
-            case (s, tp) => {
+            case (s: String, tp) => {
               val i = p.get(tp)
               if (i != 0) {
                 sb.append(i)
@@ -207,7 +207,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
     S.param("q") openOr ""
   }
 
-  def findIds(s: String) = {
+  def findIds(s: String): Seq[ObjectId] = {
     s.split('&') flatMap {
       _.split('=') match {
         case Array(XOid(id), _) => Some(id)
@@ -220,14 +220,14 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
     import net.liftweb.json.{compact, render}
     def handler(s: String): JsCmd = {
       val ids = findIds(s)
-      ids foreach { akkaServ ! ChangeWordStatus(_, WordStatus.ReviewWord).u(uid) }
+      ids.foreach { akkaServ ! ChangeWordStatus(_, WordStatus.ReviewWord).u(uid) }
       val data = JArray(ids.toList.map{ l => JString(l.toString) } )
       val x = compact(render(data))
       JE.Call("update_data", JE.JsRaw(x), JE.Str("ReviewWord") ).cmd
     }
     def handler_delete(s: String): JsCmd = {
       val ids = findIds(s)
-      ids foreach { akkaServ ! MarkForDeletion(_).u(uid) }
+      ids.foreach { akkaServ ! MarkForDeletion(_).u(uid) }
       val data = JArray(ids.toList.map{ l => JString(l.toString) } )
       val x = compact(render(data))
       JE.Call("update_data", JE.JsRaw(x), JE.Str("Deleting") ).cmd

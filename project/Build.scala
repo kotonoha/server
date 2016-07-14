@@ -176,7 +176,9 @@ object Kotonoha {
     liftPackage %% "lift-json-scalaz7" % liftVersion exclude("org.scalaz", "scalaz-core_2.9.1"),
     "net.liftmodules" %% "oauth_2.6" % "1.2-SNAPSHOT",
     liftPackage %% "lift-testkit" % liftVersion % "test",
-    "javax.servlet" % "servlet-api" % "2.5" % "provided")
+    "javax.servlet" % "servlet-api" % "2.5" % "provided",
+    "com.thoughtworks.paranamer" % "paranamer" % "2.8" //for json
+  )
 
   val akkaDeps = Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVer,

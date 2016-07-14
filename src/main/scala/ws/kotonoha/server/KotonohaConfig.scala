@@ -36,7 +36,7 @@ object KotonohaConfig {
   lazy val config = {
     import scala.collection.JavaConversions._
     val props = Props.props
-    val base = ConfigFactory.defaultOverrides()
+    val base = ConfigFactory.defaultApplication() withFallback ConfigFactory.defaultOverrides()
     val fromLift = ConfigFactory.parseMap(props)
     var initial = Configuration.makeConfigFor("kotonoha")
     if (initial.hasPath("cfg.include")) {
