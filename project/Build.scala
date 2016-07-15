@@ -23,7 +23,7 @@ import sbt._
 import inc.Analysis
 import Keys._
 import com.earldouglas.xsbtwebplugin.{WebPlugin, PluginKeys => WPK}
-import sbtbuildinfo.Plugin._
+import sbtbuildinfo.BuildInfoKeys._
 
 
 object Common {
@@ -150,9 +150,8 @@ object Kotonoha {
     )
   }
 
-  lazy val binfo = sbtbuildinfo.Plugin.buildInfoSettings ++ Seq(
-    sourceGenerators in Compile <+= buildInfo,
-    buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, sbtVersion, gitId, gitDate),
+  lazy val binfo = Def.settings(
+    buildInfoKeys := Seq(version, scalaVersion, sbtVersion, gitId, gitDate),
     buildInfoPackage := "ws.kotonoha.server.util",
     buildInfoObject := "BuildInfo"
   )

@@ -29,6 +29,6 @@ class TestSnippet @Inject() (
   ec: ExecutionContext
 ) {
   def render(x: NodeSeq): NodeSeq =  {
-    <em>help! {ec.toString}</em>
+    <em>help me badly2! {ec.toString}</em>
   }
 }

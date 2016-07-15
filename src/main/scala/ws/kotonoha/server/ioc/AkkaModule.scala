@@ -33,7 +33,10 @@ class AkkaModule(name: String = "k") extends ScalaModule{
 
   @Provides
   @Singleton
-  def akkaSystem(cfg: Config): ActorSystem = ActorSystem(name, cfg, cfg.getClass.getClassLoader)
+  def akkaSystem(
+    cfg: Config,
+    res: Res
+  ): ActorSystem = res.make(ActorSystem(name, cfg, cfg.getClass.getClassLoader))
 
   @Provides
   def exCont(asys: ActorSystem): ExecutionContext = asys.dispatcher

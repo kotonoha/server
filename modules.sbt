@@ -1,7 +1,9 @@
 lazy val kotonoha = (project in file("."))
   .settings(Common.buildSettings)
   .settings(Kotonoha.kotonohaSettings, Pbuf.pbScala(), Pbuf.protoIncludes(eapi, `akane-knp`))
+  .settings(jrebelSettings)
   .dependsOn(model, `akane-legacy`, knockoff, eapi, `grpc-streaming`)
+  .enablePlugins(BuildInfoPlugin)
 
 lazy val akane = (project in file("akane"))
   .settings(Common.buildSettings)
