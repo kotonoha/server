@@ -7,7 +7,7 @@ window.Model = ($scope, testSvc) ->
   $scope.start = 23
   $scope.regenerate = -> $scope.items = tens($scope.start)
   $scope.regenerate()
-  $scope.text = "This is text"
+  $scope.text = "This is text?"
   $scope.rtext = -> $scope.text = "This is text0"
 
   $scope.toArms = ->

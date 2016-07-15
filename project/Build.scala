@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import coffeescript.Plugin.CoffeeKeys
+
 import java.util.Date
 
 import org.eclipse.jgit.revwalk.RevWalk
@@ -22,6 +22,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import sbt._
 import inc.Analysis
 import Keys._
+import com.typesafe.sbt.jse.JsEngineImport.JsEngineKeys
 import sbtbuildinfo.BuildInfoKeys._
 
 
@@ -212,11 +213,13 @@ object Kotonoha {
     "org.xerial" % "sqlite-jdbc" % "3.6.16" % "test"
   )
 
+  import com.typesafe.sbt.web.Import._
+  import com.earldouglas.xwp.WebappPlugin.{autoImport => wapp}
+
   lazy val kotonohaSettings =
     gitSettings ++
       binfo ++
-      coffeescript.Plugin.coffeeSettingsIn(compileJs) ++
-      scalatest ++ Seq(
+      scalatest ++ Def.settings(
       name := "server",
       parallelExecution in Test := false,
       javacOptions ++= Seq("-encoding", "utf8"),
@@ -225,16 +228,16 @@ object Kotonoha {
       jsDir := file("jslib"),
       scriptOutputDir := (target in com.earldouglas.xwp.WebappPlugin.autoImport.webappPrepare).value / "static",
       (sourceDirectory in compileJs) <<= sourceDirectory in Compile,
-      (resourceManaged in(compileJs, CoffeeKeys.coffee)) <<= scriptOutputDir,
       unzipJars <<= (jsDir, scriptOutputDir) map {
         (jsd, so) =>
           (jsd * GlobFilter("*.jar")) flatMap { f => IO.unzip(f, so) } get
       },
       compile in compileJs := Analysis.Empty,
       resourceGenerators in compileJs := Nil,
-      compile in Compile <<= (compile in Compile).dependsOn(CoffeeKeys.coffee in compileJs),
       copyResources in Compile <<= (copyResources in Compile).dependsOn(unzipJars),
-      com.earldouglas.xwp.WebappPlugin.autoImport.webappWebInfClasses := true,
+      WebKeys.stagingDirectory := (target in wapp.webappPrepare).value / "static",
+      wapp.webappPrepare <<= wapp.webappPrepare.dependsOn(WebKeys.stage),
+      JsEngineKeys.engineType := JsEngineKeys.EngineType.Node,
       resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/",
       libraryDependencies ++= (liftDeps ++ akkaDeps ++ rogueDeps ++ kotonohaRestDeps)
     )

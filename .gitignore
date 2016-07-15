@@ -2,7 +2,7 @@
 .idea_modules/
 target/
 out/
-
+node_modules/
 *.props
 *.conf
 

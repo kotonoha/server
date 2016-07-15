@@ -7,7 +7,9 @@ libraryDependencies ++= Seq(
 
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
 
-addSbtPlugin("me.lessis" % "coffeescripted-sbt" % "0.2.3")
+addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.1.0")
+addSbtPlugin("io.teamscala.sbt" % "sbt-babel" % "1.0.5")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
 
