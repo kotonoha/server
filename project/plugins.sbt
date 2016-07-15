@@ -18,3 +18,5 @@ val scalaPbVersion = "0.5.32"
 addSbtPlugin("com.trueaccord.scalapb" % "sbt-scalapb" % scalaPbVersion)
 
 addSbtPlugin("fi.gekkio.sbtplugins" % "sbt-jrebel-plugin" % "0.10.0")
+
+resolvers += Resolver.typesafeRepo("releases")
