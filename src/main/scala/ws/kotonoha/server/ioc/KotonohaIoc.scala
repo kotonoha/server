@@ -26,7 +26,7 @@ import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http._
 import net.liftweb.util.{Helpers, ThreadGlobal, Vendor}
 import ws.kotonoha.server.actors.GlobalActorsModule
-import ws.kotonoha.server.util.TryBox
+import ws.kotonoha.server.grpc.GrpcModule
 
 import scala.reflect.ClassTag
 
@@ -67,6 +67,7 @@ class KotonohaMainModule(cfg: Config, rm: ResourceManager) extends ScalaModule {
 
     install(new AkkaModule())
     install(new GlobalActorsModule)
+    install(new GrpcModule)
   }
 }
 

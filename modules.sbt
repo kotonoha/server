@@ -25,6 +25,7 @@ lazy val knockoff = (project in file("knockoff"))
 lazy val eapi = (project in file("examples-api"))
   .settings(Common.buildSettings)
   .settings(Pbuf.pbScala())
+  .dependsOn(`grpc-streaming`)
 
 lazy val `grpc-streaming` = (project in file("grpc-akka-stream"))
   .settings(Common.buildSettings)

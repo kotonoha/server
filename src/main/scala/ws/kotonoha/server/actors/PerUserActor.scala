@@ -59,9 +59,9 @@ trait KotonohaActor extends Actor {
 
   def globalPath = context.system.child(globalName)
 
-  def userPath = globalPath / userName
+  def userPath: ActorPath = globalPath / userName
 
-  def svcPath = globalPath / svcName
+  def svcPath: ActorPath = globalPath / svcName
 
   lazy val users = {
     context.actFor(userPath)
@@ -81,20 +81,20 @@ trait RootActor { this: KotonohaActor =>
 }
 
 trait UserScopedActor extends KotonohaActor {
-  def userActorPath = {
+  def userActorPath: ActorPath = {
     val mypath = self.path
     val rootpath = userPath
     val un = mypath.elements.drop(rootpath.elements.size).head
     rootpath / un
   }
 
-  def guardActorPath = {
+  def guardActorPath: ActorPath = {
     userActorPath / "guard"
   }
 
-  def scoped(name: String) = context.actFor(guardActorPath / name)
+  def scoped(name: String): ActorRef = context.actFor(guardActorPath / name)
 
-  lazy val userActor = {
+  lazy val userActor: ActorRef = {
     context.actFor(userActorPath)
   }
 

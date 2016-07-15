@@ -71,10 +71,9 @@ class WordActor extends UserScopedActor with ActorLogging {
     case ChangeWordStatus(word, stat) => changeWordStatus(word, stat)
     case MarkAllWordCards(word, mark) => markAllCards(word, mark)
     case DeleteReadyWords => deleteReadyWords()
-    case MarkForDeletion(word) => {
+    case MarkForDeletion(word) =>
       WordRecord where (_.id eqs word) modify (_.deleteOn setTo (now.plusDays(1))) updateOne()
       self ! ChangeWordStatus(word, WordStatus.Deleting)
-    }
     case SimilarWordsRequest(c) => findSimilar(c)
   }
 
