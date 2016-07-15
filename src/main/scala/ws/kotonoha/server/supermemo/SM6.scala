@@ -1,15 +1,5 @@
-package ws.kotonoha.server.supermemo
-
-import ws.kotonoha.server.math.MathUtil
-import ws.kotonoha.server.util.DateTimeUtils
-import org.joda.time.{Duration, DateTime}
-import akka.actor.{Props, ActorLogging}
-import ws.kotonoha.server.records._
-import org.bson.types.ObjectId
-import ws.kotonoha.server.actors.UserScopedActor
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +13,16 @@ import ws.kotonoha.server.actors.UserScopedActor
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package ws.kotonoha.server.supermemo
+
+import ws.kotonoha.server.math.MathUtil
+import ws.kotonoha.server.util.DateTimeUtils
+import org.joda.time.{Duration, DateTime}
+import akka.actor.{Props, ActorLogging}
+import ws.kotonoha.server.records._
+import org.bson.types.ObjectId
+import ws.kotonoha.server.actors.UserScopedActor
 
 /**
  * @author eiennohito

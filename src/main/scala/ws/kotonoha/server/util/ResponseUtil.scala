@@ -1,13 +1,5 @@
-package ws.kotonoha.server.util
-
-import ws.kotonoha.server.actors.learning.WordsAndCards
-import net.liftweb.json.JsonAST._
-import net.liftweb.mongodb.record.MongoRecord
-import net.liftweb.json.{DefaultFormats, Extraction, JsonDSL}
-import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +13,15 @@ import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package ws.kotonoha.server.util
+
+import ws.kotonoha.server.actors.learning.WordsAndCards
+import net.liftweb.json.JsonAST._
+import net.liftweb.mongodb.record.MongoRecord
+import net.liftweb.json.{DefaultFormats, Extraction, JsonDSL}
+import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
+
 /**
  * @author eiennohito
  * @since 04.02.12

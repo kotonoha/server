@@ -1,14 +1,5 @@
-package ws.kotonoha.server.util
-
-import net.liftweb.common.{Empty, Full}
-import unapply.{XOid, XHexLong}
-import ws.kotonoha.server.records.AppConfig
-import javax.crypto.KeyGenerator
-import net.liftweb.util.SecurityHelpers
-import org.bson.types.ObjectId
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +13,16 @@ import org.bson.types.ObjectId
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package ws.kotonoha.server.util
+
+import net.liftweb.common.{Empty, Full}
+import unapply.{XOid, XHexLong}
+import ws.kotonoha.server.records.AppConfig
+import javax.crypto.KeyGenerator
+import net.liftweb.util.SecurityHelpers
+import org.bson.types.ObjectId
+
 /**
  * @author eiennohito
  * @since 04.02.12

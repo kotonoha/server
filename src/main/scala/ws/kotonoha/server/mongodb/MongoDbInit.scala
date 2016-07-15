@@ -1,16 +1,5 @@
-package ws.kotonoha.server.mongodb
-
-import com.mongodb.{MongoClient, MongoClientOptions, MongoClientURI}
-import com.typesafe.scalalogging.{StrictLogging => Logging}
-import net.liftweb.mongodb.{MongoDB, MongoMeta}
-import net.liftweb.util.ConnectionIdentifier
-import org.bson.{BSON, Transformer}
-import org.joda.time.DateTime
-import ws.kotonoha.server.KotonohaConfig
-import ws.kotonoha.server.util.DateTimeUtils
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +13,17 @@ import ws.kotonoha.server.util.DateTimeUtils
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package ws.kotonoha.server.mongodb
+
+import com.mongodb.{MongoClient, MongoClientOptions, MongoClientURI}
+import com.typesafe.scalalogging.{StrictLogging => Logging}
+import net.liftweb.mongodb.{MongoDB, MongoMeta}
+import net.liftweb.util.ConnectionIdentifier
+import org.bson.{BSON, Transformer}
+import org.joda.time.DateTime
+import ws.kotonoha.server.KotonohaConfig
+import ws.kotonoha.server.util.DateTimeUtils
 
 /**
  * @author eiennohito

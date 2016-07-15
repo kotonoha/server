@@ -1,14 +1,5 @@
-package ws.kotonoha.server.mongodb.mapreduce
-
-import org.bson.types.{ObjectId, Code}
-import ws.kotonoha.server.util.DateTimeUtils
-import com.mongodb.{DBCollection, MapReduceCommand}
-import com.mongodb.MapReduceCommand.OutputType
-import net.liftweb.mongodb.JObjectParser
-import net.liftweb.json.DefaultFormats
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +13,16 @@ import net.liftweb.json.DefaultFormats
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package ws.kotonoha.server.mongodb.mapreduce
+
+import org.bson.types.{ObjectId, Code}
+import ws.kotonoha.server.util.DateTimeUtils
+import com.mongodb.{DBCollection, MapReduceCommand}
+import com.mongodb.MapReduceCommand.OutputType
+import net.liftweb.mongodb.JObjectParser
+import net.liftweb.json.DefaultFormats
+
 /**
  * @author eiennohito
  * @since 28.02.12

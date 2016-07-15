@@ -1,13 +1,5 @@
-package ws.kotonoha.server.records
-
-import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.field.{ObjectIdPk, ObjectIdRefField}
-import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
-import net.liftweb.record.field.{IntField, DoubleField}
-import org.bson.types.ObjectId
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +13,14 @@ import org.bson.types.ObjectId
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package ws.kotonoha.server.records
+
+import ws.kotonoha.server.mongodb.NamedDatabase
+import net.liftweb.mongodb.record.field.{ObjectIdPk, ObjectIdRefField}
+import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
+import net.liftweb.record.field.{IntField, DoubleField}
+import org.bson.types.ObjectId
 
 /**
  * @author eiennohito

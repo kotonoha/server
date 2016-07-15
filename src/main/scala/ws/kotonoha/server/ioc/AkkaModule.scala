@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 eiennohito (Tolmachev Arseny)
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,13 @@ class AkkaModule(name: String = "k") extends ScalaModule{
   def akkaSystem(
     cfg: Config,
     res: Res
-  ): ActorSystem = res.make(ActorSystem(name, cfg, cfg.getClass.getClassLoader))
+  ): ActorSystem = {
+    val system = ActorSystem(name, cfg, cfg.getClass.getClassLoader)
+    res.register(new AutoCloseable {
+      override def close() = system.terminate()
+    })
+    system
+  }
 
   @Provides
   def exCont(asys: ActorSystem): ExecutionContext = asys.dispatcher

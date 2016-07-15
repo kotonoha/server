@@ -1,12 +1,5 @@
-package ws.kotonoha.server.gosen
-
-import net.java.sen.SenFactory
-import java.util.List
-import net.java.sen.dictionary.Token
-import scala.collection.JavaConversions._
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +14,12 @@ import scala.collection.JavaConversions._
  * limitations under the License.
  */
 
+package ws.kotonoha.server.gosen
+
+import net.java.sen.SenFactory
+import java.util.List
+import net.java.sen.dictionary.Token
+import scala.collection.JavaConversions._
 
 class TestWorks extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
   

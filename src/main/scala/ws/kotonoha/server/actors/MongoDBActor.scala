@@ -1,12 +1,5 @@
-package ws.kotonoha.server.actors
-
-import net.liftweb.mongodb.record.MongoRecord
-import akka.actor.{ActorLogging, ActorRef, Actor}
-import com.mongodb.casbah.WriteConcern
-import akka.actor.Status.Failure
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +13,14 @@ import akka.actor.Status.Failure
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package ws.kotonoha.server.actors
+
+import net.liftweb.mongodb.record.MongoRecord
+import akka.actor.{ActorLogging, ActorRef, Actor}
+import com.mongodb.casbah.WriteConcern
+import akka.actor.Status.Failure
+
 /**
  * @author eiennohito
  * @since 01.02.12

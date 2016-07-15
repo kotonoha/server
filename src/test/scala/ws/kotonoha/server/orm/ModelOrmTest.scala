@@ -1,15 +1,5 @@
-package ws.kotonoha.server.orm
-
-import org.scalatest.BeforeAndAfterAll
-import com.j256.ormlite.jdbc.JdbcConnectionSource
-import com.j256.ormlite.dao.{Dao, DaoManager}
-import ws.kotonoha.server.util.DateTimeUtils
-import com.j256.ormlite.table.TableUtils
-import ws.kotonoha.server.model.learning.{Example, ItemLearning, WordCard, Word}
-import com.j256.ormlite.db.SqliteDatabaseType
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +14,15 @@ import com.j256.ormlite.db.SqliteDatabaseType
  * limitations under the License.
  */
 
+package ws.kotonoha.server.orm
+
+import org.scalatest.BeforeAndAfterAll
+import com.j256.ormlite.jdbc.JdbcConnectionSource
+import com.j256.ormlite.dao.{Dao, DaoManager}
+import ws.kotonoha.server.util.DateTimeUtils
+import com.j256.ormlite.table.TableUtils
+import ws.kotonoha.server.model.learning.{Example, ItemLearning, WordCard, Word}
+import com.j256.ormlite.db.SqliteDatabaseType
 
 class ModelOrmTest extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers with BeforeAndAfterAll {
   

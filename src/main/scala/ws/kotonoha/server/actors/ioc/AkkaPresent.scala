@@ -1,10 +1,5 @@
-package ws.kotonoha.server.actors.ioc
-
-import ws.kotonoha.server.actors.{ReleaseAkkaMain, AkkaMain}
-
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +13,12 @@ import ws.kotonoha.server.actors.{ReleaseAkkaMain, AkkaMain}
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package ws.kotonoha.server.actors.ioc
+
+import ws.kotonoha.server.actors.{ReleaseAkkaMain, AkkaMain}
+
+
 /**
  * @author eiennohito
  * @since 09.02.12

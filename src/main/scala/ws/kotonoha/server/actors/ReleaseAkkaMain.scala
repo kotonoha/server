@@ -1,16 +1,5 @@
-package ws.kotonoha.server.actors
-
-import concurrent.duration._
-import akka.actor._
-import akka.pattern.ask
-import org.bson.types.ObjectId
-import ws.kotonoha.server.ioc.KotonohaIoc
-
-import concurrent.{Await, ExecutionContext}
-
-
 /*
- * Copyright 2012 eiennohito
+ * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +13,17 @@ import concurrent.{Await, ExecutionContext}
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package ws.kotonoha.server.actors
+
+import concurrent.duration._
+import akka.actor._
+import akka.pattern.ask
+import org.bson.types.ObjectId
+import ws.kotonoha.server.ioc.KotonohaIoc
+
+import concurrent.{Await, ExecutionContext}
+
 
 /**
   * @author eiennohito
