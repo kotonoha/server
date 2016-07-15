@@ -5,3 +5,5 @@ out/
 
 *.props
 *.conf
+
+local.sbt

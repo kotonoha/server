@@ -22,7 +22,6 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import sbt._
 import inc.Analysis
 import Keys._
-import com.earldouglas.xsbtwebplugin.{WebPlugin, PluginKeys => WPK}
 import sbtbuildinfo.BuildInfoKeys._
 
 
@@ -137,7 +136,6 @@ object Kotonoha {
   val gitDate = TaskKey[Long]("gitDate", "Git commit date")
 
   val jsDir = SettingKey[File]("js-dir", "Javascript jar dir")
-  val scriptOut = SettingKey[File]("script-out", "dir to be included in webapp")
   val scriptOutputDir = SettingKey[File]("sod", "dir to output js")
   val unzipJars = TaskKey[Seq[File]]("unzip-jars", "Unzip jars with js files inside")
   val compileJs = config("compilejs")
@@ -211,16 +209,13 @@ object Kotonoha {
     "org.bouncycastle" % "bcprov-jdk15on" % "1.54",
 
     "com.j256.ormlite" % "ormlite-jdbc" % "4.42" % "test",
-    "org.xerial" % "sqlite-jdbc" % "3.6.16" % "test",
-
-    "org.mortbay.jetty" % "jetty" % "6.1.22" % "container"
+    "org.xerial" % "sqlite-jdbc" % "3.6.16" % "test"
   )
 
   lazy val kotonohaSettings =
     gitSettings ++
       binfo ++
       coffeescript.Plugin.coffeeSettingsIn(compileJs) ++
-      WebPlugin.webSettings ++
       scalatest ++ Seq(
       name := "server",
       parallelExecution in Test := false,
@@ -228,11 +223,9 @@ object Kotonoha {
       scalacOptions ++= Seq("-unchecked", "-language:postfixOps"),
 
       jsDir := file("jslib"),
-      scriptOut <<= (target in Compile).apply(_ / "javascript"),
-      scriptOutputDir <<= scriptOut apply (_ / "static"),
+      scriptOutputDir := (target in com.earldouglas.xwp.WebappPlugin.autoImport.webappPrepare).value / "static",
       (sourceDirectory in compileJs) <<= sourceDirectory in Compile,
       (resourceManaged in(compileJs, CoffeeKeys.coffee)) <<= scriptOutputDir,
-      (WPK.webappResources in Compile) <+= scriptOut,
       unzipJars <<= (jsDir, scriptOutputDir) map {
         (jsd, so) =>
           (jsd * GlobFilter("*.jar")) flatMap { f => IO.unzip(f, so) } get
@@ -241,7 +234,7 @@ object Kotonoha {
       resourceGenerators in compileJs := Nil,
       compile in Compile <<= (compile in Compile).dependsOn(CoffeeKeys.coffee in compileJs),
       copyResources in Compile <<= (copyResources in Compile).dependsOn(unzipJars),
-
+      com.earldouglas.xwp.WebappPlugin.autoImport.webappWebInfClasses := true,
       resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/",
       libraryDependencies ++= (liftDeps ++ akkaDeps ++ rogueDeps ++ kotonohaRestDeps)
     )
