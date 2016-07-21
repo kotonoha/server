@@ -58,8 +58,16 @@ object Common {
         "-deprecation"
       ) ++ base
     },
-    scalacOptions in Compile ++= (if (scalaVersion.value.startsWith("2.11.8")) { Seq("-Ydelambdafy:method") } else { Seq.empty }),
-    scalacOptions in Test ++= (if (scalaVersion.value.startsWith("2.11.8")) { Seq("-Ydelambdafy:inline") } else { Seq.empty })
+    scalacOptions in Compile ++= (if (scalaVersion.value.startsWith("2.11.8")) {
+      Seq("-Ydelambdafy:method")
+    } else {
+      Seq.empty
+    }),
+    scalacOptions in Test ++= (if (scalaVersion.value.startsWith("2.11.8")) {
+      Seq("-Ydelambdafy:inline")
+    } else {
+      Seq.empty
+    })
   ) ++ compatSettings ++ {
     if (ourScalaVer.endsWith("-SNAPSHOT")) {
       resolvers += Resolver.sonatypeRepo("snapshots")
@@ -164,6 +172,12 @@ object Kotonoha {
   val liftVersion = "2.6.3.di"
   val akkaVer = "2.4.8"
   val rogueVer = "2.5.0"
+  val luceneVersion = "6.1.0"
+
+  val luceneDeps = Seq(
+    "org.apache.lucene" % "lucene-core" % luceneVersion,
+    "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion
+  )
 
   val liftDeps = Seq(
     liftPackage %% "lift-util" % liftVersion exclude("joda-time", "joda-time"),
@@ -204,8 +218,8 @@ object Kotonoha {
 
     "org.mongodb" %% "casbah" % "2.8.2" exclude("org.specs2", "*"),
 
-    "net.java.sen" % "lucene-gosen" % "2.1" exclude("org.slf4j", "slf4j-jdk14")
-        exclude("org.apache.solr", "*") exclude("org.apache.lucene", "lucene-test-framework"),
+    "net.java.sen" % "lucene-gosen" % "6.0",
+
     "com.google.zxing" % "javase" % "3.2.1",
     "org.bouncycastle" % "bcprov-jdk15on" % "1.54",
 
@@ -239,7 +253,7 @@ object Kotonoha {
       wapp.webappPrepare <<= wapp.webappPrepare.dependsOn(WebKeys.stage),
       JsEngineKeys.engineType := JsEngineKeys.EngineType.Node,
       resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/",
-      libraryDependencies ++= (liftDeps ++ akkaDeps ++ rogueDeps ++ kotonohaRestDeps)
+      libraryDependencies ++= (liftDeps ++ akkaDeps ++ rogueDeps ++ luceneDeps ++ kotonohaRestDeps)
     )
 
   val modelDeps = Seq(

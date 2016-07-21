@@ -43,7 +43,7 @@ import concurrent.duration.Duration
  */
 
 object Parser extends Akka with ReleaseAkka {
-  val fact = SenFactory.getStringTagger(null)
+  val fact = SenFactory.getStringTagger(null, false)
 
   import net.liftweb.util.Helpers._
 

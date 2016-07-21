@@ -68,6 +68,7 @@ class KotonohaMainModule(cfg: Config, rm: ResourceManager) extends ScalaModule {
     install(new AkkaModule())
     install(new GlobalActorsModule)
     install(new GrpcModule)
+    install(new JmdictModule)
   }
 }
 

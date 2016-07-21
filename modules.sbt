@@ -4,7 +4,7 @@ lazy val kotonoha = (project in file("."))
   .settings(Common.buildSettings)
   .settings(Kotonoha.kotonohaSettings, Pbuf.pbScala(), Pbuf.protoIncludes(eapi, `akane-knp`))
   .settings(jrebelSettings)
-  .dependsOn(model, `akane-legacy`, knockoff, eapi, `grpc-streaming`)
+  .dependsOn(model, `akane-legacy`, knockoff, eapi, `grpc-streaming`, jmdict)
   .enablePlugins(BuildInfoPlugin, JettyPlugin)
 
 lazy val akane = (project in file("akane"))
@@ -13,6 +13,9 @@ lazy val akane = (project in file("akane"))
 lazy val `akane-knp` = (project in file("akane/knp"))
   .settings(Common.buildSettings)
   .settings(Pbuf.pbScala())
+
+lazy val `akane-dic` = (project in file("akane/dic"))
+  .settings(Common.buildSettings)
 
 lazy val `akane-legacy` = (project in file("akane/legacy"))
   .settings(Common.buildSettings)
@@ -31,3 +34,10 @@ lazy val eapi = (project in file("examples-api"))
 
 lazy val `grpc-streaming` = (project in file("grpc-akka-stream"))
   .settings(Common.buildSettings)
+
+lazy val jmdict = (project in file("jmdict"))
+    .settings(Common.buildSettings, Kotonoha.scalatest)
+    .settings(
+      libraryDependencies ++= Kotonoha.luceneDeps,
+      libraryDependencies += "com.github.ben-manes.caffeine" % "caffeine" % "2.3.1"
+    ).dependsOn(`akane-dic`)

@@ -16,16 +16,12 @@
 
 package ws.kotonoha.server.actors
 
-import akka.actor.Actor
-import org.apache.lucene.store.{FSDirectory, SimpleFSDirectory}
 import java.io.{Closeable, File}
-import org.apache.lucene.analysis.gosen.GosenAnalyzer
-import org.apache.lucene.util.Version
-import org.apache.lucene.queryParser.QueryParser
-import org.apache.lucene.index.IndexReader
-import org.apache.lucene.search.{TopScoreDocCollector, IndexSearcher}
-import ws.kotonoha.server.KotonohaConfig
+
+import akka.actor.Actor
 import com.typesafe.scalalogging.{StrictLogging => Logging}
+import org.apache.lucene.store.FSDirectory
+import ws.kotonoha.server.KotonohaConfig
 
 /**
  * @author eiennohito
@@ -38,21 +34,9 @@ case object CloseLucene extends SearchMessage
 case object ReloadLucene extends SearchMessage
 
 class Searcher(directory: FSDirectory) extends Closeable {
-  val ga = new GosenAnalyzer(Version.LUCENE_35)
-  val parser = new QueryParser(Version.LUCENE_35, "text", ga)
-  val ir = IndexReader.open(directory)
-  val searcher = new IndexSearcher(ir)
-
-  def topIds(q: String, max: Int) = {
-    val query = parser.parse(q)
-    val collector = TopScoreDocCollector.create(max, true)
-    searcher.search(query, collector)
-    val docs = collector.topDocs()
-    docs.scoreDocs.map(d => searcher.doc(d.doc).get("id").toLong).toList
-  }
+  def topIds(q: String, max: Int) = { Nil }
 
   def close() {
-    ir.close()
     directory.close()
   }
 }
@@ -63,7 +47,7 @@ class ExampleSearchActor extends Actor with Logging {
 
   def createSearcher: Option[Searcher] = {
     val dirname = KotonohaConfig.safeString("lucene.indexdir")
-    val result = dirname.map(new File(_)).filter(_.exists()).map(s => new Searcher(new SimpleFSDirectory(s)))
+    val result = dirname.map(new File(_)).filter(_.exists()).map(s => new Searcher(null))
     if (result.isEmpty)
       logger.warn("Can not search for examples, lucene.indexdir is not configured, will do nothing")
     result

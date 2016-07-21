@@ -16,15 +16,15 @@
 
 package ws.kotonoha.server.tools
 
+import java.nio.file.Paths
+
 import org.apache.lucene.analysis.gosen.GosenAnalyzer
-import org.apache.lucene.util.Version
-import org.apache.lucene.store.SimpleFSDirectory
-import java.io.File
+import org.apache.lucene.document.Field.Store
+import org.apache.lucene.document.{Document, StringField, TextField}
 import org.apache.lucene.index.{IndexWriter, IndexWriterConfig}
+import org.apache.lucene.store.SimpleFSDirectory
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.dictionary.ExampleSentenceRecord
-import org.apache.lucene.document.{Field, Document}
-import org.apache.lucene.document.Field.{Index, Store}
 
 /**
  * @author eiennohito
@@ -42,9 +42,9 @@ object LuceneExampleIndexer {
 
   def createIndex(path: String) {
     for {
-      ga <- resource.managed(new GosenAnalyzer(Version.LUCENE_35))
-      index <- resource.managed(new SimpleFSDirectory(new File(path)))
-      config = new IndexWriterConfig(Version.LUCENE_35, ga)
+      ga <- resource.managed(new GosenAnalyzer())
+      index <- resource.managed(new SimpleFSDirectory(Paths.get(path)))
+      config = new IndexWriterConfig(ga)
       w <- resource.managed(new IndexWriter(index, config))
     } {
       w.deleteAll()
@@ -54,8 +54,9 @@ object LuceneExampleIndexer {
 
   def makeDoc(rec: ExampleSentenceRecord): Document = {
     val doc = new Document
-    doc.add(new Field("text", rec.content.is, Store.NO, Index.ANALYZED))
-    doc.add(new Field("id", rec.id.toString(), Store.YES, Index.NOT_ANALYZED))
+
+    doc.add(new TextField("text", rec.content.get, Store.NO))
+    doc.add(new StringField("id", rec.id.toString(), Store.YES))
     doc
   }
 

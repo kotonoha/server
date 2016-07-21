@@ -16,13 +16,15 @@
 
 package ws.kotonoha.server.records.dictionary
 
-import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
+import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoMetaRecord, MongoRecord}
 import net.liftweb.record.field.StringField
-import net.liftweb.mongodb.record.field.{MongoListField, MongoCaseClassListField, BsonRecordListField, LongPk}
+import net.liftweb.mongodb.record.field.{BsonRecordListField, LongPk, MongoCaseClassListField, MongoListField}
 import ws.kotonoha.server.mongodb.DictDatabase
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.mongodb.Limit
-import ws.kotonoha.akane.dict.jmdict.{Priority, LocString}
+import ws.kotonoha.akane.dic.jmdict
+import ws.kotonoha.akane.dic.jmdict.CommonInfo
+import ws.kotonoha.akane.dict.jmdict.{LocString, Priority}
 import ws.kotonoha.server.web.comet.Candidate
 import ws.kotonoha.server.math.MathUtil
 
@@ -85,6 +87,23 @@ object JMDictRecord extends JMDictRecord with MongoMetaRecord[JMDictRecord] with
   def forCandidate(cand: Candidate, limit: Int, re: Boolean = false) = {
     val jv = cand.toQuery(re)
     sorted(JMDictRecord.findAll(jv, Limit(limit)), cand)
+  }
+
+  def calculatePriority(entry: CommonInfo) = {
+    val prs = entry.priority.map {
+      case jmdict.Priority.news1 => 2
+      case jmdict.Priority.news2 => 1
+      case jmdict.Priority.ichi1 => 2
+      case jmdict.Priority.ichi2 => 1
+      case jmdict.Priority.spec1 => 2
+      case jmdict.Priority.spec2 => 1
+      case jmdict.Priority.gai1 => 2
+      case jmdict.Priority.gai2 => 1
+      case _ => 0
+    }
+
+    val avg = prs.sum.toFloat / prs.length
+    Math.round(avg) max entry.freq.map(_ / 24).getOrElse(0)
   }
 
   def calculatePriority(strs: List[JMString]): Int = {

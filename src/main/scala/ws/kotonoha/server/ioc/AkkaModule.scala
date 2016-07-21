@@ -22,7 +22,7 @@ import com.google.inject.{Provides, Singleton}
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 /**
   * @author eiennohito
@@ -46,6 +46,9 @@ class AkkaModule(name: String = "k") extends ScalaModule{
 
   @Provides
   def exCont(asys: ActorSystem): ExecutionContext = asys.dispatcher
+
+  @Provides
+  def ece(asys: ActorSystem): ExecutionContextExecutor = asys.dispatcher
 
   @Provides
   @Singleton

@@ -16,64 +16,84 @@
 
 package ws.kotonoha.server.web.snippet
 
-import scala.xml.{Text, NodeSeq}
-import net.liftweb.http.S
-import ws.kotonoha.server.util.LangUtil
-import ws.kotonoha.server.records.dictionary.{JMDictAnnotations, JMDictMeaning, JMString, JMDictRecord}
+import com.google.inject.Inject
 import com.typesafe.scalalogging.{StrictLogging => Logging}
+import net.liftweb.http.{DispatchSnippet, S}
+import org.apache.lucene.search.BooleanClause.Occur
+import ws.kotonoha.akane.dic.jmdict._
+import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
+import ws.kotonoha.server.records.dictionary.JMDictRecord
+import ws.kotonoha.server.util.LangUtil
+
+import scala.collection.mutable.ArrayBuffer
+import scala.xml.{NodeSeq, Text}
 
 /**
  * @author eiennohito
  * @since 23.04.12
  */
 
-object JMDict extends Logging {
+class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging {
   import net.liftweb.util.Helpers._
   import ws.kotonoha.server.util.NodeSeqUtil._
+
+
+  override def dispatch = {
+    case "fld" => fld
+    case "list" => list
+  }
 
   def fld(in: NodeSeq): NodeSeq = {
     val q = S.param("query").openOr("")
     bind("frm", in, AttrBindParam("value", q, "value"))
   }
 
-  def renderRW(in: List[JMString], sep: String): NodeSeq = {
+  def renderR(in: Seq[ReadingInfo], sep: String): NodeSeq = {
     transSeq(in, Text(sep)) { x =>
-      val annots = annot(x.info.is)
-      val prio = JMDictRecord.calculatePriority(x :: Nil)
-      <span><span class={s"dict-rw dict-prio-$prio"}>{x.value.is}</span><span class="dict-rd-tag">{annots}</span></span>
+      val annots = annot(x.info)
+      val prio = JMDictRecord.calculatePriority(x)
+      <span><span class={s"dict-rw dict-prio-$prio"}>{x.content}</span><span class="dict-rd-tag">{annots}</span></span>
     }
   }
 
-  def rendMeaning(m: JMDictMeaning): NodeSeq = {
+  def renderW(in: Seq[KanjiInfo], sep: String): NodeSeq = {
+    transSeq(in, Text(sep)) { x =>
+      val annots = annot(x.info)
+      val prio = JMDictRecord.calculatePriority(x)
+      <span><span class={s"dict-rw dict-prio-$prio"}>{x.content}</span><span class="dict-rd-tag">{annots}</span></span>
+    }
+  }
+
+  def rendMeaning(m: MeaningInfo): NodeSeq = {
     val pos: NodeSeq = {
-      val tmp = annot(m.info.is)
+      val tmp = annot(m.pos ++ m.info)
       if (tmp.isEmpty) tmp
       else Text("(") ++ <span class="dict-mean-tag">{tmp}</span> ++ Text(") ")
     }
-    val bdy = m.vals.is.filter(l => LangUtil.okayLang(l.loc)).map(l => l.str).mkString("; ")
+    val bdy = m.content.filter(l => LangUtil.okayLang(l.lang)).map(l => l.str).mkString("; ")
     pos ++ <span class="dict-mean">{bdy}</span>
   }
 
 
-  def annot(m: List[String]): NodeSeq = {
+  def annot(m: Seq[JmdictTag]): NodeSeq = {
     transSeq(m, Text(", ")) { s =>
-      val lng = JMDictAnnotations.safeValueOf(s).long
-      <span title={lng}>{s}</span>
+      val obj = JmdictTagMap.tagInfo(s.value)
+      <span title={obj.explanation}>{obj.repr}</span>
     }
   }
 
-  def processMeanings(ms: List[JMDictMeaning]): NodeSeq = {
-    ms.tail match {
-      case Nil => <div>{rendMeaning(ms.head)}</div>
-      case _ =>
-        val inner = ms.flatMap(m => <li>{rendMeaning(m)}</li>)
-        <ol class="m-ent">{inner}</ol>
+  def processMeanings(ms: Seq[MeaningInfo]): NodeSeq = {
+    if (ms.length == 1) {
+      <div>{rendMeaning(ms.head)}</div>
+    } else {
+      val inner = ms.flatMap(m => <li>{rendMeaning(m)}</li>)
+      <ol class="m-ent">{inner}</ol>
     }
   }
 
-  def renderMeToo(rec: JMDictRecord) = {
-    val w = rec.writing.is.map(_.value.is).headOption.getOrElse("")
-    val r = rec.reading.is.map(_.value.is).headOption
+  def renderMeToo(rec: JmdictEntry) = {
+    val w = rec.writings.view.map(_.content).headOption.getOrElse("")
+    val r = rec.readings.view.map(_.content).headOption
     if (r.isDefined) {
       val cl = s"lift:ThisToo?wr=$w&rd=${r.get}&src=jmdict"
       <div class={cl}></div>
@@ -83,14 +103,53 @@ object JMDict extends Logging {
     } else NodeSeq.Empty
   }
 
+  private def parseQuery(qs: String): JmdictQuery = {
+    val parts = qs.split("\\s+").filter(_.length > 0)
+
+    val rds = new ArrayBuffer[JmdictQueryPart]()
+    val wrs = new ArrayBuffer[JmdictQueryPart]()
+    val tags = new ArrayBuffer[JmdictQueryPart]()
+    val other = new ArrayBuffer[JmdictQueryPart]()
+
+
+    parts.foreach { p =>
+
+      val (occur, next) = p.charAt(0) match {
+        case '+' => (Occur.MUST, p.substring(1))
+        case '-' => (Occur.MUST_NOT, p.substring(1))
+        case _ => (Occur.SHOULD, p)
+      }
+
+      next.split(":") match {
+        case Array(pref, suf) =>
+          val part = JmdictQueryPart(suf, occur)
+          val coll = pref match {
+            case s if s.startsWith("w") => wrs
+            case s if s.startsWith("r") => rds
+            case s if s.startsWith("t") => tags
+            case _ => other
+          }
+          coll += part
+        case _ =>
+          other += JmdictQueryPart(next)
+      }
+    }
+    JmdictQuery(
+      limit = 50,
+      rds, wrs, tags, other
+    )
+  }
+
   def list(in: NodeSeq): NodeSeq = {
     val q = S.param("query").openOr("")
-    JMDictRecord.query(q, None, 50, true) flatMap { o =>
+    val qobj = parseQuery(q)
+    val results = jmd.find(qobj)
+    results flatMap { o =>
       bind("je", in,
-        "writing" -> renderRW(o.writing.is, ", "),
-        "reading" -> renderRW(o.reading.is, ", "),
+        "writing" -> renderW(o.writings, ", "),
+        "reading" -> renderR(o.readings, ", "),
         "metoo" -> renderMeToo(o),
-        "body" -> processMeanings(o.meaning.is)
+        "body" -> processMeanings(o.meanings)
       )
     }
   }

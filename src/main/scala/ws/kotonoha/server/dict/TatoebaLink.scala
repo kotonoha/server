@@ -30,9 +30,9 @@ case class TatoebaLink(left: Long, right: Long, leftLang: String, rightLang: Str
   def toBuffer(in: ByteBuffer) = {
     import TatoebaLink.intC
     in.putInt(left.toInt)
-    in.putInt(intC(leftLang).toInt)
+    in.putInt(intC(leftLang))
     in.putInt(right.toInt)
-    in.putInt(intC(rightLang).toInt)
+    in.putInt(intC(rightLang))
   }
 }
 
