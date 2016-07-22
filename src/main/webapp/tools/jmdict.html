@@ -72,12 +72,20 @@
       .dict-prio-0 {
         color: #808080;
       }
+
+      .debug {
+        font-size: 9px;
+        line-height: 10px;
+      }
+
+      .debug li { line-height: 10px}
+
     </style>
   </head_merge>
   <div class="lift:ThisTooActorSnippet"></div>
-  <form method="GET" action="jmdict" class="lift:JMDict.fld" xmlns:frm="warodai-form">
+  <form method="GET" action="jmdict" class="lift:JMDict.fld">
     <label>
-      Query <input type="text" name="query" frm:value="">
+      Query <input type="text" name="query" class="query-string">
     </label>
     <input type="submit">
   </form>
@@ -88,16 +96,16 @@
       <span class="dict-prio-0">Uncommon</span>.
     </p>
   </div>
-  <div class="lift:JMDict.list dict-entry" xmlns:je="jmdict-entry">
-    <div>
+  <div class="lift:JMDict.list">
+    <div>Displaying <span class="found"></span> of <span class="total"></span> elements</div>
+    <div class="dict-entry row">
+      <div style="display: inline-block" class="debug pull-right"></div>
       <div class="nihongo">
-        <span class="writing"><je:writing></je:writing></span>
-        <span class="reading">【<je:reading></je:reading>】</span>
-        <span><je:metoo></je:metoo></span>
+        <span class="writing"></span>
+        <span class="reading"></span>
+        <span class="me-too"></span>
       </div>
-      <div>
-        <je:body></je:body>
-      </div>
+      <div class="meanings"></div>
     </div>
   </div>
 </div>

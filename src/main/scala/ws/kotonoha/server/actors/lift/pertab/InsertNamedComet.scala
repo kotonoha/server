@@ -17,10 +17,10 @@
 package com.fmpwizard.cometactor.pertab
 package namedactor
 
-import scala.xml.NodeSeq
-import net.liftweb.http.{SessionVar, S}
 import net.liftweb.common.Full
-import net.liftweb.util.StringHelpers
+import net.liftweb.http.{DispatchSnippet, S, SessionVar}
+
+import scala.xml.NodeSeq
 
 
 /**
@@ -36,7 +36,7 @@ import net.liftweb.util.StringHelpers
  *
  *
  */
-trait InsertNamedComet { self =>
+trait InsertNamedComet extends DispatchSnippet { self =>
   /**
    * These are the two val(s) you would have to
    * override after extending this trait.
@@ -53,6 +53,11 @@ trait InsertNamedComet { self =>
   def messages = List[AnyRef]()
 
   def enabled = true
+
+
+  override def dispatch =  {
+    case "render" => render
+  }
 
   final def render(xhtml: NodeSeq): NodeSeq = {
     if (enabled) {

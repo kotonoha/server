@@ -19,7 +19,10 @@ package ws.kotonoha.server.web.snippet
 import com.google.inject.Inject
 import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.http.{DispatchSnippet, S}
+import net.liftweb.util.Props.RunModes
+import net.liftweb.util.{CanBind, CssSel, Props}
 import org.apache.lucene.search.BooleanClause.Occur
+import org.apache.lucene.search.Explanation
 import ws.kotonoha.akane.dic.jmdict._
 import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
 import ws.kotonoha.server.records.dictionary.JMDictRecord
@@ -37,31 +40,33 @@ class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging 
   import net.liftweb.util.Helpers._
   import ws.kotonoha.server.util.NodeSeqUtil._
 
-
   override def dispatch = {
     case "fld" => fld
     case "list" => list
   }
 
-  def fld(in: NodeSeq): NodeSeq = {
-    val q = S.param("query").openOr("")
-    bind("frm", in, AttrBindParam("value", q, "value"))
+  private val queryString = S.param("query").openOr("")
+
+  val fld: NodeSeqFn = {
+    ".query-string [value]" #> queryString
   }
 
   def renderR(in: Seq[ReadingInfo], sep: String): NodeSeq = {
-    transSeq(in, Text(sep)) { x =>
+    val seq = transSeq(in, Text(sep)) { x =>
       val annots = annot(x.info)
       val prio = JMDictRecord.calculatePriority(x)
       <span><span class={s"dict-rw dict-prio-$prio"}>{x.content}</span><span class="dict-rd-tag">{annots}</span></span>
     }
+    if (seq.isEmpty) seq else <span>【{seq}】</span>
   }
 
   def renderW(in: Seq[KanjiInfo], sep: String): NodeSeq = {
-    transSeq(in, Text(sep)) { x =>
+    val seq = transSeq(in, Text(sep)) { x =>
       val annots = annot(x.info)
       val prio = JMDictRecord.calculatePriority(x)
       <span><span class={s"dict-rw dict-prio-$prio"}>{x.content}</span><span class="dict-rd-tag">{annots}</span></span>
     }
+    seq
   }
 
   def rendMeaning(m: MeaningInfo): NodeSeq = {
@@ -115,8 +120,8 @@ class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging 
     parts.foreach { p =>
 
       val (occur, next) = p.charAt(0) match {
-        case '+' => (Occur.MUST, p.substring(1))
-        case '-' => (Occur.MUST_NOT, p.substring(1))
+        case '+' | '＋' => (Occur.MUST, p.substring(1))
+        case '-' | '−' => (Occur.MUST_NOT, p.substring(1))
         case _ => (Occur.SHOULD, p)
       }
 
@@ -131,26 +136,49 @@ class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging 
           }
           coll += part
         case _ =>
-          other += JmdictQueryPart(next)
+          other += JmdictQueryPart(next, occur)
       }
     }
     JmdictQuery(
       limit = 50,
-      rds, wrs, tags, other
+      rds, wrs, tags, other,
+      explain = Props.mode == RunModes.Development
     )
   }
 
-  def list(in: NodeSeq): NodeSeq = {
-    val q = S.param("query").openOr("")
-    val qobj = parseQuery(q)
-    val results = jmd.find(qobj)
-    results flatMap { o =>
-      bind("je", in,
-        "writing" -> renderW(o.writings, ", "),
-        "reading" -> renderR(o.readings, ", "),
-        "metoo" -> renderMeToo(o),
-        "body" -> processMeanings(o.meanings)
-      )
+  private val qobj = parseQuery(queryString)
+
+  def debug(id: Long, expls: Map[Long, Explanation]): NodeSeq = {
+    def renderExpl(e: Explanation): NodeSeq = {
+
+      val children = e.getDetails.map(renderExpl).map(e => <li>{e}</li>)
+      val stand = <div>{if (e.isMatch) "+" else "-"} {e.getValue} {e.getDescription}</div>
+
+      stand ++ (if (children.isEmpty) Nil else <ul>{children}</ul>)
     }
+
+
+    if (RunModes.Development == Props.mode) {
+      expls.get(id) match {
+        case Some(s) =>
+          <div class="query-explanation">{renderExpl(s)}</div>
+        case None => Nil
+      }
+    } else Nil
+  }
+
+  def list(in: NodeSeq): NodeSeq = {
+    val results = jmd.find(qobj)
+    val fn = ".dict-entry *" #> results.data.map { o =>
+      ".writing *" #> renderW(o.writings, ", ") &
+      ".reading *" #> renderR(o.readings, ", ") &
+      ".meanings *" #> processMeanings(o.meanings) &
+      ".me-too" #> renderMeToo(o) &
+      ".debug *" #> debug(o.id, results.expls)
+    } &
+    ".total" #> results.totalHits &
+    ".found" #> results.data.length
+
+    fn apply in
   }
 }

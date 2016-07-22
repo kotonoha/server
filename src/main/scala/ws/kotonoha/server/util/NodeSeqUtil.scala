@@ -25,6 +25,9 @@ import scala.collection.mutable.ListBuffer
  */
 
 object NodeSeqUtil {
+
+  type NodeSeqFn = NodeSeq => NodeSeq
+
   def mixSeq[T <% NodeSeq, S <% NodeSeq](seq: TraversableOnce[T], sep: S): NodeSeq = {
     val buf = new ListBuffer[Node]
     var first = true

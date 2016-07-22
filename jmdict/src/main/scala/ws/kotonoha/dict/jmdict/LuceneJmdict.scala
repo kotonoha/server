@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream
 import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.Caffeine
+import org.apache.commons.lang3.StringUtils
 import org.apache.lucene.index.{IndexReader, Term}
 import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.search._
@@ -27,6 +28,7 @@ import ws.kotonoha.akane.dic.jmdict.JmdictEntry
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.ExecutionContextExecutor
+import org.apache.lucene.util.automaton.TooComplexToDeterminizeException
 
 /**
   * @author eiennohito
@@ -37,21 +39,86 @@ case class JmdictQuery(
   readings: Seq[JmdictQueryPart],
   writings: Seq[JmdictQueryPart],
   tags: Seq[JmdictQueryPart],
-  other: Seq[JmdictQueryPart]
+  other: Seq[JmdictQueryPart],
+  explain: Boolean = false
 )
 
 case class JmdictQueryPart(term: String, occur: Occur = Occur.SHOULD)
 
+case class JmdictSearchResults(
+  data: Seq[JmdictEntry],
+  expls: Map[Long, Explanation] = Map.empty,
+  totalHits: Int = 0
+)
+
 
 trait LuceneJmdict {
-  def find(q: JmdictQuery): Seq[JmdictEntry]
+  def find(q: JmdictQuery): JmdictSearchResults
 }
 
 class LuceneJmdictImpl(ir: IndexReader, ec: ExecutionContextExecutor) extends LuceneJmdict {
 
-  def makeClause(field: String, jqp: JmdictQueryPart): BooleanClause = {
-    val q = new TermQuery(new Term(field, jqp.term))
-    new BooleanClause(q, jqp.occur)
+  val specialChars = "?*.？＊。．"
+
+  def rewriteForLucene(s: String) = {
+    s.map {
+      case '.' | '。' | '．' | '？' => '?'
+      case '＊' => '*'
+      case x => x
+    }
+  }
+
+  def makeLanguageQuery(field: String, termString: String) = {
+    val toLucene = rewriteForLucene(termString)
+
+    try {
+      val q = new WildcardQuery(new Term(field, toLucene))
+      q.rewrite(ir)
+    } catch {
+      case x if x.isInstanceOf[BooleanQuery.TooManyClauses] || x.isInstanceOf[TooComplexToDeterminizeException] =>
+        new TermQuery(new Term(field, StringUtils.removePattern(toLucene, "[\\?\\*]")))
+    }
+
+  }
+
+  def makeNgramQuery(field: String, termString: String) = {
+    val rewritten = rewriteForLucene(termString)
+    val stars = rewritten.count(_ == '*')
+    val questions = rewritten.count(_ == '?')
+    (stars, questions) match {
+      //case (1, 0) =>
+      //case (0, 1) =>
+      //case (0, n) =>
+      case (x, y) => makeLanguageQuery(field, rewritten)
+    }
+  }
+
+  def parseSpecialQuery(field: String, termString: String): Query = {
+    field match {
+      case "w" | "r" => makeNgramQuery(field, termString)
+      case s if s.length == 3 => makeLanguageQuery(field, termString)
+      case _ => new TermQuery(new Term(field, termString))
+    }
+  }
+
+  def makeClause(field: String, jqp: JmdictQueryPart, boost: Float = 1.0f): BooleanClause = {
+    val termString = jqp.term
+    val q = if (StringUtils.containsAny(termString, specialChars)) {
+      parseSpecialQuery(field, termString)
+    } else {
+      new TermQuery(new Term(field, jqp.term))
+    }
+
+    val wrapped = q match {
+      case x: ConstantScoreQuery => x
+      case _ => new ConstantScoreQuery(q)
+    }
+
+    val boosted = if (boost == 1.0) wrapped else {
+      new BoostQuery(wrapped, boost)
+    }
+
+    new BooleanClause(boosted, jqp.occur)
   }
 
   def makeQuery(q: JmdictQuery): Query = {
@@ -66,15 +133,24 @@ class LuceneJmdictImpl(ir: IndexReader, ec: ExecutionContextExecutor) extends Lu
     }
 
     for (t <- q.tags) {
-      qb.add(makeClause("t", t))
+      qb.add(makeClause("t", t, 0.9f))
     }
 
     for (o <- q.other) {
-      qb.add(makeClause("r", o))
-      qb.add(makeClause("w", o))
-      qb.add(makeClause("t", o))
-      qb.add(makeClause("eng", o))
-      qb.add(makeClause("rus", o))
+      val iq = new BooleanQuery.Builder
+      iq.setDisableCoord(true)
+      val cc = o.copy(occur = Occur.SHOULD)
+      iq.add(makeClause("r", cc, 0.95f))
+      iq.add(makeClause("w", cc))
+      iq.add(makeClause("t", cc, 0.9f))
+      iq.add(makeClause("eng", cc, 0.7f))
+      iq.add(makeClause("rus", cc, 0.7f))
+      o.occur match {
+        case Occur.MUST_NOT | Occur.MUST =>
+          iq.setMinimumNumberShouldMatch(1)
+        case _ =>
+      }
+      qb.add(iq.build(), o.occur)
     }
 
     qb.build()
@@ -90,36 +166,40 @@ class LuceneJmdictImpl(ir: IndexReader, ec: ExecutionContextExecutor) extends Lu
       .build[Integer, JmdictEntry]()
   }
 
-  def getDocs(search: TopDocs): Seq[JmdictEntry] = {
+  def getDocs(search: TopDocs, q: Query, explain: Boolean) = {
     val result = new ArrayBuffer[JmdictEntry](search.scoreDocs.length)
+    var expls = Map[Long, Explanation]()
 
     search.scoreDocs.foreach { sd =>
       val key = Int.box(sd.doc)
-      val cached = docsCache.getIfPresent(key)
-      if (cached != null) {
-        result += cached
-      } else {
+      var cached = docsCache.getIfPresent(key)
+      if (cached == null) {
         val doc = ir.document(sd.doc)
         val blob = doc.getBinaryValue("blob")
 
-        val obj = JmdictEntry.parseFrom(
+        cached = JmdictEntry.parseFrom(
           new ByteArrayInputStream(
             blob.bytes,
             blob.offset,
             blob.length
           )
         )
-        docsCache.put(key, obj)
-        result += obj
+        docsCache.put(key, cached)
+      }
+      result += cached
+
+      if (explain) {
+        val explanation = searcher.explain(q, sd.doc)
+        expls += (cached.id -> explanation)
       }
     }
-    result
+    JmdictSearchResults(result, expls, search.totalHits)
   }
 
-  override def find(q: JmdictQuery) = {
+  override def find(q: JmdictQuery): JmdictSearchResults = {
     val lq = makeQuery(q)
     val search = searcher.search(lq, q.limit)
 
-    getDocs(search)
+    getDocs(search, lq, q.explain)
   }
 }
