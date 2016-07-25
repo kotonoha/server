@@ -24,7 +24,7 @@ import scala.collection.JavaConversions._
 class TestWorks extends org.scalatest.FunSuite with org.scalatest.matchers.ShouldMatchers {
   
   test("it works?") {
-    val fact = SenFactory.getStringTagger(null)
+    val fact = SenFactory.getStringTagger(null, false)
     val tok: List[Token] = fact.analyze("この世は甘くありませんだろう！")
     tok.foreach { t =>
       val m = t.getMorpheme
