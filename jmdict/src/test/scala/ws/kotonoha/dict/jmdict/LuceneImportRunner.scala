@@ -70,6 +70,7 @@ object LuceneImportRunner {
         importer.add(e)
       }
 
+      iw.forceMerge(1, true)
       iw.flush()
     }
   }

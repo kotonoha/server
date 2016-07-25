@@ -19,8 +19,8 @@ package ws.kotonoha.server.web.snippet
 import com.google.inject.Inject
 import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.http.{DispatchSnippet, S}
+import net.liftweb.util.Props
 import net.liftweb.util.Props.RunModes
-import net.liftweb.util.{CanBind, CssSel, Props}
 import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.search.Explanation
 import ws.kotonoha.akane.dic.jmdict._

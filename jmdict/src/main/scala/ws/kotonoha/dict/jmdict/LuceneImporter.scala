@@ -59,6 +59,15 @@ class LuceneImporter(iw: IndexWriter) {
     bldr.toBytesRef
   }
 
+  def fixedInt(i: Int): BytesRef = {
+    val abyte = new Array[Byte](4)
+    abyte(0) = ((i >>> 24) & 0xff).toByte
+    abyte(1) = ((i >>> 16) & 0xff).toByte
+    abyte(2) = ((i >>> 8) & 0xff).toByte
+    abyte(3) = ((i >>> 0) & 0xff).toByte
+    new BytesRef(abyte)
+  }
+
   def makeDoc(entry: JmdictEntry) = {
     val doc = new Document
 
@@ -68,7 +77,7 @@ class LuceneImporter(iw: IndexWriter) {
     val blob = new Field("blob", new BytesRef(data), blobField)
     doc.add(blob)
 
-    doc.add(new Field("hash", ref(MurmurHash3.bytesHash(data, hashSeed)), blobField))
+    doc.add(new Field("hash", fixedInt(MurmurHash3.bytesHash(data, hashSeed)), blobField))
 
     for (r <- entry.readings) {
       doc.add(new StringField("r", r.content, Store.NO))
