@@ -6,6 +6,7 @@ lazy val kotonoha = (project in file("."))
   .settings(jrebelSettings)
   .dependsOn(model, `akane-legacy`, knockoff, eapi, `grpc-streaming`, jmdict)
   .enablePlugins(BuildInfoPlugin, JettyPlugin)
+  .aggregate(jmdict)
 
 lazy val akane = (project in file("akane"))
   .settings(Common.buildSettings)
