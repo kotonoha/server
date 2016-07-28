@@ -16,28 +16,35 @@
 
 package ws.kotonoha.server.web.comet
 
+import javax.inject.Inject
+
+import akka.actor.{ActorRef, Status}
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
-import ws.kotonoha.server.actors.lift.{Ping, AkkaInterop}
-import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.http.{ShutDown, S, RenderOut}
-import net.liftweb.common.{Box, Empty, Full}
-import net.liftweb.http.js.{JE, JsCmds}
-import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadWords}
-import util.Random
-import net.liftweb.http.js.JE.{Call, JsRaw}
-import net.liftweb.json.DefaultFormats
-import ws.kotonoha.server.records._
-import events.MarkEventRecord
-import ws.kotonoha.server.util.DateTimeUtils
-import ws.kotonoha.server.learning.ProcessMarkEvent
-import xml.{Text, NodeSeq, Utility}
-import net.liftweb.json.JsonAST.{JField, JObject, JValue}
-import net.liftweb.http.js.JsCmds.SetHtml
-import org.bson.types.ObjectId
-import akka.actor.{Status, ActorRef}
 import com.typesafe.scalalogging.{StrictLogging => Logging}
-import ws.kotonoha.server.actors.schedulers.{RepetitionStateResolver, ReviewCard}
+import net.liftweb.common.{Box, Empty, Full}
+import net.liftweb.http.js.JE.{Call, JsRaw}
+import net.liftweb.http.js.JsCmds
+import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.http.{RenderOut, ShutDown}
+import net.liftweb.json.DefaultFormats
+import net.liftweb.json.JsonAST.{JField, JObject, JValue}
 import net.liftweb.util.Helpers.TimeSpan
+import org.apache.lucene.search.BooleanClause.Occur
+import org.bson.types.ObjectId
+import ws.kotonoha.akane.dic.jmdict.JmdictTag
+import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
+import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import ws.kotonoha.server.actors.learning.{LoadWords, WordsAndCards}
+import ws.kotonoha.server.actors.lift.{AkkaInterop, Ping}
+import ws.kotonoha.server.actors.schedulers.{RepetitionStateResolver, ReviewCard}
+import ws.kotonoha.server.japanese.ConjObj
+import ws.kotonoha.server.learning.ProcessMarkEvent
+import ws.kotonoha.server.records._
+import ws.kotonoha.server.records.events.MarkEventRecord
+import ws.kotonoha.server.util.DateTimeUtils
+
+import scala.util.Random
+import scala.xml.{NodeSeq, Text, Utility}
 
 /**
  * @author eiennohito
@@ -54,7 +61,10 @@ case object UpdateNum
 
 trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   import DateTimeUtils._
+
   import concurrent.duration._
+
+  def jms: LuceneJmdict
 
   def self = this
 
@@ -106,10 +116,24 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
     sb.toString()
   }
 
+  def processWord(writing: String, reading: Option[String]): Option[NodeSeq] = try {
+    val q = JmdictQuery(
+      limit = 5,
+      writings = Seq(JmdictQueryPart(writing, Occur.MUST)),
+      readings = reading.map(r => JmdictQueryPart(r, Occur.MUST)).toSeq
+    )
+    val entries = jms.find(q)
+    val meanings = entries.data.headOption.toSeq.flatMap(_.meanings)
+    val word_type = meanings.flatMap(_.pos)
+    val cobj = ConjObj(word_type.headOption.getOrElse(JmdictTag.exp).name, writing)
+    val ns1 = cobj.masuForm.data map {c => <div>{c}</div> }
+    val ns2 = cobj.teForm.data map {c => <div>{c}</div>}
+    ns1 flatMap{s => ns2 map {t => s ++ t}}
+  } catch { case _: Throwable => None }
+
   def publish(words: List[WordRecord], cards: List[WordCardRecord], seq: List[ReviewCard]): Unit = {
-    import ws.kotonoha.server.util.KBsonDSL._
     import net.liftweb.json.{compact => jc, render => jr}
-    import ws.kotonoha.server.util.WordUtils.processWord
+    import ws.kotonoha.server.util.KBsonDSL._
     val wm = words.map(w => (w.id.is, w)).toMap
     val cm = cards.map(c => (c.id.is, c)).toMap
     def getExamples(in: List[ExampleRecord], max: Int) = {
@@ -138,8 +162,9 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   }
 
   def processMark(mark: WebMark): Unit = {
-    import concurrent.duration._
     import DateTimeUtils._
+
+    import concurrent.duration._
 
     val me = MarkEventRecord.createRecord
     val cid = new ObjectId(mark.card)
@@ -184,4 +209,6 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
   override def lifespan: Box[TimeSpan] = Full(15 minutes)
 }
 
-class RepeatActor extends RepeatActorT with ReleaseAkka
+class RepeatActor @Inject() (
+  val jms: LuceneJmdict
+) extends RepeatActorT with ReleaseAkka

@@ -16,33 +16,38 @@
 
 package ws.kotonoha.server.actors
 
-import akka.actor.{ActorLogging, OneForOneStrategy, Props, Actor}
+import javax.inject.Inject
+
+import akka.actor.{Actor, ActorLogging, OneForOneStrategy}
 import auth.ClientRegistry
 import interop.{JumanMessage, JumanRouter}
-import lift.{LiftMessage, LiftActorService}
+import lift.{LiftActorService, LiftMessage}
 import com.fmpwizard.cometactor.pertab.namedactor.{NamedCometMessage, PertabCometManager}
 import akka.actor.SupervisorStrategy.Restart
 import tags.{TagMessage, TagService}
-import ws.kotonoha.server.actors.dict.{ExampleMessage, ExampleActor}
+import ws.kotonoha.server.actors.dict.{ExampleActor, ExampleMessage}
+import ws.kotonoha.server.ioc.IocActors
 
 /**
  * @author eiennohito
  * @since 07.01.13 
  */
-class ServiceActor extends Actor with ActorLogging {
+class ServiceActor @Inject() (
+  ioc: IocActors
+) extends Actor with ActorLogging {
 
   import concurrent.duration._
 
-  val mongo = context.actorOf(Props[MongoDBActor], "mongo")
-  lazy val jumanActor = context.actorOf(Props[JumanRouter], "juman")
-  lazy val securityActor = context.actorOf(Props[SecurityActor], "security")
-  lazy val luceneActor = context.actorOf(Props[ExampleSearchActor], "lucene")
-  lazy val liftActor = context.actorOf(Props[LiftActorService], "lift")
-  lazy val lifetime = context.actorOf(Props[LifetimeActor], "lifetime")
-  lazy val cometActor = context.actorOf(Props[PertabCometManager], "comet")
-  lazy val clientActor = context.actorOf(Props[ClientRegistry], "clients")
-  lazy val tagSvc = context.actorOf(Props[TagService], "tags")
-  lazy val globalExampleSvc = context.actorOf(Props[ExampleActor], "examples")
+  val mongo = context.actorOf(ioc.props[MongoDBActor], "mongo")
+  lazy val jumanActor = context.actorOf(ioc.props[JumanRouter], "juman")
+  lazy val securityActor = context.actorOf(ioc.props[SecurityActor], "security")
+  lazy val luceneActor = context.actorOf(ioc.props[ExampleSearchActor], "lucene")
+  lazy val liftActor = context.actorOf(ioc.props[LiftActorService], "lift")
+  lazy val lifetime = context.actorOf(ioc.props[LifetimeActor], "lifetime")
+  lazy val cometActor = context.actorOf(ioc.props[PertabCometManager], "comet")
+  lazy val clientActor = context.actorOf(ioc.props[ClientRegistry], "clients")
+  lazy val tagSvc = context.actorOf(ioc.props[TagService], "tags")
+  lazy val globalExampleSvc = context.actorOf(ioc.props[ExampleActor], "examples")
 
   override def receive = {
     case msg: DbMessage => mongo.forward(msg)

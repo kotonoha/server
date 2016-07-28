@@ -17,27 +17,29 @@
 package ws.kotonoha.server.dict
 
 import org.bson.types.ObjectId
-import org.scalatest.{FreeSpec, Matchers}
 import ws.kotonoha.akane.juman.JumanPipeExecutor
+import ws.kotonoha.dict.jmdict._
 import ws.kotonoha.server.actors.recommend.RecommendRequest
-import ws.kotonoha.server.mongo.MongoAwareTest
+import ws.kotonoha.server.actors.schedulers.AkkaFree
 
 /**
  * @author eiennohito
  * @since 20.03.13 
  */
 
-class RecommenderTest extends FreeSpec with Matchers with MongoAwareTest {
+
+
+class RecommenderTest extends AkkaFree {
   val juman = JumanPipeExecutor.apply()
 
   "recommender" - {
-    lazy val rec = new Recommender(new ObjectId())
+    lazy val rec = new Recommender(new ObjectId(), inst[LuceneJmdict], Nil)
     "should give something for watashi" ignore {
       val wr = "私"
       val rd = "わたし"
       val jd = juman.parse(wr)
       val req = RecommendRequest(Some(wr), Some(rd), jd)
-      rec.preprocess(req).length should be >= (2)
+      rec.preprocess(req).length should be >= 2
     }
   }
 
@@ -50,14 +52,14 @@ class RecommenderTest extends FreeSpec with Matchers with MongoAwareTest {
     "kun recommender should give at least watashi" ignore {
       val rec = new SingleKunRecommender(100)
       val res = rec.apply(dr)
-      val processed = res.flatMap(_.select(Nil)).distinct
+      val processed = res.flatMap(_.select(inst[LuceneJmdict], Nil)).distinct
       processed.length should be >= (1)
     }
 
     "jukugo recommender should give a lot of different things" ignore {
       val rec = new SimpleJukugoRecommender(100)
       val res = rec.apply(dr)
-      val processed = res.flatMap(_.select(Nil)).distinct
+      val processed = res.flatMap(_.select(inst[LuceneJmdict], Nil)).distinct
       processed.length should be >= (1)
     }
   }

@@ -92,7 +92,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
 
   def createCreator() = {
     uact = akkaServ.userActor(uid)
-    val a = createActor(Props[WordCreateActor], parent = uact)
+    val a = createActor[WordCreateActor](parent = uact)
     logger.info("Word creator actor created successfully")
     wordCreator = a
   }
@@ -420,7 +420,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     case ProcessJson(js) => process(js)
     case DoRenderAndDisplay(wd) => renderAndPush(wd)
     case RemoveItem(hid) => displaying -= hid
-    case PossibleTags(tags) => pushTags(tags)
+    case PossibleTags(tags) => pushTags(tags.toList)
     case x: Boolean => // do nothing
     case RecommenderReply(req, info) => processRecommended(req, info)
   }

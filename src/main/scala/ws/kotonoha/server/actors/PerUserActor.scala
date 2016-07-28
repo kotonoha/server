@@ -17,19 +17,20 @@
 package ws.kotonoha.server.actors
 
 import akka.actor._
-import akka.pattern.ask
-import org.bson.types.ObjectId
-import concurrent.duration._
 import akka.util.Timeout
-import concurrent.{Await, ExecutionContext}
+import org.bson.types.ObjectId
+import ws.kotonoha.server.ioc.IocActors
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext}
 
 /**
  * @author eiennohito
  * @since 06.01.13 
  */
 
-class PerUserActor(oid: ObjectId) extends Actor {
-  val guard = context.actorOf(Props[UserGuardActor], "guard")
+class PerUserActor(ioc: IocActors, oid: ObjectId) extends Actor {
+  val guard = context.actorOf(ioc.props[UserGuardActor], "guard")
 
   override def receive = {
     case UserId => sender ! oid
@@ -39,7 +40,7 @@ class PerUserActor(oid: ObjectId) extends Actor {
 
 case object UserId
 
-import GlobalActor._
+import ws.kotonoha.server.actors.GlobalActor._
 
 object ActorUtil {
   def actFor(arp: ActorRefFactory, path: ActorPath, timeout: Timeout = 5.seconds): ActorRef = {
@@ -53,7 +54,7 @@ object ActorUtil {
   }
 }
 
-import ActorUtil.aOf
+import ws.kotonoha.server.actors.ActorUtil.aOf
 
 trait KotonohaActor extends Actor {
 
@@ -71,7 +72,7 @@ trait KotonohaActor extends Actor {
     context.actFor(svcPath)
   }
 
-  implicit val ec: ExecutionContext = context.system.dispatcher
+  implicit def ec: ExecutionContext = context.system.dispatcher
 }
 
 trait RootActor { this: KotonohaActor =>

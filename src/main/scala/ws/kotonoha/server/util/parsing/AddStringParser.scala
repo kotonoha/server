@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.util.parsing
 
-import util.parsing.combinator.RegexParsers
+import scala.util.parsing.combinator.RegexParsers
 import ws.kotonoha.server.util.Strings
 import ws.kotonoha.server.web.comet.Candidate
 

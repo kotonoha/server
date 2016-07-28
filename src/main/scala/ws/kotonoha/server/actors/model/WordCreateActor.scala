@@ -16,45 +16,42 @@
 
 package ws.kotonoha.server.actors.model
 
-import akka.actor.{Props, ActorLogging}
-import ws.kotonoha.server.records._
-import events.AddWordRecord
-import net.liftweb.common.{Empty, Box}
-import ws.kotonoha.server.actors.dict.DictType._
-import ws.kotonoha.server.actors.{UserScopedActor, SearchQuery}
-import ws.kotonoha.server.web.comet.TimeoutException
-import akka.util.Timeout
-import ws.kotonoha.server.actors.dict._
-import ws.kotonoha.server.util.{DateTimeUtils, LangUtil}
+import javax.inject.Inject
+
+import akka.actor.ActorLogging
 import akka.pattern.ask
-import concurrent.duration._
-import ws.kotonoha.server.actors.dict.DictQuery
-import ws.kotonoha.server.actors.dict.TranslationsWithLangs
-import scala.Some
-import ws.kotonoha.server.actors.dict.LoadExamples
-import ws.kotonoha.server.actors.dict.ExampleIds
-import ws.kotonoha.server.actors.dict.SearchResult
-import ws.kotonoha.server.actors.dict.ExampleEntry
-import ws.kotonoha.akane.unicode.{KanaUtil, UnicodeUtil}
+import akka.util.Timeout
+import net.liftweb.common.{Box, Empty}
 import org.bson.types.ObjectId
-import concurrent.{Future, Promise}
-import ws.kotonoha.server.actors.tags.auto.{PossibleTags, PossibleTagRequest, WordAutoTagger}
+import ws.kotonoha.akane.unicode.{KanaUtil, UnicodeUtil}
+import ws.kotonoha.server.actors.dict.DictType._
+import ws.kotonoha.server.actors.dict.{DictQuery, ExampleEntry, ExampleIds, LoadExamples, SearchResult, TranslationsWithLangs, _}
+import ws.kotonoha.server.actors.tags.auto.{PossibleTagRequest, PossibleTags, WordAutoTagger}
+import ws.kotonoha.server.actors.{SearchQuery, UserScopedActor}
+import ws.kotonoha.server.ioc.IocActors
+import ws.kotonoha.server.records._
+import ws.kotonoha.server.records.events.AddWordRecord
+import ws.kotonoha.server.util.{DateTimeUtils, LangUtil}
+import ws.kotonoha.server.web.comet.TimeoutException
+
+import scala.concurrent.duration._
+import scala.concurrent.{Future, Promise}
 
 /**
  * @author eiennohito
  * @since 22.10.12 
  */
 
-case class DictData(name: String, data: List[DictCard])
+case class DictData(name: String, data: Seq[DictCard])
 
 case class ExampleForSelection(ex: String, translation: Box[String], id: Long)
 
-case class WordData(dicts: List[DictData], examples: List[ExampleForSelection], word: WordRecord, onSave: Promise[WordData], init: AddWordRecord)
+case class WordData(dicts: Seq[DictData], examples: List[ExampleForSelection], word: WordRecord, onSave: Promise[WordData], init: AddWordRecord)
 
 case class DictCard(writing: String, reading: String, meaning: String)
 
 object DictCard {
-  def makeCard(writing: List[String], reading: List[String], meaning: List[String]) = {
+  def makeCard(writing: Seq[String], reading: Seq[String], meaning: Seq[String]) = {
     DictCard(
       writing.mkString(", "),
       reading.mkString(", "),
@@ -66,14 +63,16 @@ object DictCard {
 
 case class CreateWordData(in: AddWordRecord)
 
-class WordCreateActor extends UserScopedActor with ActorLogging {
+class WordCreateActor @Inject() (
+  ioc: IocActors
+) extends UserScopedActor with ActorLogging {
 
   import DateTimeUtils._
   import akka.pattern.pipe
 
-  implicit val timeout: Timeout = 10 seconds
+  implicit val timeout: Timeout = 10.seconds
 
-  lazy val tagger = context.actorOf(Props[WordAutoTagger], "tagger")
+  lazy val tagger = context.actorOf(ioc.props[WordAutoTagger], "tagger")
 
   def firstElem(s: String) = {
     val parts = s.split("[,、･]")
@@ -141,7 +140,7 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
       val dicts = List(collapse(sr1, "JMDict"), collapse(sr2, "Warodai"))
       log.debug("Calculated word data")
       val onSave = Promise[WordData]()
-      val canc = context.system.scheduler.scheduleOnce(15 minutes)(() => onSave.tryComplete(util.Failure(new TimeoutException)))
+      val canc = context.system.scheduler.scheduleOnce(15 minutes)(() => onSave.tryComplete(scala.util.Failure(new TimeoutException)))
       onSave.future.foreach(_ => canc.cancel())
       WordData(dicts, ex, createWord(rec.user.is, dicts, ex, t), onSave, rec)
     }
@@ -155,8 +154,8 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
       in.entries.map({
         //if there is no writing and has katakana-only elems
         //then we make an entry (kana, hira from kata, meaning)
-        case DictionaryEntry(Nil, rd, mn) if rd.exists(isk(_)) => {
-          makeCard(rd, rd.filter(isk(_)).map(KanaUtil.kataToHira(_)), mn)
+        case DictionaryEntry(Nil, rd, mn) if rd.exists(isk) => {
+          makeCard(rd, rd.filter(isk).map(KanaUtil.kataToHira), mn)
         }
         case DictionaryEntry(wr, rd, mn) => makeCard(wr, rd, mn)
       })
@@ -167,7 +166,7 @@ class WordCreateActor extends UserScopedActor with ActorLogging {
                  examples: List[ExampleForSelection], tags: PossibleTags): WordRecord = {
     val rec = WordRecord.createRecord
     rec.user(user).status(WordStatus.New).createdOn(now)
-    rec.tags(tags.tags)
+    rec.tags(tags.tags.toList)
 
     //    val exs = examples.map { e =>
     //      ExampleRecord.createRecord.id(e.id).example(e.ex).translation(e.translation.openOr(""))

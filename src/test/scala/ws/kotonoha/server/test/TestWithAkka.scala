@@ -18,27 +18,27 @@ package ws.kotonoha.server.test
 
 import akka.testkit.{TestKit, TestProbe}
 import akka.util.Timeout
+import com.mongodb.casbah.WriteConcern
+import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.mongodb.record.MongoRecord
-
-import concurrent.duration._
-import ws.kotonoha.server.records.UserRecord
 import org.joda.time.DateTime
+import ws.kotonoha.server.ioc.Res
 import ws.kotonoha.server.mongo.MongoAwareTest
+import ws.kotonoha.server.records.UserRecord
 
-import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.util.Random
 
 /**
  * @author eiennohito
- * @since 08.01.13 
+ * @since 08.01.13
  */
-class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) extends TestKit(kta.system) with MongoAwareTest {
+class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) extends TestKit(kta.system) with MongoAwareTest with StrictLogging {
   implicit val timeout: Timeout = 5 minutes
-
 
   def withRec[T <: MongoRecord[T]](fact: => T)(f: T => Unit): Unit = {
     val rec = fact
-    rec.save
+    rec.save(WriteConcern.Acknowledged)
     f(rec)
     rec.delete_!
   }
@@ -46,8 +46,8 @@ class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) e
   def createUser() = {
     val user = UserRecord.createRecord
     user.username("test" + new DateTime() + Random.nextLong().toHexString)
-    user.save
-    user.id.is
+    user.save(WriteConcern.Acknowledged)
+    user.id.get
   }
 
   def cleanup(seqs: TraversableOnce[MongoRecord[_]]*) = {
@@ -56,8 +56,16 @@ class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) e
 
   def probe = TestProbe()(kta.system)
 
+  def inst[T: Manifest] = kta.ioc.inst[T]
+
+
+  override protected def beforeAll() = {
+    super.beforeAll()
+    logger.debug(s"created akka system ${kta.system.name}")
+  }
+
   override protected def afterAll() = {
-    Await.result(kta.system.terminate(), 10.seconds)
     super.afterAll()
+    kta.inj.getInstance(classOf[Res]).close()
   }
 }

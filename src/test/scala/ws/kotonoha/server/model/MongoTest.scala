@@ -165,7 +165,7 @@ with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
 
     val ar = kta.userContext(userId).userActor[CardLoader]("usa")
     ar.receive(LoadNewCards(userId, 10), testActor)
-    val cards = receiveOne(1 minute).asInstanceOf[List[WordCardRecord]]
+    val cards = receiveOne(1.minute).asInstanceOf[List[WordCardRecord]]
     cards should have length (10)
   }
 
@@ -198,7 +198,7 @@ with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
 
   test("full work cycle") {
     val fs = Future.sequence(1 to 5 map {
-      x => saveWordAsync
+      _ => saveWordAsync
     })
     Await.result(fs, 2.seconds)
 

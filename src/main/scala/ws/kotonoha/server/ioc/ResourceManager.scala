@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.reflect.ClassTag
 
 /**
@@ -31,6 +32,7 @@ trait Res extends AutoCloseable {
   def register[T <: AutoCloseable](res: T)(implicit ct: ClassTag[T]): Unit
   def make[T <: AutoCloseable](f : => T)(implicit ct: ClassTag[T]): T
   def makeOrCached[T <: AutoCloseable](key: AnyRef, f: => T)(implicit ct: ClassTag[T]): T
+  def closeResources(res: AutoCloseable*): Unit
 }
 
 class ResourceManager extends Res {
@@ -69,6 +71,32 @@ class ResourceManager extends Res {
         present.asInstanceOf[T]
       }
     } else init.asInstanceOf[T]
+  }
+
+
+  override def closeResources(res: AutoCloseable*) = {
+    val keys = new mutable.ArrayBuffer[(AnyRef, AutoCloseable)]()
+    val it = keyCache.entrySet().iterator()
+    while (it.hasNext) {
+      val e = it.next()
+      if (res.contains(e.getValue)) {
+        keys += e.getKey -> e.getValue
+      }
+    }
+    keys.foreach { case (k, v) => keyCache.remove(k, v) }
+
+    @tailrec
+    def updRes(): Unit = {
+      val start = resources.get()
+      val updated = start.filterNot(c => res.contains(c))
+      if (!resources.compareAndSet(start, updated)) {
+        updRes()
+      }
+    }
+
+    updRes()
+
+    res.foreach(_.close())
   }
 
   override def close() = {

@@ -27,7 +27,7 @@ import ws.kotonoha.server.records.{UserTagInfo, WordRecord}
 trait TagMessage extends KotonohaMessage
 
 //peruser messages
-case class TagWord(rec: WordRecord, ops: List[TagOp]) extends TagMessage
+case class TagWord(rec: WordRecord, ops: Seq[TagOp]) extends TagMessage
 
 //service messages
 case object ServiceActor extends TagMessage

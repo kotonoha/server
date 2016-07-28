@@ -21,13 +21,10 @@ import java.util.{ArrayList => JList}
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.pipe.juman.JumanEntry
 import ws.kotonoha.akane.unicode.UnicodeUtil
+import ws.kotonoha.dict.jmdict.LuceneJmdict
 import ws.kotonoha.server.actors.recommend.RecommendRequest
 import ws.kotonoha.server.dict.kanjidic.Kanjidic
 import ws.kotonoha.server.records.dictionary.KanjidicRecord
-import ws.kotonoha.server.records.events.AddWordRecord
-import ws.kotonoha.server.records.{RecommendationIgnore, WordRecord}
-
-import scala.collection.mutable
 
 /**
  * @author eiennohito
@@ -60,8 +57,6 @@ object WordClassResolver {
 }
 
 object Recommender {
-  val validPos = "(^名詞-.*$)|(^動詞-自立$)|(^形容詞-自立$)|(^副詞-.*$)".r
-
   def kanji(prio: Int) = new KanjiRecommender(prio)
   def kun(prio: Int) = new SingleKunRecommender(prio)
   def on(prio: Int) = new SingleOnRecommender(prio)
@@ -69,14 +64,15 @@ object Recommender {
   def juman(prio: Int) = new JumanRecommender(prio)
 }
 
-class Recommender(uid: ObjectId) {
+class Recommender(uid: ObjectId, jmd: LuceneJmdict, ignores: Seq[Long]) {
   import Recommender._
-  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
-  lazy val longjuku = List(kanji(100), kun(50), on(30))
-  lazy val shortjuku = List(kun(100), on(75), juku(25))
-  lazy val single = List(juku(100), juman(70), kun(50), on(50))
-  lazy val rest = List(kun(70), on(70), juku(70), juman(50))
+  val longjuku = List(kanji(100), kun(50), on(30))
+  val shortjuku = List(kun(100), on(75), juku(25))
+  val single = List(juku(100), juman(70), kun(50), on(50))
+  val rest = List(kun(70), on(70), juku(70), juman(50))
+
+  //val ignores = RecommendationIgnore where (_.user eqs uid) select(_.jmdict) fetch()
 
 
   def preprocess(cand: RecommendRequest): List[RecommendedSubresult] = {
@@ -93,21 +89,13 @@ class Recommender(uid: ObjectId) {
         } else {
           if (ir.kanji.length == 1) single else rest
         }
-        val ignored = RecommendationIgnore where (_.user eqs uid) select(_.jmdict) fetch()
-        selector.flatMap(x => x.apply(ir)).flatMap(x => x.select(ignored))
+        val selectors = selector.flatMap(x => x.apply(ir))
+        selectors.flatMap(x => x.select(jmd, ignores))
     }
   }
 
   def process(cand: RecommendRequest) = {
     val data = preprocess(cand)
-    val wrs = data.flatMap(_.item.writing.is.map(_.value.is))
-    val dbwrs = WordRecord where (_.user eqs uid) and (_.writing in wrs) select(_.writing) fetch()
-    val addwrs = AddWordRecord where (_.user eqs uid) and (_.processed eqs false) select(_.writing) fetch()
-    val set = new mutable.HashSet[String]()
-    cand.writ.foreach(set += _)
-    set ++= addwrs
-    set ++= dbwrs.flatten
-    val filtered = data.filterNot(_.item.writing.is.exists(x => set.contains(x.value.is)))
-    filtered.sortBy(_.prio).distinct
+    data.sortBy(_.prio).distinct
   }
 }

@@ -16,6 +16,8 @@
 
 package ws.kotonoha.server.actors
 
+import javax.inject.Inject
+
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, OneForOneStrategy, Props}
 
 import concurrent.duration._
@@ -23,6 +25,7 @@ import akka.actor.SupervisorStrategy.Restart
 import akka.util.Timeout
 import com.google.inject.{Provides, Singleton}
 import net.codingwell.scalaguice.ScalaModule
+import ws.kotonoha.server.ioc.IocActors
 
 import scala.concurrent.Await
 
@@ -31,19 +34,23 @@ import scala.concurrent.Await
  * @since 07.01.13 
  */
 
-class GlobalActor extends Actor with ActorLogging {
+class GlobalActor @Inject()(ioc: IocActors) extends Actor with ActorLogging {
   override def supervisorStrategy() = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 hour, loggingEnabled = true) {
     case e => log.error(e, "Error in global actor"); Restart
   }
 
-  val svcs = context.actorOf(Props[ServiceActor], GlobalActor.svcName)
-  val user = context.actorOf(Props[UserActorManager], GlobalActor.userName)
+  val svcs = context.actorOf(ioc.props[ServiceActor], GlobalActor.svcName)
+  val user = context.actorOf(ioc.props[UserActorManager], GlobalActor.userName)
 
   override def receive = {
+    case GetGlobalActors => sender() ! GlobalActorRefs(svcs, user)
     case x: MessageForUser => user.forward(x)
     case x => svcs.forward(x)
   }
 }
+
+case object GetGlobalActors
+case class GlobalActorRefs(services: ActorRef, users: ActorRef)
 
 object GlobalActor {
   val globalName = "global"
@@ -63,20 +70,20 @@ class GlobalActorsModule extends ScalaModule {
   @Provides
   @Singleton
   def globalActors(
-    asys: ActorSystem
+    asys: ActorSystem,
+    ioc: IocActors
   ): GlobalActors = {
-    val gact = asys.actorOf(Props[GlobalActor], GlobalActor.globalName)
-    val svcPath = gact.path / GlobalActor.svcName
-    val usrPath = gact.path / GlobalActor.userName
-
+    val gact = asys.actorOf(ioc.props[GlobalActor], GlobalActor.globalName)
     implicit val timeout: Timeout = 5.seconds
-    val svcF = asys.actorSelection(svcPath).resolveOne()
-    val usrF = asys.actorSelection(usrPath).resolveOne()
+    import akka.pattern.ask
+
+    val future = gact ? GetGlobalActors
+    val res = Await.result(future.mapTo[GlobalActorRefs], timeout.duration)
 
     new GlobalActors {
       override val global = gact
-      override val users = Await.result(usrF, 5.seconds)
-      override val services = Await.result(svcF, 5.seconds)
+      override val users = res.users
+      override val services = res.services
     }
   }
 

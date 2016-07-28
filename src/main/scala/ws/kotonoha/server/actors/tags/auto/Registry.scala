@@ -16,51 +16,61 @@
 
 package ws.kotonoha.server.actors.tags.auto
 
-import akka.actor.{ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, Props}
 import ws.kotonoha.server.actors.tags.TagMessage
 import ws.kotonoha.server.actors.UserScopedActor
+
 import concurrent.Future
 import akka.util.Timeout
+import com.google.inject.Inject
+import ws.kotonoha.server.ioc.IocActors
 
 /**
  * @author eiennohito
  * @since 20.01.13 
  */
 
-case class AutoTagger(name: String, wiki: Option[String], props: Props)
+//for manifest
+import language.existentials
+
+case class AutoTagger(name: String, wiki: Option[String], clz: Manifest[_])
+
 
 object Registry {
+
+  private def mf[T](implicit mf: Manifest[T]) = mf
+
   val taggers = List(
-    AutoTagger("basic", None, Props[BasicTagger]),
-    AutoTagger("jmdict", None, Props[JMDictTagger]),
-    AutoTagger("yojijukugo", None, Props[YojijukugoTagger]),
-    AutoTagger("kanjdic", None, Props[KanjidicTagger])
+    AutoTagger("basic", None, mf[BasicTagger]),
+    AutoTagger("jmdict", None, mf[JMDictTagger]),
+    AutoTagger("yojijukugo", None, mf[YojijukugoTagger]),
+    AutoTagger("kanjdic", None, mf[KanjidicTagger])
   )
 }
 
 case class PossibleTagRequest(writing: String, reading: Option[String]) extends TagMessage
 
-case class PossibleTags(tags: List[String])
+case class PossibleTags(tags: Seq[String])
 
-class WordAutoTagger extends UserScopedActor with ActorLogging {
+class WordAutoTagger @Inject() (
+  ioc: IocActors
+) extends UserScopedActor with ActorLogging {
 
   import akka.pattern.{ask, pipe}
   import concurrent.duration._
 
   lazy val children = {
     Registry.taggers.map {
-      n =>
-        context.actorOf(n.props, n.name)
+      n => context.actorOf(ioc.props(n.clz), n.name)
     }
   }
 
   implicit val timeout: Timeout = 5 seconds
 
   def receive = {
-    case r: PossibleTagRequest => {
+    case r: PossibleTagRequest =>
       val futs = children.map(_ ? r).map(_.mapTo[PossibleTags])
       val f = Future.fold(futs)(List[String]())(_ ++ _.tags).map(l => PossibleTags(l.distinct))
       f pipeTo sender
-    }
   }
 }

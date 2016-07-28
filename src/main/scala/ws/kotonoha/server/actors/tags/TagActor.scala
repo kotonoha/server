@@ -60,8 +60,8 @@ class TagActor extends UserScopedActor with ActorLogging {
     handleUsage(tag, cnt)
   }
 
-  def tagWord(rec: WordRecord, ops: List[TagOp]) {
-    val wrs = rec.writing.is
+  def tagWord(rec: WordRecord, ops: Seq[TagOp]) {
+    val wrs = rec.writing.get
     var cur = new ListBuffer() ++ rec.tags.is
     ops.foreach {
       case AddTag(tag) => {

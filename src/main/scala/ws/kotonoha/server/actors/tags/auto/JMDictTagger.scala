@@ -16,10 +16,11 @@
 
 package ws.kotonoha.server.actors.tags.auto
 
+import com.google.inject.Inject
+import ws.kotonoha.akane.dic.jmdict.{CommonInfo, JMDictUtil, JmdictTag, JmdictTagMap}
+import ws.kotonoha.dict.jmdict.LuceneJmdict
 import ws.kotonoha.server.actors.UserScopedActor
 import ws.kotonoha.server.web.comet.Candidate
-import ws.kotonoha.server.records.dictionary.{JMString, JMDictRecord}
-import net.liftweb.mongodb.Limit
 
 /**
  * @author eiennohito
@@ -43,10 +44,10 @@ object JMDictTagger {
 
   val additional = add1 orElse add2
 
-  def process(t: String) = {
-    val norm = jdictAliases.get(t) match {
-      case Some(x) => x
-      case None => t
+  def process(t: JmdictTag) = {
+    val norm = t match {
+      case JmdictTag.Unrecognized(_) => "unknown"
+      case _ => JmdictTagMap.tagInfo(t.value).repr
     }
 
     if (!additional.isDefinedAt(norm))
@@ -55,12 +56,12 @@ object JMDictTagger {
   }
 }
 
-class JMDictTagger extends UserScopedActor {
+class JMDictTagger @Inject() (
+  jmd: LuceneJmdict
+) extends UserScopedActor {
 
-  import ws.kotonoha.server.util.KBsonDSL._
-
-  def resolvePriority(strs: List[JMString]): String = {
-    val prio = JMDictRecord.calculatePriority(strs)
+  def resolvePriority(strs: Seq[CommonInfo]): String = {
+    val prio = JMDictUtil.calculatePriority(strs)
 
     if (prio == 0) "nonfreq"
     else s"freq${3 - prio}" // prio: 2 -> 1, 1 -> 2
@@ -71,27 +72,24 @@ class JMDictTagger extends UserScopedActor {
 
   def resolve(wr: String, rd: Option[String]): Unit = {
     val c = Candidate(wr, rd, None)
-    val ji = JMDictRecord.forCandidate(c, 50)
+    val sres = jmd.find(c.query(limit = 1))
+    val ji = sres.data
     val tags = ji.headOption.toList.flatMap {
       r =>
-        val p1 = r.meaning.is.flatMap {
-          _.info.is
+        val p1 = r.meanings.flatMap {
+          x => x.pos ++ x.info
         }
-        val p2 = r.writing.is.flatMap {
-          _.info.is
-        }
-        val p3 = r.reading.is.flatMap {
-          _.info.is
-        }
-        val prio = resolvePriority(r.writing.is)
+        val p2 = r.writings.flatMap { _.info }
+        val p3 = r.readings.flatMap { _.info}
+        val prio = resolvePriority(r.writings)
         val godanEx = {
-          val ends = r.reading.is.find {
-            rd => xru.findFirstIn(rd.value.is).isDefined
-          }.isDefined
-          val tag = p1.contains("v5r")
-          if (ends && tag) List("v5-ex") else Nil
+          val ends = r.readings.exists {
+            rd => xru.findFirstIn(rd.content).isDefined
+          }
+          val tag = p1.contains(JmdictTag.v5r)
+          if (ends && tag) List(JmdictTag.v5rI) else Nil
         }
-        (prio :: p1 ++ p2 ++ p3 ++ godanEx).flatMap(e => JMDictTagger.process(e)).distinct
+        Seq(prio) ++ (p1 ++ p2 ++ p3 ++ godanEx).flatMap(e => JMDictTagger.process(e)).distinct
     }
     sender ! PossibleTags(tags)
   }

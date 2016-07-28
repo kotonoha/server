@@ -16,28 +16,29 @@
 
 package ws.kotonoha.server.web.comet
 
-import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
-import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.http.js.JsCmds.{RedirectTo, _Noop}
-import net.liftweb.json.JsonAST.JValue
+import com.google.inject.Inject
 import com.typesafe.scalalogging.{StrictLogging => Logging}
-import ws.kotonoha.server.util.parsing.AddStringParser
-import util.parsing.input.CharSequenceReader
-import ws.kotonoha.akane.unicode.UnicodeUtil
-import ws.kotonoha.server.util.{DateTimeUtils, Strings}
-import net.liftweb.json.JsonAST.JObject
-import scala.Some
-import net.liftweb.json.JsonAST.JField
-import net.liftweb.json.JsonAST.JString
-import ws.kotonoha.server.records.{WordCardRecord, WordRecord, UserRecord}
-import ws.kotonoha.server.records.events.{MarkEventRecord, AddWordRecord}
-import ws.kotonoha.server.actors.tags.TagParser
-import org.bson.types.ObjectId
-import ws.kotonoha.server.records.dictionary.JMDictRecord
+import net.liftweb.http.js.JsCmds.{RedirectTo, _Noop}
+import net.liftweb.json.JsonAST.{JField, JObject, JString, JValue}
 import net.liftweb.json.{DefaultFormats, Extraction}
-import ws.kotonoha.server.learning.ProcessMarkEvents
+import org.apache.lucene.search.BooleanClause.Occur
+import org.bson.types.ObjectId
+import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry}
+import ws.kotonoha.akane.unicode.UnicodeUtil
+import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
 import ws.kotonoha.server.actors.ForUser
+import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
+import ws.kotonoha.server.actors.tags.TagParser
+import ws.kotonoha.server.learning.ProcessMarkEvents
+import ws.kotonoha.server.records.events.{AddWordRecord, MarkEventRecord}
+import ws.kotonoha.server.records.{UserRecord, WordCardRecord, WordRecord}
+import ws.kotonoha.server.util.parsing.AddStringParser
+import ws.kotonoha.server.util.{DateTimeUtils, Strings}
+
+import scala.collection.Map
+import scala.util.parsing.input.CharSequenceReader
 
 /**
  * @author eiennohito
@@ -65,17 +66,34 @@ case class Candidate(writing: String, reading: Option[String], meaning: Option[S
     }
   }
 
+  def query(limit: Int = 10): JmdictQuery = {
+    JmdictQuery(
+      limit = limit,
+      writings = Seq(JmdictQueryPart(writing, Occur.SHOULD)),
+      readings = reading.map(r => JmdictQueryPart(r, Occur.MUST)).toSeq,
+      other = meaning.map(m => JmdictQueryPart(m, Occur.SHOULD)).toSeq
+    )
+  }
+
   def isOnlyKana = writing.length > 0 && UnicodeUtil.isKana(writing)
 
   def sameWR = reading match {
     case Some(`writing`) => true
     case _ => false
   }
+
+  def sortResults(data: Seq[JmdictEntry], keep: Int = 3): Seq[JmdictEntry] = {
+    def penalty(r: JmdictEntry) = {
+      if ((isOnlyKana || sameWR) && r.writings.nonEmpty) 10 else 0
+    }
+    val processed = data.map(a => a -> (-JMDictUtil.calculatePriority(a) + penalty(a)))
+    processed.sortBy(_._2).take(keep).map(_._1)
+  }
 }
 
-case class Possibility(writing: String, reading: String, meaning: List[String], id: Option[String] = None)
+case class Possibility(writing: String, reading: String, meaning: Seq[String], id: Option[String] = None)
 
-case class DisplayingEntry(item: Candidate, present: List[Possibility], dic: List[Possibility])
+case class DisplayingEntry(item: Candidate, present: Seq[Possibility], dic: Seq[Possibility])
 
 object Candidate {
 
@@ -106,11 +124,13 @@ object Candidate {
   }
 }
 
-trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor with Logging {
+class AddWordActor @Inject() (
+  jmd: LuceneJmdict
+) extends NgLiftActor with AkkaInterop with NamedCometActor with Logging with ReleaseAkka {
 
-  import ws.kotonoha.server.util.KBsonDSL._
-  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import net.liftweb.{json => j}
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
+  import ws.kotonoha.server.util.KBsonDSL._
 
   val self = this
 
@@ -159,48 +179,28 @@ trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor wi
     }
     val q = WordRecord where (_.user eqs uid) // and (_.writing in wrs)
     val int = q.fetch() flatMap {
-        i => i.writing.is.map {
+        i => i.writing.get.map {
           w => w -> i
         }
       }
-    int.foldLeft(Map[String, List[WordRecord]]().withDefaultValue(Nil)) {
+    int.foldLeft(Map.empty[String, List[WordRecord]].withDefaultValue(Nil)) {
       case (m, (w, i)) =>
         m.updated(w, i :: m(w))
     }
   }
 
-  def findEntries() = {
-    val patterns = everything.map {
-      _.toQuery()
-    }
-    val dicQ: JObject = "$or" -> patterns
-    val dics = JMDictRecord.findAll(dicQ)
-
-    val des = dics.map {
-      de => de.writing.is.map {
-        jms => jms.value.is -> List(de)
-      }
-    }.foldLeft(Map[String, List[JMDictRecord]]().withDefaultValue(Nil)) {
-      (m1, m2) =>
-        m2.foldLeft(m1) {
-          case (m, (k, v)) => m.updated(k, (m(k) ++ v).distinct)
-        }
-    }
-    des.mapValues(lst => JMDictRecord.sorted(lst))
-  }
-
-  def dicPossibiliry(dic: JMDictRecord) = {
+  def dicPossibiliry(dic: JmdictEntry) = {
     Possibility(
-      writing = dic.writing.is.map(k => k.value.is).mkString(", "),
-      reading = dic.reading.is.map(k => k.value.is).mkString(", "),
-      meaning = dic.meaning.is.map(_.vals.is.filter(_.loc == "eng").map(_.str)).map(_.mkString("; ")),
-      id = Some(dic.id.is.toString)
+      writing = dic.writings.map(k => k.content).mkString(", "),
+      reading = dic.readings.map(k => k.content).mkString(", "),
+      meaning = dic.meanings.map(_.content.filter(_.lang == "eng").map(_.str)).map(_.mkString("; ")),
+      id = Some(dic.id.toString)
     )
   }
 
-  def createEntry(in: Candidate, cur: Map[String, List[WordRecord]], dic: Map[String, List[JMDictRecord]]) = {
-    val wds = cur(in.writing).map(r => Possibility(r.writing.stris, r.reading.stris, r.meaning.is :: Nil, Some(r.id.is.toString)))
-    val dics = dic.getOrElse(in.writing, Nil).map(dicPossibiliry(_))
+  def createEntry(in: Candidate, cur: Map[String, List[WordRecord]]) = {
+    val wds = cur(in.writing).map(r => Possibility(r.writing.stris, r.reading.stris, r.meaning.get :: Nil, Some(r.id.get.toHexString)))
+    val dics = jmd.find(in.query(limit = 3)).data.map(dicPossibiliry)
     DisplayingEntry(in, wds, dics)
   }
 
@@ -211,12 +211,11 @@ trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor wi
       updateHttpVariants(Nil)
     } else {
       val alreadyPresent = calculatePresent()
-      val dics = findEntries()
       good = everything.filter {
         k => alreadyPresent(k.writing).isEmpty
       }
       val data = everything map {
-        createEntry(_, alreadyPresent, dics)
+        createEntry(_, alreadyPresent)
       }
       updateHttpVariants(data)
     }
@@ -277,5 +276,3 @@ trait AddWordActorT extends NgLiftActor with AkkaInterop with NamedCometActor wi
     case ProcessJson(jv) => process(jv)
   }
 }
-
-class AddWordActor extends AddWordActorT with ReleaseAkka

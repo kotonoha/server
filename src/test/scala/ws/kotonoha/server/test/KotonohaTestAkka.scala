@@ -16,30 +16,67 @@
 
 package ws.kotonoha.server.test
 
-import akka.actor.{Actor, ActorRef, Props, ActorSystem}
 import java.util.concurrent.atomic.AtomicInteger
-import org.bson.types.ObjectId
-import akka.util.Timeout
-import concurrent.duration._
+
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern.ask
-import scala.concurrent.Await
 import akka.testkit.TestActorRef
-import ws.kotonoha.server.actors.{CreateActor, UserScopedActor, GlobalActor, AkkaMain}
-import scala.reflect.ClassTag
+import akka.util.Timeout
+import com.google.inject.{Guice, Module, Provides, Scopes}
+import com.typesafe.config.{Config, ConfigFactory}
+import net.codingwell.scalaguice.ScalaModule
+import org.bson.types.ObjectId
+import ws.kotonoha.akane.config.Configuration
+import ws.kotonoha.dict.jmdict.LuceneJmdict
+import ws.kotonoha.server.actors._
+import ws.kotonoha.server.dict.{EmptyJmdict, JmdictService, JmdictServiceImpl}
+import ws.kotonoha.server.ioc._
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 /**
  * @author eiennohito
  * @since 08.01.13 
  */
 
+class TestModule(cfg: Config) extends ScalaModule {
+  override def configure() = {
+    bind[Res].toInstance(new ResourceManager)
+    bind[Config].toInstance(cfg)
+    bind[JmdictService].to[JmdictServiceImpl].in(Scopes.SINGLETON)
+  }
+
+  @Provides
+  def jmdict(js: JmdictService): LuceneJmdict = {
+    val instance = js.get()
+    instance match {
+      case EmptyJmdict =>
+        js.asInstanceOf[JmdictServiceImpl].maybeUpdateJmdict()
+        js.get()
+      case _ => instance
+    }
+  }
+}
+
 object KotonohaTestAkka {
   val counter = new AtomicInteger(0)
+
+  val cfg = Configuration.makeConfigFor("kotonoha", ConfigFactory.defaultApplication())
+
+  def modules = Seq[Module](
+    new TestModule(cfg),
+    new AkkaModule("kt" + counter.getAndIncrement()),
+    new GlobalActorsModule
+  )
 }
 
 class KotonohaTestAkka extends AkkaMain {
-  val system = ActorSystem("koto-test" + KotonohaTestAkka.counter.getAndAdd(1))
+  val inj = Guice.createInjector(KotonohaTestAkka.modules: _*)
+  def ioc = inj.getInstance(classOf[IocActors])
 
-  lazy val global = system.actorOf(Props[GlobalActor], GlobalActor.globalName)
+  def system: ActorSystem = inj.getInstance(classOf[ActorSystem])
+  override def global = inj.getInstance(classOf[GlobalActors]).global
 
   def userContext(uid: ObjectId) = new UserContext(this, uid)
 
@@ -54,20 +91,20 @@ class SupervisorActor extends UserScopedActor {
 
 class UserContext(akka: KotonohaTestAkka, uid: ObjectId) {
   private implicit val timeout: Timeout = 10 minutes
-  private implicit lazy val system = akka.system
+  private implicit def system = akka.system
   lazy val actor = akka.userActor(uid)
 
   private lazy val supervisor = {
-    Await.result((actor ? CreateActor(Props[SupervisorActor], s"supervisor${akka.cnt.getAndAdd(1)}"))
-      .mapTo[ActorRef], 1 minute)
+    Await.result((actor ? CreateActor(classOf[SupervisorActor], s"supervisor${akka.cnt.getAndAdd(1)}"))
+      .mapTo[ActorRef], 5.seconds)
   }
 
   def userActor(props: Props, name: String) = {
     TestActorRef(props, supervisor, name)
   }
 
-  def userActor[T <: UserScopedActor](name: String)(implicit ct: ClassTag[T]) = {
-    TestActorRef.apply[T](Props[T], supervisor, name)
+  def userActor[T <: UserScopedActor](name: String)(implicit ct: Manifest[T]) = {
+    TestActorRef.apply[T](akka.ioc.props[T], supervisor, name)
   }
 
   def svcActor(props: Props, name: String) = {

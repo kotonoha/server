@@ -48,7 +48,7 @@ object GlobalTagger extends Akka with ReleaseAkka {
         akkaServ
           .userActorF(new ObjectId())
           .flatMap {
-          _ ? CreateActor(Props[WordAutoTagger], "tagger")
+          _ ? CreateActor(classOf[WordAutoTagger], "tagger")
         }
           .mapTo[ActorRef],
         1 minute)
@@ -62,14 +62,14 @@ object GlobalTagger extends Akka with ReleaseAkka {
         val w2 = w.reading.is.headOption
         val req = PossibleTagRequest(w1, w2)
         val tagf = (tagger ? req).mapTo[PossibleTags].map(_.tags).map(x => x.map {
-          AddTag(_)
+          AddTag
         })
         val uid = w.user.is
         val f = akkaServ.userActorF(uid).flatMap {
           a =>
             tagf.flatMap {
               ops =>
-                if (ops.length > 0)
+                if (ops.nonEmpty)
                   a ? TagWord(w, ops)
                 else tagf
             }

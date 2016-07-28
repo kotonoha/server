@@ -16,6 +16,8 @@
 
 package ws.kotonoha.server.util
 
+import org.apache.commons.lang3.StringUtils
+
 /**
  * @author eiennohito
  * @since 15.03.12
@@ -40,6 +42,6 @@ object Strings {
       len -= 1
     }
 
-    if (((st > 0) || (len < in.length))) in.substring(st, len) else in
+    if ((st > 0) || (len < in.length)) in.substring(st, len) else in
   }
 }

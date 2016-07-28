@@ -16,52 +16,57 @@
 
 package ws.kotonoha.server.dict
 
-import ws.kotonoha.server.web.comet.Candidate
+import org.apache.lucene.search.BooleanClause.Occur
 import ws.kotonoha.akane.conjuation.{AdjI, Verb}
-import net.liftweb.json.JsonAST.{JObject, JValue}
-import ws.kotonoha.server.records.dictionary.JMDictRecord
-import net.liftweb.mongodb.Limit
+import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry}
 import ws.kotonoha.akane.unicode.KanaUtil
+import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
+import ws.kotonoha.server.web.comet.Candidate
 
 /**
  * @author eiennohito
  * @since 19.03.13 
  */
 
-case class RecommendItem(id: Long, title: String, readings: List[String], writings: List[String], meanings: List[String])
+case class RecommendItem(id: Long, title: String, readings: Seq[String], writings: Seq[String], meanings: Seq[String])
 
-case class RecommendedSubresult(item: JMDictRecord, title: String, prio: Int) {
-  override def hashCode() = item.id.is.hashCode()
+case class RecommendedSubresult(item: JmdictEntry, title: String, prio: Int) {
+  override def hashCode() = item.id.hashCode()
 
   override def equals(obj: Any) = obj match {
     case null => false
-    case o: RecommendedSubresult => item.id.is.equals(o.item.id.is)
+    case o: RecommendedSubresult => item.id.equals(o.item.id)
     case _ => false
   }
 
   def format(lngs: Set[String]) = {
-    val wr = item.writing.is.map(_.value.is)
-    val rd = item.reading.is.map(_.value.is)
-    val mn = item.meaning.is.map { m =>
-      val b = m.info.is.mkString("(", ", ", ") ")
-      val e = m.vals.is.filter(ls => lngs.contains(ls.loc)).map(_.str).mkString(", ")
+    val wr = item.writings.map(_.content)
+    val rd = item.readings.map(_.content)
+    val mn = item.meanings.map { m =>
+      val b = (m.pos ++ m.info).mkString("(", ", ", ") ")
+      val e = m.content.filter(ls => lngs.contains(ls.lang)).map(_.str).mkString(", ")
       if (b.length > 3)
         b + e
       else e
     }
-    RecommendItem(item.id.is, title, rd, wr, mn)
+    RecommendItem(item.id, title, rd, wr, mn)
   }
 }
 
-class RecommendChunk (cand: Candidate, prio: Int, title: String, re: Boolean = false) {
-  import ws.kotonoha.server.util.KBsonDSL._
+class RecommendChunk(cand: Candidate, prio: Int, title: String, re: Boolean = false) {
+  def select(jmdict: LuceneJmdict, ignore: Seq[Long]): Seq[RecommendedSubresult] = {
+    val q = JmdictQuery(
+      limit = 10,
+      readings = cand.reading.map(r => JmdictQueryPart(r, Occur.MUST)).toSeq,
+      other = cand.meaning.map(m => JmdictQueryPart(m, Occur.MUST)).toSeq,
+      writings = Seq(JmdictQueryPart(cand.writing, Occur.MUST)),
+      ignore = ignore,
+      tags = Nil
+    )
 
-  def select(ignore: List[Long]) = {
-    val q: JObject = cand.toQuery(re) ~ ("_id" -> ("$nin" -> ignore))
-    val items = JMDictRecord.findAll(q, Limit(10))
-    val x = JMDictRecord.sorted(items, cand).take(3)
-    x.map(i =>
-      RecommendedSubresult(i, title, prio + JMDictRecord.calculatePriority(i.writing.is) * 1000))
+    val entries = jmdict.find(q)
+    val x = cand.sortResults(entries.data, keep = 3)
+    x.map(i => RecommendedSubresult(i, title, prio + JMDictUtil.calculatePriority(i.writings) * 1000))
   }
 }
 
@@ -93,8 +98,8 @@ class SingleKunRecommender(prio: Int) extends RecommenderBlock {
   def apply(in: DoRecommend) = {
     val ks = in.kanji.flatMap(x => in.kinfo.get(x))
     ks.flatMap { ki =>
-      val kuns = ki.rmgroups.is.flatMap(_.kunyomi)
-      val lit = ki.literal.is
+      val kuns = ki.rmgroups.get.flatMap(_.kunyomi)
+      val lit = ki.literal.get
       kuns.map { rd =>
         val i = rd.indexOf('.')
         if (i == -1) {
@@ -116,10 +121,10 @@ class SingleOnRecommender(prio: Int) extends RecommenderBlock {
   def apply(in: DoRecommend) = {
     val ks = in.kanji.flatMap(x => in.kinfo.get(x))
     ks.flatMap { ki =>
-      val kuns = ki.rmgroups.is.flatMap(_.onyomi)
+      val kuns = ki.rmgroups.get.flatMap(_.onyomi)
       kuns.map { rd =>
         val have = in.reading.contains(rd)
-        val c = Candidate(ki.literal.is, Some(rd), None)
+        val c = Candidate(ki.literal.get, Some(rd), None)
         val p = if (have) prio + 5 else prio
         new RecommendChunk(c, p, "on")
       }
@@ -131,13 +136,13 @@ class SimpleJukugoRecommender(prio: Int) extends RecommenderBlock {
   def apply(in: DoRecommend) = {
     val ks = in.kanji.flatMap(x => in.kinfo.get(x))
     ks.flatMap { ki =>
-      val kuns = ki.rmgroups.is.flatMap(_.onyomi)
-      val lit = ki.literal.is
+      val kuns = ki.rmgroups.get.flatMap(_.onyomi)
+      val lit = ki.literal.get
       kuns.flatMap { rd =>
         val kana = KanaUtil.kataToHira(rd)
-        val c1 = Candidate(s"$lit.", Some(s"$kana"), None)
-        val c2 = Candidate(s".$lit", Some(s".*$kana"), None)
-        List(new RecommendChunk(c1, prio, "juku", true), new RecommendChunk(c2, prio, "juku", true))
+        val c1 = Candidate(s"$lit.", Some(s"$kana*"), None)
+        val c2 = Candidate(s".$lit", Some(s"*$kana"), None)
+        List(new RecommendChunk(c1, prio, "juku"), new RecommendChunk(c2, prio, "juku"))
       }
     }
   }

@@ -17,12 +17,14 @@
 package ws.kotonoha.server.actors
 
 import akka.actor._
-import dict.{ExampleMessage, ExampleActor, DictionaryActor}
+import com.google.inject.Inject
+import dict.{DictionaryActor, ExampleActor, ExampleMessage}
 import learning._
-import model.{CardMessage, WordMessage, CardActor, WordActor}
-import tags.{TagMessage, TagActor}
+import model.{CardActor, CardMessage, WordActor, WordMessage}
+import tags.{TagActor, TagMessage}
 import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
-import ws.kotonoha.server.actors.recommend.{RecommenderMessage, RecommendActor}
+import ws.kotonoha.server.actors.recommend.{RecommendActor, RecommenderMessage}
+import ws.kotonoha.server.ioc.IocActors
 
 /**
  * @author eiennohito
@@ -35,28 +37,28 @@ object UserGuardNames {
   val tags = "tags"
 }
 
-class UserGuardActor extends UserScopedActor with ActorLogging {
+class UserGuardActor @Inject() (ioc: IocActors) extends UserScopedActor with ActorLogging {
 
   import SupervisorStrategy._
   import concurrent.duration._
 
-  override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 1500, withinTimeRange = 1 day) {
+  override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 1.minute) {
     case e: Exception => log.error(e, "Caught an exception in guard actor"); Restart
   }
 
   import UserGuardNames._
 
   val mongo = context.actorOf(Props[MongoDBActor], "mongo")
-  val wordSelector = context.actorOf(Props[SelectorFacade], "selector")
+  val wordSelector = context.actorOf(ioc.props[SelectorFacade], "selector")
   val markProcessor = context.actorOf(Props[EventProcessor], "markProc")
   val qractor = context.actorOf(Props[QrCreator], "qr")
   val userToken = context.actorOf(Props[UserTokenActor], "token")
   val wordActor = context.actorOf(Props[WordActor], word)
   val cardActor = context.actorOf(Props[CardActor], card)
-  val dictActor = context.actorOf(Props[DictionaryActor], "dict")
+  val dictActor = context.actorOf(ioc.props[DictionaryActor], "dict")
   val exampleActor = context.actorOf(Props[ExampleActor], "example")
   val tagActor = context.actorOf(Props[TagActor], tags)
-  val recommender = context.actorOf(Props[RecommendActor], "recommend")
+  val recommender = context.actorOf(ioc.props[RecommendActor], "recommend")
 
   def dispatch(msg: KotonohaMessage) {
     users ! PingUser(uid)
@@ -77,8 +79,8 @@ class UserGuardActor extends UserScopedActor with ActorLogging {
 
   override def receive = {
     case CreateActor(p, name) => name match {
-      case null | "" => sender ! context.actorOf(p)
-      case _ => sender ! context.actorOf(p, name)
+      case null | "" => sender ! context.actorOf(ioc.props(Manifest.classType(p)))
+      case _ => sender ! context.actorOf(ioc.props(Manifest.classType(p)), name)
     }
     case msg: KotonohaMessage => dispatch(msg)
   }

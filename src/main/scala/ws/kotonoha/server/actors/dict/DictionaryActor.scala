@@ -16,12 +16,16 @@
 
 package ws.kotonoha.server.actors.dict
 
-import akka.pattern.{ask, pipe}
+import akka.actor.{Actor, Props}
+import com.google.inject.Inject
+import org.apache.lucene.search.BooleanClause.Occur
+import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
 import ws.kotonoha.server.actors.DictionaryMessage
-import akka.actor.{Props, Actor, ActorRef}
-import ws.kotonoha.server.util.LangUtil
-import ws.kotonoha.server.records.dictionary.{WarodaiRecord, JMDictRecord}
 import ws.kotonoha.server.dict.WarodaiBodyParser
+import ws.kotonoha.server.ioc.IocActors
+import ws.kotonoha.server.records.dictionary.WarodaiRecord
+import ws.kotonoha.server.util.LangUtil
+
 import scala.util.parsing.input.CharSequenceReader
 
 /**
@@ -29,8 +33,8 @@ import scala.util.parsing.input.CharSequenceReader
  * @since 29.04.12
  */
 
-case class DictionaryEntry(writings: List[String], readings: List[String], meanings: List[String])
-case class SearchResult(entries: List[DictionaryEntry])
+case class DictionaryEntry(writings: Seq[String], readings: Seq[String], meanings: Seq[String])
+case class SearchResult(entries: Seq[DictionaryEntry])
 
 object DictType extends Enumeration {
   val jmdict, warodai = Value
@@ -40,28 +44,32 @@ object DictType extends Enumeration {
 case class DictQuery(dict: DictType.DictType, writing: String, reading: Option[String], max: Int) extends DictionaryMessage
 private case class Query(writing: String, reading: Option[String], max: Int)
 
-class DictionaryActor extends Actor {
+class DictionaryActor @Inject()(ioc: IocActors) extends Actor {
   override def receive = {
-    case DictQuery(DictType.jmdict, w, r, max) => context.actorOf(Props[JMDictQActor]).forward(Query(w, r, max))
+    case DictQuery(DictType.jmdict, w, r, max) => context.actorOf(ioc.props[JMDictQActor]).forward(Query(w, r, max))
     case DictQuery(DictType.warodai, w, r, max) => context.actorOf(Props[WarodaiQActor]).forward(Query(w, r, max))
   }
 }
 
-class JMDictQActor extends Actor {
+class JMDictQActor @Inject() (jmd: LuceneJmdict) extends Actor {
   def process(w: String, r: Option[String], max: Int): SearchResult = {
-    val objs = JMDictRecord.query(w, r, max)
-    val entrs = objs.map { j =>
-      val wrs = j.writing.is.flatMap {s => s.value.valueBox}
-      val rds = j.reading.is.flatMap {s => s.value.valueBox}
-      val mns = j.meaning.is.map { mn => {
-        val info = mn.info.is match {
-          case Nil => ""
-          case l => l.mkString("(", ",", "):")
-        }
-        info + mn.vals.is.filter(s => LangUtil.okayLang(s.loc)).map(_.str).mkString("; ")
-      }}
+    val jq = JmdictQuery(
+      writings = Seq(JmdictQueryPart(w, Occur.MUST)),
+      readings = r.map(rx => JmdictQueryPart(rx, Occur.MUST)).toSeq,
+      limit = max
+    )
+    val entries = jmd.find(jq)
+    val entrs = entries.data.map { j =>
+      val wrs = j.writings.map(_.content)
+      val rds = j.readings.map(_.content)
+      val mns = j.meanings.map { m =>
+        val infos = m.pos ++ m.info
+        val info = if (infos.isEmpty) "" else infos.mkString("(", ",", ")")
+        info + m.content.filter(c => LangUtil.okayLang(c.lang)).map(_.str).mkString("; ")
+      }
       DictionaryEntry(wrs, rds, mns)
     }
+
     SearchResult(entrs)
   }
 
@@ -78,8 +86,8 @@ class WarodaiQActor extends Actor {
     val objs = WarodaiRecord.query(w, r, max)
     val builder = new StringBuilder(1024)
     val entrs = objs.map {w =>
-      val rds = w.readings.is
-      val wrs = w.writings.is
+      val rds = w.readings.get
+      val wrs = w.writings.get
       val mns = {
         val body = WarodaiBodyParser.body(new CharSequenceReader(w.body.is))
         if (body.successful) {

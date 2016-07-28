@@ -28,8 +28,7 @@ import ws.kotonoha.server.actors.schedulers.AkkaWithUser
 class WordCreateActorTest extends AkkaWithUser {
   import concurrent.duration._
 
-
-  implicit val to: Timeout = 10 seconds ;
+  implicit val to: Timeout = 10 seconds
 
   "WordCreateActorTest" - {
     "makes katakana-only to have hiragana readings and katakana writings" in {

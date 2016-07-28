@@ -60,6 +60,8 @@ class KotonohaIoc(cfg: Config) extends AutoCloseable {
 }
 
 class KotonohaMainModule(cfg: Config, rm: ResourceManager) extends ScalaModule {
+
+  //add module to TestModule as well may be
   override def configure() = {
     bind[Config].toInstance(cfg)
     bind[Res].toInstance(rm)

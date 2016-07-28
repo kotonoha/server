@@ -39,5 +39,8 @@ lazy val jmdict = (project in file("jmdict"))
     .settings(Common.buildSettings, Kotonoha.scalatest)
     .settings(
       libraryDependencies ++= Kotonoha.luceneDeps,
-      libraryDependencies += "com.github.ben-manes.caffeine" % "caffeine" % "2.3.1"
+      libraryDependencies ++= Seq(
+        "com.github.ben-manes.caffeine" % "caffeine" % "2.3.1",
+        "joda-time" % "joda-time" % "2.9.4"
+      )
     ).dependsOn(`akane-dic`)

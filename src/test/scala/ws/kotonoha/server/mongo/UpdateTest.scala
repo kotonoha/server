@@ -18,6 +18,7 @@ package ws.kotonoha.server.mongo
 
 import com.mongodb.MongoClient
 import com.mongodb.casbah.WriteConcern
+import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.{Empty, Full}
 import net.liftweb.mongodb.MongoDB
 import net.liftweb.mongodb.record.field.{BsonRecordField, ObjectIdPk}
@@ -48,21 +49,79 @@ class Smt private() extends MongoRecord[Smt] with ObjectIdPk[Smt] {
 
 object Smt extends Smt with MongoMetaRecord[Smt]
 
+object GlobalMongoHolder extends StrictLogging {
+  class MongoKeeperRunnable extends Runnable {
+    private[this] var mongoClient: MongoClient = null
+
+    override def run(): Unit = {
+      logger.debug("created mongo thread")
+      mongoClient = new MongoClient("localhost")
+      MongoDB.defineDb(DefaultConnectionIdentifier, mongoClient, "tests")
+      MongoDbInit.register(mongoClient, "kototests", "kotodictests")
+      mongoClient.fsync(false)
+      created = true
+
+      while (true) {
+        lock.synchronized {
+          val upd = lastUpdate
+          val now = System.currentTimeMillis()
+          if (now - upd > 10 * 1000) {
+            thread = null
+            created = false
+            mongoClient.close()
+            mongoClient = null
+            logger.debug("destroying mongo thread")
+            return
+          }
+          lock.wait(1000)
+        }
+      }
+
+    }
+  }
+
+  private val lock = new Object
+  private var thread: Thread = null
+
+  def makeThread: Thread = {
+    val t = new Thread(new MongoKeeperRunnable, "test-mongo-keeper")
+    t.setDaemon(true)
+    t
+  }
+
+  @volatile private var created: Boolean = false
+
+  @volatile
+  private var lastUpdate: Long = System.currentTimeMillis()
+
+  def start(): Unit = {
+    update()
+
+    synchronized {
+      if (thread == null) {
+        thread = makeThread
+        thread.start()
+      }
+    }
+
+    while (!created) {} //wait for creation
+  }
+
+  def update() = {
+    lastUpdate = System.currentTimeMillis()
+  }
+}
+
 trait MongoAwareTest extends Suite with BeforeAndAfterAll { self: Suite =>
-  protected var mongoClient: MongoClient = null
 
   abstract override protected def beforeAll() = {
-    mongoClient = new MongoClient("localhost")
-    MongoDB.defineDb(DefaultConnectionIdentifier, mongoClient, "tests")
-    MongoDbInit.register(mongoClient, "kototests", "kotodictests")
-    mongoClient.fsync(false)
+    GlobalMongoHolder.start()
     super.beforeAll()
   }
 
   abstract override protected def afterAll() = {
     super.afterAll()
-    mongoClient.close()
-    mongoClient = null
+    GlobalMongoHolder.update()
   }
 }
 

@@ -15,13 +15,9 @@
  */
 package ws.kotonoha.server.web.rest
 
-import org.scalatest.FunSuite
-import org.scalatest.matchers.ShouldMatchers
-import akka.testkit.TestActorRef
-import akka.actor.{Actor, ActorSystem}
 import net.liftweb.mockweb.MockWeb
 import net.liftweb.util.LiftFlowOfControlException
-import ws.kotonoha.server.actors.{GlobalActor, UserGuardActor, AkkaMain}
+import org.scalatest.{FunSuite, Matchers}
 
 
 /**
@@ -29,16 +25,11 @@ import ws.kotonoha.server.actors.{GlobalActor, UserGuardActor, AkkaMain}
  * @since 09.02.12
  */
 
-object MockAkka extends AkkaMain {
-  implicit val system = ActorSystem("kototest")
 
-  val global = TestActorRef(new GlobalActor, "global")
-}
-
-class LearningTest extends FunSuite with ShouldMatchers {
+class LearningTest extends FunSuite with Matchers {
   
   val learn = new LearningRest {
-    val akkaServ = MockAkka
+    val akkaServ = null
   }
 
   //our apis don't eat requests without authorization

@@ -17,6 +17,7 @@
 package ws.kotonoha.dict.jmdict
 
 import java.io.StringReader
+import java.util
 
 import org.apache.lucene.analysis.TokenStream
 import org.apache.lucene.analysis.ngram.NGramTokenizer
@@ -25,6 +26,7 @@ import org.apache.lucene.document.Field.Store
 import org.apache.lucene.document._
 import org.apache.lucene.index.{IndexOptions, IndexWriter}
 import org.apache.lucene.util.{BytesRef, BytesRefBuilder}
+import org.joda.time.{DateTime, LocalDate}
 import ws.kotonoha.akane.dic.jmdict.{JmdictEntry, JmdictTag, JmdictTagMap}
 
 import scala.collection.mutable
@@ -73,6 +75,8 @@ class LuceneImporter(iw: IndexWriter) {
 
     val id = new StringField("id", ref(entry.id), Store.YES)
     doc.add(id)
+    val idset = new LongPoint("idset", entry.id)
+    doc.add(idset)
     val data = entry.toByteArray
     val blob = new Field("blob", new BytesRef(data), blobField)
     doc.add(blob)
@@ -108,9 +112,32 @@ class LuceneImporter(iw: IndexWriter) {
     val doc = makeDoc(entry)
     iw.addDocument(doc)
   }
+
+  def commit(jmdictDate: LocalDate): Unit = {
+    val now = DateTime.now().toString
+    val jmdictString = jmdictDate.toString
+    val data = new util.HashMap[String, String]()
+    data.put(LuceneImporter.INFO_CREATION_DATE, jmdictString)
+    data.put(LuceneImporter.INFO_BUILD_DATE, now)
+    iw.setCommitData(data)
+    iw.commit()
+    iw.forceMerge(1, true)
+  }
 }
 
 object LuceneImporter {
+  def parseUserData(userData: util.Map[String, String]) = {
+    val creationString = userData.get(INFO_CREATION_DATE)
+    val buildString = userData.get(INFO_BUILD_DATE)
+    val creation = LocalDate.parse(creationString)
+    val build = DateTime.parse(buildString)
+    JmdictInfo(creation, build)
+  }
+
+
+  val INFO_CREATION_DATE = "creationDate"
+  val INFO_BUILD_DATE = "buildDate"
+
   val blobField = {
     val tp = new FieldType()
     tp.setStored(true)

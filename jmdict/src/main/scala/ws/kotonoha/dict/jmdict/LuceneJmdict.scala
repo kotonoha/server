@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.apache.commons.lang3.StringUtils
+import org.apache.lucene.document.LongPoint
 import org.apache.lucene.index.{IndexReader, Term}
 import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.search._
@@ -29,34 +30,28 @@ import ws.kotonoha.akane.dic.jmdict.JmdictEntry
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.ExecutionContextExecutor
 import org.apache.lucene.util.automaton.TooComplexToDeterminizeException
+import org.joda.time.{DateTime, LocalDate}
 
 /**
   * @author eiennohito
   * @since 2016/07/21
   */
-case class JmdictQuery(
-  limit: Int,
-  readings: Seq[JmdictQueryPart],
-  writings: Seq[JmdictQueryPart],
-  tags: Seq[JmdictQueryPart],
-  other: Seq[JmdictQueryPart],
-  explain: Boolean = false
-)
-
-case class JmdictQueryPart(term: String, occur: Occur = Occur.SHOULD)
-
 case class JmdictSearchResults(
   data: Seq[JmdictEntry],
   expls: Map[Long, Explanation] = Map.empty,
   totalHits: Int = 0
 )
 
+case class JmdictInfo(update: LocalDate, build: DateTime)
+
 
 trait LuceneJmdict {
   def find(q: JmdictQuery): JmdictSearchResults
+  def ids(q: JmdictIdQuery): Seq[Long]
+  def info: JmdictInfo
 }
 
-class LuceneJmdictImpl(ir: IndexReader, ec: ExecutionContextExecutor) extends LuceneJmdict {
+class LuceneJmdictImpl(ir: IndexReader, ec: ExecutionContextExecutor, val info: JmdictInfo) extends LuceneJmdict {
 
   val specialChars = "?*.？＊。．"
 
@@ -136,6 +131,11 @@ class LuceneJmdictImpl(ir: IndexReader, ec: ExecutionContextExecutor) extends Lu
       qb.add(makeClause("t", t, 0.9f))
     }
 
+    if (q.ignore.nonEmpty) {
+      val qx = LongPoint.newSetQuery("idset", q.ignore :_*)
+      qb.add(qx, Occur.MUST_NOT)
+    }
+
     for (o <- q.other) {
       val iq = new BooleanQuery.Builder
       iq.setDisableCoord(true)
@@ -201,5 +201,42 @@ class LuceneJmdictImpl(ir: IndexReader, ec: ExecutionContextExecutor) extends Lu
     val search = searcher.search(lq, q.limit)
 
     getDocs(search, lq, q.explain)
+  }
+
+  import scala.collection.JavaConverters._
+
+  def makeIdQuery(parts: Seq[IdQueryPart]): Query = {
+    val bq = new BooleanQuery.Builder
+    bq.setDisableCoord(true)
+
+    parts.foreach { p =>
+      val inner = new BooleanQuery.Builder
+      p.rds.foreach { r =>
+        inner.add(new TermQuery(new Term("r", r)), Occur.MUST)
+      }
+      p.wrs.foreach { w =>
+        inner.add(new TermQuery(new Term("w", w)), Occur.MUST)
+      }
+      bq.add(inner.build(), Occur.SHOULD)
+    }
+
+    bq.build()
+  }
+
+  override def ids(q: JmdictIdQuery): Seq[Long] = {
+
+    val onlyId = Set("id").asJava
+    val ids = new ArrayBuffer[Long]()
+    q.parts.grouped(500).foreach { qp =>
+      val lq = makeIdQuery(qp)
+      searcher.search(lq, new SimpleCollector {
+        override def collect(doc: Int) = {
+          ids += DataConversion.readSignedVLong(searcher.doc(doc, onlyId).getBinaryValue("id"))
+        }
+        override def needsScores() = false
+      })
+    }
+
+    ids
   }
 }

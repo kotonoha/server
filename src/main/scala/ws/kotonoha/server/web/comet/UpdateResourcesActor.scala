@@ -16,39 +16,39 @@
 
 package ws.kotonoha.server.web.comet
 
-import net.liftweb.http.CometActor
-import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
-import net.liftweb.json.JsonAST.JValue
-import com.typesafe.scalalogging.{StrictLogging => Logging}
 import java.net._
-import scalax.file.Path
-import resource.Resource
-import java.util.zip.{ZipFile, GZIPInputStream}
-import scalax.io.StandardOpenOption
+import java.util.zip.{GZIPInputStream, ZipFile}
+
+import com.google.inject.Inject
+import com.typesafe.scalalogging.{StrictLogging => Logging}
+import net.liftweb.common.Full
+import net.liftweb.http.CometActor
+import net.liftweb.json.JsonAST.{JString, JValue}
 import org.apache.commons.io.IOUtils
-import ws.kotonoha.server.tools._
+import resource.Resource
 import ws.kotonoha.server.KotonohaConfig
-import scala.Some
-import net.liftweb.json.JsonAST.JString
+import ws.kotonoha.server.actors.dict.{CloseExampleIndex, LoadExampleIndex}
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import ws.kotonoha.server.actors.{TellAllUsers, ReloadLucene, CloseLucene}
-import ws.kotonoha.server.actors.dict.{LoadExampleIndex, CloseExampleIndex}
-import net.liftweb.http.js.JsCmds.Reload
-import net.liftweb.common.Full
+import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
+import ws.kotonoha.server.actors.{CloseLucene, ReloadLucene, TellAllUsers}
+import ws.kotonoha.server.dict.JmdictService
+import ws.kotonoha.server.tools._
+
 import scala.concurrent.Future
-import net.liftweb.common.Full
-import scala.Some
-import net.liftweb.json.JsonAST.JString
+import scalax.file.Path
+import scalax.io.StandardOpenOption
 
 /**
  * @author eiennohito
  * @since 2014-03-13
  */
-class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop with Logging with ReleaseAkka {
+class UpdateResourcesActor @Inject() (
+  jms: JmdictService
+) extends CometActor with NgLiftActor with AkkaInterop with Logging with ReleaseAkka {
 
-  import ws.kotonoha.server.util.KBsonDSL._
-  import ws.kotonoha.server.util.DateTimeUtils.now
   import Resource._
+  import ws.kotonoha.server.util.DateTimeUtils.now
+  import ws.kotonoha.server.util.KBsonDSL._
 
   val self = this
 
@@ -57,16 +57,6 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
   }
 
   override def svcName = "UpdateResourcesSvc"
-
-  def processJMDict(dir: Path, uri: URI): Unit = {
-    val outFile = dir / "jmdict.xml.gz"
-    download(uri.toURL, outFile)
-    for (input <- outFile.inputStream()) {
-      message("importing jmdict")
-      JMDictImporter.process(new GZIPInputStream(input))
-      message("finished importing jmdict")
-    }
-  }
 
   def download(url: URL, path: Path) = {
     message(s"downloading $url to $path")
@@ -169,7 +159,8 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
   }
 
   def startImport(): Unit = {
-    //download jmdict
+    //update jmdict
+    jms.maybeUpdateJmdict()
 
     message("starting processing:")
     message(s"lucene path: ${KotonohaConfig.safeString("lucene.indexdir")}")
@@ -179,9 +170,6 @@ class UpdateResourcesActor extends CometActor with NgLiftActor with AkkaInterop 
 
     message(s"using $dir as temporary directory")
 
-    val jmdictUrl = URI.create("http://ftp.monash.edu.au/pub/nihongo/JMdict.gz")
-
-    processJMDict(dir, jmdictUrl)
 
     processTatoeba(dir,
       "http://tatoeba.org/files/downloads/sentences.csv",

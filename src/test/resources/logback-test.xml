@@ -18,7 +18,7 @@
   <!--<appender name="mongo" class="ws.kotonoha.server.util.MongoAppender" />-->
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} %highlight(%.-1level) [%gray(%.15thread)] %cyan(%logger{36}) - %msg%n</pattern>
+      <pattern>%d{HH:mm:ss.SSS} %highlight(%.-1level) [%gray(%.-6thread.%.5thread)] %cyan(%logger{36}) - %msg%n</pattern>
     </encoder>
   </appender>
 

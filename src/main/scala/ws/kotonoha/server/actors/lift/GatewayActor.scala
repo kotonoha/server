@@ -20,8 +20,13 @@ import akka.pattern.{ask => apa}
 import net.liftweb.http.CometActor
 import ws.kotonoha.server.actors.ioc.Akka
 import ws.kotonoha.server.actors.{CreateActor, KotonohaMessage}
+
 import scala.concurrent.Await
 import akka.actor._
+import com.google.inject.Inject
+import ws.kotonoha.server.ioc.IocActors
+
+import scala.reflect.ClassTag
 
 /**
  * @author eiennohito
@@ -59,8 +64,8 @@ trait AkkaInterop extends CometActor with Akka {
     super.localShutdown()
   }
 
-  def createActor(p: Props, name: String = "", parent: ActorRef = sender) = {
-    val f = apa(parent, CreateActor(p, name))(30 seconds).mapTo[ActorRef]
+  def createActor[T <: Actor : ClassTag](name: String = "", parent: ActorRef = sender) = {
+    val f = apa(parent, CreateActor(implicitly[ClassTag[T]].runtimeClass, name))(30 seconds).mapTo[ActorRef]
     Await.result(f, 30 seconds)
   }
 
@@ -69,30 +74,32 @@ trait AkkaInterop extends CometActor with Akka {
 
 case class ToAkka(actor: ActorRef, in: Any)
 
-class LiftBridge(svc: ActorRef, lift: CometActor) extends Actor {
+class LiftBridge(svc: ActorRef, lift: CometActor, ioc: IocActors) extends Actor {
   override def receive = {
     case ToAkka(ar, msg) => ar ! msg
     case Ping => //do nothing
     case CreateActor(p, name) => {
+      val props = ioc.props(Manifest.classType(p))
       val act = name match {
-        case "" | null => context.actorOf(p)
-        case nm => context.actorOf(p, nm)
+        case "" | null => context.actorOf(props)
+        case nm => context.actorOf(props, nm)
       }
       sender ! act
     }
-    case Shutdown => {
+    case Shutdown =>
       svc ! UnbindLiftActor(lift)
-    }
     case x => lift ! x
   }
 }
 
-class LiftActorService extends Actor {
+class LiftActorService @Inject() (
+  ioc: IocActors
+) extends Actor {
   val actors = new collection.mutable.HashMap[CometActor, ActorRef]
 
   override def receive = {
     case BindLiftActor(lift) =>
-      val ar = context.actorOf(Props(new LiftBridge(self, lift)))
+      val ar = context.actorOf(Props(new LiftBridge(self, lift, ioc)))
       actors += (lift -> ar)
       sender ! ar
     case UnbindLiftActor(lift) =>

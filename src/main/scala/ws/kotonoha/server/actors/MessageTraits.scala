@@ -16,8 +16,6 @@
 
 package ws.kotonoha.server.actors
 
-import akka.actor.Props
-
 /**
  * @author eiennohito
  * @since 07.01.13 
@@ -31,5 +29,5 @@ trait TokenMessage extends KotonohaMessage
 trait DictionaryMessage extends KotonohaMessage
 trait SelectWordsMessage extends KotonohaMessage
 
-
-case class CreateActor(props: Props, name: String) extends KotonohaMessage
+import language.existentials
+case class CreateActor(clz: Class[_], name: String) extends KotonohaMessage

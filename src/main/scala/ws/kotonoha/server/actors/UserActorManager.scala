@@ -16,27 +16,29 @@
 
 package ws.kotonoha.server.actors
 
-import org.bson.types.ObjectId
-import akka.actor._
-import org.joda.time.DateTime
-import concurrent.duration._
-import scala.Some
 import akka.actor.SupervisorStrategy.Restart
-import scala.concurrent.{Future, ExecutionContext}
+import akka.actor._
+import com.google.inject.Inject
+import org.bson.types.ObjectId
+import org.joda.time.DateTime
+import ws.kotonoha.server.ioc.IocActors
+
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * @author eiennohito
  * @since 07.01.13 
  */
-class UserActorManager extends Actor with ActorLogging {
+class UserActorManager @Inject()(ioc: IocActors) extends Actor with ActorLogging {
   import ws.kotonoha.server.util.DateTimeUtils._
   var userMap = Map[ObjectId, ActorRef]()
   var lifetime = Map[ObjectId, DateTime]()
 
   private def create(uid: ObjectId) = {
     val name = uid.toString
-    log.debug(s"trying to create an actor for uid ${name}")
-    context.actorOf(Props(new PerUserActor(uid)), name)
+    log.debug(s"trying to create an actor for uid $name")
+    context.actorOf(Props(new PerUserActor(ioc, uid)), name)
   }
 
   def userActor(uid: ObjectId) = {
@@ -69,6 +71,7 @@ class UserActorManager extends Actor with ActorLogging {
 
   import akka.pattern.ask
   import akka.util.Timeout
+
   import scala.concurrent.duration._
 
   override def receive = {

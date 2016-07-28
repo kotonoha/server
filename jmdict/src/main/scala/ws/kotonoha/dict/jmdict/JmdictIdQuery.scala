@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.ioc
-
-import com.google.inject.{Provides, Scopes}
-import net.codingwell.scalaguice.ScalaModule
-import ws.kotonoha.dict.jmdict.LuceneJmdict
-import ws.kotonoha.server.dict.{JmdictService, JmdictServiceImpl}
+package ws.kotonoha.dict.jmdict
 
 /**
   * @author eiennohito
-  * @since 2016/07/21
+  * @since 2016/07/28
   */
-class JmdictModule extends ScalaModule {
-  override def configure() = {
-    bind[JmdictService].to[JmdictServiceImpl].in(Scopes.SINGLETON)
-  }
+case class JmdictIdQuery(parts: Seq[IdQueryPart])
 
-  @Provides
-  def jmdict(js: JmdictService): LuceneJmdict = js.get()
-}
+case class IdQueryPart(wrs: Seq[String], rds: Seq[String])

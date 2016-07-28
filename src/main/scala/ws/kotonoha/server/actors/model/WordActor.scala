@@ -138,7 +138,12 @@ class WordActor extends UserScopedActor with ActorLogging {
   def registerWord(word: WordRecord, st: WordStatus.Value) {
     val wordid = word.id.get
     val priF = (tags ? CalculatePriority(word.tags.get)).mapTo[Priority]
-    var futures = List(ask(mongo, SaveRecord(word)))
+
+    var futures = List(Future[Any] {
+      word.save(WriteConcern.Acknowledged)
+      true
+    })
+
     if (checkReadingWriting(word)) {
       futures ::= priF flatMap {
         p => card ? RegisterCard(wordid, CardMode.READING, p.prio)
@@ -157,14 +162,18 @@ class WordActor extends UserScopedActor with ActorLogging {
 
   def deleteReadyWords(): Unit = {
     val time = now
-    val q = WordRecord where (_.deleteOn lt time) and (_.status eqs WordStatus.Deleting)
+    val q = WordRecord where (_.user eqs uid) and (_.deleteOn lt time) and (_.status eqs WordStatus.Deleting)
     q foreach {
       w => {
         card ! DeleteCardsForWord(w.id.get)
       }
     }
     q.bulkDelete_!!(WriteConcern.Normal)
-    context.system.scheduler.scheduleOnce(1.hour, users, ForUser(uid, DeleteReadyWords))
+
+    val cnt = WordRecord where (_.user eqs uid) and (_.status eqs WordStatus.Deleting) count()
+    if (cnt > 0) {
+      context.system.scheduler.scheduleOnce(1.day, users, ForUser(uid, DeleteReadyWords))
+    }
   }
 
   override def preStart() {

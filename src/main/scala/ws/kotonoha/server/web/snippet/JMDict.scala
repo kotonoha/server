@@ -21,14 +21,11 @@ import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.http.{DispatchSnippet, S}
 import net.liftweb.util.Props
 import net.liftweb.util.Props.RunModes
-import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.search.Explanation
 import ws.kotonoha.akane.dic.jmdict._
-import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
-import ws.kotonoha.server.records.dictionary.JMDictRecord
+import ws.kotonoha.dict.jmdict.{JmdictQuery, LuceneJmdict}
 import ws.kotonoha.server.util.LangUtil
 
-import scala.collection.mutable.ArrayBuffer
 import scala.xml.{NodeSeq, Text}
 
 /**
@@ -46,6 +43,7 @@ class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging 
   }
 
   private val queryString = S.param("query").openOr("")
+  private val explainQuery = RunModes.Development == Props.mode
 
   val fld: NodeSeqFn = {
     ".query-string [value]" #> queryString
@@ -54,7 +52,7 @@ class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging 
   def renderR(in: Seq[ReadingInfo], sep: String): NodeSeq = {
     val seq = transSeq(in, Text(sep)) { x =>
       val annots = annot(x.info)
-      val prio = JMDictRecord.calculatePriority(x)
+      val prio = JMDictUtil.calculatePriority(x)
       <span><span class={s"dict-rw dict-prio-$prio"}>{x.content}</span><span class="dict-rd-tag">{annots}</span></span>
     }
     if (seq.isEmpty) seq else <span>【{seq}】</span>
@@ -63,7 +61,7 @@ class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging 
   def renderW(in: Seq[KanjiInfo], sep: String): NodeSeq = {
     val seq = transSeq(in, Text(sep)) { x =>
       val annots = annot(x.info)
-      val prio = JMDictRecord.calculatePriority(x)
+      val prio = JMDictUtil.calculatePriority(x)
       <span><span class={s"dict-rw dict-prio-$prio"}>{x.content}</span><span class="dict-rd-tag">{annots}</span></span>
     }
     seq
@@ -109,41 +107,7 @@ class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging 
   }
 
   private def parseQuery(qs: String): JmdictQuery = {
-    val parts = qs.split("\\s+").filter(_.length > 0)
-
-    val rds = new ArrayBuffer[JmdictQueryPart]()
-    val wrs = new ArrayBuffer[JmdictQueryPart]()
-    val tags = new ArrayBuffer[JmdictQueryPart]()
-    val other = new ArrayBuffer[JmdictQueryPart]()
-
-
-    parts.foreach { p =>
-
-      val (occur, next) = p.charAt(0) match {
-        case '+' | '＋' => (Occur.MUST, p.substring(1))
-        case '-' | '−' => (Occur.MUST_NOT, p.substring(1))
-        case _ => (Occur.SHOULD, p)
-      }
-
-      next.split(":") match {
-        case Array(pref, suf) =>
-          val part = JmdictQueryPart(suf, occur)
-          val coll = pref match {
-            case s if s.startsWith("w") => wrs
-            case s if s.startsWith("r") => rds
-            case s if s.startsWith("t") => tags
-            case _ => other
-          }
-          coll += part
-        case _ =>
-          other += JmdictQueryPart(next, occur)
-      }
-    }
-    JmdictQuery(
-      limit = 50,
-      rds, wrs, tags, other,
-      explain = Props.mode == RunModes.Development
-    )
+    JmdictQuery.fromString(qs, limit = 50, explain = explainQuery)
   }
 
   private val qobj = parseQuery(queryString)
@@ -157,8 +121,7 @@ class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging 
       stand ++ (if (children.isEmpty) Nil else <ul>{children}</ul>)
     }
 
-
-    if (RunModes.Development == Props.mode) {
+    if (explainQuery) {
       expls.get(id) match {
         case Some(s) =>
           <div class="query-explanation">{renderExpl(s)}</div>
