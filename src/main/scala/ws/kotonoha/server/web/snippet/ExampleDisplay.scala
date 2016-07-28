@@ -16,18 +16,15 @@
 
 package ws.kotonoha.server.web.snippet
 
-import xml.NodeSeq
-import ws.kotonoha.server.actors.ioc.{ReleaseAkka, Akka}
-import ws.kotonoha.server.actors.SearchQuery
+import net.liftweb.http.{RequestVar, S, SHtml}
 import net.liftweb.util.Helpers
-import net.liftweb.http.{SHtml, S, RequestVar}
-import ws.kotonoha.server.util.LangUtil
-import scala.concurrent.Await
-import ws.kotonoha.server.actors.dict._
-import ws.kotonoha.server.records.UserRecord
-import ws.kotonoha.server.actors.dict.ExampleEntry
-import ws.kotonoha.server.actors.dict.LoadExamples
 import ws.kotonoha.server.actors.SearchQuery
+import ws.kotonoha.server.actors.dict.{ExampleEntry, _}
+import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
+import ws.kotonoha.server.util.LangUtil
+
+import scala.concurrent.Await
+import scala.xml.NodeSeq
 
 
 /**

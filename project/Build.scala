@@ -164,7 +164,10 @@ object Kotonoha {
   )
 
   lazy val scalatest = Seq(
-    libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % Test
+    libraryDependencies ++= Seq(
+      "org.scalatest" %% "scalatest" % "2.2.6" % Test,
+      "org.scalacheck" %% "scalacheck" % "1.12.5" % Test
+    )
   )
 
 

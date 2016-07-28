@@ -16,10 +16,9 @@
 
 package ws.kotonoha.server.web.comet
 
-import javax.inject.Inject
-
 import akka.actor.{ActorRef, Status}
 import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
+import com.google.inject.Inject
 import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.js.JE.{Call, JsRaw}
@@ -59,12 +58,12 @@ case class WebMark(card: String, mode: Int, time: Double, mark: Int, remaining: 
 
 case object UpdateNum
 
-trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
+class RepeatActor @Inject() (
+  jms: LuceneJmdict
+) extends NamedCometActor with AkkaInterop with Logging with ReleaseAkka {
   import DateTimeUtils._
 
   import concurrent.duration._
-
-  def jms: LuceneJmdict
 
   def self = this
 
@@ -208,7 +207,3 @@ trait RepeatActorT extends NamedCometActor with AkkaInterop with Logging {
 
   override def lifespan: Box[TimeSpan] = Full(15 minutes)
 }
-
-class RepeatActor @Inject() (
-  val jms: LuceneJmdict
-) extends RepeatActorT with ReleaseAkka

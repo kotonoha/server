@@ -231,7 +231,8 @@ class LuceneJmdictImpl(ir: IndexReader, ec: ExecutionContextExecutor, val info: 
       val lq = makeIdQuery(qp)
       searcher.search(lq, new SimpleCollector {
         override def collect(doc: Int) = {
-          ids += DataConversion.readSignedVLong(searcher.doc(doc, onlyId).getBinaryValue("id"))
+          val binary = searcher.doc(doc, onlyId).getBinaryValue("id")
+          ids += DataConversion.readSignedVLong(binary)
         }
         override def needsScores() = false
       })

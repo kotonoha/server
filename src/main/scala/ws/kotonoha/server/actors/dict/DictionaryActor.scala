@@ -19,6 +19,7 @@ package ws.kotonoha.server.actors.dict
 import akka.actor.{Actor, Props}
 import com.google.inject.Inject
 import org.apache.lucene.search.BooleanClause.Occur
+import ws.kotonoha.akane.dic.jmdict.JmdictTagMap
 import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
 import ws.kotonoha.server.actors.DictionaryMessage
 import ws.kotonoha.server.dict.WarodaiBodyParser
@@ -64,7 +65,7 @@ class JMDictQActor @Inject() (jmd: LuceneJmdict) extends Actor {
       val rds = j.readings.map(_.content)
       val mns = j.meanings.map { m =>
         val infos = m.pos ++ m.info
-        val info = if (infos.isEmpty) "" else infos.mkString("(", ",", ")")
+        val info = if (infos.isEmpty) "" else infos.map(i => JmdictTagMap.tagInfo(i.value).repr).mkString("(", ",", ") ")
         info + m.content.filter(c => LangUtil.okayLang(c.lang)).map(_.str).mkString("; ")
       }
       DictionaryEntry(wrs, rds, mns)

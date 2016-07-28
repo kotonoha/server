@@ -22,8 +22,13 @@ import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.util.unapply.XLong
 import ws.kotonoha.server.records.dictionary.{ExampleLinkRecord, ExampleSentenceRecord}
 import java.nio.ByteBuffer
+
 import ws.kotonoha.server.dict.TatoebaLink
 import java.io.{FileOutputStream, RandomAccessFile}
+
+import com.mongodb.casbah.WriteConcern
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * @author eiennohito
@@ -126,17 +131,24 @@ object TatoebaSentenceImporter {
   }
 
   def load(in: Input, tags: Map[Long, List[String]]) {
+    val coll = new ArrayBuffer[ExampleSentenceRecord](10000)
+
     for (line <- in.lines(includeTerminator = false)) {
       val x: Any = line.split("\t") match {
-        case Array(XLong(id), lang, sent) => {
-          val tag = tags.get(id).getOrElse(Nil)
+        case Array(XLong(id), lang, sent) =>
+          val tag = tags.getOrElse(id, Nil)
           val s = ExampleSentenceRecord.createRecord.
             tags(tag).lang(lang).content(sent).id(id)
-          s.save
-        }
+          coll += s
+          if (coll.size == 10000) {
+            ExampleSentenceRecord.bulkInsert(coll)
+            coll.clear()
+          }
         case _ => println("line wasn't processed:" + line)
       }
     }
+
+    ExampleSentenceRecord.bulkInsert(coll)
   }
 
   def main(args: Array[String]) = {

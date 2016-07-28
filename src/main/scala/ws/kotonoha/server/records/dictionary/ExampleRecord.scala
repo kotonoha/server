@@ -16,10 +16,11 @@
 
 package ws.kotonoha.server.records.dictionary
 
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.mongodb.record.field.{MongoListField, LongPk}
+import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
+import net.liftweb.mongodb.record.field.{LongPk, MongoListField}
 import net.liftweb.record.field.{LongField, StringField}
 import ws.kotonoha.server.mongodb.{DictDatabase, NamedDatabase}
+import ws.kotonoha.server.records.KotonohaMongoRecord
 
 /**
  * @author eiennohito
@@ -34,7 +35,7 @@ class ExampleSentenceRecord private() extends MongoRecord[ExampleSentenceRecord]
   object tags extends MongoListField[ExampleSentenceRecord, String](this)
 }
 
-object ExampleSentenceRecord extends ExampleSentenceRecord with MongoMetaRecord[ExampleSentenceRecord] with DictDatabase {
+object ExampleSentenceRecord extends ExampleSentenceRecord with MongoMetaRecord[ExampleSentenceRecord] with KotonohaMongoRecord[ExampleSentenceRecord] with DictDatabase {
   override def collectionName = "ex.sentences"
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 

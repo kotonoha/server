@@ -20,7 +20,10 @@ import java.io.{Closeable, File}
 
 import akka.actor.Actor
 import com.typesafe.scalalogging.{StrictLogging => Logging}
-import org.apache.lucene.store.FSDirectory
+import org.apache.lucene.index.{DirectoryReader, Term}
+import org.apache.lucene.search.BooleanClause.Occur
+import org.apache.lucene.search.{BooleanQuery, IndexSearcher, TermQuery}
+import org.apache.lucene.store.{FSDirectory, NIOFSDirectory}
 import ws.kotonoha.server.KotonohaConfig
 
 /**
@@ -34,7 +37,25 @@ case object CloseLucene extends SearchMessage
 case object ReloadLucene extends SearchMessage
 
 class Searcher(directory: FSDirectory) extends Closeable {
-  def topIds(q: String, max: Int) = { Nil }
+
+  private val ireader = DirectoryReader.open(directory)
+  private val srcher = new IndexSearcher(ireader)
+
+  def topIds(q: String, max: Int) = {
+    val qobl = q.split("\\s+")
+    val qb = new BooleanQuery.Builder
+    qobl.foreach { p =>
+      qb.add(new TermQuery(new Term("text", p)), Occur.SHOULD)
+    }
+
+    val results = srcher.search(qb.build(), max)
+
+    val ids = results.scoreDocs.map { sd =>
+      srcher.doc(sd.doc).getField("id").stringValue().toLong
+    }
+
+    ids.toList
+  }
 
   def close() {
     directory.close()
@@ -47,7 +68,7 @@ class ExampleSearchActor extends Actor with Logging {
 
   def createSearcher: Option[Searcher] = {
     val dirname = KotonohaConfig.safeString("lucene.indexdir")
-    val result = dirname.map(new File(_)).filter(_.exists()).map(s => new Searcher(null))
+    val result = dirname.map(new File(_)).filter(_.exists()).map(s => new Searcher(new NIOFSDirectory(s.toPath)))
     if (result.isEmpty)
       logger.warn("Can not search for examples, lucene.indexdir is not configured, will do nothing")
     result
@@ -66,10 +87,10 @@ class ExampleSearchActor extends Actor with Logging {
       sender ! docs
     }
     case CloseLucene =>
-      searcher.map(_.close())
+      searcher.foreach(_.close())
       searcher = None
     case ReloadLucene =>
-      searcher.map(_.close())
+      searcher.foreach(_.close())
       searcher = createSearcher
   }
 

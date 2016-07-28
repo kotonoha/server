@@ -18,7 +18,7 @@ package ws.kotonoha.server.dict
 
 import org.apache.lucene.search.BooleanClause.Occur
 import ws.kotonoha.akane.conjuation.{AdjI, Verb}
-import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry}
+import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry, JmdictTagMap}
 import ws.kotonoha.akane.unicode.KanaUtil
 import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
 import ws.kotonoha.server.web.comet.Candidate
@@ -43,7 +43,7 @@ case class RecommendedSubresult(item: JmdictEntry, title: String, prio: Int) {
     val wr = item.writings.map(_.content)
     val rd = item.readings.map(_.content)
     val mn = item.meanings.map { m =>
-      val b = (m.pos ++ m.info).mkString("(", ", ", ") ")
+      val b = (m.pos ++ m.info).map(s => JmdictTagMap.tagInfo(s.value).repr).mkString("(", ", ", ") ")
       val e = m.content.filter(ls => lngs.contains(ls.lang)).map(_.str).mkString(", ")
       if (b.length > 3)
         b + e

@@ -20,6 +20,7 @@ import java.net._
 import java.util.zip.{GZIPInputStream, ZipFile}
 
 import com.google.inject.Inject
+import com.typesafe.config.Config
 import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.common.Full
 import net.liftweb.http.CometActor
@@ -43,7 +44,8 @@ import scalax.io.StandardOpenOption
  * @since 2014-03-13
  */
 class UpdateResourcesActor @Inject() (
-  jms: JmdictService
+  jms: JmdictService,
+  cfg: Config
 ) extends CometActor with NgLiftActor with AkkaInterop with Logging with ReleaseAkka {
 
   import Resource._
@@ -118,7 +120,7 @@ class UpdateResourcesActor @Inject() (
   }
 
   def processKanjidic(dir: Path) = {
-    val url = "http://www.csse.monash.edu.au/~jwb/kanjidic2/kanjidic2.xml.gz"
+    val url = cfg.getString("resources.external.kanjidic")
 
     val file = dir / "kanjidic.xml.gz"
 
@@ -133,7 +135,7 @@ class UpdateResourcesActor @Inject() (
   }
 
   def processWarodai(dir: Path) = {
-    val url = "http://e-lib.ua/dic/download/ewarodai.zip"
+    val url = cfg.getString("resources.external.warodai")
 
     val archive = dir / "warodai.zip"
     val textfile = dir / "warodai.txt"
@@ -172,9 +174,9 @@ class UpdateResourcesActor @Inject() (
 
 
     processTatoeba(dir,
-      "http://tatoeba.org/files/downloads/sentences.csv",
-      "http://tatoeba.org/files/downloads/links.csv",
-      "http://tatoeba.org/files/downloads/tags.csv")
+      cfg.getString("resources.external.tatoeba.sentences"),
+      cfg.getString("resources.external.tatoeba.links"),
+      cfg.getString("resources.external.tatoeba.tags"))
 
     processKanjidic(dir)
 

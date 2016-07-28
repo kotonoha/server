@@ -140,7 +140,7 @@ class ExampleSearch(search: ExampleSearcher) extends Closeable {
   def loadExamples(eids: List[ExampleIds]) = {
     import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
     val ids = (eids flatMap (ei => List(ei.jap) ++ ei.other.map(_.right))).distinct
-    val recs = (ExampleSentenceRecord where (_.id in ids) fetch() map (r => r.id.is -> r)).toMap
+    val recs = (ExampleSentenceRecord where (_.id in ids) fetch() map (r => r.id.get -> r)).toMap
     eids.flatMap(r => {
       val exr = recs.get(r.jap)
       val o = r.other.flatMap(t => recs.get(t.right))

@@ -171,12 +171,12 @@ object DataConversion {
     var l = 0L
     var i = b.offset
     val end = b.length
+    var shift = 0
     while (i < end) {
-      l |= (b.bytes(i) & 0x7f)
+      val x = b.bytes(i) & 0x7fL
       i += 1
-      if (i < end) {
-        l <<= 7
-      }
+      l |= (x << shift)
+      shift += 7
     }
     l
   }

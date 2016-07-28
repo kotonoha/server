@@ -80,34 +80,29 @@ class WordCreateActor @Inject() (
   }
 
   def prepareWord(rec: AddWordRecord): Future[WordData] = {
-    val wr = firstElem(rec.writing.is)
-    val rd: Option[String] = rec.reading.valueBox.map{ firstElem }
+    val wr = firstElem(rec.writing.get)
+    val rd: Option[String] = rec.reading.valueBox.map(firstElem)
     val jf = (userActor ? DictQuery(jmdict, wr, rd, 5)).mapTo[SearchResult]
     val wf = (userActor ? DictQuery(warodai, wr, rd, 5)).mapTo[SearchResult]
-    val exs = jf.flatMap {
-      jmen => {
-        val idsf = jmen.entries match {
-          case Nil => {
-            //don't have such word in dictionary
-            services ? SearchQuery(wr)
-          }
-          case x :: _ => {
-            services ? SearchQuery(wr + " " + x.readings.head)
-          }
-        }
-        idsf.mapTo[List[Long]].map(_.distinct).flatMap {
-          exIds => {
-            val trsid = (userActor ? TranslationsWithLangs(exIds, LangUtil.langs)).mapTo[List[ExampleIds]]
-            val exs = trsid.flatMap(userActor ? LoadExamples(_)).mapTo[List[ExampleEntry]]
-            exs.map(_.map {
-              e => {
-                ExampleForSelection(e.jap.content.is, e.other match {
-                  case x :: _ => x.content.valueBox
-                  case _ => Empty
-                }, e.jap.id.is)
-              }
-            })
-          }
+    val exs = jf.flatMap { jmen =>
+      val en = jmen.entries
+      val idsf = if (en.isEmpty) {
+        services ? SearchQuery(wr)
+      } else {
+        services ? SearchQuery(wr + " " + en.head.readings.head)
+      }
+      idsf.mapTo[List[Long]].map(_.distinct).flatMap {
+        exIds => {
+          val trsid = (userActor ? TranslationsWithLangs(exIds, LangUtil.langs)).mapTo[List[ExampleIds]]
+          val exs = trsid.flatMap(userActor ? LoadExamples(_)).mapTo[List[ExampleEntry]]
+          exs.map(_.map {
+            e => {
+              ExampleForSelection(e.jap.content.get, e.other match {
+                case x :: _ => x.content.valueBox
+                case _ => Empty
+              }, e.jap.id.get)
+            }
+          })
         }
       }
     }
@@ -151,14 +146,14 @@ class WordCreateActor @Inject() (
     import DictCard.makeCard
     import UnicodeUtil.{isKatakana => isk}
     DictData(name,
-      in.entries.map({
+      in.entries.map {
         //if there is no writing and has katakana-only elems
         //then we make an entry (kana, hira from kata, meaning)
         case DictionaryEntry(Nil, rd, mn) if rd.exists(isk) => {
           makeCard(rd, rd.filter(isk).map(KanaUtil.kataToHira), mn)
         }
         case DictionaryEntry(wr, rd, mn) => makeCard(wr, rd, mn)
-      })
+      }
     )
   }
 

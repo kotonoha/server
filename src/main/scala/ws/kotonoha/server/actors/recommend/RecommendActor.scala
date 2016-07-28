@@ -90,7 +90,8 @@ class RecommendActor @Inject()(
   def loadIgnores(): Seq[Long] = {
     import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
     val ignores = RecommendationIgnore where (_.user eqs uid) select(_.jmdict) fetch()
-    ignores ++ resolveIgnores()
+    val saved = resolveIgnores()
+    ignores ++ saved
   }
 
   def processRequest(who: ActorRef, req: RecommendRequest, juman: List[JumanEntry]): Unit = {
