@@ -40,9 +40,9 @@ class SM6Test extends AkkaFree {
     val sm6 = kta.userContext(id).userActor(Props[SM6], "sm6")
     "new cards are graded differently" in {
       withRec(WordCardRecord.createRecord) { card =>
-        val o = ProcessMark(card.learning.is, 1.0, dtNow, id, card.id.is)
+        val o = ProcessMark(card.learning.get, 1.0, dtNow, id, card.id.get)
         val m = Await.result((sm6 ? o).mapTo[ItemLearningDataRecord], 5 seconds)
-        m.difficulty.is should equal (1.96)
+        m.difficulty.get should equal (1.96)
       }
     }
   }

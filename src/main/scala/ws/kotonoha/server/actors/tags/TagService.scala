@@ -81,7 +81,7 @@ object Tags {
   }
 
   @volatile private var aliases_ = {
-    TagAlias.fetch().map(a => a.alias.is -> a.tag.is).toMap.withDefault(x => x)
+    TagAlias.fetch().map(a => a.alias.get -> a.tag.get).toMap.withDefault(x => x)
   }
 
   def aliases = aliases_

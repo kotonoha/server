@@ -48,7 +48,7 @@ trait StatusTrait extends KotonohaRest with OauthRestHelper {
           val bldr = new StringBuilder
           if (!Props.productionMode)
             bldr.append("Warning: This is a debug kotonoha server!\n")
-          bldr.append("Hello, ").append(user.username.is).append("! ")
+          bldr.append("Hello, ").append(user.username.get).append("! ")
           bldr.append("You have ").append(r.scheduledCnt).append(" cards ready, ")
           bldr.append(r.badCount).append(" bad cards, ").append(r.newAvailable).append(" new cards available for learning. ")
           bldr.append("You have repeated ").append(r.today).append(" cards today.")
@@ -60,7 +60,7 @@ trait StatusTrait extends KotonohaRest with OauthRestHelper {
       import ws.kotonoha.server.util.KBsonDSL._
       val user = UserRecord.currentId
       user map (id => {
-        val mid = OFMatrixRecord.forUser(id).id.is
+        val mid = OFMatrixRecord.forUser(id).id.get
         val items = OFElementRecord where (_.matrix eqs mid) fetch()
         val data = items map { i => ("ef" -> i.ef) ~ ("n" -> i.n) ~ ("val" -> i.value) }
         JsonResponse(JArray(data))

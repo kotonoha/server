@@ -70,8 +70,8 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
 
   def processWs(ws: ChangeWordStatusEventRecord) = {
     mongo ! SaveRecord(ws)
-    userActor ! ChangeCardEnabled(ws.word.is, false)
-    userActor ! ChangeWordStatus(ws.word.is, ws.toStatus.is)
+    userActor ! ChangeCardEnabled(ws.word.get, false)
+    userActor ! ChangeWordStatus(ws.word.get, ws.toStatus.get)
     sender ! 1
   }
 
@@ -84,10 +84,10 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
     val cl = card.learning.valueBox
     cl match {
       case Full(l) => {
-        mr.diff(l.difficulty.is)
-        mr.interval(l.intervalLength.is)
-        mr.rep(l.repetition.is)
-        mr.lapse(l.lapse.is)
+        mr.diff(l.difficulty.get)
+        mr.interval(l.intervalLength.get)
+        mr.rep(l.repetition.get)
+        mr.lapse(l.lapse.get)
       }
       case _ => {
         mr.rep(0)
@@ -95,16 +95,16 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
       }
     }
 
-    val scheds = CardSchedule where (_.user eqs card.user.is) and (_.card eqs card.id.is) orderDesc(_.date) fetch()
+    val scheds = CardSchedule where (_.user eqs card.user.get) and (_.card eqs card.id.get) orderDesc(_.date) fetch()
     if (scheds.length > 1) {
       log.warning("multiple schedules: {}", scheds)
     }
 
     if (!scheds.isEmpty) {
       val head = scheds.head
-      mr.source(head.source.is)
-      mr.seq(head.seq.is)
-      mr.bundle(head.bundle.is)
+      mr.source(head.source.get)
+      mr.seq(head.seq.get)
+      mr.bundle(head.bundle.get)
 
       scheds.foreach { x => mongo ! DeleteRecord(x) }
     }
@@ -113,7 +113,7 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
   }
 
   def processMark(ev: MarkEventRecord): Unit = {
-    val obj = WordCardRecord where (_.user eqs (ev.user.is)) and (_.id eqs ev.card.is) get()
+    val obj = WordCardRecord where (_.user eqs (ev.user.get)) and (_.id eqs ev.card.get) get()
     obj match {
       case None => {
         log.warning("invalid mark event: {}", ev)
@@ -121,21 +121,21 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
       }
       case Some(card) => {
         saveMarkRecord(ev, card)
-        userActor ! SchedulePaired(card.word.is, card.cardMode.is)
-        if (ev.mark.is < 3.5) {
-          userActor ! ScheduleLater(card.id.is, 3 hours)
+        userActor ! SchedulePaired(card.word.get, card.cardMode.get)
+        if (ev.mark.get < 3.5) {
+          userActor ! ScheduleLater(card.id.get, 3 hours)
         }
-        val it = ProcessMark(card.learning.is, ev.mark.is, ev.datetime.is, card.user.is, card.id.is)
+        val it = ProcessMark(card.learning.get, ev.mark.get, ev.datetime.get, card.user.get, card.id.get)
         val cardF = (sm6 ? it).mapTo[ItemLearningDataRecord]
         val ur = cardF.map {
           l => {
             log.debug(s"updated learning to $l")
-            WordCardRecord where (_.id eqs (ev.card.is)) modify (_.learning setTo (l)) updateOne (WriteConcern.Safe)
+            WordCardRecord where (_.id eqs (ev.card.get)) modify (_.learning setTo (l)) updateOne (WriteConcern.Safe)
           }
         }
         ur map {
           x =>
-            log.debug("processed event for cardid={}", card.id.is)
+            log.debug("processed event for cardid={}", card.id.get)
             1
         } pipeTo (sender)
       }
@@ -161,7 +161,7 @@ class EventProcessor extends UserScopedActor with ActorLogging {
       val f = (children ? p)
       f foreach {
         _ =>
-          listeners.foreach(a => a ! CardProcessed(p.mark.card.is))
+          listeners.foreach(a => a ! CardProcessed(p.mark.card.get))
       }
       f pipeTo sender
     case ProcessMarkEvents(evs) => {

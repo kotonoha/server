@@ -58,13 +58,13 @@ object GlobalTagger extends Akka with ReleaseAkka {
     var cnt = 0
     words.foreach {
       w =>
-        val w1 = w.writing.is.head
-        val w2 = w.reading.is.headOption
+        val w1 = w.writing.get.head
+        val w2 = w.reading.get.headOption
         val req = PossibleTagRequest(w1, w2)
         val tagf = (tagger ? req).mapTo[PossibleTags].map(_.tags).map(x => x.map {
           AddTag
         })
-        val uid = w.user.is
+        val uid = w.user.get
         val f = akkaServ.userActorF(uid).flatMap {
           a =>
             tagf.flatMap {

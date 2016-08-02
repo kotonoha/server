@@ -54,7 +54,7 @@ class EnumFieldTest extends FreeSpec with Matchers with MongoAwareTest {
       val word = WordRecord.createRecord
       word.status(WordStatus.ReviewWord)
       word.save
-      println("word id is " + word.id.is)
+      println("word id is " + word.id.get)
     }
   }
 }

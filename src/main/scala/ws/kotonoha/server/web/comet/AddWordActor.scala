@@ -245,8 +245,8 @@ class AddWordActor @Inject() (
       r =>
         val mer = MarkEventRecord.createRecord
         mer.user(uid)
-        mer.card(r.id.is)
-        mer.mode(r.cardMode.is)
+        mer.card(r.id.get)
+        mer.mode(r.cardMode.get)
         mer.datetime(DateTimeUtils.now)
         mer.mark(1)
         mer.client("add-form")

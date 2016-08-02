@@ -58,11 +58,11 @@ object SMFiller {
   def select(cards: List[WordCardRecord], date: DateTime, num: Int) = {
      val rdy = cards.sortWith((c1,c2) => {
        (c1.learning.valueBox, c2.learning.valueBox) match {
-         case (Full(l1), Full(l2)) => l1.intervalEnd.is.before(l2.intervalEnd.is)
+         case (Full(l1), Full(l2)) => l1.intervalEnd.get.before(l2.intervalEnd.get)
          case (Full(_), _) => true
          case _ => false
        }
-     }).takeWhile(_.learning.valueBox.map(_.intervalEnd.is).map(date.after(_)).openOr(false)).take(num).toSet
+     }).takeWhile(_.learning.valueBox.map(_.intervalEnd.get).map(date.after(_)).openOr(false)).take(num).toSet
     (rdy.toIterator ++ cards.toIterator.withFilter(!rdy.contains(_))).take(num)
   }
 
@@ -72,7 +72,7 @@ object SMFiller {
       mark,
       d,
       userId,
-      rec.id.is
+      rec.id.get
     )
   }
 /*

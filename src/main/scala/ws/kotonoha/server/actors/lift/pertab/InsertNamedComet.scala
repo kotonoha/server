@@ -48,7 +48,7 @@ trait InsertNamedComet extends DispatchSnippet { self =>
     override protected def __nameSalt = self.getClass.getName
   }
 
-  def name = savedName.is
+  def name = savedName.get
 
   def messages = List[AnyRef]()
 

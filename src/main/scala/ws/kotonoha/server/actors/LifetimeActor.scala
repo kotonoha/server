@@ -38,9 +38,9 @@ class LifetimeActor extends KotonohaActor {
   def findStale = {
     val stale = LifetimeObj where (_.deadline lt now) fetch()
     val objs = stale flatMap { case o =>
-      val i = o.objtype.is
+      val i = o.objtype.get
       val finder = LifetimeObjects.finderFor(i)
-      finder(o.obj.is)
+      finder(o.obj.get)
     }
     objs.map(_.record).map {case o =>  o.delete_! }
     stale.foreach(services ! DeleteRecord(_))

@@ -99,7 +99,7 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
 
   case class MatrixCoordinate(rep: Int, diff: Double) {
     def copyTo(in: OFElementRecord) = {
-      in.ef(diff).n(rep).matrix(matrix.id.is)
+      in.ef(diff).n(rep).matrix(matrix.id.get)
     }
   }
 
@@ -114,26 +114,26 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
   private var elements: Map[MatrixCoordinate, OFElementRecord] = lookupElements(matrix)
 
   private def lookupElements(record: OFMatrixRecord) = {
-    val elems = OFElementRecord where (_.matrix eqs matrix.id.is) fetch()
+    val elems = OFElementRecord where (_.matrix eqs matrix.id.get) fetch()
     elems.map {
-      e => Crd(e.n.is, e.ef.is) -> e
+      e => Crd(e.n.get, e.ef.get) -> e
     }.toMap
   }
 
   def apply(rep: Int, diff: Double) = synchronized {
     elements.get(Crd(rep, diff)) match {
-      case Some(v) => v.value.is
+      case Some(v) => v.value.get
       case None => diff
     }
   }
 
   private def archive(): Unit = {
     val items = elements map {
-      case (p, v) => OFElement(p.rep, p.diff, v.value.is)
+      case (p, v) => OFElement(p.rep, p.diff, v.value.get)
     }
     val ofar = OFArchiveRecord.createRecord
     ofar.elems(items.toList.sortBy(_.diff).sortBy(_.rep))
-    ofar.matrix(matrix.id.is)
+    ofar.matrix(matrix.id.get)
     ofar.user(user)
     ofar.timestamp(now)
     ofar.save(WriteConcern.SAFE)
@@ -162,7 +162,7 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
         val newinst = OFElementRecord.createRecord
         newinst.setFieldsFromDBObject(dbo)
         elements = elements.updated(mc, newinst)
-        val q = OFElementRecord where (_.id eqs el.id.is) modify (_.value setTo (value))
+        val q = OFElementRecord where (_.id eqs el.id.get) modify (_.value setTo (value))
         q.updateOne()
       }
       case None => {

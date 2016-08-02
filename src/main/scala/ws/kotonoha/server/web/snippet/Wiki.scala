@@ -66,7 +66,7 @@ class Wiki(page: WikiPage, sess: LiftSession) extends Logging {
   }
 
   def renderMarkdown(db: WikiPageRecord): NodeSeq = {
-    WikiRenderer.parseMarkdown(db.source.is, db.path.is)
+    WikiRenderer.parseMarkdown(db.source.get, db.path.get)
   }
 
   def edit: NodeSeq = {

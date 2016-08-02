@@ -33,7 +33,7 @@ class KanjidicTagger extends UserScopedActor {
     if (kanji.length != 1) {
       Nil
     } else {
-      val yomi = entr.get(kanji.head).toList.flatMap(_.rmgroups.is.flatMap(_.cleanKunyomi))
+      val yomi = entr.get(kanji.head).toList.flatMap(_.rmgroups.get.flatMap(_.cleanKunyomi))
       yomi.contains(rd) match {
         case true => List("lonely-kun")
         case false => Nil

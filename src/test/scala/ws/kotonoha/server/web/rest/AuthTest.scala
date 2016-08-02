@@ -50,7 +50,7 @@ object OAuthRequestMock {
     import scala.collection.JavaConversions._
     val out = new MockHttpServletRequest(req.getUrl, cp)
     out.body_=(req.getBodyContents)
-    out.headers ++= (req.getHeaders.map  {case (k, v) => k -> List(v)}.toSeq)
+    out.headers ++= req.getHeaders.map { case (k, v) => k -> List(v) }
     out.method = req.getVerb.name()
     out
   }
@@ -63,7 +63,7 @@ class AuthTest extends org.scalatest.FunSuite with Matchers with MongoAwareTest 
   test("oauth get service works") {
     val client = createClient()
     val req = new OAuthRequest(Verb.GET, "http://weabpp.net:8085/k/api/my/service")
-    val tok = new Token(token.tokenPublic.is, token.tokenSecret.is)
+    val tok = new Token(token.tokenPublic.get, token.tokenSecret.get)
     client.signRequest(tok, req)
 
     val mock = OAuthRequestMock(req, "/k")
@@ -83,7 +83,7 @@ class AuthTest extends org.scalatest.FunSuite with Matchers with MongoAwareTest 
     val client = createClient()
     val req = new OAuthRequest(Verb.POST, "http://weabpp.net:8085/k/api/my/post")
     req.addPayload("Hello, world!")
-    val tok = new Token(token.tokenPublic.is, token.tokenSecret.is)
+    val tok = new Token(token.tokenPublic.get, token.tokenSecret.get)
     client.signRequest(tok, req)
 
     val mock = OAuthRequestMock(req, "/k")
@@ -121,8 +121,8 @@ class AuthTest extends org.scalatest.FunSuite with Matchers with MongoAwareTest 
       }
     }
     val bldr = new ServiceBuilder().
-      provider(api).apiKey(client.apiPublic.is).apiSecret(client.apiPrivate.is);
-    bldr.build();
+      provider(api).apiKey(client.apiPublic.get).apiSecret(client.apiPrivate.get)
+    bldr.build()
   }
 
   val client = {
@@ -130,7 +130,7 @@ class AuthTest extends org.scalatest.FunSuite with Matchers with MongoAwareTest 
     clnt.name("Test client").apiPrivate(randomHex()).apiPublic(randomHex())
   }
 
-  val oid = new ObjectId(12, 13, 14)
+  val oid = ObjectId.createFromLegacyFormat(12, 13, 14)
 
   val token = {
     val tok = UserTokenRecord.createRecord
@@ -139,8 +139,8 @@ class AuthTest extends org.scalatest.FunSuite with Matchers with MongoAwareTest 
 
   override protected def beforeAll() {
     super.beforeAll()
-    client.save
-    token.save
+    client.save(safe = true)
+    token.save(safe = true)
   }
 
   override protected def afterAll() {

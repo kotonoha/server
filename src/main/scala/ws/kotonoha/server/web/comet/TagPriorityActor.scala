@@ -55,13 +55,13 @@ class TagPriorityActor extends NamedCometActor with NgLiftActor with ReleaseAkka
   def saveData(value: JValue): Unit = {
     val data = Extraction.extract[List[DisplayingTagPriority]](value)
     val old = cachedTags.map {
-      x => x.tag.is -> x
+      x => x.tag.get -> x
     } toMap
 
     data.foreach {
       dtp =>
         val obj = old(dtp.tag)
-        if (obj.limit.is != dtp.limit || obj.priority.is != dtp.priority) {
+        if (obj.limit.get != dtp.limit || obj.priority.get != dtp.priority) {
           akkaServ ! ForUser(uid, UpdateTagPriority(dtp.tag, dtp.priority, dtp.limit))
         }
     }
@@ -94,7 +94,7 @@ class TagPriorityActor extends NamedCometActor with NgLiftActor with ReleaseAkka
   def publishTags(tags: List[UserTagInfo]): Unit = {
     cachedTags = tags
     val data = tags map {
-      t => DisplayingTagPriority(t.tag.is, t.usage.is, t.priority.is, t.limit.is)
+      t => DisplayingTagPriority(t.tag.get, t.usage.get, t.priority.get, t.limit.get)
     }
     val jv = Extraction.decompose(data)
     val msg = ("cmd" -> "tags") ~ ("data" -> jv)

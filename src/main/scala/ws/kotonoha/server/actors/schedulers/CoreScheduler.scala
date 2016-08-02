@@ -120,7 +120,7 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
 
     cards.foreach { card =>
       val rec = CardSchedule.createRecord
-      rec.card(card.cid).source(card.source).seq(card.seq).user(uid).date(date).bundle(arch.id.is).save()
+      rec.card(card.cid).source(card.source).seq(card.seq).user(uid).date(date).bundle(arch.id.get).save()
     }
   }
 

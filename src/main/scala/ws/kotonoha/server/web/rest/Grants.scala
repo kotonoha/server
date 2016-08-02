@@ -48,7 +48,7 @@ object Grants extends KotonohaRest with ReleaseAkka {
   }
 
   def createModFn(rec: UserRecord) = {
-    val id = rec.id.is
+    val id = rec.id.get
     val key = UserUtil.serverKey
     val ids = id.toString
     SecurityUtil.encryptAes(ids, key)
@@ -69,13 +69,13 @@ object Grants extends KotonohaRest with ReleaseAkka {
 
       val count = UserRecord count
       val users = UserRecord findAll(q, sort, Skip(start), Limit(limit))
-      val uids = users map (_.id.is)
+      val uids = users map (_.id.get)
       val grants = GrantRecord where (_.user in (uids)) fetch()
 
-      def gnames(u: ObjectId) = grants filter { _.user.is == u } map {_.role.is} mkString(",")
+      def gnames(u: ObjectId) = grants filter { _.user.get == u } map {_.role.get} mkString(",")
 
       val list = users map (u => {
-        ("name" -> u.shortName) ~ ("roles" -> gnames(u.id.is)) ~ ("code" -> createModFn(u))
+        ("name" -> u.shortName) ~ ("roles" -> gnames(u.id.get)) ~ ("code" -> createModFn(u))
       })
       val resp = ("sEcho" -> req.param("sEcho").openOr("1")) ~ ("iTotalRecords" -> count) ~
         ("iTotalDisplayRecords" -> users.length) ~ ("aaData" -> list)

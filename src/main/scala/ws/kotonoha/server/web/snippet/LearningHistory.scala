@@ -40,19 +40,19 @@ object LearningHistory extends DispatchSnippet {
     import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
     import net.liftweb.util.Helpers._
 
-    val marks = paginator.is.page
-    val cids = marks.map(_.card.is)
+    val marks = paginator.get.page
+    val cids = marks.map(_.card.get)
     val cards = WordCardRecord where (_.id in cids) select(_.id, _.word) fetch() toMap
-    val words = WordRecord where (_.id in (cards.map(_._2))) fetch() map(x => x.id.is -> x) toMap
+    val words = WordRecord where (_.id in (cards.map(_._2))) fetch() map(x => x.id.get -> x) toMap
     def search(in: ObjectId) = cards.get(in).flatMap(x => words.get(x))
 
     marks.flatMap { m =>
-      val word = search(m.card.is)
+      val word = search(m.card.get)
       val wlink = word match {
         case None => NodeSeq.Empty
         case Some(w) =>
-          val href = s"/words/detail?w=${w.id.is}"
-          val cont = (w.writing.is.headOption, w.reading.is.headOption) match {
+          val href = s"/words/detail?w=${w.id.get}"
+          val cont = (w.writing.get.headOption, w.reading.get.headOption) match {
             case (Some(wr), Some(rd)) =>
               if (UnicodeUtil.hasKanji(wr)) {
                 <ruby><rb>{wr}</rb><rt>{rd}</rt></ruby>
@@ -63,29 +63,29 @@ object LearningHistory extends DispatchSnippet {
           }
           <a href={href}>{cont}</a>
       }
-      val mode = m.mode.is match {
+      val mode = m.mode.get match {
         case CardMode.WRITING => "Writing"
         case CardMode.READING => "Reading"
         case _ => "Unknown"
       }
-      val client = m.client.is match {
+      val client = m.client.get match {
         case "web-repeat" => "Web"
         case "kotonoha-main" => "Android"
         case x => x
       }
       val css =
-        ".date" #> Formatting.format(m.datetime.is) &
+        ".date" #> Formatting.format(m.datetime.get) &
         ".word" #> wlink &
         ".kind" #> mode &
-        ".mark" #> m.mark.is.toInt &
-        ".showtime" #> m.time.is &
+        ".mark" #> m.mark.get.toInt &
+        ".showtime" #> m.time.get &
         ".client" #> client
       css(ns)
     }
   }
 
   def dispatch = {
-    case "paginate" => paginator.is.paginate
+    case "paginate" => paginator.get.paginate
     case "marks" => renderMarks
   }
 }

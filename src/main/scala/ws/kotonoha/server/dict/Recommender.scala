@@ -50,7 +50,7 @@ object WordClassResolver {
       r.kinfo.get(k) match {
         case None => false
         case Some(ki) =>
-          ki.rmgroups.is.flatMap(_.cleanKunyomi).contains(r.reading)
+          ki.rmgroups.get.flatMap(_.cleanKunyomi).contains(r.reading)
       }
     }
   }

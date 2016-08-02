@@ -48,7 +48,7 @@ object Stats extends RestHelper {
     case List("learning") JsonGet req => {
       val stats = LearningStats.recent(10)
       val last = stats groupBy(_.user)
-      val users = UserRecord findAllByList(last.keys.toList) map {u => u.id.is -> u} toMap
+      val users = UserRecord findAllByList(last.keys.toList) map {u => u.id.get -> u} toMap
       val days = DateTimeUtils.last10midn
       val jvals : Iterable[JValue] = last map {
         case (uid, data) => {

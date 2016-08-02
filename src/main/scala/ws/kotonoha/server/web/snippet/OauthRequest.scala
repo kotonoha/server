@@ -39,7 +39,7 @@ object OauthRequest extends Akka with ReleaseAkka {
 
   def dateRenderer = {
     val r = DateTimeFormat.forPattern("'browser request on 'yyyy.MM.dd HH:mm")
-    r.withZone(Formatting.requestFormatter.is.tz)
+    r.withZone(Formatting.requestFormatter.get.tz)
   }
 
   def render(in: NodeSeq): NodeSeq = {
@@ -51,7 +51,7 @@ object OauthRequest extends Akka with ReleaseAkka {
             val str: String = makeAuthString(u, cl)
             <p>
               You are trying to authentificate
-              {cl.name.is}<a class="btn" href={"http://kotonoha.ws/intent/auth?data=" + str}>Confirm</a>
+              {cl.name.get}<a class="btn" href={"http://kotonoha.ws/intent/auth?data=" + str}>Confirm</a>
             </p>
           }
           case _ => {
@@ -62,7 +62,7 @@ object OauthRequest extends Akka with ReleaseAkka {
                 val uBox = UserRecord.checkUser(Full(eml), pwd)
                 uBox match {
                   case Full(u) => {
-                    val msg = makeAuthString(u.id.is, cl)
+                    val msg = makeAuthString(u.id.get, cl)
                     S.redirectTo("kotonoha://kotonoha.ws/intent/auth?data=" + msg)
                   }
                   case _ => {
@@ -85,7 +85,7 @@ object OauthRequest extends Akka with ReleaseAkka {
   def makeAuthString(uid: ObjectId, cl: ClientRecord): String = {
     import ws.kotonoha.server.actors.UserSupport._
     val name = dateRenderer.print(System.currentTimeMillis())
-    val f = (akkaServ ? EncryptedTokenString(CreateToken(uid, name), cl.apiPrivate.is).u(uid))
+    val f = (akkaServ ? EncryptedTokenString(CreateToken(uid, name), cl.apiPrivate.get).u(uid))
       .mapTo[String]
     val str = Await.result(f, 1 minute)
     str

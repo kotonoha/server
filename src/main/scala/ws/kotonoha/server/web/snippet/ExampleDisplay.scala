@@ -43,12 +43,12 @@ trait ExampleDisplay extends Akka {
 
 
   def fld(in: NodeSeq): NodeSeq = {
-    bind("ef", in, "fld" -> SHtml.text(query.is, query(_), "name" -> "query"))
+    bind("ef", in, "fld" -> SHtml.text(query.get, query(_), "name" -> "query"))
   }
 
   //small wtf, build list of examples and translations from query, asynchronously ftw
   def docs: List[ExampleEntry] = {
-    val f = (akkaServ ? SearchQuery(query.is)).mapTo[List[Long]]
+    val f = (akkaServ ? SearchQuery(query.get)).mapTo[List[Long]]
     val fs = f flatMap  {
       cand =>
         (akkaServ ? FullLoadExamples(cand, LangUtil.langs)).mapTo[List[ExampleEntry]]
@@ -67,7 +67,7 @@ trait ExampleDisplay extends Akka {
 
   def inner(d: ExampleEntry): NodeSeq = {
     <li>
-      {d.jap.content.is}
+      {d.jap.content.get}
     </li> ++
       d.other.flatMap(o => <li>
         {o.content}

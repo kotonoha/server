@@ -81,7 +81,7 @@ class WordActor extends UserScopedActor with ActorLogging {
     val read = word.reading.stris
     val writ = word.writing.stris
     if (writ == null || writ == "") {
-      word.writing(word.reading.is)
+      word.writing(word.reading.get)
       false
     } else {
       //normalized katakana == hiragana equals
@@ -113,7 +113,7 @@ class WordActor extends UserScopedActor with ActorLogging {
     (userActor ? ProcessMarkEvents(data)) andThen {
       case _ =>
         data map {
-          d => card ! ClearNotBefore(d.card.is)
+          d => card ! ClearNotBefore(d.card.get)
         }
     }
 

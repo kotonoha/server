@@ -21,29 +21,25 @@ package bootstrap.liftweb
  * @since 07.10.11 
  */
 
-import net.liftweb._
-import util._
-import Helpers._
-import common._
-import http._
-import sitemap._
-import Loc._
+import com.typesafe.scalalogging.{StrictLogging => Logging}
+import net.liftweb.actor.{ILAExecute, LAScheduler}
+import net.liftweb.common._
+import net.liftweb.http._
+import net.liftweb.sitemap.Loc._
+import net.liftweb.sitemap._
+import net.liftweb.util.Helpers._
+import net.liftweb.util._
+import ws.kotonoha.server.KotonohaConfig
+import ws.kotonoha.server.actors.lift.Ping
 import ws.kotonoha.server.actors.{InitUsers, ReleaseAkkaMain}
+import ws.kotonoha.server.ioc.{KotonohaIoc, KotonohaLiftInjector}
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
-import ws.kotonoha.server.web.rest._
-import admin.{OFHistory, Stats}
-import ws.kotonoha.server.web.rest.model.{Cards, Words}
-import ws.kotonoha.server.actors.lift.Ping
-import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import ws.kotonoha.server.web.snippet.{ClasspathResource, ModeSnippet}
-import com.typesafe.scalalogging.{StrictLogging => Logging}
-
-import scala.xml.{NodeSeq, Text}
 import ws.kotonoha.server.web.loc.WikiLoc
-import net.liftweb.actor.{ILAExecute, LAScheduler}
-import ws.kotonoha.server.KotonohaConfig
-import ws.kotonoha.server.ioc.{KotonohaIoc, KotonohaLiftInjector}
+import ws.kotonoha.server.web.rest._
+import ws.kotonoha.server.web.rest.admin.{OFHistory, Stats}
+import ws.kotonoha.server.web.rest.model.{Cards, Words}
+import ws.kotonoha.server.web.snippet.{ClasspathResource, ModeSnippet}
 
 import scala.util.control.NonFatal
 
@@ -74,6 +70,8 @@ class Boot extends Logging {
   }
 
   def boot() = {
+    logger.info(s"run mode: ${Props.mode}")
+
     val config = KotonohaConfig.config
 
     val ioc = new KotonohaIoc(config)

@@ -65,8 +65,8 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     val js = rec.asJSON.toString()
     val rec2 = WordRecord.createRecord
     rec2.setFieldsFromJSON(js)
-    rec.writing.is should equal(rec2.writing.is)
-    rec.reading.is should equal(rec2.reading.is)
+    rec.writing.get should equal(rec2.writing.get)
+    rec.reading.get should equal(rec2.reading.get)
   }
 
   test("word record translates to java model") {
@@ -129,10 +129,10 @@ class JsonTest extends org.scalatest.FunSuite with org.scalatest.matchers.Should
     val rec = MarkEventRecord.createRecord
     rec.setFieldsFromJValue(jv)
 
-    rec.card.is should equal(cid)
-    rec.mark.is should equal(5.0)
-    rec.mode.is should equal(CardMode.READING)
-    rec.datetime.is should equal(dt)
+    rec.card.get should equal(cid)
+    rec.mark.get should equal(5.0)
+    rec.mode.get should equal(CardMode.READING)
+    rec.datetime.get should equal(dt)
   }
 
   import scala.collection.JavaConversions._

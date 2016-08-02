@@ -56,6 +56,6 @@ object GlobalComet extends InsertNamedComet {
 
   override def messages = UserRecord.currentId.map(p => ActorUser(p)).toList
 
-  override def name = actorName.is
+  override def name = actorName.get
 }
 

@@ -176,7 +176,7 @@ object WordSnippet extends Akka with ReleaseAkka {
   def renderCards(in: NodeSeq): NodeSeq = {
     import Helpers._
     import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
-    val cards = WordCardRecord where (_.word eqs wordId.get) orderAsc (_.cardMode) fetch()
+    val cards = WordCardRecord where (_.word eqs wordId.openOrThrowException("should be present")) orderAsc (_.cardMode) fetch()
     cards.flatMap { c =>
       bind("wc", in,
         "mode" -> <h5>{mode(c.cardMode.get).+(" card")}</h5>,

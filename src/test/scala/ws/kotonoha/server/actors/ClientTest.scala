@@ -30,7 +30,7 @@ class ClientTest extends AkkaFun {
   test("clients creates and deletes") {
     val client = ClientRecord.name("test")
     Await.result(kta ? AddClient(client), 2 seconds)
-    val fromdb = ClientRecord.find(client.id.is)
+    val fromdb = ClientRecord.find(client.id.get)
     fromdb.isEmpty should be (false)
     client.delete_!
   }

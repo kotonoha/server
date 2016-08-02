@@ -215,8 +215,8 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
       case Some(f) => {
         f.onComplete {
           case util.Success(wd) =>
-            val rd = wd.word.reading.is.headOption
-            val wr = wd.word.writing.is.headOption
+            val rd = wd.word.reading.get.headOption
+            val wr = wd.word.writing.get.headOption
             val req = RecommendRequest(wr, rd, Nil)
             uact ! req
             self ! DoRenderAndDisplay(wd)
@@ -340,15 +340,15 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
     val ex = exs.ex
 
     def selected: Future[Boolean] = {
-      val res = word.reading.is.exists {
+      val res = word.reading.get.exists {
         rd => ex.contains(rd)
       } ||
-        word.writing.is.exists {
+        word.writing.get.exists {
           wr => ex.contains(wr)
         }
       if (res) Promise.successful(true).future
       else {
-        val wrs = word.writing.is.toSet
+        val wrs = word.writing.get.toSet
         val f = (root ? ParseSentence(ex)).mapTo[ParsedQuery]
         f map (lst => {
           val jwr = lst.inner.flatMap {
@@ -369,17 +369,17 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
   }
 
   def renderAndPush(data: WordData) = {
-    val hid = data.word.id.is.toString
+    val hid = data.word.id.get.toString
     displaying = displaying + (hid -> data)
     data.onSave.future.onComplete {
       x => self ! RemoveItem(hid)
     }
 
     val dicts = Extraction.decompose(data.dicts)
-    val tags = data.word.tags.is.map {
+    val tags = data.word.tags.get.map {
       s => JString(s)
     }
-    val globalOps = data.init.tags.is.map(_.asJValue)
+    val globalOps = data.init.tags.get.map(_.asJValue)
 
     val jv = ("word" -> data.word.stripped) ~
       ("dics" -> dicts) ~

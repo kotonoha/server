@@ -43,7 +43,7 @@ class SelectorFacade extends UserScopedActor {
     val ids = q.select(_.word).limit(max).orderDesc(_.learning.subfield(_.lapse)) fetch()
     //val wds = WordRecord.findAll("id" -> ("$in" -> ids)) map {r => r.id.is -> r} toMap
     val wds = WordRecord where (_.id in ids) fetch() map {
-      r => r.id.is -> r
+      r => r.id.get -> r
     } toMap
     //val s = ObjectRenderer.renderJvalue(filter)
     val ordered = ids flatMap {
@@ -67,17 +67,17 @@ class CardSelectorFacade extends UserScopedActor with ActorLogging {
 
   def createResult(wac: WordsAndCards): WordsAndCards = {
     val cards = wac.cards
-    val wIds = cards map (_.word.is)
+    val wIds = cards map (_.word.get)
     val words = WordRecord where (_.id in wIds) fetch()
-    val wids = words.map(_.id.is).toSet
-    val (present, absent) = cards.partition(c => wids.contains(c.word.is))
+    val wids = words.map(_.id.get).toSet
+    val (present, absent) = cards.partition(c => wids.contains(c.word.get))
     absent.foreach(_.delete_!)
     wac.copy(cards = present, words = words)
   }
 
   def processPaired(cards: List[WordCardRecord]) = {
     for (c <- cards) {
-      userActor ! SchedulePaired(c.word.is, c.cardMode.is)
+      userActor ! SchedulePaired(c.word.get, c.cardMode.get)
     }
   }
 

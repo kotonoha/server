@@ -38,22 +38,22 @@ object DuplicateMarkFinder {
     val tendays = now minus (10 days)
     val marks = MarkEventRecord where (_.datetime gt (tendays)) fetch()
 
-    val grps = marks.groupBy(_.datetime.is).map(x => x._1 -> x._2.toArray.sortBy(_.rep.is)).
+    val grps = marks.groupBy(_.datetime.get).map(x => x._1 -> x._2.toArray.sortBy(_.rep.get)).
       filter {
       x => x._2.length > 1
     }
 
-    val toFix = grps.map(x => x._2(0)).filter(x => x.mark.is > 3.9)
+    val toFix = grps.map(x => x._2(0)).filter(x => x.mark.get > 3.9)
 
     toFix.foreach(mer => {
-      WordCardRecord.find(mer.card.is) foreach (c => {
-        val l = c.learning.is
-        l.difficulty(mer.diff.is)
-        l.repetition(mer.rep.is)
-        l.intervalStart(mer.datetime.is)
-        val end = mer.datetime.is plus (mer.interval.is days)
+      WordCardRecord.find(mer.card.get) foreach (c => {
+        val l = c.learning.get
+        l.difficulty(mer.diff.get)
+        l.repetition(mer.rep.get)
+        l.intervalStart(mer.datetime.get)
+        val end = mer.datetime.get plus (mer.interval.get days)
         l.intervalEnd(end)
-        l.intervalLength(mer.interval.is)
+        l.intervalLength(mer.interval.get)
         c.save
       })
     })

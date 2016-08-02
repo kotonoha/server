@@ -60,7 +60,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
   }
 
 
-  def curTags = tags.is
+  def curTags = tags.get
 
   def writeTags(tags: List[String]) {
     this.tags(tags)

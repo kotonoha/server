@@ -51,7 +51,7 @@ object AdminCheats {
     users flatMap {
       u => bind("c", in,
             "name" -> u.niceName,
-            "uid" -> u.id.is.toString )
+            "uid" -> u.id.get.toString )
     }
 
   }

@@ -62,7 +62,7 @@ class TagActor extends UserScopedActor with ActorLogging {
 
   def tagWord(rec: WordRecord, ops: Seq[TagOp]) {
     val wrs = rec.writing.get
-    var cur = new ListBuffer() ++ rec.tags.is
+    var cur = new ListBuffer() ++ rec.tags.get
     ops.foreach {
       case AddTag(tag) => {
         cur += tag
@@ -83,10 +83,10 @@ class TagActor extends UserScopedActor with ActorLogging {
         log.debug("ignoring tagging operation {}", x)
     }
     val res = cur.result()
-    WordRecord where (_.id eqs rec.id.is) modify (_.tags setTo res) updateOne()
+    WordRecord where (_.id eqs rec.id.get) modify (_.tags setTo res) updateOne()
     val prio = priority(res)
-    userActor ! TagCards(rec.id.is, res, prio)
-    sender ! Tagged(rec.id.is, res)
+    userActor ! TagCards(rec.id.get, res, prio)
+    sender ! Tagged(rec.id.get, res)
   }
 
   var canPublishPrio = true
@@ -149,7 +149,7 @@ class PriorityCache (uid: ObjectId) {
 
   def load(): Map[String, Int] = {
     val nfos = UserTagInfo where (_.user eqs uid) and (_.priority neqs 0) fetch()
-    nfos.map(i => i.tag.is -> i.priority.is).toMap.withDefaultValue(0)
+    nfos.map(i => i.tag.get -> i.priority.get).toMap.withDefaultValue(0)
   }
 
   def cache = {

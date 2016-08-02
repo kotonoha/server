@@ -64,7 +64,7 @@ class WordSelector extends UserScopedActor with ActorLogging {
 
   def selectCards(cardList: List[WordCardRecord], max: Int) = {
 
-    val grps = cardList.groupBy(_.word.is)
+    val grps = cardList.groupBy(_.word.get)
     val col = new scala.collection.mutable.ArrayBuffer[WordCardRecord]
     grps.foreach {
       x =>
@@ -73,7 +73,7 @@ class WordSelector extends UserScopedActor with ActorLogging {
           case v :: vs => {
             col += v
             vs.foreach {
-              c => userActor ! SchedulePaired(c.word.is, c.cardMode.is)
+              c => userActor ! SchedulePaired(c.word.get, c.cardMode.get)
             }
           }
           case _ =>

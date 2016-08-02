@@ -90,7 +90,7 @@ class WarodaiQActor extends Actor {
       val rds = w.readings.get
       val wrs = w.writings.get
       val mns = {
-        val body = WarodaiBodyParser.body(new CharSequenceReader(w.body.is))
+        val body = WarodaiBodyParser.body(new CharSequenceReader(w.body.get))
         if (body.successful) {
           builder.clear()
           body.get.mkString(builder)

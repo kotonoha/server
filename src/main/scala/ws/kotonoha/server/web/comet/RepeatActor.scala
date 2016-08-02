@@ -133,29 +133,29 @@ class RepeatActor @Inject() (
   def publish(words: List[WordRecord], cards: List[WordCardRecord], seq: List[ReviewCard]): Unit = {
     import net.liftweb.json.{compact => jc, render => jr}
     import ws.kotonoha.server.util.KBsonDSL._
-    val wm = words.map(w => (w.id.is, w)).toMap
-    val cm = cards.map(c => (c.id.is, c)).toMap
+    val wm = words.map(w => (w.id.get, w)).toMap
+    val cm = cards.map(c => (c.id.get, c)).toMap
     def getExamples(in: List[ExampleRecord], max: Int) = {
       val selected = Random.shuffle(in).take(max)
       val html = selected flatMap (e =>
         <div class="nihongo">
-          {e.example.is}
+          {e.example.get}
         </div>
           <div>
-            {e.translation.is}
+            {e.translation.get}
           </div>)
       nsString(html)
     }
     val data: JValue = seq map (it => {
       val c = cm(it.cid)
-      val w = wm(c.word.is)
+      val w = wm(c.word.get)
       val addInfo = processWord(w.writing.stris, Some(w.reading.stris))
       val procInfo = addInfo map {
         nsString(_)
       } getOrElse ""
       ("writing" -> w.writing.stris) ~ ("reading" -> w.reading.stris) ~ ("meaning" -> w.meaning) ~
-        ("cid" -> c.id.is.toString) ~ ("mode" -> c.cardMode.is) ~ ("examples" -> getExamples(w.examples.is, 5)) ~
-        ("additional" -> procInfo) ~ ("wid" -> c.word.is.toString) ~ ("src" -> it.source)
+        ("cid" -> c.id.get.toString) ~ ("mode" -> c.cardMode.get) ~ ("examples" -> getExamples(w.examples.get, 5)) ~
+        ("additional" -> procInfo) ~ ("wid" -> c.word.get.toString) ~ ("src" -> it.source)
     })
     partialUpdate(Call("publish_new", jc(jr(data))).cmd)
   }

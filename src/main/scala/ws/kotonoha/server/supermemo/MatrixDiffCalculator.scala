@@ -40,10 +40,10 @@ object MatrixDiffCalculator {
   private case class Crd(rep: Long, diff: Double)
 
   def diff(left: OFArchiveRecord, right: OFArchiveRecord) = {
-    val mp = left.elems.is.map {
+    val mp = left.elems.get.map {
       e => Crd(e.rep, e.diff) -> e.value
     }.toMap.withDefault(c => c.diff)
-    right.elems.is.map {
+    right.elems.get.map {
       e => {
         val c = Crd(e.rep, e.diff)
         val old = mp(c)
@@ -57,9 +57,9 @@ object MatrixDiffCalculator {
     val marks = MarkEventRecord where (_.user eqs user) and (_.datetime between(beg, end))
     var map = Map[Crd, Array[Int]]().withDefault(c => new Array[Int](5))
     marks.foreach(m => {
-      val c = Crd(m.rep.is, m.diff.is)
+      val c = Crd(m.rep.get, m.diff.get)
       val o = map(c)
-      o(m.mark.is.toInt - 1) += 1
+      o(m.mark.get.toInt - 1) += 1
       map += c -> o
     })
     map
@@ -67,8 +67,8 @@ object MatrixDiffCalculator {
 
   def model(left: OFArchiveRecord, right: OFArchiveRecord) = {
     val df = diff(left, right)
-    val cnt = count(left.user.is, left.timestamp.is, right.timestamp.is)
-    val mp = right.elems.is.map {
+    val cnt = count(left.user.get, left.timestamp.get, right.timestamp.get)
+    val mp = right.elems.get.map {
       e => Crd(e.rep, e.diff) -> e.value
     }.toMap.withDefault(c => c.diff)
     df.map(e => {

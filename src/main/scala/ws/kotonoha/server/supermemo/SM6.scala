@@ -60,7 +60,7 @@ class SM6 extends UserScopedActor with ActorLogging {
   }
 
   def inertiaVal(data: ItemLearningDataRecord, q: Double) = {
-    val i = data.inertia.is
+    val i = data.inertia.get
     val p = q match {
       case v if v >= 3 => 0.9
       case v if v >= 2 => 0.8
@@ -80,25 +80,25 @@ class SM6 extends UserScopedActor with ActorLogging {
   def updateLearningItem(item: ProcessMark) {
     val q = item.q
     val data = item.data
-    var mod = calculateMod(item.time, data.intervalStart.is, data.intervalEnd.is)
+    var mod = calculateMod(item.time, data.intervalStart.get, data.intervalEnd.get)
     val raw = if (q < 3.5) {
       //bad mark
-      data.lapse(data.lapse.is + 1)
+      data.lapse(data.lapse.get + 1)
       data.repetition(1)
       data.inertia(inertiaVal(data, q))
-      matrix(data.lapse.is, data.difficulty.is) * (0.8 max mod) * (data.inertia.is max 0.05)
+      matrix(data.lapse.get, data.difficulty.get) * (0.8 max mod) * (data.inertia.get max 0.05)
     } else {
-      if (data.inertia.is < 1.0) {
+      if (data.inertia.get < 1.0) {
         //first good mark after bad marks
         //scheduling for simple interval (as by SM6)
         data.inertia(1.0)
         data.repetition(1)
-        matrix(data.lapse.is, data.difficulty.is)
+        matrix(data.lapse.get, data.difficulty.get)
       } else {
         //sequential good mark
-        data.repetition(data.repetition.is + 1)
-        val oldI = data.intervalLength.is
-        val newI = data.intervalLength.is * matrix(data.repetition.is, data.difficulty.is)
+        data.repetition(data.repetition.get + 1)
+        val oldI = data.intervalLength.get
+        val newI = data.intervalLength.get * matrix(data.repetition.get, data.difficulty.get)
         log.debug("updating item from {} to {} with mod {}", oldI, newI, mod)
         oldI + (newI - oldI) * mod
       }
@@ -110,7 +110,7 @@ class SM6 extends UserScopedActor with ActorLogging {
 
   def updateDates(item: ProcessMark) {
     val data = item.data
-    val dur = MathUtil.dayToMillis (data.intervalLength.is)
+    val dur = MathUtil.dayToMillis (data.intervalLength.get)
     val begin = item.time
     val end = begin.plus(dur)
     
@@ -121,10 +121,10 @@ class SM6 extends UserScopedActor with ActorLogging {
   def update(item: ProcessMark) : ItemLearningDataRecord = {
     val q = item.q
     val data = item.data
-    val oldEf = item.data.difficulty.is
+    val oldEf = item.data.difficulty.get
     val ef = 1.3 max (oldEf + 0.1 - (5 - q)*(0.08 + (5 - q)*0.02))
 
-    if (data.repetition.is == 0) {
+    if (data.repetition.get == 0) {
       data.repetition(1)
       data.lapse(1)
       data.intervalLength(4)
@@ -136,8 +136,8 @@ class SM6 extends UserScopedActor with ActorLogging {
     }
 
     data.difficulty(ef)
-    val n = data.repetition.is
-    mactor ! UpdateMatrix(item.card, q, item.data.intervalLength.is, n, oldEf)
+    val n = data.repetition.get
+    mactor ! UpdateMatrix(item.card, q, item.data.intervalLength.get, n, oldEf)
     updateLearningItem(item)
     updateDates(item)
     data

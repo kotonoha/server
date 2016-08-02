@@ -47,7 +47,7 @@ object UserSettings extends UserSettings with MongoMetaRecord[UserSettings] with
     } openOrThrowException ("Will create new thing")
   )
 
-  def current = cached.is
+  def current = cached.get
 
   def forUser(id: ObjectId): UserSettings = find(id).openOr(UserSettings.createRecord.id(id).save)
 }

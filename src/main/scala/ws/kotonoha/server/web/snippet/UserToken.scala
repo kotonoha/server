@@ -49,7 +49,7 @@ trait UserToken extends Akka {
 
   def create(in: NodeSeq): NodeSeq = {
     var name: String = ""
-    val uid = UserRecord.currentId.get
+    val uid = UserRecord.currentId.openOrThrowException("should have user here")
 
     def save(): JsCmd = {
       val fut = (akkaServ ? CreateToken(uid, name).forUser(uid)).mapTo[UserTokenRecord]
@@ -59,7 +59,7 @@ trait UserToken extends Akka {
           (akkaServ ? CreateQrWithLifetime(authStr, 1 minute).forUser(uid)).mapTo[QrEntry]
       }
       val qr = Await.result(qrFut, 5 seconds)
-      val code = qr.id.is.toString
+      val code = qr.id.get.toString
       val uri = "/iqr/" + code
       SetHtml("qrcode",
         <span>
@@ -76,7 +76,7 @@ trait UserToken extends Akka {
   }
 
   def list(in: NodeSeq): NodeSeq = {
-    val uid = UserRecord.currentId.get
+    val uid = UserRecord.currentId.openOrThrowException("should have user here")
     val tokens = UserTokenRecord where (_.user eqs uid) fetch()
 
     def delete(t: UserTokenRecord): JsCmd = {
@@ -88,8 +88,8 @@ trait UserToken extends Akka {
       t =>
         bind("t", in,
           AttrBindParam("id", t.hashCode().toString, "id"),
-          "name" -> t.label.is,
-          "date" -> Formatting.format(t.createdOn.is),
+          "name" -> t.label.get,
+          "date" -> Formatting.format(t.createdOn.get),
           "delete" -> SHtml.a(() => delete(t), Text("delete"))
         )
     }

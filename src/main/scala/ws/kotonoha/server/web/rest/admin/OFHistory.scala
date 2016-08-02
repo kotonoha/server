@@ -79,9 +79,9 @@ object OFHistory extends KotonohaRest with ReleaseAkka {
       }
       its match {
         case Full((Some(l), Some(r))) => {
-          if (l.user.is != r.user.is) {
+          if (l.user.get != r.user.get) {
             Full(BadResponse())
-          } else if (l.timestamp.is.after(r.timestamp.is)) {
+          } else if (l.timestamp.get.after(r.timestamp.get)) {
             Full(BadResponse())
           } else {
             val model = MatrixDiffCalculator.model(l, r)

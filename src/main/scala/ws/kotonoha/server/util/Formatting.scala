@@ -49,11 +49,11 @@ object Formatting {
 
   object requestFormatter extends RequestVar[MyFormatter](new MyFormatter)
 
-  def format(in: DateTime) = requestFormatter.is.formatDate(in)
+  def format(in: DateTime) = requestFormatter.get.formatDate(in)
 
   private object dayMonF extends RequestVar[MyFormatter](new MyFormatter{
     override lazy val formatter = DateTimeFormat.forPattern("MM.dd").withLocale(locale)
   })
 
-  def monthDay(d: DateTime) = dayMonF.is.formatDate(d)
+  def monthDay(d: DateTime) = dayMonF.get.formatDate(d)
 }

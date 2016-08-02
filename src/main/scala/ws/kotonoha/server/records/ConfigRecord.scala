@@ -16,10 +16,11 @@
 
 package ws.kotonoha.server.records
 
-import ws.kotonoha.server.mongodb.NamedDatabase
+import com.mongodb.casbah.WriteConcern
 import net.liftweb.mongodb.record.field.LongPk
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.record.field.{OptionalBinaryField, OptionalStringField, StringField, BooleanField}
+import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
+import net.liftweb.record.field.{BooleanField, OptionalBinaryField, StringField}
+import ws.kotonoha.server.mongodb.NamedDatabase
 
 /**
  * @author eiennohito
@@ -35,16 +36,16 @@ class ConfigRecord private() extends MongoRecord[ConfigRecord] with LongPk[Confi
   object stokeUri extends StringField(this, 250, "")
   object myKey extends OptionalBinaryField(this)
 
-  def hasStrokes = stokeUri.is.length == 0
+  def hasStrokes = stokeUri.get.length == 0
 
   def meta = ConfigRecord
 }
 
 object ConfigRecord extends ConfigRecord with MongoMetaRecord[ConfigRecord] with NamedDatabase {
-  lazy val instance = synchronized { find(0L) openOr (createRecord) }
+  lazy val instance = synchronized { find(0L) openOr createRecord }
 }
 
 object AppConfig {
   def apply() = ConfigRecord.instance
-  def save = apply().save
+  def save = apply().save(WriteConcern.Acknowledged)
 }

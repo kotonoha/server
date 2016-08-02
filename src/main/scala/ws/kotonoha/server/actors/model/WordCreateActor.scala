@@ -116,7 +116,7 @@ class WordCreateActor @Inject() (
               case (None, None) => None //rly wtf dude
             }
           case None =>
-            val wx = firstElem(rec.writing.is)
+            val wx = firstElem(rec.writing.get)
             val rx: Option[String] = rec.reading.valueBox.map(firstElem)
             Some(PossibleTagRequest(wx, rx))
         }
@@ -137,7 +137,7 @@ class WordCreateActor @Inject() (
       val onSave = Promise[WordData]()
       val canc = context.system.scheduler.scheduleOnce(15 minutes)(() => onSave.tryComplete(scala.util.Failure(new TimeoutException)))
       onSave.future.foreach(_ => canc.cancel())
-      WordData(dicts, ex, createWord(rec.user.is, dicts, ex, t), onSave, rec)
+      WordData(dicts, ex, createWord(rec.user.get, dicts, ex, t), onSave, rec)
     }
   }
 

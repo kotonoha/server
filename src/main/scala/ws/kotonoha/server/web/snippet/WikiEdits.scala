@@ -40,7 +40,7 @@ object WikiEdits extends DispatchSnippet {
 
   def render(ns: NodeSeq): NodeSeq = {
     import net.liftweb.util.Helpers._
-    val pg = paginator.is
+    val pg = paginator.get
     val items = pg.page
     val uids = items.map(_.user).toSet
     val users = UserRecord where (_.id in uids) select(_.id, _.username) fetch() toMap ;
@@ -57,7 +57,7 @@ object WikiEdits extends DispatchSnippet {
 
   def dispatch = {
     case "render" => render
-    case "pagination" => paginator.is.paginate
+    case "pagination" => paginator.get.paginate
   }
 }
 

@@ -91,11 +91,11 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
       case Full("false") => false
       case _ => true
     }
-    if (s == stripped.is) in else Nil
+    if (s == stripped.get) in else Nil
   }
 
   def selector(in: NodeSeq): NodeSeq = {
-    val lst = (maxRecs.is :: List(10, 20, 30, 40, 50)).distinct.sorted
+    val lst = (maxRecs.get :: List(10, 20, 30, 40, 50)).distinct.sorted
     val ents = lst map {_.toString} map {c => c -> c}
     def onSubmit(cnt: String): Unit = {
       cnt match {
@@ -108,12 +108,12 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
         case _ => ///
       }
     }
-    val ns = SHtml.untrustedSelect(ents, Full(maxRecs.is.toString), onSubmit)
+    val ns = SHtml.untrustedSelect(ents, Full(maxRecs.get.toString), onSubmit)
     ("select" #> ns).apply(in)
   }
 
   def surround(in: NodeSeq): NodeSeq = {
-    if (stripped.is) { in }
+    if (stripped.get) { in }
     else { <lift:surround with="default" at="content">{in}</lift:surround> }
   }
 
@@ -126,13 +126,13 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
   }
 
   def sodType = {
-    if (stripped.is) StrokeType.Png500
+    if (stripped.get) StrokeType.Png500
     else StrokeType.Png150
   }
 
   def words(in: NodeSeq): NodeSeq = {
     val uid = UserRecord.currentId.openTheBox
-    val obj = userAsk[WordsAndCards](LoadReviewList(maxRecs.is))
+    val obj = userAsk[WordsAndCards](LoadReviewList(maxRecs.get))
     val res = Await.result(obj, 5.0 seconds)
 
     val wds = asRows(res.words)
@@ -150,14 +150,14 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
 
 
   class VerySmallCell(w: WordRecord, len: Int) extends CellRenderer {
-    override def weight = -100 * len - w.meaning.is.length
+    override def weight = -100 * len - w.meaning.get.length
 
     def render = {
       val cl = "wc t%d".format(len)
       <div class={cl}>
-        <div class="rd">{w.reading.is}</div>
+        <div class="rd">{w.reading.get}</div>
         <div class="sod">{sod(w.writing.stris)}</div>
-        <div class="mn">{w.meaning.is}</div>
+        <div class="mn">{w.meaning.get}</div>
       </div>
     }
   }
@@ -166,12 +166,12 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
   class SimpleWordCell(w: WordRecord) extends CellRenderer {
     def render =
       <div class="wc half">
-        <div class="rd">{w.reading.is}</div>
+        <div class="rd">{w.reading.get}</div>
         <div class="sod">{sod(w.writing.stris)}</div>
-        <div class="mn">{w.meaning.is}</div>
+        <div class="mn">{w.meaning.get}</div>
       </div>
 
-    override def weight = w.meaning.is.length
+    override def weight = w.meaning.get.length
   }
 
   class SimpleWordRow(w: WordRecord) extends CellRenderer {
@@ -179,8 +179,8 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
     def left =
       <div>
         <div>
-          <span class="wr">{w.writing.is}</span>
-          <span class="rd">{w.reading.is}</span>
+          <span class="wr">{w.writing.get}</span>
+          <span class="rd">{w.reading.get}</span>
         </div>
         <span class="sod">{kanjSod(w.writing.stris)}</span>
       </div>
@@ -188,7 +188,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
 
     override def weight = 50000
 
-    def right = <div class="ma"><span class="mn">{w.meaning.is}</span></div>
+    def right = <div class="ma"><span class="mn">{w.meaning.get}</span></div>
 
     def render = <div class="wc row">{left ++ right}</div>
   }
@@ -198,14 +198,14 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
       val style = "tc k%d".format(kanji)
       <div class={style}>
         <div>
-          <span class="wr">{w.writing.is}</span>
-          <span class="rd">{w.reading.is}</span>
+          <span class="wr">{w.writing.get}</span>
+          <span class="rd">{w.reading.get}</span>
         </div>
         <span class="sod">{kanjSod(w.writing.stris)}</span>
       </div>
     }
 
-    def right = <div class="tc ma"><span class="mn">{w.meaning.is}</span></div>
+    def right = <div class="tc ma"><span class="mn">{w.meaning.get}</span></div>
 
     def render = <div class="wc tr">{left ++ right}</div>
 
@@ -215,7 +215,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
   object VerySmall {
     def unapply(w: WordRecord): Option[CellRenderer] = {
       val l1 = w.writing.stris.length
-      val l2 = w.meaning.is.length
+      val l2 = w.meaning.get.length
 
       if (l1 < 4 && (25 + l1 * 25) > l2) {
         Some(new VerySmallCell(w, l1))
@@ -225,7 +225,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
 
   object SimpleSmall {
     def unapply(w: WordRecord): Option[SimpleWordCell] = {
-      val b1 = w.meaning.is.length < 300
+      val b1 = w.meaning.get.length < 300
       val b2 = w.writing.stris.length < 6
       if (b1 && b2) {
         Some(new SimpleWordCell(w))
@@ -235,7 +235,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
 
   object LotsOfKanjiSmallMean {
     def unapply(w: WordRecord): Option[LotsKanjiSmallMeaning] = {
-      val l1 = w.meaning.is.length
+      val l1 = w.meaning.get.length
       val l2 = UnicodeUtil.klen(w.writing.stris)
       if ((l2 * 120 + l1) < 1100) Some(new LotsKanjiSmallMeaning(w, l2)) else None
     }
@@ -244,7 +244,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
   def asRows(in: List[WordRecord]) = {
     val cells = new ListBuffer[CellRenderer]
     in.foreach {
-      case VerySmall(c) if (stripped.is) => cells += c
+      case VerySmall(c) if (stripped.get) => cells += c
       case SimpleSmall(c) => cells += c
       case LotsOfKanjiSmallMean(c) => cells += c
       case w => cells += new SimpleWordRow(w)

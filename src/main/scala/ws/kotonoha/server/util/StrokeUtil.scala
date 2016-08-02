@@ -31,10 +31,10 @@ object StrokeType extends Enumeration {
 object StrokesUtil {
   def strokeUri(cp: Int, st: StrokeType.StrokeType = StrokeType.Svgz): String = {
     st match {
-      case StrokeType.Svg => "%s/uz/%04x.svg".format(AppConfig().stokeUri.is, cp)
-      case StrokeType.Svgz => "%s/z/%04x.svgz".format(AppConfig().stokeUri.is, cp)
-      case StrokeType.Png150 => "%s/p150/%04x.png".format(AppConfig().stokeUri.is, cp)
-      case StrokeType.Png500 => "%s/p500/%04x.png".format(AppConfig().stokeUri.is, cp)
+      case StrokeType.Svg => "%s/uz/%04x.svg".format(AppConfig().stokeUri.get, cp)
+      case StrokeType.Svgz => "%s/z/%04x.svgz".format(AppConfig().stokeUri.get, cp)
+      case StrokeType.Png150 => "%s/p150/%04x.png".format(AppConfig().stokeUri.get, cp)
+      case StrokeType.Png500 => "%s/p500/%04x.png".format(AppConfig().stokeUri.get, cp)
     }
   }
 

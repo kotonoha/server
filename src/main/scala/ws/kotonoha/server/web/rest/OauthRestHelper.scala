@@ -34,7 +34,7 @@ trait OauthRestHelper extends RestHelper {
   private object restUser extends ThreadGlobal[Box[UserTokenRecord]]
   private object restClient extends ThreadGlobal[Box[ClientRecord]]
 
-  private def userId = restUser.value map (_.user.is)
+  private def userId = restUser.value map (_.user.get)
 
   private val validator = new OAuthValidator {
     protected def oauthNonceMeta = NonceRecord
@@ -60,7 +60,7 @@ trait OauthRestHelper extends RestHelper {
   def check(msg: OAuthMessage): Boolean = {
     val validated = (restUser.value, restClient.value) match {
       case (Full(user), Full(client)) =>
-        val assessor = new OAuthAccessor(client, Full(user.tokenSecret.is), Empty)
+        val assessor = new OAuthAccessor(client, Full(user.tokenSecret.get), Empty)
         validator.validateMessage(msg, assessor)
       case _ => Empty
     }
@@ -68,7 +68,7 @@ trait OauthRestHelper extends RestHelper {
     !validated.isEmpty
   }
 
-  def clientName: String = restClient.value.map(_.name.is).openOr("passthrough")
+  def clientName: String = restClient.value.map(_.name.get).openOr("passthrough")
 
   def needAuth = true
 

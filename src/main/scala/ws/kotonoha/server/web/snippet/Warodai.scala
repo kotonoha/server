@@ -54,8 +54,8 @@ object Warodai extends Logging {
     val q = S.param("query").openOr("")
     WarodaiRecord.query(q, None, 50) flatMap { o =>
       bind("we", in,
-        "writing" -> o.writings.is.mkString(", "),
-        "reading" -> o.readings.is.mkString(", "),
+        "writing" -> o.writings.get.mkString(", "),
+        "reading" -> o.readings.get.mkString(", "),
         "body" -> parse(o.body.valueBox))
     }
   }

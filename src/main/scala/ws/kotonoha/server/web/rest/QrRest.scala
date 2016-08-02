@@ -46,7 +46,7 @@ trait QrRest extends KotonohaRest {
 
     case "iqr" :: XOid(code) :: Nil Get req => {
       val entry: Box[QrEntry] = QrEntry where (_.id eqs code) get()
-      val arr = entry.map(_.binary.is).or(invalidQr)
+      val arr = entry.map(_.binary.get).or(invalidQr)
       arr map (InMemoryResponse(_, List("Content-Type" -> "image/png"), Nil, 200))
     }
   }
