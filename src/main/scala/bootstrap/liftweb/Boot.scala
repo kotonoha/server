@@ -139,7 +139,7 @@ class Boot extends Logging {
     def sitemap = {
       SiteMap(
         Menu.i("Home") / "index" submenus(
-          Menu.i("Client Authorizations") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter
+          Menu.i("Mobile Login") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter
           ),
         Menu.i("Learning") / "learning" / "index" >> loggedin submenus(
           Menu.i("Repetition") / "learning" / "repeat",

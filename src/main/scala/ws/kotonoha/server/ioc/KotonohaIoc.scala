@@ -22,7 +22,7 @@ import com.google.inject._
 import com.google.inject.name.Names
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
-import net.liftweb.common.{Box, Empty, Full}
+import net.liftweb.common.{Box, Empty, Failure, Full}
 import net.liftweb.http._
 import net.liftweb.util.{Helpers, ThreadGlobal, Vendor}
 import ws.kotonoha.server.actors.GlobalActorsModule
@@ -69,6 +69,7 @@ class KotonohaMainModule(cfg: Config, rm: ResourceManager) extends ScalaModule {
 
     install(new AkkaModule())
     install(new GlobalActorsModule)
+    install(new UserContextModule)
     install(new GrpcModule)
     install(new JmdictModule)
   }
@@ -113,11 +114,15 @@ class KotonohaLiftInjector(inj: Injector) extends SnippetInstantiation {
   override def factoryFor[T](clz: Class[T]): Box[ConstructorType] = {
     implicit val mf = Manifest.classType[T](clz)
     if (checkIfSuitable(clz)) {
-      Full(SnippetInstantiation { (pp, sess) =>
-        KotonohaLiftSession.sessionForIoc.doWith(sess) {
-          inj.getInstance(clz)
-        }
-      })
+      try {
+        Full(SnippetInstantiation { (pp, sess) =>
+          KotonohaLiftSession.sessionForIoc.doWith(sess) {
+            inj.getInstance(clz)
+          }
+        })
+      } catch {
+        case e: IopProvisionException => Failure(s"can't create instance of $clz", Full(e), Empty)
+      }
     } else Empty
   }
 }

@@ -16,19 +16,21 @@
 
 package ws.kotonoha.server.web.snippet
 
-import net.liftweb.util.Helpers
-import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
-import ws.kotonoha.server.util.Formatting
-import xml.{Text, NodeSeq}
-import net.liftweb.http.js.JsCmd
-import net.liftweb.http.js.jquery.JqJsCmds.FadeOut
-import scala.concurrent.Await
+import com.google.inject.Inject
 import net.liftweb.http.SHtml
+import net.liftweb.http.js.JsCmd
+import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.http.js.jquery.JqJsCmds.FadeOut
 import net.liftweb.json
 import net.liftweb.json.{DefaultFormats, Extraction}
-import ws.kotonoha.server.records.{QrEntry, UserTokenRecord, UserRecord}
-import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.util.Helpers
 import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateToken}
+import ws.kotonoha.server.ioc.UserContext
+import ws.kotonoha.server.records.{QrEntry, UserRecord, UserTokenRecord}
+import ws.kotonoha.server.util.Formatting
+
+import scala.concurrent.{Await, ExecutionContext}
+import scala.xml.{NodeSeq, Text}
 
 
 /**
@@ -36,27 +38,29 @@ import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateToken}
  * @since 01.04.12
  */
 
-trait UserToken extends Akka {
+class UserToken @Inject() (
+  ux: UserContext
+)(
+  implicit ec: ExecutionContext
+) {
 
   import Helpers._
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
-  import ws.kotonoha.server.actors.UserSupport._
 
   implicit val formats = DefaultFormats
-  implicit val ec = akkaServ.context
+
 
 
   def create(in: NodeSeq): NodeSeq = {
     var name: String = ""
-    val uid = UserRecord.currentId.openOrThrowException("should have user here")
 
     def save(): JsCmd = {
-      val fut = (akkaServ ? CreateToken(uid, name).forUser(uid)).mapTo[UserTokenRecord]
+      val fut = ux.askUser[UserTokenRecord](CreateToken(ux.uid, name))
       val qrFut = fut flatMap {
         x =>
           val authStr = json.pretty(json.render(Extraction.decompose(x.auth)))
-          (akkaServ ? CreateQrWithLifetime(authStr, 1 minute).forUser(uid)).mapTo[QrEntry]
+          ux.askUser[QrEntry](CreateQrWithLifetime(authStr, 1.minute))
       }
       val qr = Await.result(qrFut, 5.seconds)
       val code = qr.id.get.toString
@@ -72,7 +76,7 @@ trait UserToken extends Akka {
 
     val fn =
       ";name *+" #> SHtml.text(name, name = _) &
-      ";create-btn *+" #> SHtml.ajaxSubmit("Authorize client", save, "class" -> "submit")
+      ";create-btn *+" #> SHtml.ajaxSubmit("Authorize client", save, "class" -> "btn")
 
     SHtml.ajaxForm(fn(in))
   }
@@ -97,6 +101,3 @@ trait UserToken extends Akka {
   }
 
 }
-
-
-object UserToken extends UserToken with ReleaseAkka

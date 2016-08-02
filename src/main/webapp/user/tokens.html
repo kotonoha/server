@@ -19,6 +19,7 @@
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
   <div>
+    <h3>Create new login</h3>
     <div id="status"></div>
     <div class="lift:UserToken.create">
       <div>
@@ -36,7 +37,15 @@
       <div id="qrcode"></div>
     </div>
   </div>
-  <table>
+  <h3>Current login information</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <td>Name</td>
+        <td>Created On</td>
+        <td>Delete</td>
+      </tr>
+    </thead>
     <tbody>
       <tr class="lift:UserToken.list">
         <td data-name="name"></td>
