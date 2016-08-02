@@ -16,11 +16,11 @@
 
 package ws.kotonoha.server.web.loc
 
-import net.liftweb.sitemap.Loc
-import net.liftweb.http.{ParsePath, RewriteResponse, RewriteRequest}
-import net.liftweb.sitemap.Loc.{Hidden, Link}
 import net.liftweb.common.Full
-import net.liftweb.util.Helpers
+import net.liftweb.http.{ParsePath, RewriteRequest, RewriteResponse}
+import net.liftweb.sitemap.Loc
+import net.liftweb.sitemap.Loc.{Hidden, Link}
+import ws.kotonoha.server.records.UserRecord
 
 /**
  * @author eiennohito
@@ -50,4 +50,6 @@ class WikiLoc extends Loc[WikiPage] {
       }
     }
   })
+
+  override def stateless_? = UserRecord.haveUser
 }

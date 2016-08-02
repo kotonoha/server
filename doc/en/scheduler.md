@@ -13,7 +13,7 @@ a card, in which order new cards should be displayed and so on.
 spacing effect.
 * Ready card - an old card with its repetition point in the past.
 
-##Requrements
+##Requirements
 There are 3 main lists of cards for a review.
 
 * A list of ready cards. (Good and remembered cards)

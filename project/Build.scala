@@ -149,6 +149,8 @@ object Kotonoha {
   val unzipJars = TaskKey[Seq[File]]("unzip-jars", "Unzip jars with js files inside")
   val compileJs = config("compilejs")
 
+  val postsMdFiles = SettingKey[Seq[String]]("news-md-files", "Files for news")
+
   lazy val gitSettings = {
     val (time, id) = GitData.gitVer
     Seq(
@@ -158,7 +160,7 @@ object Kotonoha {
   }
 
   lazy val binfo = Def.settings(
-    buildInfoKeys := Seq(version, scalaVersion, sbtVersion, gitId, gitDate),
+    buildInfoKeys := Seq(version, scalaVersion, sbtVersion, gitId, gitDate, postsMdFiles),
     buildInfoPackage := "ws.kotonoha.server.util",
     buildInfoObject := "BuildInfo"
   )
@@ -245,6 +247,13 @@ object Kotonoha {
       jsDir := file("jslib"),
       scriptOutputDir := (target in com.earldouglas.xwp.WebappPlugin.autoImport.webappPrepare).value / "static",
       (sourceDirectory in compileJs) <<= sourceDirectory in Compile,
+      postsMdFiles <<= baseDirectory { (base) =>
+        val start = base / "doc" / "news"
+        (start ** GlobFilter("*.md")).get.map { s =>
+          s.relativeTo(start).get.toString
+        }
+      },
+      (unmanagedResourceDirectories in Compile) += baseDirectory.value / "doc",
       unzipJars <<= (jsDir, scriptOutputDir) map {
         (jsd, so) =>
           (jsd * GlobFilter("*.jar")) flatMap { f => IO.unzip(f, so) } get

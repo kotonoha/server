@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
+ * Copyright 2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,25 @@
 
 package ws.kotonoha.server.web.snippet
 
-import net.liftweb.http.{S, DispatchSnippet}
-import scala.xml.NodeSeq
-import net.liftweb.util.Props
-import net.liftweb.common.Full
+import org.scalatest.{FreeSpec, Matchers}
+import ws.kotonoha.akane.resources.Classpath
 
 /**
- * @author eiennohito
- * @since 18.04.13 
- */
-object ModeSnippet extends DispatchSnippet {
-
-  def is(in: NodeSeq): NodeSeq = {
-    val mode = S.attr("name")
-    val curmode = Props.modeName
-    mode match {
-      case Full(`curmode`) => in
-      case Full("development") if curmode == "" => in
-      case _ => NodeSeq.Empty
+  * @author eiennohito
+  * @since 2016/08/02
+  */
+class NewsSnippetSpec extends FreeSpec with Matchers {
+  "News snippet cache" - {
+    "should have non-empty info" in {
+      NewsCache.info should not be empty
     }
-  }
 
-  def dispatch = {
-    case "is" => is
+    "loaded should be loadable resources" in {
+      NewsCache.info.foreach {
+        case (_, i) =>
+          val res = Classpath.fileAsString(i.path)
+          res should not be empty
+      }
+    }
   }
 }

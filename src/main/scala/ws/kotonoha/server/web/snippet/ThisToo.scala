@@ -42,9 +42,9 @@ object ThisToo {
     UserRecord.currentUserId match {
       case Full(_) =>
         val rd: Option[String] = S.attr("rd")
-        val wr = S.attr("wr") openOr("")
+        val wr = S.attr("wr") openOr ""
         val c = Candidate(wr, rd, None)
-        val s = S.attr("src") openOr("this-too")
+        val s = S.attr("src") openOr "this-too"
         val (ns, id) = makeNodeSeq(c)
 
         S.session.foreach(
@@ -62,7 +62,7 @@ object ThisToo {
 object ThisTooActorSnippet extends InsertNamedComet {
   def cometClass = "ThisTooActor"
 
-  override def enabled = UserRecord.currentUserId.isDefined
+  override def enabled = S.statefulRequest_?
 
   override def name = {
     val path = S.request.map(_.path.wholePath.mkString("_")).openOr("dummy")

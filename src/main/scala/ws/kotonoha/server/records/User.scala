@@ -93,6 +93,8 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
 
   override def skipEmailValidation = true
 
+  def haveUser: Boolean = loggedIn_?
+
   def currentId = currentUserId map {
     new ObjectId(_)
   }

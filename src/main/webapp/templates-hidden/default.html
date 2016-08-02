@@ -6,7 +6,7 @@
   <meta name="keywords" content="kotonoha,space repetition,srs,japanese,learn japanese,word list"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <title class="lift:Menu.title">Kotonoha: </title>
+  <title class="lift:Menu.title">%*% - Kotonoha</title>
   <head_merge>
     <link rel="stylesheet" type="text/css" href="/static/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="/static/bootstrap-responsive.css">
@@ -24,10 +24,11 @@
 </head>
 <body>
 <div class="lift:GlobalComet"></div>
-<h1 class="lift:mode.is?name=development">DEBUG KOTONOHA</h1>
 <div class="container-fluid">
   <div class="column" style="text-align: center; width: 100%">
-    <h1 class="alt">Kotonoha<img alt="" id="ajax-loader" style="display:none; margin-bottom: 0px; margin-left: 5px"
+    <h1 class="alt">
+      <span class="lift:mode.is?name=development" style="color: red;">DEBUG</span>
+      Kotonoha<img alt="" id="ajax-loader" style="display:none; margin-bottom: 0px; margin-left: 5px"
                                  src="/images/ajax-loader.gif">
     </h1>
   </div>
@@ -46,11 +47,10 @@
   <hr style="clear: both;"/>
   <footer>
     <div class="column last" style="text-align: center; width: 100%;">
-      <h4 class="alt">
-        Kotonoha is brought by <a href="http://www.liftweb.net"><i>Lift</i></a>.
-        Copyright 2012-2014 eiennohito.<br>
+      <div class="alt">
+        Copyright 2016 Arseny Tolmachev. Kotonoha is supported by MEXT Scholarship.<br>
         <span class="lift:Common.versionInfo"></span>
-      </h4>
+      </div>
     </div>
     <script type="text/javascript" class="lift:mode.is?name=production">
 

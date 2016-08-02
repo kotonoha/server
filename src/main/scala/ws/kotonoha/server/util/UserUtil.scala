@@ -35,12 +35,11 @@ trait UserUtilT {
   def authByCookie(encrypted: String, userAgent: String) = {
     val str = SecurityUtil.decryptAes(encrypted, serverKey)
     str.split("\\|") match {
-      case Array(XHexLong(time), XOid(uid), ua) => {
+      case Array(XHexLong(time), XOid(uid), ua) =>
         val iua = SecurityHelpers.md5(userAgent)
         if (time > System.currentTimeMillis() && ua.equals(iua))
           Full(uid)
         else Empty
-      }
       case _ => Empty
     }
   }
@@ -58,7 +57,7 @@ object UserUtil extends UserUtilT {
   override def serverKey = {
     AppConfig().myKey.valueBox match {
       case Full(k) => k
-      case _ => {
+      case _ =>
         //val k = SecurityUtil.randomHex(16)
         val kgen = KeyGenerator.getInstance("AES")
         kgen.init(256)
@@ -66,7 +65,6 @@ object UserUtil extends UserUtilT {
         AppConfig().myKey(k)
         AppConfig.save
         k
-      }
     }
   }
 }

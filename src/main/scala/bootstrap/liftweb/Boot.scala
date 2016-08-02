@@ -35,7 +35,7 @@ import ws.kotonoha.server.actors.{InitUsers, ReleaseAkkaMain}
 import ws.kotonoha.server.ioc.{KotonohaIoc, KotonohaLiftInjector}
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
-import ws.kotonoha.server.web.loc.WikiLoc
+import ws.kotonoha.server.web.loc.{NewsLoc, WikiLoc}
 import ws.kotonoha.server.web.rest._
 import ws.kotonoha.server.web.rest.admin.{OFHistory, Stats}
 import ws.kotonoha.server.web.rest.model.{Cards, Words}
@@ -169,12 +169,11 @@ class Boot extends Logging {
         Menu.i("Oauth") / "oauth" >> Hidden submenus (
           Menu.i("OAuth request") / "oauth" / "request"
       ),
-        wikiPages,
-        static
+        static,
+        Menu(new WikiLoc),
+        Menu(new NewsLoc)
       )
     }
-
-    def wikiPages = Menu(new WikiLoc)
 
     // more complex because this menu allows anything in the
     // /static path to be visible
@@ -219,9 +218,9 @@ class Boot extends Logging {
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>
       if (r.path(0) != "static") {
-        new Html5Properties(r.userAgent)
+        Html5Properties(r.userAgent)
       } else {
-        new Html5StaticProperties(r.userAgent)
+        Html5StaticProperties(r.userAgent)
       }
     )
 
