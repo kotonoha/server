@@ -20,16 +20,16 @@
 <div id="main" class="lift:surround?with=default;at=content">
   <div>
     <div id="status"></div>
-    <div class="lift:UserToken.create" xmlns:tf="token-form">
+    <div class="lift:UserToken.create">
       <div>
         <table>
           <tr>
             <td>Name</td>
-            <td><tf:label></tf:label></td>
+            <td data-name="name"></td>
           </tr>
           <tr>
             <td></td>
-            <td><tf:create></tf:create></td>
+            <td data-name="create-btn"></td>
           </tr>
         </table>
       </div>
@@ -38,10 +38,10 @@
   </div>
   <table>
     <tbody>
-      <tr class="lift:UserToken.list" xmlns:t="user-tokens" t:id="">
-        <td><t:name></t:name></td>
-        <td><t:date></t:date></td>
-        <td><t:delete></t:delete></td>
+      <tr class="lift:UserToken.list">
+        <td data-name="name"></td>
+        <td data-name="date"></td>
+        <td data-name="delete"></td>
       </tr>
     </tbody>
   </table>

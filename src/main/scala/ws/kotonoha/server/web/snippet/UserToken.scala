@@ -58,7 +58,7 @@ trait UserToken extends Akka {
           val authStr = json.pretty(json.render(Extraction.decompose(x.auth)))
           (akkaServ ? CreateQrWithLifetime(authStr, 1 minute).forUser(uid)).mapTo[QrEntry]
       }
-      val qr = Await.result(qrFut, 5 seconds)
+      val qr = Await.result(qrFut, 5.seconds)
       val code = qr.id.get.toString
       val uri = "/iqr/" + code
       SetHtml("qrcode",
@@ -70,9 +70,11 @@ trait UserToken extends Akka {
       )
     }
 
-    bind("tf", SHtml.ajaxForm(in),
-      "label" -> SHtml.text(name, name = _),
-      "create" -> SHtml.ajaxSubmit("Authorize client", save))
+    val fn =
+      ";name *+" #> SHtml.text(name, name = _) &
+      ";create-btn *+" #> SHtml.ajaxSubmit("Authorize client", save, "class" -> "submit")
+
+    SHtml.ajaxForm(fn(in))
   }
 
   def list(in: NodeSeq): NodeSeq = {
@@ -84,15 +86,14 @@ trait UserToken extends Akka {
       FadeOut(t.hashCode().toString, 0 millis, 250 millis)
     }
 
-    tokens flatMap {
-      t =>
-        bind("t", in,
-          AttrBindParam("id", t.hashCode().toString, "id"),
-          "name" -> t.label.get,
-          "date" -> Formatting.format(t.createdOn.get),
-          "delete" -> SHtml.a(() => delete(t), Text("delete"))
-        )
+    val f = tokens map { t =>
+      "tr [id]" #> t.hashCode().toString &
+      ";name *+" #> t.label.get &
+      ";date *+" #> Formatting.format(t.createdOn.get) &
+      ";delete *+" #> SHtml.a(() => delete(t), Text("delete"))
     }
+
+    ("^" #> f).apply(in)
   }
 
 }
