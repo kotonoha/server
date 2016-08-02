@@ -1,0 +1,63 @@
+@import "collapsible";
+@import "taglist";
+@import "utils";
+
+@import "../bootstrap/scss/nav";
+
+
+textarea.nihongo, div.nihongo, input.nihongo, .nihongo {
+  font-size: larger !important;
+  font-family: Meiryo, MS Gothic, sans-serif !important;
+}
+
+div.selections > a {
+  margin: 0.5mm;
+}
+
+.area textarea {
+  height: 100%;
+}
+
+.full textarea, .full input {
+  width: 100%;
+}
+
+textarea.autoresize {
+  overflow: hidden;
+  resize: none;
+}
+
+.holder {
+  display: inline-block;
+}
+
+.centered {
+  text-align: center;
+}
+
+ng-cloak {
+  display: none;
+}
+
+a.non-existent {
+  color: orange;
+}
+
+$nav-active-color: #4aa1ff;
+
+.nav .active > a {
+  width: 100%;
+  background-color: $nav-active-color;
+  color: whitesmoke;
+  margin-left: -20px;
+  padding: 1.5px 15px;
+}
+
+.nav-item > .nav {
+  margin-left: 20px;
+
+  & .active > a {
+    margin-left: -40px;
+    padding: 1.5px 35px;
+  }
+}

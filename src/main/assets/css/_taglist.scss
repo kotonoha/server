@@ -1,0 +1,129 @@
+.tag-container li {
+  float: left;
+  list-style: none;
+}
+
+.tag-container {
+  background: #fff linear-gradient(#eeeeee 1%, #ffffff 15%);
+  border: 1px solid #aaa;
+  margin: 0;
+  padding: 0;
+  cursor: text;
+  overflow: hidden;
+  height: auto !important;
+  height: 1%;
+  position: relative;
+}
+
+.tag-container li input, .tag-container li input:focus {
+  color: #666;
+  background: transparent !important;
+  border: 0 !important;
+  font-family: sans-serif;
+  font-size: 100%;
+  height: 15px;
+  outline: 0;
+  box-shadow: none;
+}
+
+.taginput {
+  padding: 5px 0 5px 5px;
+  margin: 10px 0 10px 5px;
+}
+
+.taginput .tagpadding {
+  margin-top: 4px;
+  line-height: 20px;
+  padding: 0 0 5px 0;
+  height: 20px;
+}
+
+.taginput input {
+  line-height: 20px;
+  padding: 0 0 5px 0;
+  height: 20px;
+}
+
+.tag-entry {
+  border-radius: 3px;
+  background-clip: padding-box;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f4f4f4', endColorstr='#eeeeee', GradientType=0);
+  background: #e4e4e4 linear-gradient(#f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eeeeee 100%);
+  box-shadow: 0 0 2px #ffffff inset, 0 1px 0 rgba(0, 0, 0, 0.05);
+  color: #333;
+  border: 1px solid #aaaaaa;
+  line-height: 13px;
+  padding: 3px 5px 3px 5px;
+  margin: 10px 0 10px 5px;
+  position: relative;
+  cursor: default;
+}
+
+.tag-container-active {
+  border-color: rgba(82, 168, 236, 0.8);
+  outline: 0;
+  outline: thin dotted    \9;
+  /* IE6-9 */
+
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+}
+
+.tag-noop {
+  border-bottom: 3px solid black;
+}
+
+.tag-op-add {
+  border-bottom: 3px solid green;
+}
+
+.tag-op-remove {
+  border-bottom: 3px solid red;
+}
+
+.tag-op-rename {
+  border-bottom: 3px solid #adff2f;
+}
+
+.taglist {
+  display: inline;
+}
+
+.tag-prep-rm {
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 36, 0, 0.60);
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 36, 0, 0.60);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(236, 36, 0, 0.60);
+}
+
+.taglist-ac-container {
+  position: absolute;
+  z-index: 10;
+  background-color: #ffffff;
+  border: 1px solid black;
+  display: none;
+  max-height: 150pt;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.tag-group {
+  list-style: none;
+}
+
+.tag-group-label {
+  color: #808080;
+  font-size: smaller;
+}
+
+.tag-ac-entry {
+  list-style: none;
+}
+
+.tag-ac-sel {
+  background-color: #5bc0de;
+}
+
+.tag-ac-sel-def {
+  background-color: rgba(91, 192, 222, 0.2);
+}

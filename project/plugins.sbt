@@ -8,7 +8,7 @@ libraryDependencies ++= Seq(
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0")
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.1.0")
+addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.6")
 addSbtPlugin("io.teamscala.sbt" % "sbt-babel" % "1.0.5")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
@@ -20,3 +20,6 @@ addSbtPlugin("com.trueaccord.scalapb" % "sbt-scalapb" % scalaPbVersion)
 addSbtPlugin("fi.gekkio.sbtplugins" % "sbt-jrebel-plugin" % "0.10.0")
 
 resolvers += Resolver.typesafeRepo("releases")
+
+lazy val root = project.in(file(".")).dependsOn(sbtPostcss)
+lazy val sbtPostcss = uri("git://github.com/kotonoha/sbt-postcss")

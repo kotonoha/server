@@ -2,6 +2,8 @@
   "devDependencies": {
     "babel-core": "^6.9.1",
     "babel-preset-es2015": "^6.9.0",
-    "babel-preset-react": "^6.11.1"
+    "babel-preset-react": "^6.11.1",
+    "autoprefixer": "^6.3.7",
+    "postcss-cli": "^2.5.2"
   }
 }

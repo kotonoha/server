@@ -38,7 +38,7 @@ object ClasspathResource extends DispatchSnippet {
     }
   }
 
-  def minattr = S.attr("nomin").flatMap{Helpers.asBoolean(_)}.getOrElse(false)
+  def minattr = S.attr("nomin").flatMap(Helpers.asBoolean).getOrElse(false)
 
   def js(in: String) = in + ".js"
 

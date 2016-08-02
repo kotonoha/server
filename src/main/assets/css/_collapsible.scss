@@ -1,0 +1,30 @@
+.collapsable {
+  display: inline-block;
+}
+
+.collapsable.opened > .title:before {
+  content: '▼ ';
+}
+
+.collapsable.opened > .body {
+  display: block;
+}
+
+.collapsable.closed > .title:before {
+  content: '► ';
+}
+
+.collapsable.closed > .body {
+  display: none;
+}
+
+.collapsable > .title {
+  background-color: black;
+  color: white;
+  padding: .1em .3em;
+  cursor: pointer;
+}
+
+.collapsable > .body {
+  padding: .1em .3em;
+}

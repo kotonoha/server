@@ -1,9 +1,15 @@
+import org.irundaia.sbt.sass._
+
 lazy val kotonoha = (project in file("."))
   .enablePlugins(BuildInfoPlugin, JettyPlugin, SbtWeb)
   .dependsOn(model, `akane-legacy`, knockoff, eapi, `grpc-streaming`)
   .settings(Common.buildSettings)
   .settings(Kotonoha.kotonohaSettings, Pbuf.pbScala(), Pbuf.protoIncludes(eapi, `akane-knp`, `akane-dic`))
   .settings(jrebelSettings)
+  .settings(
+    pipelineStages in Assets += postcss,
+    includeFilter in SassKeys.sassify := "main.scss"
+  )
   .dependsOn(model, `akane-legacy`, knockoff, eapi, `grpc-streaming`, jmdict)
   .enablePlugins(BuildInfoPlugin, JettyPlugin)
   .aggregate(jmdict)

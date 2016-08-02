@@ -17,12 +17,14 @@
 
 import java.util.Date
 
+import com.typesafe.sbt.jse.JsEngineImport.JsEngineKeys
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.irundaia.sass.Maxified
+import org.irundaia.sbt.sass.SbtSassify.autoImport.SassKeys
+import sbt.Keys._
 import sbt._
-import inc.Analysis
-import Keys._
-import com.typesafe.sbt.jse.JsEngineImport.JsEngineKeys
+import sbt.inc.Analysis
 import sbtbuildinfo.BuildInfoKeys._
 
 
@@ -232,8 +234,8 @@ object Kotonoha {
     "org.xerial" % "sqlite-jdbc" % "3.6.16" % "test"
   )
 
-  import com.typesafe.sbt.web.Import._
   import com.earldouglas.xwp.WebappPlugin.{autoImport => wapp}
+  import com.typesafe.sbt.web.Import._
 
   lazy val kotonohaSettings =
     gitSettings ++
@@ -262,6 +264,8 @@ object Kotonoha {
       resourceGenerators in compileJs := Nil,
       copyResources in Compile <<= (copyResources in Compile).dependsOn(unzipJars),
       WebKeys.stagingDirectory := (target in wapp.webappPrepare).value / "static",
+      SassKeys.cssStyle := Maxified,
+      SassKeys.generateSourceMaps := false,
       wapp.webappPrepare <<= wapp.webappPrepare.dependsOn(WebKeys.stage),
       JsEngineKeys.engineType := JsEngineKeys.EngineType.Node,
       resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/",

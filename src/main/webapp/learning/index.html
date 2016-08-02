@@ -3,13 +3,13 @@
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
   <head_merge>
-    <script class="lift:cpres.script?src=jquery.jqplot"></script>
-    <script class="lift:cpres.script?src=plugins/jqplot.canvasTextRenderer"></script>
-    <script class="lift:cpres.script?src=plugins/jqplot.canvasAxisLabelRenderer"></script>
-    <script class="lift:cpres.script?src=plugins/jqplot.barRenderer"></script>
-    <script class="lift:cpres.script?src=plugins/jqplot.dateAxisRenderer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/jquery.jqplot.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.canvasTextRenderer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.canvasAxisLabelRenderer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.barRenderer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.dateAxisRenderer.min.js"></script>
     <script class="lift:cpres.js?src=word/learning"></script>
-    <script class="lift:cpres.css?src=jquery.jqplot"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/jquery.jqplot.min.css" />
   </head_merge>
   <div ng-controller="Learning" class="ng-cloak">
     <h4>Statistics</h4>
@@ -35,9 +35,9 @@
   </div>
   <h4>Graphs</h4>
 
-  <div id="next10" class="span5" style="height: 7cm">
+  <div id="next10" class="col-xs-12 col-md-6" style="height: 7cm">
   </div>
-  <div id="lastmonth" class="span7" style="height: 7cm;margin-top: 0.5cm;">
+  <div id="lastmonth" class="col-xs-12 col-md-8" style="height: 7cm;margin-top: 0.5cm;">
   </div>
 </div>
 </body>
