@@ -1,6 +1,6 @@
 koto = angular.module('kotonoha')
 
-window.Tags = ($scope, tagSvc) ->
+ctr = ($scope, tagSvc) ->
   tagSvc.callback = (msg) ->
     switch msg.cmd
       when "tags"
@@ -25,3 +25,5 @@ window.Tags = ($scope, tagSvc) ->
     if (tag.priority > 0 && (!tag.limit? || tag.limit == 0)) then tag.limit = 5
 
   return
+
+koto.controller('Tags', ["$scope", "tagSvc", ctr])

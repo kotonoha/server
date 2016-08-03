@@ -88,15 +88,13 @@
       <a href="javascript:void(0)" ng-click="select_none()">None</a>
       <a href="javascript:void(0)" ng-click="select_invert()">Invert</a>
     </div>
-    <div class="row-fluid" ng-repeat="ex in word.examples">
-      <br/>
-
-      <div class="span1">
-        <input type="checkbox" ng-model="ex.selected" class="centered">
+    <div ng-repeat="ex in word.examples" class="row full">
+      <div class="col-xs-1">
+        <input class="checkbox" type="checkbox" ng-model="ex.selected">
       </div>
-      <div class="span10">
-        <textarea class="autoresize nihongo span11" ng-model="ex.example"></textarea><br>
-        <textarea class="autoresize span11" ng-model="ex.translation"></textarea>
+      <div class="col-xs-11 compact p-r-0 example-block">
+        <textarea class="nihongo autoresize full form-control" ng-model="ex.example"></textarea>
+        <textarea class="autoresize full form-control" ng-model="ex.translation"></textarea>
       </div>
     </div>
     <div>

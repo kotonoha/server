@@ -24,7 +24,10 @@
   <div class="lift:comet?type=TagPriorityActor"></div>
   <div ng-controller="Tags">
     <h4>Your tag usage and priorities for new words</h4>
-    Filter: <input type="text" ng-model="filter.tag">
+    <div class="form-inline">
+      <label class="col-xs">Filter: </label>
+      <input type="text" class="distance form-control col-xs-4" ng-model="filter.tag">
+    </div>
     <table class="table">
       <thead>
       <tr>
@@ -36,14 +39,14 @@
       </thead>
       <tbody>
       <tr ng-repeat="tag in tags | filter:filter">
-        <td>{{tag.tag}}</td>
-        <td>{{tag.usage}}</td>
+        <td><span class="form-control-static" ng-bind="::tag.tag"></span></td>
+        <td><span class="form-control-static" ng-bind="::tag.usage"></span></td>
         <td>
-          <select ng-model="tag.priority" ng-options="x.value as x.name for x in priorities"
+          <select class="form-control" ng-model="tag.priority" ng-options="x.value as x.name for x in priorities"
                   ng-change="fixLimit(tag)"></select>
         </td>
         <td>
-          <input type="number" ng-model="tag.limit">
+          <input class="form-control" type="number" ng-model="tag.limit">
         </td>
       </tr>
       </tbody>
