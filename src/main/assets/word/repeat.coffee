@@ -153,10 +153,13 @@ $(document).ready ->
   $("#show-next").click( -> display_next(); false )
   $("#show-answer").click( -> show_answer(); false )
 
-window.RepeatController = ($scope) ->
+ctrl = ($scope) ->
   $scope.wid = null
   update_link = (item) ->
     $scope.$apply ->
       if (item == null)
         $scope.wid = null
       else $scope.wid = item.wid
+
+angular.module('kotonoha').controller('RepeatController', ["$scope", ctrl])
+

@@ -2,10 +2,25 @@
 @import "taglist";
 @import "utils";
 @import "nav";
+@import "repeat";
+@import "grid";
 
 textarea.nihongo, div.nihongo, input.nihongo, .nihongo {
   font-size: larger !important;
   font-family: Meiryo, MS Gothic, sans-serif !important;
+}
+
+.compact {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.terse {
+  line-height: 1.2;
+}
+
+.ng-cloak {
+  display: none;
 }
 
 div.selections > a {
@@ -16,7 +31,7 @@ div.selections > a {
   height: 100%;
 }
 
-.full textarea, .full input {
+.full {
   width: 100%;
 }
 
@@ -33,10 +48,97 @@ textarea.autoresize {
   text-align: center;
 }
 
-ng-cloak {
-  display: none;
+.distance {
+  margin-bottom: 0.5em;
 }
 
 a.non-existent {
   color: orange;
+}
+
+.dict-entry {
+  border: 1px solid transparent;
+}
+
+.dict-entry:hover {
+  border: solid 1px red;
+  background-color: #fff969;
+}
+
+td.checkbox_cell {
+  vertical-align: middle;
+  width: 10%
+}
+
+.button-pane span {
+  margin: 10px;
+}
+
+.tr {
+  display: table-row;
+}
+
+.tc {
+  display: table-cell;
+}
+
+div.selections {
+  margin-bottom: 1em;
+}
+
+.example-block {
+  margin-bottom: 1mm;
+
+  textarea {
+    padding: 1mm;
+    margin-bottom: 1mm;
+  }
+}
+
+a.btn-x {
+  color: black;
+
+  &:hover {
+    color: black;
+  }
+}
+
+.rec-item {
+  float: left;
+  height: 2.9cm;
+  width: 4cm;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  border: 1px dotted #808080;
+  text-overflow: clip;
+  display: inline-block;
+  position: relative;
+  margin: 1mm;
+  padding: 1mm;
+  font-size: 14px;
+
+  & .trim {
+    text-overflow: ellipsis;
+    word-break: break-all;
+    line-break: loose;
+    line-height: 1.1;
+  }
+}
+
+.wadd-recs {
+  padding: 0;
+}
+
+.rec-container {
+  height: 3cm;
+  overflow-y: hidden;
+}
+
+@import "../bootstrap/scss/buttons";
+
+$btn-paddings-y-mini: 0.15rem !default;
+$btn-paddings-x-mini: 0.35rem !default;
+
+.btn-mini {
+  @include button-size($btn-paddings-y-mini, $btn-paddings-x-mini, $font-size-sm, $btn-border-radius-sm);
 }

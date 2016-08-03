@@ -22,160 +22,100 @@
     <script class="lift:cpres.js?src=jq.autoresize"></script>
     <script class="lift:cpres.ng?src=word/approve-add"></script>
     <script class="lift:cpres.js?src=taglist"></script>
-    <style>
-
-      .dict-entry {
-        border: 1px solid transparent;
-      }
-
-      .dict-entry:hover {
-        border: solid 1px red;
-        background-color: #fff969;
-      }
-
-      td.checkbox_cell {
-        vertical-align: middle;
-        width: 10%
-      }
-
-      .button-pane span {
-        margin: 10px;
-      }
-
-      .ng-cloak {
-        display: none;
-      }
-
-      .tr {
-        display: table-row;
-      }
-
-      .tc {
-        display: table-cell;
-      }
-
-      div.selections {
-        margin-bottom: 1em;
-      }
-
-      .rec-item {
-        float: left;
-        height: 2.6cm;
-        width: 4cm;
-        overflow-x: hidden;
-        overflow-y: hidden;
-        border: 1px dotted #808080;
-        text-overflow: clip;
-        display: inline-block;
-        position: relative;
-        margin: 1mm;
-        padding: 1mm;
-      }
-
-      .rec-container {
-        height: 3cm;
-        overflow-y: hidden;
-      }
-
-      .trim {
-        text-overflow: ellipsis;
-        word-break: break-all;
-        line-break: loose;
-      }
-    </style>
   </head_merge>
-  <div class="lift:ApproveWordActorSnippet" ng-controller="AddWord">
-    <div id="status">
+  <div class="lift:ApproveWordActorSnippet container" ng-controller="AddWord">
+    <div id="status" class="row">
       <span ng-show="loaded && cur == total">Nothing to add now, pal</span>
       <span id="status-string" ng-show="!loaded"><b>Please wait, loading...</b></span>
     </div>
-    <div class="rec-container">
-      <ul>
+    <div class="rec-container row distance">
+      <ul class="wadd-recs">
         <li class="rec-item" ng-hide="r.processed" ng-repeat="r in recommended">
-          <div>
-            <button class="btn btn-mini" ng-click="process_recomendation(r, $event)"><i class="icon-plus"></i> add this</button>
-            <button class="btn btn-mini pull-right" ng-click="mark_rec_ignored(r, $event)"><i class="icon-remove-circle"></i> ignore</button>
+          <div class="xs-col-12">
+            <button class="btn btn-outline-primary btn-mini" ng-click="process_recomendation(r, $event)"><i class="fa fa-plus"></i> add</button>
+            <button class="btn btn-outline-warning btn-mini pull-right" ng-click="mark_rec_ignored(r, $event)"><i class="fa fa-remove"></i> ignore</button>
           </div>
-          <div class="nihongo">
+          <div class="nihongo xs-col-12">
             {{r.writings[0]}} {{"(" + r.readings[0] + ")"}}
           </div>
-          <div class="trim">{{r.meanings[0]}}</div>
+          <div class="trim xs-col-12">{{r.meanings[0]}}</div>
         </li>
       </ul>
     </div>
-    <div class="row-fluid" ng-show="cur != total">
-      <div class="span8 center" id="left">
-        <h3>Word card ({{cur + 1}}/{{total}})</h3>
+    <div class="row" ng-show="cur != total">
+      <div class="col-md-8" id="left">
         <form id="main-form">
-          <div id="word-card">
-            <table>
-              <tbody>
-              <tr>
-                <td>Writing</td>
-                <td>
-                  <input class="nihongo" type="text" ng-model="word.writing">
-                </td>
-              </tr>
-              <tr>
-                <td>Reading</td>
-                <td>
-                  <input class="nihongo" type="text" ng-model="word.reading">
-                </td>
-              </tr>
-              <tr>
-                <td>Meaning</td>
-                <td class="nihongo autoresize">
-                  <textarea ng-model="word.meaning"></textarea>
-                </td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="button-pane" ng-show="btns_visible">
-            <button class="btn btn-success" ng-click="save('approved')"><i class="icon-ok-sign"></i> Save as good</button>
-            <button class="btn" ng-click="save('new')"><i class="icon-question-sign"></i> Save, don't learn</button>
-            <button class="btn btn-warning" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
-          </div>
-          <h3>Examples</h3>
-
-          <div id="word-examples" style="display: table" ng-show="cur != total">
-            <div class="selections">
-              Select:
-              <a href="javascript:void(0)" ng-click="select_all()">All</a>
-              <a href="javascript:void(0)" ng-click="select_none()">None</a>
-              <a href="javascript:void(0)" ng-click="select_invert()">Invert</a>
+          <div class="form-group row col-xs-12 container">
+            <h4>Word card ({{cur + 1}}/{{total}})</h4>
+            <div id="word-card" class="full">
+              <table class="table">
+                <tbody>
+                <tr>
+                  <td>Writing</td>
+                  <td>
+                    <input class="nihongo form-control" type="text" ng-model="word.writing">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Reading</td>
+                  <td>
+                    <input class="nihongo form-control" type="text" ng-model="word.reading">
+                  </td>
+                </tr>
+                <tr>
+                  <td>Meaning</td>
+                  <td class="nihongo autoresize">
+                    <textarea class="form-control" ng-model="word.meaning"></textarea>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
             </div>
-            <div ng-repeat="ex in word.examples" class="tr">
-              <div class="tc span1">
-                <div class="">
-                  <input type="checkbox" ng-model="ex.selected">
+
+            <div class="button-pane distance" ng-show="btns_visible">
+              <button class="btn btn-primary" ng-click="save('approved')"><i class="icon-ok-sign"></i> Save as good</button>
+              <button class="btn btn-secondary" ng-click="save('new')"><i class="icon-question-sign"></i> Save, don't learn</button>
+              <button class="btn btn-warning" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
+            </div>
+          </div>
+          <div class="form-group row container full">
+            <h5>Examples</h5>
+            <div id="word-examples" class="full" ng-show="cur != total">
+              <div class="selections full">
+                Select:
+                <a href="javascript:void(0)" ng-click="select_all()">All</a>
+                <a href="javascript:void(0)" ng-click="select_none()">None</a>
+                <a href="javascript:void(0)" ng-click="select_invert()">Invert</a>
+              </div>
+              <div ng-repeat="ex in word.examples" class="row full">
+                <div class="col-xs-1">
+                  <input class="checkbox" type="checkbox" ng-model="ex.selected">
+                </div>
+                <div class="col-xs-11 compact p-r-0 example-block">
+                  <textarea class="nihongo autoresize full form-control" ng-model="ex.example"></textarea>
+                  <textarea class="autoresize full form-control" ng-model="ex.translation"></textarea>
                 </div>
               </div>
-              <div class="tc span11">
-                <textarea class="span12 nihongo autoresize" ng-model="ex.example"></textarea>
-                <textarea class="span12 autoresize" ng-model="ex.translation"></textarea>
-              </div>
+              <button class="btn btn-primary btn-sm distance" ng-click="addExample()">Add new example</button>
             </div>
-            <button class="btn" ng-click="addExample()">Add new example</button>
+            <div class="button-pane" ng-show="btns_visible">
+              <button class="btn btn-primary" ng-click="save('approved')"><i class="icon-ok-sign"></i> Save as good</button>
+              <button class="btn btn-secondary" ng-click="save('new')"><i class="icon-question-sign"></i> Save, don't learn</button>
+              <button class="btn btn-warning" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
+            </div>
           </div>
         </form>
-        <div class="button-pane" ng-show="btns_visible">
-          <button class="btn btn-success" ng-click="save('approved')"><i class="icon-ok-sign"></i> Save as good</button>
-          <button class="btn" ng-click="save('new')"><i class="icon-question-sign"></i> Save, don't learn</button>
-          <button class="btn btn-warning" ng-click="skip()"><i class="icon-remove-sign"></i> Skip word</button>
-        </div>
       </div>
-      <div class="span4" id="right">
-        <div class="row">
+      <div class="col-md-4" id="right">
+        <div class="row distance">
           <label>
-            <i class="icon-tags"></i> Tags
+            <i class="fa fa-tags"></i> Tags
           </label>
-
           <div taglist="true" data="tags" tagnfo="tagNfo" class="span12"></div>
         </div>
         <div class="row">
-          <div>Click a dictionary entry to fill word entries with it</div>
-          <div id="dictionary-entries">
+          <div class="terse">Click a dictionary entry to fill word entries with it</div>
+          <div id="dictionary-entries" class="compact">
             <div ng-repeat="dic in dics">
               <hr/>
               <b class="dict-name">{{dic.name}}</b>

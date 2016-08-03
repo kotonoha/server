@@ -9,11 +9,11 @@ module.directive 'tagop', ->
     obj = scope.obj
     inner =
       if typeof(obj) == "string"
-        link = $ "<a href='javascript:void(0);' onclick='return false;' class='btn-tiny'><i class='icon-remove'/></a>"
+        link = $ "<a href='javascript:void(0);' onclick='return false;' class='btn-x'><i class='fa fa-remove'/></a>"
         link.click ->
           taglist.remove_for(obj)
         elem.addClass('tag-entry tag-noop')
-        $("<span><i class='icon-tag'/> #{obj} </span>").append(link)
+        $("<span><i class='fa fa-tag'/> #{obj} </span>").append(link)
       else
         text = ""
         classes = ['tag-entry']
@@ -21,19 +21,19 @@ module.directive 'tagop', ->
         if obj.add?
           text = obj.add
           classes.push('tag-op-add')
-          icon = 'icon-plus'
+          icon = 'fa fa-plus'
         else if obj.remove?
           text = obj.remove
           classes.push 'tag-op-remove'
-          icon = 'icon-minus'
+          icon = 'fa fa-minus'
         else if obj.rename?
           text = "#{obj.rename} ↦ #{obj.to}"
           classes.push 'tag-op-rename'
-          icon = 'icon-pencil'
+          icon = 'fa fa-pencil'
         else
           text = "Error!!!!" + obj
 
-        link = $ "<a href='javascript:void(0);' onclick='return false;' class='btn-tiny'><i class='icon-remove'></a>"
+        link = $ "<a href='javascript:void(0);' onclick='return false;' class='btn-x'><i class='fa fa-remove'></a>"
         span = $ "<span> #{text} </span>"
         elem.addClass(cl) for cl in classes
         icon = $ "<i class='#{icon}'/>"
