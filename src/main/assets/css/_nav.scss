@@ -1,0 +1,34 @@
+@import "../bootstrap/scss/nav";
+
+$nav-active-color: #4aa1ff;
+$nav-padding: 15px;
+
+.nav {
+  margin-right: $nav-padding;
+}
+
+.nav > .nav-item > a {
+  width: 100%;
+  margin-left: -$nav-padding;
+  padding: 2px $nav-padding;
+
+  &:hover {
+    background-color: #e1e1e8;
+  }
+}
+
+.nav-item > .nav {
+  margin-left: $nav-padding;
+  margin-right: 0;
+
+  & > .nav-item > a {
+    width: calc(100% + #{$nav-padding});
+    margin-left: -(2 * $nav-padding);
+    padding: 2px $nav-padding 2px (2 * $nav-padding);
+  }
+}
+
+.nav .active > a {
+  background-color: $nav-active-color !important;
+  color: whitesmoke;
+}
