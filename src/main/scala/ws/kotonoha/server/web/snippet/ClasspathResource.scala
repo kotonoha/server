@@ -16,7 +16,9 @@
 
 package ws.kotonoha.server.web.snippet
 
-import xml.{Text, NodeSeq}
+import com.typesafe.scalalogging.StrictLogging
+
+import xml._
 import net.liftweb.http.{DispatchSnippet, S}
 import net.liftweb.common.Full
 import net.liftweb.util.{Helpers, Props}
@@ -82,4 +84,59 @@ object ClasspathResource extends DispatchSnippet {
   }
 }
 
+object CdnSnippet extends DispatchSnippet with StrictLogging {
+  val isDev = Props.devMode
 
+  override def dispatch = {
+    case _ => render
+  }
+
+  private def process(s: String): String = {
+    if (s.contains(".min")) {
+      s
+    } else {
+      val dot = s.lastIndexOf('.')
+      if (dot == -1) {
+        s
+      } else {
+        s"${s.substring(0, dot)}.min${s.substring(dot)}"
+      }
+    }
+  }
+
+  def processAttr(e: Elem, m: MetaData, name: String) = {
+    m.get("src") match {
+      case Some(Text(s)) =>
+        m.append(new UnprefixedAttribute("src", process(s), Null))
+      case Some(s) =>
+        logger.warn(s"can't process $e, $name attribute is $s of class ${s.getClass}")
+        null
+      case _ =>
+        null
+    }
+  }
+
+  private def modifySrc(e: Elem): Elem = {
+    var md = e.attributes
+    val u1 = processAttr(e, md, "src")
+    if (u1 != null) {
+      md = md.append(u1)
+    }
+    val u2 = processAttr(e, md, "href")
+    if (u2 != null) {
+      md = md.append(u2)
+    }
+
+    if (md ne e.attributes) {
+      e.copy(attributes = md)
+    } else e
+  }
+
+  def render(ns: NodeSeq): NodeSeq = {
+    val need = S.attr("force").isDefined
+    ns.map {
+      case e: Elem if need || !isDev => modifySrc(e)
+      case x => x
+    }
+  }
+}

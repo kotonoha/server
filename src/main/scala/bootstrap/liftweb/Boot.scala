@@ -39,7 +39,7 @@ import ws.kotonoha.server.web.loc.{NewsLoc, WikiLoc}
 import ws.kotonoha.server.web.rest._
 import ws.kotonoha.server.web.rest.admin.{OFHistory, Stats}
 import ws.kotonoha.server.web.rest.model.{Cards, Words}
-import ws.kotonoha.server.web.snippet.{ClasspathResource, ModeSnippet}
+import ws.kotonoha.server.web.snippet.{CdnSnippet, ClasspathResource, ModeSnippet}
 
 import scala.util.control.NonFatal
 
@@ -234,7 +234,8 @@ class Boot extends Logging {
     LiftRules.snippetDispatch.append(
       Map(
         "cpres" -> ClasspathResource,
-        "mode" -> ModeSnippet
+        "mode" -> ModeSnippet,
+        "cdn" -> CdnSnippet
       )
     )
   }
