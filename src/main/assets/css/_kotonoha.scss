@@ -2,7 +2,6 @@
 @import "taglist";
 @import "utils";
 @import "nav";
-@import "repeat";
 @import "grid";
 
 textarea.nihongo, div.nihongo, input.nihongo, .nihongo {
@@ -95,6 +94,18 @@ div.selections {
   }
 }
 
+//repeat form
+.example-data {
+  @media (min-width: nth($grid-breakpoints, 2)) {
+    border-left: 1px grey dotted;
+  }
+}
+
+.koto-header {
+  border-bottom: 1px dotted lightgray;
+  margin-bottom: 1em;
+}
+
 a.btn-x {
   color: black;
 
@@ -137,6 +148,41 @@ a.btn-x {
 .card-mode {
   font-size: large;
   font-weight: bold;
+}
+
+.candidate {
+  height: 5em;
+  width: 8em;
+  margin: 2mm;
+  float: left;
+  display: inline-block;
+  border: 1px #808080 dotted;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.candidate > div.cand-fld {
+  display: list-item;
+}
+
+.candidate > .cand-fld {
+  margin: 0 0 1mm;
+  height: 1.3em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cand-bad .cand-writing {
+  background-color: #ffe0ef;
+}
+
+.cand-good .cand-writing {
+  background-color: #d9ffe6;
+}
+
+.candidate .icons {
+  z-index: 1;
+  position: inherit;
 }
 
 @import "../bootstrap/scss/buttons";

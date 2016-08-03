@@ -1,5 +1,6 @@
 .collapsable {
   display: inline-block;
+  padding: .1em .3em;
 }
 
 .collapsable.opened > .title:before {
@@ -23,8 +24,4 @@
   color: white;
   padding: .1em .3em;
   cursor: pointer;
-}
-
-.collapsable > .body {
-  padding: .1em .3em;
 }

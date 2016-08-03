@@ -1,4 +1,4 @@
-module = angular.module('kotonoha', ['collapsable', 'taglist', 'ui.popover2'])
+module = angular.module('kotonoha', ['collapsable', 'taglist', 'ui.popover4'])
 
 resolver = (o) ->
   empty =
@@ -43,7 +43,7 @@ module.directive 'candidate', ($compile) ->
 #  elem.click -> elem.dropdown('toggle')
 
 
-window.AddWord = ($scope, AddWordActor) ->
+ctor = ($scope, AddWordActor) ->
   act = AddWordActor
 
   recieve = (msg) ->
@@ -109,3 +109,5 @@ window.AddWord = ($scope, AddWordActor) ->
         $scope.rawText = ""
         cur = $scope.words
         $scope.words = cur + '\n#parsed\n' + text
+
+angular.module("kotonoha").controller("AddWord", ["$scope", "AddWordActor", ctor])

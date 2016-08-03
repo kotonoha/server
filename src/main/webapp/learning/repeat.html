@@ -22,36 +22,38 @@
   <div class="lift:RepeatActorSnippet" ng-controller="RepeatController">
     <div class="word-display">
       <div id="rpt-num">&nbsp;</div>
-      <div>
+      <div class="row col-xs-12">
         <a ng-href="../words/detail?w={{wid}}"
            ng-show="wid != null"
            target="_blank"
            title="Edit this word (opens in new window)">Edit this word</a>
       </div>
-      <div class="span4 card-data">
-        <div style="min-height: 20em;">
-          <div class="nihongo word-writing" id="word-writing"></div>
-          <div class="nihongo word-reading" id="word-reading"></div>
-          <div class="word-meaning" id="word-meaning"></div>
-          <div class="word-additional" id="word-additional"></div>
+      <div class="row">
+        <div class="col-xs-12 col-sm-5 card-data">
+          <div style="min-height: 20em;">
+            <div class="nihongo word-writing" id="word-writing"></div>
+            <div class="nihongo word-reading" id="word-reading"></div>
+            <div class="word-meaning" id="word-meaning"></div>
+            <div class="word-additional" id="word-additional"></div>
+          </div>
+          <div class="button-pane" id="button-pane">
+            <div class="hor-center" id="mark-pane">
+              <button class="btn" id="mark1">1</button>
+              <button class="btn" id="mark2">2</button>
+              <button class="btn" id="mark3">3</button>
+              <button class="btn" id="mark4">4</button>
+              <button class="btn" id="mark5">5</button>
+            </div>
+            <div id="next-word-pane">
+              <button class="btn btn-block" id="show-next">Show next word</button>
+            </div>
+            <div id="show-answer-pane">
+              <button class="btn btn-block" id="show-answer">Show answer</button>
+            </div>
+          </div>
         </div>
-        <div class="button-pane" id="button-pane">
-          <div class="hor-center" id="mark-pane">
-            <button class="btn" id="mark1">1</button>
-            <button class="btn" id="mark2">2</button>
-            <button class="btn" id="mark3">3</button>
-            <button class="btn" id="mark4">4</button>
-            <button class="btn" id="mark5">5</button>
-          </div>
-          <div id="next-word-pane">
-            <button class="btn btn-block" id="show-next">Show next word</button>
-          </div>
-          <div id="show-answer-pane">
-            <button class="btn btn-block" id="show-answer">Show answer</button>
-          </div>
+        <div class="col-xs-12 col-sm-7 example-data" id="example-pane">
         </div>
-      </div>
-      <div class="span7 example-data" id="example-pane">
       </div>
     </div>
   </div>

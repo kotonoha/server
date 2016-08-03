@@ -27,15 +27,17 @@
 <body>
 <div class="lift:GlobalComet"></div>
 <div class="container-fluid">
-  <div class="row m-x-auto">
-    <h1 class="alt">
+  <div class="row koto-header">
+    <div class="col-xs-3"></div>
+    <div class="col-xs-6">
+      <h1 class="alt" style="text-align: center">Kotonoha</h1>
+    </div>
+    <div class="col-xs-3">
       <span class="lift:mode.is?name=development" style="color: red;">DEBUG</span>
-      Kotonoha<img alt="" id="ajax-loader" style="display:none; margin-bottom: 0px; margin-left: 5px"
-                                 src="/images/ajax-loader.gif">
-    </h1>
+      <i id="ajax-loader" style="display: none" class="fa fa-spinner fa-pulse fa-1x fa-fw"></i>
+    </div>
   </div>
 
-  <hr/>
   <div class="row container">
       <div class="col-md-3 lift:MenuPostproc?eager_eval=true">
       <lift:Menu.builder xmlns:li="http://cxf.apache.org/jaxws" xmlns:li_item="http://geronimo.apache.org/xml/ns/attributes-1.1" xmlns:ul="http://geronimo.apache.org/xml/ns/j2ee/application-1.2"
