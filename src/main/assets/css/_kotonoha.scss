@@ -134,6 +134,11 @@ a.btn-x {
   overflow-y: hidden;
 }
 
+.card-mode {
+  font-size: large;
+  font-weight: bold;
+}
+
 @import "../bootstrap/scss/buttons";
 
 $btn-paddings-y-mini: 0.15rem !default;

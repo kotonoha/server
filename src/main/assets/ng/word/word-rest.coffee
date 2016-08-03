@@ -1,6 +1,6 @@
-angular.module('kotonoha', ['taglist', 'ui.autosize'])
+mod = angular.module('kotonoha', ['taglist', 'ui.autosize'])
 
-window.WordCon = ($scope, $http) ->
+ctor = ($scope, $http) ->
   re = /w=([0-9a-f]+)/i
   [_, id] = window.location.search.match(re)
   $scope.status = false
@@ -47,3 +47,5 @@ window.WordCon = ($scope, $http) ->
       !e.selected)
 
   return
+
+mod.controller("WordCon", ["$scope", "$http", ctor])

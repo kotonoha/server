@@ -37,19 +37,23 @@ import org.bson.types.ObjectId
 import net.liftweb.util.ControlHelpers.tryo
 
 /**
- * @author eiennohito
- * @since 15.03.12
- */
+  * @author eiennohito
+  * @since 15.03.12
+  */
 
 object WordSnippet extends Akka with ReleaseAkka {
 
   def wordId: Box[ObjectId] = {
-    S.param("w") flatMap  (x => tryo { new ObjectId(x) })
+    S.param("w") flatMap (x => tryo {
+      new ObjectId(x)
+    })
   }
 
-  object word extends RequestVar[Box[WordRecord]](wordId flatMap {WordRecord.find(_)})
+  object word extends RequestVar[Box[WordRecord]](wordId flatMap {
+    WordRecord.find(_)
+  })
 
-  def save(rec: WordRecord) : JsCmd = {
+  def save(rec: WordRecord): JsCmd = {
     rec.save()
     SetHtml("status", <b>Saved!</b>)
   }
@@ -62,7 +66,7 @@ object WordSnippet extends Akka with ReleaseAkka {
   def renderForm(in: NodeSeq): NodeSeq = {
     import Helpers._
     import ws.kotonoha.server.util.DateTimeUtils._
-     word.get match {
+    word.get match {
       case Full(w) => {
         bind("word", SHtml.ajaxForm(in),
           "createdon" -> Formatting.format(w.createdOn.get),
@@ -77,7 +81,7 @@ object WordSnippet extends Akka with ReleaseAkka {
     }
   }
 
-  def addExample(record: WordRecord) : JsCmd = {
+  def addExample(record: WordRecord): JsCmd = {
     val exs = record.examples.get
     val w = record.examples(exs ++ List(ExampleRecord.createRecord))
     word(Full(w))
@@ -87,13 +91,13 @@ object WordSnippet extends Akka with ReleaseAkka {
   def renderExamples: NodeSeq = {
     import Helpers._
     val templ = <tr xmlns:ex="example">
-        <td class="nihongo full" width="50%">
-          <ex:example></ex:example>
-        </td>
-        <td class="full" width="50%">
-          <ex:translation></ex:translation>
-        </td>
-      </tr>
+      <td class="nihongo full" width="50%">
+        <ex:example></ex:example>
+      </td>
+      <td class="full" width="50%">
+        <ex:translation></ex:translation>
+      </td>
+    </tr>
     val inner = word.get match {
       case Full(w) => {
         w.examples.get.flatMap {
@@ -102,14 +106,18 @@ object WordSnippet extends Akka with ReleaseAkka {
               "example" -> ex.example.toForm,
               "translation" -> ex.translation.toForm)
         } ++
-        <tr>
-          <td></td>
-          <td>{SHtml.ajaxSubmit("Add new example", () => addExample(w))}</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>{SHtml.ajaxSubmit("Save", () => save(w))}</td>
-        </tr>
+          <tr>
+            <td></td>
+            <td>
+              {SHtml.ajaxSubmit("Add new example", () => addExample(w))}
+            </td>
+          </tr>
+            <tr>
+              <td></td>
+              <td>
+                {SHtml.ajaxSubmit("Save", () => save(w))}
+              </td>
+            </tr>
       }
       case _ => <b>No word, no examples</b>
     }
@@ -119,7 +127,7 @@ object WordSnippet extends Akka with ReleaseAkka {
   def renderExamples(in: NodeSeq): NodeSeq = {
     val inner = renderExamples
     in.head.flatMap {
-      case e: Elem => Elem(e.prefix, e.label, e.attributes, e.scope, false, e.child ++ inner : _*)
+      case e: Elem => Elem(e.prefix, e.label, e.attributes, e.scope, false, e.child ++ inner: _*)
       case _ => in
     }
   }
@@ -132,7 +140,15 @@ object WordSnippet extends Akka with ReleaseAkka {
       val period = {
         def render(p: Period) = {
           import org.joda.time.DurationFieldType._
-          val list = List("Year" -> years(), "Month" -> months(), "Week" -> weeks(), "Day" -> days(), "Hour" -> hours(), "Minute" -> minutes(), "Second" -> seconds())
+          val list = List(
+            "Year" -> years(),
+            "Month" -> months(),
+            "Week" -> weeks(),
+            "Day" -> days(),
+            "Hour" -> hours(),
+            "Minute" -> minutes(),
+            "Second" -> seconds()
+          )
           val sb = new StringBuilder
           list.foreach {
             case (s: String, tp) => {
@@ -160,11 +176,21 @@ object WordSnippet extends Akka with ReleaseAkka {
         }
       }
 
-      <div>Difficulty: {round(il.difficulty.get, 2)}</div> ++
-      <div>Scheduled on: {Formatting.format(il.intervalEnd.get)}, {period}</div> ++
-      <div>Has {il.repetition.get} repetition and {il.lapse.get} lapse</div>
+      <div>Difficulty:
+        {round(il.difficulty.get, 2)}
+      </div> ++
+        <div>Scheduled on:
+          {Formatting.format(il.intervalEnd.get)}
+          ,
+          {period}
+        </div> ++
+        <div>Has
+          {il.repetition.get}
+          repetition and
+          {il.lapse.get}
+          lapse</div>
     }
-    case _ => Text("")
+    case _ => Text("Not yet scheduled")
   }
 
   def mode(m: Int) = m match {
@@ -177,12 +203,14 @@ object WordSnippet extends Akka with ReleaseAkka {
     import Helpers._
     import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
     val cards = WordCardRecord where (_.word eqs wordId.openOrThrowException("should be present")) orderAsc (_.cardMode) fetch()
-    cards.flatMap { c =>
-      bind("wc", in,
-        "mode" -> <h5>{mode(c.cardMode.get).+(" card")}</h5>,
-        "learning" -> renderLearning(c.learning.valueBox)
-      )
+
+
+    val tf = cards.map { c =>
+      ".card-mode *" #> mode(c.cardMode.get).+(" card") &
+      ".card-learning" #> renderLearning(c.learning.valueBox)
     }
+
+    ("^" #> tf).apply(in)
   }
 
   def exampleAjaxForm(in: NodeSeq): NodeSeq = {
@@ -192,10 +220,11 @@ object WordSnippet extends Akka with ReleaseAkka {
 }
 
 class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka with ReleaseAkka {
+
   import ws.kotonoha.server.util.KBsonDSL._
   import ws.kotonoha.server.actors.UserSupport._
 
-  def headers = ("adate" -> "createdOn" ) :: ("status" -> "status") :: ("writing" -> "writing") :: ("reading" -> "reading") :: Nil
+  def headers = ("adate" -> "createdOn") :: ("status" -> "status") :: ("writing" -> "writing") :: ("reading" -> "reading") :: Nil
 
   lazy val count = WordRecord.count(query)
 
@@ -220,28 +249,37 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
     import net.liftweb.json.{compact, render}
     def handler(s: String): JsCmd = {
       val ids = findIds(s)
-      ids.foreach { akkaServ ! ChangeWordStatus(_, WordStatus.ReviewWord).u(uid) }
-      val data = JArray(ids.toList.map{ l => JString(l.toString) } )
+      ids.foreach {
+        akkaServ ! ChangeWordStatus(_, WordStatus.ReviewWord).u(uid)
+      }
+      val data = JArray(ids.toList.map { l => JString(l.toString) })
       val x = compact(render(data))
-      JE.Call("update_data", JE.JsRaw(x), JE.Str("ReviewWord") ).cmd
+      JE.Call("update_data", JE.JsRaw(x), JE.Str("ReviewWord")).cmd
     }
+
     def handler_delete(s: String): JsCmd = {
       val ids = findIds(s)
-      ids.foreach { akkaServ ! MarkForDeletion(_).u(uid) }
-      val data = JArray(ids.toList.map{ l => JString(l.toString) } )
+      ids.foreach {
+        akkaServ ! MarkForDeletion(_).u(uid)
+      }
+      val data = JArray(ids.toList.map { l => JString(l.toString) })
       val x = compact(render(data))
-      JE.Call("update_data", JE.JsRaw(x), JE.Str("Deleting") ).cmd
+      JE.Call("update_data", JE.JsRaw(x), JE.Str("Deleting")).cmd
     }
+
     def handler_approveall(s: String): JsCmd = {
       val ids = findIds(s)
-      ids foreach { akkaServ ! ChangeWordStatus(_, WordStatus.Approved).u(uid) }
-      val data = JArray(ids.toList map { i => JString(i.toString) } )
+      ids foreach {
+        akkaServ ! ChangeWordStatus(_, WordStatus.Approved).u(uid)
+      }
+      val data = JArray(ids.toList map { i => JString(i.toString) })
       val x = compact(render(data))
       JE.Call("update_data", JE.JsRaw(x), JE.Str("Approved")).cmd
     }
-    SHtml.ajaxButton(Text("Mark for review"), JE.Call("list_data") , handler _) ++
-    SHtml.ajaxButton(Text("Delete"), JE.Call("list_data") , handler_delete _) ++
-    SHtml.ajaxButton(Text("Approve"), JE.Call("list_data"), handler_approveall _)
+
+    SHtml.ajaxButton(Text("Mark for review"), JE.Call("list_data"), handler _) ++
+      SHtml.ajaxButton(Text("Delete"), JE.Call("list_data"), handler_delete _) ++
+      SHtml.ajaxButton(Text("Approve"), JE.Call("list_data"), handler_approveall _)
   }
 
 
@@ -250,7 +288,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
     Helpers.appendParams(super.sortedPageUrl(offset, sort), List("q" -> searchQuery))
   }
 
-  def query : JObject = {
+  def query: JObject = {
     val init = ("user" -> uid)
     searchQuery match {
       case "" => init
@@ -262,7 +300,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
   }
 
 
-  def sortObj : JObject = {
+  def sortObj: JObject = {
     val (col, direction) = sort
     val sortint = if (direction) 1 else -1
     (headers(col)._2 -> sortint)
@@ -272,7 +310,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
     import Helpers._
     in.map {
       case e: Elem => e % ("value" -> searchQuery)
-      case x @ _ => x
+      case x@_ => x
     }
   }
 
@@ -285,18 +323,20 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
     import BindHelpers._
     import ws.kotonoha.server.util.DateTimeUtils._
 
-    def v(id: ObjectId) =  {
+    def v(id: ObjectId) = {
       val link = "row-%s".format(id.toString)
       AttrBindParam("row", Text(link), "id")
     }
 
-    page.flatMap {i =>
+    page.flatMap { i =>
       bind("word", in,
         v(i.id.get),
-        "selected" -> <input type="checkbox" name={i.id.get.toString} /> ,
+        "selected" -> <input type="checkbox" name={i.id.get.toString}/>,
         "addeddate" -> Formatting.format(i.createdOn.get),
         "reading" -> i.reading.stris,
-        "writing" -> <a href={"detail?w="+ i.id.get.toString}>{i.writing.stris}</a>,
+        "writing" -> <a href={"detail?w=" + i.id.get.toString}>
+          {i.writing.stris}
+        </a>,
         "meaning" -> Strings.substr(i.meaning.get, 50),
         "status" -> i.status.get.toString
       )
