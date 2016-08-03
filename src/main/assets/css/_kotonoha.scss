@@ -51,6 +51,21 @@ textarea.autoresize {
   margin-bottom: 0.5em;
 }
 
+.logo-img {
+  display: inline-block;
+  height: 1.5cm;
+  width: 1.5cm;
+  margin: 2mm 2mm 2mm 5mm;
+}
+
+.brand-title {
+  height: 1.5cm;
+  font-size: 1.2cm;
+  font-weight: bold;
+  vertical-align: middle;
+  font-family: Arial;
+}
+
 a.non-existent {
   color: orange;
 }

@@ -9,6 +9,7 @@
   <title class="lift:Menu.title">%*% - Kotonoha</title>
   <head_merge>
     <link rel="stylesheet" type="text/css" href="/static/main.css">
+    <link rel="icon" href="/static/images/logo_100.png">
 
     <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js" ></script>-->
     <script class="lift:cdn" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.js"></script>
@@ -28,9 +29,10 @@
 <div class="lift:GlobalComet"></div>
 <div class="container-fluid">
   <div class="row koto-header">
-    <div class="col-xs-3"></div>
-    <div class="col-xs-6">
-      <h1 class="alt" style="text-align: center">Kotonoha</h1>
+    <div class="col-xs-9">
+      <a href="/"><img class="logo-img" src="/static/images/logo_200.png"></a>
+      <span class="brand-title">Kotonoha</span>
+    </div>
     </div>
     <div class="col-xs-3">
       <span class="lift:mode.is?name=development" style="color: red;">DEBUG</span>
@@ -51,7 +53,6 @@
       <!--<div class="lift:Menu.builder?expandAll=true&li:class=nav-item&li_item:class=active&ul:class=nav+nav-stacked+nav-pills"></div> -->
       <div class="lift:Msgs?showAll=true"></div>
     </div>
-
     <div class="col-md-9">
       <div id="content">The main content will get bound here</div>
     </div>
