@@ -36,11 +36,12 @@ object KotonohaConfig {
   lazy val config = {
     import scala.collection.JavaConversions._
     val props = Props.props
-    val base = ConfigFactory.defaultApplication() withFallback ConfigFactory.defaultOverrides()
+    val base = ConfigFactory.defaultApplication().withFallback(ConfigFactory.defaultOverrides())
     val fromLift = ConfigFactory.parseMap(props)
-    var initial = Configuration.makeConfigFor("kotonoha")
-    if (initial.hasPath("cfg.include")) {
-      val includes = initial.getStringList("cfg.include")
+    var initial = Configuration.rawConfigFor("kotonoha")
+    val trial = initial.withFallback(base).resolve()
+    if (trial.hasPath("cfg.include")) {
+      val includes = trial.getStringList("cfg.include")
       val iter = includes.iterator()
       while (iter.hasNext) {
         val path = Paths.get(iter.next())

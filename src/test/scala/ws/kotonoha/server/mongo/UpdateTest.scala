@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.mongo
 
-import com.mongodb.MongoClient
+import com.mongodb.{MongoClient, MongoClientURI}
 import com.mongodb.casbah.WriteConcern
 import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.{Empty, Full}
@@ -26,7 +26,9 @@ import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoMetaRecord, 
 import net.liftweb.record.field.StringField
 import net.liftweb.util.DefaultConnectionIdentifier
 import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers, Suite}
+import ws.kotonoha.server.KotonohaConfig
 import ws.kotonoha.server.mongodb.MongoDbInit
+import ws.kotonoha.server.test.KotonohaTestAkka
 
 /**
  * @author eiennohito
@@ -50,17 +52,31 @@ class Smt private() extends MongoRecord[Smt] with ObjectIdPk[Smt] {
 object Smt extends Smt with MongoMetaRecord[Smt]
 
 object GlobalMongoHolder extends StrictLogging {
+
+  def conf = KotonohaTestAkka.cfg
+
   class MongoKeeperRunnable extends Runnable {
     private[this] var mongoClient: MongoClient = null
 
     override def run(): Unit = {
-      logger.debug("created mongo thread")
-      mongoClient = new MongoClient("localhost")
-      MongoDB.defineDb(DefaultConnectionIdentifier, mongoClient, "tests")
-      MongoDbInit.register(mongoClient, "kototests", "kotodictests")
-      mongoClient.fsync(false)
-      created = true
+      try {
+        import ws.kotonoha.akane.config.ScalaConfig._
+        mongoClient = new MongoClient(new MongoClientURI(conf.optStr("mongo.uri").getOrElse("mongodb://localhost")))
+        MongoDB.defineDb(DefaultConnectionIdentifier, mongoClient, "tests")
+        MongoDbInit.register(mongoClient, "kototests", "kotodictests")
+        mongoClient.fsync(false)
+        created = true
+        logger.debug("created mongo thread")
+        loop()
+      } catch {
+        case e: Throwable =>
+          logger.error("can't create mongo thread", e)
+          mongoClient = null
+          created = true
+      }
+    }
 
+    def loop(): Unit = {
       while (true) {
         lock.synchronized {
           val upd = lastUpdate
@@ -71,12 +87,10 @@ object GlobalMongoHolder extends StrictLogging {
             mongoClient.close()
             mongoClient = null
             logger.debug("destroying mongo thread")
-            return
           }
           lock.wait(1000)
         }
       }
-
     }
   }
 

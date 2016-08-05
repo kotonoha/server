@@ -28,6 +28,7 @@ import net.codingwell.scalaguice.ScalaModule
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.config.Configuration
 import ws.kotonoha.dict.jmdict.LuceneJmdict
+import ws.kotonoha.server.KotonohaConfig
 import ws.kotonoha.server.actors._
 import ws.kotonoha.server.dict.{EmptyJmdict, JmdictService, JmdictServiceImpl}
 import ws.kotonoha.server.ioc._
@@ -62,7 +63,7 @@ class TestModule(cfg: Config) extends ScalaModule {
 object KotonohaTestAkka {
   val counter = new AtomicInteger(0)
 
-  val cfg = Configuration.makeConfigFor("kotonoha", ConfigFactory.defaultApplication())
+  val cfg = KotonohaConfig.config
 
   def modules = Seq[Module](
     new TestModule(cfg),
