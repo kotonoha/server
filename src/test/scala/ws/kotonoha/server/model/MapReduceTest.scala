@@ -16,20 +16,18 @@
 
 package ws.kotonoha.server.model
 
-import com.mongodb.MapReduceCommand.OutputType
-import net.liftweb.mongodb.JObjectParser
-import net.liftweb.json.DefaultFormats
-import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
-import com.mongodb.MapReduceCommand
 import java.util.HashMap
 
+import com.mongodb.MapReduceCommand
+import com.mongodb.MapReduceCommand.OutputType
+import net.liftweb.json.DefaultFormats
+import net.liftweb.mongodb.JObjectParser
 import org.bson.types.Code
-import ws.kotonoha.server.mongodb.mapreduce.DateCounter
-import net.liftweb.json.JsonAST._
 import org.scalatest.Matchers
 import ws.kotonoha.server.mongo.MongoAwareTest
+import ws.kotonoha.server.records.WordRecord
 
-import collection.JavaConversions
+import scala.collection.JavaConversions
 
 case class Result(idx: Int,  count: Double)
 
@@ -65,27 +63,6 @@ class MapReduceTest extends org.scalatest.FunSuite with Matchers with MongoAware
 
       val v =  t.results() map (JObjectParser.serialize(_))
       println(v)
-    }
-  }
-
-  test("mr2") {
-    import JavaConversions.iterableAsScalaIterable
-
-    WordCardRecord.useColl { col =>
-      val cnt = new DateCounter()
-      val cmd = cnt.command(col)
-      val out = col.mapReduce(cmd)
-      val v =  out.results() map (JObjectParser.serialize(_)) reduce (_++_)
-      println(v)
-
-      val trans = v.transform {
-        case JField("value", x) => JField("count", x \ "count")
-        case JField("_id", y : JDouble) => JField("idx", JInt(y.values.toInt))
-      }
-
-      val transf = trans.extract[Result]
-
-      println(transf)
     }
   }
 }
