@@ -52,12 +52,6 @@ case class PresentStatus(cand: Candidate, present: List[SimilarWord], queue: Lis
   }
 }
 
-class WordService @Inject() (uc: UserContext) (
-  implicit ec: ExecutionContext
-) extends StrictLogging {
-  def register(rec: WordRecord) = ???
-}
-
 class WordActor extends UserScopedActor with ActorLogging {
 
   import akka.pattern.{ask, pipe}
