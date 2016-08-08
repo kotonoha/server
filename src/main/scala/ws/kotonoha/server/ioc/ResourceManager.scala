@@ -19,6 +19,8 @@ package ws.kotonoha.server.ioc
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
+import com.typesafe.scalalogging.StrictLogging
+
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -35,7 +37,7 @@ trait Res extends AutoCloseable {
   def closeResources(res: AutoCloseable*): Unit
 }
 
-class ResourceManager extends Res {
+class ResourceManager extends Res with StrictLogging {
   private[this] val resources = new AtomicReference[List[AutoCloseable]](Nil)
   private[this] val keyCache = new ConcurrentHashMap[AnyRef, AutoCloseable]()
 
@@ -100,6 +102,7 @@ class ResourceManager extends Res {
   }
 
   override def close() = {
+    logger.info("destroying resources")
     resources.synchronized {
       resources.get().foreach(_.close()) //reverse construction order is correct
       resources.set(Nil) //free references

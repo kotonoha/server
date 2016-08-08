@@ -36,8 +36,7 @@ import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow}
 import scala.concurrent.{Await, Future}
 
 
-class MongoTest extends AkkaFun with BeforeAndAfter
-with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
+class MongoTest extends AkkaFun with MongoAwareTest with BeforeAndAfter {
 
   import DateTimeUtils._
   import akka.pattern._
@@ -53,14 +52,8 @@ with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
   var ucont: UserContext = null
   implicit def executor = kta.context
 
-  override def beforeAll() {
-    super.beforeAll()
-    WordCardRecord.createRecord
-    WordRecord.createRecord
-  }
-
   before {
-    user = UserRecord.createRecord.save
+    user = UserRecord.createRecord.save()
     ucont = kta.userContext(userId)
     kta ! PingUser(userId)
   }
@@ -69,7 +62,6 @@ with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
     WordRecord where (_.user eqs userId) bulkDelete_!! WriteConcern.NORMAL
     WordCardRecord where (_.user eqs userId) bulkDelete_!! WriteConcern.NORMAL
     user.delete_!
-    user = null
   }
 
   test("saving word for user") {
@@ -92,7 +84,7 @@ with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
     rec.learning(Empty)
     rec.save(WriteConcern.ACKNOWLEDGED)
 
-    val rec2 = WordCardRecord.find(rec.id.get).openTheBox
+    val rec2 = WordCardRecord.find(rec.id.get).openOrThrowException("fail")
     rec2.learning.valueBox.isEmpty should be(true)
   }
 

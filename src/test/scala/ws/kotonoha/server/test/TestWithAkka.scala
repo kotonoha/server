@@ -61,7 +61,6 @@ class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) e
 
   override protected def beforeAll() = {
     super.beforeAll()
-    logger.debug(s"created akka system ${kta.system.name}")
   }
 
   override protected def afterAll() = {

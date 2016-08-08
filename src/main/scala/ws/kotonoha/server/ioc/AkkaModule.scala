@@ -20,6 +20,7 @@ import akka.actor.{Actor, ActorSystem, IndirectActorProducer, Props, Scheduler}
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.google.inject._
 import com.typesafe.config.Config
+import com.typesafe.scalalogging.StrictLogging
 import net.codingwell.scalaguice.InjectorExtensions.ScalaInjector
 import net.codingwell.scalaguice.ScalaModule
 
@@ -29,7 +30,7 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor}
   * @author eiennohito
   * @since 2016/07/14
   */
-class AkkaModule(name: String = "k") extends ScalaModule {
+class AkkaModule(name: String = "k") extends ScalaModule with StrictLogging {
   override def configure() = {
     bind[IocActors].to[IocActorsImpl]
   }
@@ -44,7 +45,8 @@ class AkkaModule(name: String = "k") extends ScalaModule {
     res.register(new AutoCloseable {
       override def close() = {
         import scala.concurrent.duration._
-        Await.result(system.terminate(), 10.seconds)
+        val res = Await.result(system.terminate(), 10.seconds)
+        logger.info(s"actor system $name is terminated: $res")
       }
     })
     system
