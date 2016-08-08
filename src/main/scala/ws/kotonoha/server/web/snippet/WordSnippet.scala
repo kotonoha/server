@@ -26,7 +26,7 @@ import net.liftweb.util.ControlHelpers.tryo
 import net.liftweb.util.{BindHelpers, Helpers}
 import org.bson.types.ObjectId
 import org.joda.time.Period
-import ws.kotonoha.model.CardMode
+import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.actors.model.{ChangeWordStatus, MarkForDeletion}
 import ws.kotonoha.server.records._

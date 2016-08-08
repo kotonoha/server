@@ -16,28 +16,17 @@
 
 package ws.kotonoha.server.records
 
-import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
+import net.liftweb.json.JsonAST.{JBool, JField, JObject, _}
 import net.liftweb.mongodb.record.field._
-import net.liftweb.record.field.{DateTimeField, EnumField, StringField}
-import net.liftweb.json.JsonAST._
+import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
+import net.liftweb.record.field.StringField
+import ws.kotonoha.model.WordStatus
+import ws.kotonoha.server.actors.tags.Taggable
 import ws.kotonoha.server.mongodb.NamedDatabase
 import ws.kotonoha.server.mongodb.record.DelimitedStringList
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord, PbEnumField}
 import ws.kotonoha.server.tools.JsonAstUtil
-import net.liftweb.json.JsonAST.JField
-import net.liftweb.json.JsonAST.JBool
-import net.liftweb.json.JsonAST.JObject
-import ws.kotonoha.server.actors.tags.Taggable
-import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 
-object WordStatus extends Enumeration {
-  type WordStatus = Value
-
-  val New = Value(0)
-  val Approved = Value(1)
-  val ReviewWord = Value(2)
-  val ReviewExamples = Value(3)
-  val Deleting = Value(4)
-}
 
 /**
  * @author eiennohito
@@ -50,7 +39,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
   object reading extends DelimitedStringList(this, ",、･")
   object meaning extends StringField(this, 1000) with TextAreaHtml
   object createdOn extends JodaDateField(this)
-  object status extends EnumField(this, WordStatus, WordStatus.New)
+  object status extends PbEnumField(this, WordStatus, WordStatus.New)
   object tags extends MongoListField[WordRecord, String](this)
 
   object examples extends BsonRecordListField(this, ExampleRecord)

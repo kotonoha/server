@@ -26,21 +26,21 @@ import net.liftweb.common.Empty
 import net.liftweb.json.JsonAST.JObject
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.unicode.KanaUtil
-import ws.kotonoha.model.CardMode
+import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.actors._
 import ws.kotonoha.server.actors.tags.{CalculatePriority, Priority}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.learning.ProcessMarkEvents
 import ws.kotonoha.server.records.events.MarkEventRecord
-import ws.kotonoha.server.records.{WordCardRecord, WordRecord, WordStatus}
+import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
 import ws.kotonoha.server.web.comet.Candidate
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait WordMessage extends KotonohaMessage
 
-case class RegisterWord(word: WordRecord, state: WordStatus.Value = WordStatus.Approved) extends WordMessage
-case class ChangeWordStatus(word: ObjectId, status: WordStatus.Value) extends WordMessage
+case class RegisterWord(word: WordRecord, state: WordStatus = WordStatus.Approved) extends WordMessage
+case class ChangeWordStatus(word: ObjectId, status: WordStatus) extends WordMessage
 case class MarkAllWordCards(word: ObjectId, mark: Int) extends WordMessage
 case class MarkForDeletion(word: ObjectId) extends WordMessage
 case object DeleteReadyWords extends WordMessage
@@ -128,11 +128,11 @@ class WordActor extends UserScopedActor with ActorLogging {
 
   }
 
-  def changeWordStatus(word: ObjectId, stat: WordStatus.Value) {
+  def changeWordStatus(word: ObjectId, stat: WordStatus) {
 
     import ws.kotonoha.server.util.KBsonDSL._
     val sq: JObject = "_id" -> word
-    val uq: JObject = "$set" -> ("status" -> stat.id)
+    val uq: JObject = "$set" -> ("status" -> stat.value)
     WordRecord.update(sq, uq)
     val f = stat match {
       case WordStatus.Approved => card ? ChangeCardEnabled(word, true)
@@ -144,7 +144,7 @@ class WordActor extends UserScopedActor with ActorLogging {
 
   }
 
-  def registerWord(word: WordRecord, st: WordStatus.Value) {
+  def registerWord(word: WordRecord, st: WordStatus) {
     val wordid = word.id.get
     val priF = (tags ? CalculatePriority(word.tags.get)).mapTo[Priority]
 

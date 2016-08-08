@@ -18,11 +18,10 @@ package ws.kotonoha.server.records.events
 
 import net.liftweb.mongodb.record.field.{ObjectIdPk, ObjectIdRefField}
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.record.field.EnumField
-import ws.kotonoha.model.EventTypes
+import ws.kotonoha.model.{EventTypes, WordStatus}
 import ws.kotonoha.server.mongodb.NamedDatabase
-import ws.kotonoha.server.records.meta.KotonohaMongoRecord
-import ws.kotonoha.server.records.{WordRecord, WordStatus}
+import ws.kotonoha.server.records.WordRecord
+import ws.kotonoha.server.records.meta.{KotonohaMongoRecord, PbEnumField}
 
 class ChangeWordStatusEventRecord private() extends MongoRecord[ChangeWordStatusEventRecord]
 with ObjectIdPk[ChangeWordStatusEventRecord] with EventRecord[ChangeWordStatusEventRecord] {
@@ -32,8 +31,7 @@ with ObjectIdPk[ChangeWordStatusEventRecord] with EventRecord[ChangeWordStatusEv
 
   object word extends ObjectIdRefField(this, WordRecord)
 
-  object toStatus extends EnumField(this, WordStatus)
-
+  object toStatus extends PbEnumField(this, WordStatus)
 }
 
 object ChangeWordStatusEventRecord extends ChangeWordStatusEventRecord

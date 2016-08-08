@@ -38,7 +38,9 @@ trait PbEnumTypedField[E <: GeneratedEnum] extends TypedField[E] {
   }
 
   def setFromInt(i: Int): Full[E] = {
-    Full(companion.fromValue(i))
+    val myval = companion.fromValue(i)
+    set(myval.asInstanceOf[ValueType])
+    Full(myval)
   }
 
   override def setFromString(s: String) = s match {
@@ -53,7 +55,7 @@ trait PbEnumTypedField[E <: GeneratedEnum] extends TypedField[E] {
     }
     start match {
       case Full(o) => JInt(o.value)
-      case Empty => JNothing
+      case _ => JNothing
     }
   }
 
@@ -70,7 +72,8 @@ trait PbEnumTypedField[E <: GeneratedEnum] extends TypedField[E] {
 class PbEnumField[OwnerType <: BsonRecord[OwnerType], E <: GeneratedEnum](val owner: OwnerType, dval: Int = 0)(implicit val companion: GeneratedEnumCompanion[E])
   extends Field[E, OwnerType] with MandatoryTypedField[E] with PbEnumTypedField[E] {
 
+  def this(o: OwnerType, comp: GeneratedEnumCompanion[E]) = this(o)(comp)
   def this(o: OwnerType, comp: GeneratedEnumCompanion[E], dval: Int) = this(o, dval)(comp)
-
+  def this(o: OwnerType, comp: GeneratedEnumCompanion[E], init: E) = this(o, init.value)(comp)
   override def defaultValue = companion.fromValue(dval)
 }

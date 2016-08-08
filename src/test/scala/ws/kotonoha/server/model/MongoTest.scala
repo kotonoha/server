@@ -23,6 +23,7 @@ import net.liftweb.common.{Empty, Full}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, OneInstancePerTest}
+import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors.learning.{LoadCards, LoadWords, WordsAndCards, _}
 import ws.kotonoha.server.actors.model.{CardActor, RegisterWord, SchedulePaired}
 import ws.kotonoha.server.actors.{AkkaFun, PingUser}

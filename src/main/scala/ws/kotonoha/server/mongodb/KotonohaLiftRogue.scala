@@ -16,9 +16,11 @@
 
 package ws.kotonoha.server.mongodb
 
-import com.foursquare.rogue.{DateTimeModifyField, DateTimeQueryField, LiftRogue}
+import com.foursquare.field.{Field => RField}
+import com.foursquare.rogue.{AbstractQueryField, DateTimeModifyField, DateTimeQueryField, LiftRogue}
+import com.trueaccord.scalapb.GeneratedEnum
 import net.liftweb.mongodb.record.BsonRecord
-import ws.kotonoha.server.records.meta.JodaDateField
+import ws.kotonoha.server.records.meta.{JodaDateField, PbEnumField}
 
 import scala.language.implicitConversions
 
@@ -34,6 +36,14 @@ trait KotonohaLiftRogue extends LiftRogue {
   implicit def jodaDateTimeField2ModifyField[M <: BsonRecord[M]](in: JodaDateField[M]): DateTimeModifyField[M] = {
     new DateTimeModifyField[M](in)
   }
+
+  implicit def pbEnumField2QueryField[M <: BsonRecord[M], E <: GeneratedEnum](in: PbEnumField[M, E]): PbEnumQueryField[M, E] = {
+    new PbEnumQueryField[M, E](in)
+  }
+}
+
+class PbEnumQueryField[M, E <: GeneratedEnum](fld: RField[E, M]) extends AbstractQueryField[E, E, Int, M](fld) {
+  override def valueToDB(v: E) = v.value
 }
 
 object KotonohaLiftRogue extends KotonohaLiftRogue

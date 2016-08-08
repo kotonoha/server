@@ -14,3 +14,11 @@ enum EventTypes {
   ChangeWordStatus = 3;
   Tag = 4;
 }
+
+enum WordStatus {
+  New = 0;
+  Approved = 1;
+  ReviewWord = 2;
+  ReviewExamples = 3;
+  Deleting = 4;
+}

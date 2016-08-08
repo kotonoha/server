@@ -16,30 +16,19 @@
 
 package ws.kotonoha.server.web.rest.model
 
-import ws.kotonoha.server.web.rest.KotonohaRest
-import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import ws.kotonoha.server.util.unapply.{XOid, XHexLong}
-import ws.kotonoha.server.records.{WordCardRecord, WordStatus, WordRecord, UserRecord}
-import net.liftweb.http._
-import net.liftweb.common.{Failure, Box, Full}
+import net.liftweb.common.{Box, Failure, Full}
+import net.liftweb.http.{OkResponse, _}
 import net.liftweb.json.JsonAST._
-import ws.kotonoha.server.actors.model.{MarkForDeletion, ChangeWordStatus}
-import ws.kotonoha.server.tools.JsonAstUtil
-import ws.kotonoha.server.actors.model.ChangeWordStatus
-import net.liftweb.http.OkResponse
-import ws.kotonoha.server.actors.model.MarkForDeletion
 import org.bson.types.ObjectId
-import ws.kotonoha.server.actors.ForUser
+import ws.kotonoha.model.WordStatus
+import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import ws.kotonoha.server.actors.model.{ChangeWordStatus, MarkForDeletion}
 import ws.kotonoha.server.actors.tags.{TagParser, TagWord}
-import concurrent.Future
-import ws.kotonoha.server.actors.model.ChangeWordStatus
-import net.liftweb.http.OkResponse
-import net.liftweb.common.Full
-import ws.kotonoha.server.actors.tags.TagWord
-import net.liftweb.json.JsonAST.JField
-import net.liftweb.json.JsonAST.JString
-import net.liftweb.json.JsonAST.JInt
-import ws.kotonoha.server.actors.model.MarkForDeletion
+import ws.kotonoha.server.records.{UserRecord, WordCardRecord, WordRecord}
+import ws.kotonoha.server.util.unapply.XOid
+import ws.kotonoha.server.web.rest.KotonohaRest
+
+import scala.concurrent.Future
 
 /**
  * @author eiennohito
@@ -48,7 +37,6 @@ import ws.kotonoha.server.actors.model.MarkForDeletion
 
 object Words extends KotonohaRest with ReleaseAkka {
   import ws.kotonoha.server.actors.UserSupport._
-
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def updateWord(updated: JValue, user: ObjectId, wid: ObjectId): Future[Box[LiftResponse]] = {
@@ -78,7 +66,7 @@ object Words extends KotonohaRest with ReleaseAkka {
         WordRecord where (_.id eqs (id)) and (_.user eqs (user)) get()
       }).map {
         _.stripped.map {
-          case JField("status", JInt(v)) => JField("status", JString(WordStatus(v.intValue()).toString))
+          case JField("status", JInt(v)) => JField("status", JString(WordStatus.fromValue(v.intValue()).name))
           case x => x
         }
       }

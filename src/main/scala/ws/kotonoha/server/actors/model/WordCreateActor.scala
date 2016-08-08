@@ -24,6 +24,7 @@ import akka.util.Timeout
 import net.liftweb.common.{Box, Empty}
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.unicode.{KanaUtil, UnicodeUtil}
+import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors.dict.DictType._
 import ws.kotonoha.server.actors.dict.{DictQuery, ExampleEntry, ExampleIds, LoadExamples, SearchResult, TranslationsWithLangs, _}
 import ws.kotonoha.server.actors.tags.auto.{PossibleTagRequest, PossibleTags, WordAutoTagger}
