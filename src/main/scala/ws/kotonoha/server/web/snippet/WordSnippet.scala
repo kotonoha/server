@@ -23,7 +23,6 @@ import net.liftweb.http.{RequestVar, S, SHtml, SortedPaginatorSnippet}
 import net.liftweb.json.JsonAST.{JArray, JObject, JString}
 import net.liftweb.mongodb.{Limit, Skip}
 import net.liftweb.util.ControlHelpers.tryo
-import net.liftweb.util.{BindHelpers, Helpers}
 import org.bson.types.ObjectId
 import org.joda.time.Period
 import ws.kotonoha.model.{CardMode, WordStatus}
@@ -41,7 +40,7 @@ import scala.xml.{Elem, NodeSeq, Text}
   * @since 15.03.12
   */
 
-object WordSnippet extends Akka with ReleaseAkka {
+object WordSnippet {
 
   def wordId: Box[ObjectId] = {
     S.param("w") flatMap (x => tryo {
@@ -49,87 +48,6 @@ object WordSnippet extends Akka with ReleaseAkka {
     })
   }
 
-  object word extends RequestVar[Box[WordRecord]](wordId flatMap {
-    WordRecord.find(_)
-  })
-
-  def save(rec: WordRecord): JsCmd = {
-    rec.save()
-    SetHtml("status", <b>Saved!</b>)
-  }
-
-  def sna(rec: WordRecord): JsCmd = {
-    akkaServ ! ChangeWordStatus(rec.id.get, WordStatus.Approved)
-    SetHtml("word-status", Text("Approved")) & SetHtml("status", <b>Saved</b>)
-  }
-
-  def renderForm(in: NodeSeq): NodeSeq = {
-    import Helpers._
-    word.get match {
-      case Full(w) => {
-        bind("word", SHtml.ajaxForm(in),
-          "createdon" -> Formatting.format(w.createdOn.get),
-          "writing" -> w.writing.toForm,
-          "reading" -> w.reading.toForm,
-          "meaning" -> w.meaning.toForm,
-          "status" -> w.status.get.toString,
-          "submit" -> SHtml.ajaxSubmit("Save", () => save(w)),
-          "sna" -> SHtml.ajaxSubmit("Save & Approve", () => sna(w)))
-      }
-      case _ => S.error("Invalid word"); <em>Invalid word</em>
-    }
-  }
-
-  def addExample(record: WordRecord): JsCmd = {
-    val exs = record.examples.get
-    val w = record.examples(exs ++ List(ExampleRecord.createRecord))
-    word(Full(w))
-    SetHtml("extable", renderExamples)
-  }
-
-  def renderExamples: NodeSeq = {
-    import Helpers._
-    val templ = <tr xmlns:ex="example">
-      <td class="nihongo full" width="50%">
-        <ex:example></ex:example>
-      </td>
-      <td class="full" width="50%">
-        <ex:translation></ex:translation>
-      </td>
-    </tr>
-    val inner = word.get match {
-      case Full(w) => {
-        w.examples.get.flatMap {
-          (ex: ExampleRecord) =>
-            bind("ex", templ,
-              "example" -> ex.example.toForm,
-              "translation" -> ex.translation.toForm)
-        } ++
-          <tr>
-            <td></td>
-            <td>
-              {SHtml.ajaxSubmit("Add new example", () => addExample(w))}
-            </td>
-          </tr>
-            <tr>
-              <td></td>
-              <td>
-                {SHtml.ajaxSubmit("Save", () => save(w))}
-              </td>
-            </tr>
-      }
-      case _ => <b>No word, no examples</b>
-    }
-    inner
-  }
-
-  def renderExamples(in: NodeSeq): NodeSeq = {
-    val inner = renderExamples
-    in.head.flatMap {
-      case e: Elem => Elem(e.prefix, e.label, e.attributes, e.scope, false, e.child ++ inner: _*)
-      case _ => in
-    }
-  }
 
   def renderLearning(box: Box[ItemLearningDataRecord]): NodeSeq = box match {
     case Full(il) => {
@@ -199,7 +117,7 @@ object WordSnippet extends Akka with ReleaseAkka {
   }
 
   def renderCards(in: NodeSeq): NodeSeq = {
-    import Helpers._
+    import ws.kotonoha.server.web.lift.Binders._
     import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
     val cards = WordCardRecord where (_.word eqs wordId.openOrThrowException("should be present")) orderAsc (_.cardMode) fetch()
 
@@ -231,9 +149,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
 
   override def itemsPerPage = 50
 
-  def searchQuery = {
-    S.param("q") openOr ""
-  }
+  private val searchQuery = S.param("q") openOr ""
 
   def findIds(s: String): Seq[ObjectId] = {
     s.split('&') flatMap {
@@ -288,12 +204,12 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
   }
 
   def query: JObject = {
-    val init = ("user" -> uid)
+    val init = "user" -> uid
     searchQuery match {
       case "" => init
       case q => {
         val rq = new Regex(q)
-        init ~ ("$or" -> List(("reading" -> rq), ("writing" -> rq)))
+        init ~ ("$or" -> List("reading" -> rq, "writing" -> rq))
       }
     }
   }
@@ -305,13 +221,8 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
     (headers(col)._2 -> sortint)
   }
 
-  def queryVal(in: NodeSeq) = {
-    import Helpers._
-    in.map {
-      case e: Elem => e % ("value" -> searchQuery)
-      case x@_ => x
-    }
-  }
+  import ws.kotonoha.server.web.lift.Binders._
+
 
   def page = {
     val toskip = curPage * itemsPerPage
@@ -319,34 +230,40 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
   }
 
   def renderPage(in: NodeSeq): NodeSeq = {
-    import BindHelpers._
 
-    def v(id: ObjectId) = {
-      val link = "row-%s".format(id.toString)
-      AttrBindParam("row", Text(link), "id")
+    def linkDetail(i: WordRecord) = {
+      <a href={"detail?w=" + i.id.get.toString}>
+        {i.writing.stris}
+      </a>
     }
 
-    page.flatMap { i =>
-      bind("word", in,
-        v(i.id.get),
-        "selected" -> <input type="checkbox" name={i.id.get.toString}/>,
-        "addeddate" -> Formatting.format(i.createdOn.get),
-        "reading" -> i.reading.stris,
-        "writing" -> <a href={"detail?w=" + i.id.get.toString}>
-          {i.writing.stris}
-        </a>,
-        "meaning" -> Strings.substr(i.meaning.get, 50),
-        "status" -> i.status.get.toString
-      )
+    val fn = bseq(page) { i =>
+      "tr [id]" #> i.id &
+      ";selected *" #> <input type="checkbox" name={i.id.get.toString}></input> &
+      ";addedDate *" #> Formatting.format(i.createdOn.get) &
+      ";reading *" #> i.reading.stris &
+      ";writing *" #> linkDetail(i) &
+      ";meaning *" #> Strings.substr(i.meaning.get, 50) &
+      ";status *" #> i.status.get.toString
     }
+
+    fn(in)
   }
 
   def func(in: String) = {}
 
   def params(in: NodeSeq): NodeSeq = {
     val (ap, sp) = sort
-    List(SHtml.hidden(func _, curPage * itemsPerPage toString, "name" -> offsetParam),
+    val hidden: NodeSeq = List(SHtml.hidden(func _, curPage * itemsPerPage toString, "name" -> offsetParam),
       SHtml.hidden(func _, sp.toString, "name" -> ascendingParam),
       SHtml.hidden(func _, ap.toString, "name" -> sortParam))
+
+    logger.info(searchQuery)
+
+    val tf =
+      "@q [value]" #> searchQuery &
+      ";other" #> hidden
+
+    tf(in)
   }
 }

@@ -16,21 +16,26 @@
 
 package ws.kotonoha.server.web.snippet
 
+import com.typesafe.scalalogging.StrictLogging
 import ws.kotonoha.server.records.dictionary.WarodaiRecord
+
 import xml.NodeSeq
 import net.liftweb.http.S
-import net.liftweb.common.{Full, Box}
+import net.liftweb.common.{Box, Full}
 import ws.kotonoha.server.dict.WarodaiBodyParser
-import util.parsing.input.CharSequenceReader
-import com.typesafe.scalalogging.{StrictLogging => Logging}
+
+import scala.util.parsing.input.CharSequenceReader
+
 
 /**
  * @author eiennohito
  * @since 12.04.12
  */
 
-object Warodai extends Logging {
-  import net.liftweb.util.Helpers._
+class Warodai extends StrictLogging {
+  import ws.kotonoha.server.web.lift.Binders._
+
+  private val query = S.param("query").openOr("宅")
 
   def parse(sb: Box[String]): NodeSeq = sb match {
     case Full(s) => {
@@ -46,17 +51,17 @@ object Warodai extends Logging {
   }
 
   def fld(in: NodeSeq): NodeSeq = {
-    val q = S.param("query").openOr("")
-    bind("frm", in, AttrBindParam("value", q, "value"))
+    val fn = "@query [value]" #> query
+    fn(in)
   }
 
   def list(in: NodeSeq): NodeSeq = {
-    val q = S.param("query").openOr("")
-    WarodaiRecord.query(q, None, 50) flatMap { o =>
-      bind("we", in,
-        "writing" -> o.writings.get.mkString(", "),
-        "reading" -> o.readings.get.mkString(", "),
-        "body" -> parse(o.body.valueBox))
+    val results = WarodaiRecord.query(query, None, 50)
+    val fn = bseq(results) { o =>
+      ".writing *" #> o.writings.get.mkString(", ") &
+      ".reading *" #> o.readings.get.mkString(", ") &
+      ".information *" #> parse(o.body.valueBox)
     }
+    fn(in)
   }
 }

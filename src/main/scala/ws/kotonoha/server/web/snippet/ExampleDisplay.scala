@@ -16,14 +16,13 @@
 
 package ws.kotonoha.server.web.snippet
 
-import net.liftweb.http.{RequestVar, S, SHtml}
-import net.liftweb.util.Helpers
-import ws.kotonoha.server.actors.SearchQuery
+import com.google.inject.Inject
+import net.liftweb.http.S
 import ws.kotonoha.server.actors.dict.{ExampleEntry, _}
-import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
+import ws.kotonoha.server.actors.{GlobalActors, SearchQuery}
 import ws.kotonoha.server.util.LangUtil
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, ExecutionContext}
 import scala.xml.NodeSeq
 
 
@@ -32,47 +31,37 @@ import scala.xml.NodeSeq
  * @since 19.04.12
  */
 
-trait ExampleDisplay extends Akka {
+class ExampleDisplay @Inject() (
+  akka: GlobalActors
+)(implicit ec: ExecutionContext) {
+  import ws.kotonoha.server.web.lift.Binders._
 
-  implicit val ec = akkaServ.context
+  import scala.concurrent.duration._
 
-  object query extends RequestVar[String](S.param("query").openOr(""))
-
-  import Helpers._
-  import ws.kotonoha.server.util.DateTimeUtils._
+  private val query = S.param("query").getOrElse("食べる")
 
 
   def fld(in: NodeSeq): NodeSeq = {
-    bind("ef", in, "fld" -> SHtml.text(query.get, query(_), "name" -> "query"))
+    val fn =
+      "@query [value]" #> query
+
+    fn(in)
   }
 
   //small wtf, build list of examples and translations from query, asynchronously ftw
   def docs: List[ExampleEntry] = {
-    val f = (akkaServ ? SearchQuery(query.get)).mapTo[List[Long]]
-    val fs = f flatMap  {
-      cand =>
-        (akkaServ ? FullLoadExamples(cand, LangUtil.langs)).mapTo[List[ExampleEntry]]
+    val f = akka.gask[List[Long]](SearchQuery(query))
+    val fs = f flatMap  { cand =>
+        akka.gask[List[ExampleEntry]](FullLoadExamples(cand, LangUtil.langs))
     }
-    Await.result(fs, 5 seconds)
+    Await.result(fs, 5.seconds)
   }
 
   def body(in: NodeSeq): NodeSeq = {
-    docs.flatMap(d =>
-      <div>
-        {inner(d)}
-      </div>
-    )
-  }
+    val tf = (e: ExampleEntry) =>
+      ".original *" #> e.jap.content &
+      ".translation" #> e.other.map { o => ".translation *+" #> o.content }
 
-
-  def inner(d: ExampleEntry): NodeSeq = {
-    <li>
-      {d.jap.content.get}
-    </li> ++
-      d.other.flatMap(o => <li>
-        {o.content}
-      </li>)
+    bseq(in, docs, tf)
   }
 }
-
-object ExampleDisplay extends ExampleDisplay with ReleaseAkka

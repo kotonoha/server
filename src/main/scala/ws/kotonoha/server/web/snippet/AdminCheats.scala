@@ -46,13 +46,14 @@ object AdminCheats {
     </form>
   }
 
-  def userList(in: NodeSeq) = {
+  def userList(in: NodeSeq): NodeSeq = {
     val users = UserRecord.findAll
-    users flatMap {
-      u => bind("c", in,
-            "name" -> u.niceName,
-            "uid" -> u.id.get.toString )
+    val fn = users map {
+      u =>
+          ".name" #> u.niceName &
+          ".uid" #> u.id.get.toString
     }
 
+    ("*" #> fn).apply(in)
   }
 }

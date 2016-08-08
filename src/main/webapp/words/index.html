@@ -83,10 +83,12 @@
     </script>
   </head_merge>
   <div id="search-box">
-    <form method="get" action=".">
-      <input class="lift:WordPaginator.queryVal" type="text" name="q">
-      <input class="lift:WordPaginator.params">
-      <input type="submit" title="Search" value="Search">
+    <form method="get" action="." class="lift:WordPaginator.params">
+      <div class="row distance">
+        <input type="text" class="col-xs-4 form-control" name="q">
+        <input data-name="other">
+        <input type="submit" class="btn" title="Search" value="Search">
+      </div>
     </form>
   </div>
   <div>
@@ -119,25 +121,13 @@
     </tr>
     </thead>
     <tbody id="tbl">
-    <tr class="word-row lift:WordPaginator.renderPage" xmlns:word="word-namespace" word:row="">
-      <td>
-        <word:selected></word:selected>
-      </td>
-      <td>
-        <word:addedDate></word:addedDate>
-      </td>
-      <td class="status">
-        <word:status></word:status>
-      </td>
-      <td class="nihongo">
-        <word:writing></word:writing>
-      </td>
-      <td class="nihongo">
-        <word:reading></word:reading>
-      </td>
-      <td class="nihongo">
-        <word:meaning></word:meaning>
-      </td>
+    <tr class="word-row lift:WordPaginator.renderPage">
+      <td data-name="selected"></td>
+      <td data-name="addedDate"></td>
+      <td data-name="status"></td>
+      <td class="nihongo" data-name="writing"></td>
+      <td class="nihongo" data-name="reading"></td>
+      <td class="nihongo" data-name="meaning"></td>
     </tr>
     </tbody>
   </table>

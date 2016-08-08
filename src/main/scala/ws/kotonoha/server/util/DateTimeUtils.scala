@@ -17,14 +17,15 @@
 package ws.kotonoha.server.util
 
 import java.util.Calendar
+import java.util.concurrent.TimeUnit
 
+import akka.util.Timeout
 import net.liftweb.util.Helpers.TimeSpan
+import org.bson.types.ObjectId
 import org.joda.time.{Duration => JodaDuration, _}
 import ws.kotonoha.server.records.UserRecord
-import java.util.concurrent.TimeUnit
-import scala.Some
-import concurrent.duration.FiniteDuration
-import org.bson.types.ObjectId
+
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * @author eiennohito
@@ -57,6 +58,8 @@ object DateTimeUtils {
   implicit def akkaDurationToLiftTimeSpan(dur: FiniteDuration): TimeSpan = TimeSpan(dur.toMillis)
 
   implicit def liftTimeSpanToAkkaDuration(ts: TimeSpan): FiniteDuration = new FiniteDuration(ts.toMillis, TimeUnit.MILLISECONDS)
+
+  implicit def liftTimeSpanToAkkaTimeout(ts: TimeSpan): Timeout = new Timeout(ts: FiniteDuration)
 
   implicit def dur2Multipliable(dur: JodaDuration): MultipliableDuration = new MultipliableDuration(dur)
 

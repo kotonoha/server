@@ -16,54 +16,68 @@
 
 package ws.kotonoha.server.web.snippet
 
-import xml.NodeSeq
-import net.liftweb.util.Helpers
+import akka.util.Timeout
+import com.google.inject.Inject
 import net.liftweb.http.SHtml
-import ws.kotonoha.server.records.ClientRecord
-import ws.kotonoha.server.actors.ioc.{ReleaseAkka, Akka}
-import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds._Noop
-import scala.concurrent.Await
-import ws.kotonoha.server.util.DateTimeUtils._
+import net.liftweb.http.js.{JsCmd, JsCmds}
+import ws.kotonoha.server.actors.GlobalActors
 import ws.kotonoha.server.actors.auth.AddClient
+import ws.kotonoha.server.ioc.DateFormatting
+import ws.kotonoha.server.records.ClientRecord
+
+import scala.concurrent.Await
+import scala.xml.NodeSeq
 
 /**
  * @author eiennohito
  * @since 25.03.12
  */
 
-trait Clients extends Akka {
+
+
+class Clients @Inject() (
+  ga: GlobalActors
+)(implicit fmt: DateFormatting) {
+  import ws.kotonoha.server.web.lift.Binders._
+
   def form(in: NodeSeq): NodeSeq = {
-    import Helpers._
     val obj = ClientRecord.createRecord
 
     def onSave() = {
       val o = obj
-      Await.ready(akkaServ ? AddClient(obj), 1 second)
+      import akka.pattern.ask
+
+      import scala.concurrent.duration._
+      implicit val timeout: Timeout = 1.second
+      Await.result(ga.global ? AddClient(obj), timeout.duration)
+      JsCmds.Noop
     }
 
-    bind("cf", in,
-      "title" -> obj.name.toForm,
-      "submit" -> SHtml.submit ("Save", onSave))
+    val tf =
+      ";title *+" #> obj.name.toForm &
+      ";submit *+" #> SHtml.submit("Save", () => onSave(), "class" -> "btn")
+
+    tf.apply(in)
   }
 
   def list(in: NodeSeq) : NodeSeq = {
-    import Helpers._
-    val objs = ClientRecord.findAll
 
     def onDelete(rec: ClientRecord): JsCmd = {
+      rec.status(1).save()
       _Noop
     }
 
-    objs.flatMap( o =>
-      bind("cl", in,
-        "title" -> o.name.get,
-        "private" -> o.apiPrivate.get,
-        "public" -> o.apiPublic.get,
-        "delete" -> SHtml.button("delete", () => onDelete(o))
-      )
-    )
+    val objs = ClientRecord.findAll
+
+    val fn = objs.map { o =>
+      ";created *+" #> o.registeredDate &
+      ";title *+ " #> o.name &
+      ";private *+" #> o.apiPrivate &
+      ";public *+" #> o.apiPublic &
+      ";delete *+" #> SHtml.ajaxButton("delete", () => onDelete(o))
+    }
+
+    ("*" #> fn).apply(in)
   }
 }
-
-object Clients extends Clients with ReleaseAkka

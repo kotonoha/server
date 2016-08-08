@@ -19,13 +19,19 @@
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
   <div xmlns:lift="lift">
-    <form xmlns:ef="example-form" action="examples" class="lift:ExampleDisplay.fld" method="GET">
-      <ef:fld></ef:fld>
+    <form action="examples" class="lift:ExampleDisplay.fld" method="GET">
+      <input name="query">
       <input type="submit" />
     </form>
   </div>
   <div>
     <div class="lift:ExampleDisplay.body">
+      <ul>
+        <li class="example">
+          <div class="original"></div>
+          <div class="translation"></div>
+        </li>
+      </ul>
     </div>
   </div>
 </div>

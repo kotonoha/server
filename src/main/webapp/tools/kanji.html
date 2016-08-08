@@ -18,26 +18,32 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
-  <div xmlns:k="kotonoha-kanji">
-    <form action="kanji" method="get">
+  <div>
+    <form action="kanji" method="get" class="distance">
       <label for="kanji">Kanji:</label>
-      <input type="text" id="kanji" name="kanji" class="lift:Kanji.form" k:value="">
-      <input type="submit" class="btn">
+      <input type="text" id="kanji" name="kanji" class="lift:Kanji.form">
+      <input type="submit" class="btn btn-sm" value="Decompose">
     </form>
-    <table>
-      <thead>
-      <tr>
-        <td>Kanji</td>
-        <td>Common radicals</td>
-        <td>Other radicals</td>
-      </tr>
-      </thead>
-    <tr class="lift:Kanji.list">
-      <td><k:text></k:text></td>
-      <td><k:common></k:common></td>
-      <td><k:diff></k:diff></td>
-    </tr>
-    </table>
+    <div class="table lift:Kanji.list">
+      <div class="distance">
+        Kanji decomposition is:
+        <span data-name="decomposition"></span>
+      </div>
+      <table>
+        <thead>
+        <tr>
+          <td>Kanji</td>
+          <td>Common radicals</td>
+          <td>Other radicals</td>
+        </tr>
+        </thead>
+        <tr class="similar">
+          <td data-name="kanji"></td>
+          <td data-name="common"></td>
+          <td data-name="diff"></td>
+        </tr>
+      </table>
+    </div>
   </div>
 </div>
 </body>

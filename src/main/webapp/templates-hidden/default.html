@@ -13,8 +13,8 @@
 
     <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js" ></script>-->
     <script class="lift:cdn" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.js"></script>
-    <script class="lift:cdn" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.js" ></script>
-    <script class="lift:cdn" src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.3/js/tether.js" ></script>
+    <script class="lift:cdn" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.js"></script>
+    <script class="lift:cdn" src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.3/js/tether.js"></script>
     <script class="lift:cpres.script?src=bootstrap/js/bootstrap"></script>
     <script src="https://use.fontawesome.com/eb161f3d7d.js" async defer></script>
 
@@ -29,52 +29,63 @@
 <div class="lift:GlobalComet"></div>
 <div class="container-fluid">
   <div class="row koto-header">
-    <div class="col-xs-9">
+    <div class="col-xs-10">
       <a href="/"><img class="logo-img" src="/static/images/logo_200.png"></a>
       <span class="brand-title">Kotonoha</span>
-    </div>
-    </div>
-    <div class="col-xs-3">
       <span class="lift:mode.is?name=development" style="color: red;">DEBUG</span>
-      <i id="ajax-loader" style="display: none" class="fa fa-spinner fa-pulse fa-1x fa-fw"></i>
+      <span class="brand-title">
+        <i id="ajax-loader" style="display: none" class="fa fa-spinner fa-pulse fa-fw"></i>
+      </span>
+    </div>
+    <div class="col-xs-2">
+      <!-- TODO: Move profile btns here -->
     </div>
   </div>
-
-  <div class="row container">
-      <div class="col-md-3 lift:MenuPostproc?eager_eval=true">
-      <lift:Menu.builder xmlns:li="http://cxf.apache.org/jaxws" xmlns:li_item="http://geronimo.apache.org/xml/ns/attributes-1.1" xmlns:ul="http://geronimo.apache.org/xml/ns/j2ee/application-1.2"
-        expandAll="true"
-         top:class="nav"
-        li:class="nav-item"
-        li_item:class="nav-item active"
-         linkToSelf="true"
-        ul:class="nav"
-      ></lift:Menu.builder>
-      <!--<div class="lift:Menu.builder?expandAll=true&li:class=nav-item&li_item:class=active&ul:class=nav+nav-stacked+nav-pills"></div> -->
-      <div class="lift:Msgs?showAll=true"></div>
-    </div>
-    <div class="col-md-9">
-      <div id="content">The main content will get bound here</div>
+</div>
+<div class="row container-fluid">
+  <div class="col-md-3 lift:MenuPostproc?eager_eval=true">
+    <lift:Menu.builder xmlns:li="http://cxf.apache.org/jaxws"
+                       xmlns:li_item="http://geronimo.apache.org/xml/ns/attributes-1.1"
+                       xmlns:ul="http://geronimo.apache.org/xml/ns/j2ee/application-1.2"
+                       expandAll="true"
+                       top:class="nav"
+                       li:class="nav-item"
+                       li_item:class="nav-item active"
+                       linkToSelf="true"
+                       ul:class="nav"
+    ></lift:Menu.builder>
+    <!--<div class="lift:Menu.builder?expandAll=true&li:class=nav-item&li_item:class=active&ul:class=nav+nav-stacked+nav-pills"></div> -->
+    <div class="lift:Msgs?showAll=true"></div>
+  </div>
+  <div class="col-md-9">
+    <div id="content">The main content will get bound here</div>
+  </div>
+</div>
+<hr style="clear: both;"/>
+<footer>
+  <div class="column last" style="text-align: center; width: 100%;">
+    <div class="alt small">
+      Copyright 2016 Arseny Tolmachev. Kotonoha is supported by MEXT Scholarship.<br>
+      <span class="lift:Common.versionInfo"></span>
     </div>
   </div>
-  <hr style="clear: both;"/>
-  <footer>
-    <div class="column last" style="text-align: center; width: 100%;">
-      <div class="alt small">
-        Copyright 2016 Arseny Tolmachev. Kotonoha is supported by MEXT Scholarship.<br>
-        <span class="lift:Common.versionInfo"></span>
-      </div>
-    </div>
-    <script type="text/javascript" class="lift:mode.is?name=production" >
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  <script type="text/javascript" class="lift:mode.is?name=production">
+    (function (i, s, o, g, r, a, m) {
+      i['GoogleAnalyticsObject'] = r;
+      i[r] = i[r] || function () {
+          (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+      a = s.createElement(o),
+        m = s.getElementsByTagName(o)[0];
+      a.async = 1;
+      a.src = g;
+      m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
 
-      ga('create', 'UA-7153986-4', 'auto');
-      ga('send', 'pageview');
-    </script>
-  </footer>
+    ga('create', 'UA-7153986-4', 'auto');
+    ga('send', 'pageview');
+  </script>
+</footer>
 </div>
 </body>
 </html>

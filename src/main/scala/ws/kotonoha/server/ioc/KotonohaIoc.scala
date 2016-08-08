@@ -72,6 +72,9 @@ class KotonohaMainModule(cfg: Config, rm: ResourceManager) extends ScalaModule {
     install(new UserContextModule)
     install(new GrpcModule)
     install(new JmdictModule)
+    install(new RMongoModule)
+    install(new FormattingModule)
+    install(new JumanModule)
   }
 }
 

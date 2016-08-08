@@ -27,7 +27,8 @@ import com.google.inject.{Provides, Singleton}
 import net.codingwell.scalaguice.ScalaModule
 import ws.kotonoha.server.ioc.IocActors
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
+import scala.reflect.ClassTag
 
 /**
  * @author eiennohito
@@ -62,6 +63,11 @@ trait GlobalActors {
   def services: ActorRef
   def users: ActorRef
   def global: ActorRef
+
+  def gask[T: ClassTag](msg: AnyRef, timeout: Timeout = 2.seconds): Future[T] = {
+    import akka.pattern.ask
+    global.ask(msg)(timeout).mapTo[T]
+  }
 }
 
 class GlobalActorsModule extends ScalaModule {

@@ -16,47 +16,44 @@
 
 package ws.kotonoha.server.web.snippet
 
-import net.liftweb.http.{S, DispatchSnippet}
-import scala.xml.{Text, NodeSeq}
-import net.liftweb.common.Full
-import net.liftweb.util.Helpers
+import net.liftweb.http.{DispatchSnippet, S}
 import ws.kotonoha.akane.kanji.kradfile.{RadicalDb, SimilarKanji}
 
-/**
- * @author eiennohito
- * @since 08.07.13 
- */
+import scala.xml.NodeSeq
 
-object Kanji extends DispatchSnippet {
+/**
+  * @author eiennohito
+  * @since 08.07.13
+  */
+
+class Kanji extends DispatchSnippet {
+
+  import ws.kotonoha.server.web.lift.Binders._
+
   def dispatch = {
     case "list" => render
     case "form" => form
   }
 
-  def form(in: NodeSeq): NodeSeq = {
-    import Helpers._
-    bind("k", in,
-      AttrBindParam("value", S.param("kanji").getOrElse(""), "value")
-    )
+  val query = S.param("kanji").openOr("字")
+
+  val form: NodeSeqFn = {
+    "@kanji [value]" #> query
   }
 
   def render(in: NodeSeq): NodeSeq = {
-    val req = S.param("kanji")
-    req match {
-      case Full(s) => {
-        import Helpers._
-        val data = SimilarKanji.find(s)
-        val decomp = RadicalDb.table.get(s).toSeq.flatten
-        val ds = Text(s"Kanji decomposition is: ${decomp.mkString(",")}")
-        val out = data.take(40).flatMap(k =>
-        bind("k", in,
-          "text" -> Text(k.text),
-          "common" -> Text(k.common.mkString(",")),
-          "diff" -> Text(k.diff.mkString(","))
-        ))
-        ds ++ out
+
+    val data = SimilarKanji.find(query)
+    val decomp = RadicalDb.table.get(query).toSeq.flatten
+
+    val fn =
+      ";decomposition" #> decomp.mkString(", ") &
+      ".similar" #> bseq(data.take(40)) { k =>
+        ";kanji *" #> k.text &
+        ";common *" #> k.common.mkString(", ") &
+        ";diff *" #> k.diff.mkString(", ")
       }
-      case _ => <div>Invalid kanji, nothing found</div>
-    }
+
+    fn(in)
   }
 }

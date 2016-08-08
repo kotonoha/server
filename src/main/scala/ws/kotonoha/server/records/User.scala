@@ -22,7 +22,7 @@ import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.mongodb.record.field._
 import net.liftweb.util.FieldError
 import net.liftmodules.oauth.OAuthConsumer
-import net.liftweb.record.field.{DateTimeField, EnumField, StringField}
+import net.liftweb.record.field.{DateTimeField, EnumField, IntField, StringField}
 import ws.kotonoha.server.util.{DateTimeUtils, UserUtil}
 import net.liftweb.http.S
 import net.liftweb.http.provider.HTTPCookie
@@ -182,9 +182,11 @@ class ClientRecord private() extends MongoRecord[ClientRecord] with ObjectIdPk[C
 
   object registeredDate extends JodaDateField(this)
 
+  object status extends IntField(this, 0)
+
   def reset {}
 
-  def enabled = 0
+  def enabled = status.get
 
   def user = null
 

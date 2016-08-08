@@ -34,15 +34,16 @@ object Config {
     val config = AppConfig.apply()
 
     def save(): JsCmd = {
-      config.save
+      config.save()
       SetHtml("status", <b>Saved</b>)
     }
 
-    bind("c", SHtml.ajaxForm(in),
-      "invites" -> config.inviteOnly.toForm,
-      "uri" -> config.baseUri.toForm,
-      "kakijyun" -> config.stokeUri.toForm,
-      "submit" -> SHtml.ajaxSubmit("Save", save)
-      )
+    val fn =
+      ";invites *+" #> config.inviteOnly.toForm &
+      ";uri *+" #> config.baseUri.toForm &
+      ";kakijyun *+" #> config.stokeUri.toForm &
+      ";submit *+" #> SHtml.ajaxSubmit("Save", save)
+
+    SHtml.ajaxForm(fn(in))
   }
 }

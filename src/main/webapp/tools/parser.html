@@ -19,26 +19,47 @@
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
   <form method="get" action="parser">
-    <label title="Sentence">
-      Sentence <input class="lift:Parser.data" type="text" name="sentence" style="width: 100%">
+    <label title="Sentence" class="col-xs-12">
+      Sentence <input class="lift:MorphAna.query form-control" type="text" name="sentence" style="width: 100%">
     </label><br>
-    <input type="submit">
+    <div class="col-xs-4">
+      <input class="btn btn-sm" type="submit">
+    </div>
   </form>
-  <table>
-    <thead></thead>
-    <tbody>
-      <tr class="lift:Parser.parse" xmlns:jw="japanese-word">
-        <td><jw:surf></jw:surf></td>
-        <td><jw:pos></jw:pos></td>
-        <td><jw:basic></jw:basic></td>
-        <td><jw:conj></jw:conj></td>
-        <td><jw:read></jw:read></td>
-        <td><jw:writ></jw:writ></td>
-        <td><jw:ctype></jw:ctype></td>
-        <td><jw:addit></jw:addit></td>
-      </tr>
-    </tbody>
-  </table>
+
+  <div class="lift:MorphAna.parse">
+    <div>
+      <h4>Gosen</h4>
+      <table class="table">
+        <tbody>
+        <tr class="results small" data-name="gosen">
+          <td data-name="surf"></td>
+          <td data-name="pos"></td>
+          <td data-name="basic"></td>
+          <td data-name="conj"></td>
+          <td data-name="read"></td>
+          <td data-name="writ"></td>
+          <td data-name="ctype"></td>
+          <td data-name="addit"></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h4>Juman</h4>
+      <table class="table small">
+        <tr data-name="juman">
+          <td data-name="surface"></td>
+          <td data-name="reading"></td>
+          <td data-name="baseform"></td>
+          <td data-name="pos"></td>
+          <td data-name="info"></td>
+        </tr>
+      </table>
+    </div>
+
+  </div>
 </div>
 </body>
 </html>

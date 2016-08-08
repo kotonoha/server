@@ -20,24 +20,25 @@
 <div id="main" class="lift:surround?with=default;at=content">
   <div>
     <h3>Add new client</h3>
-    <form method="POST" class="lift:Clients.form">
-      <table xmlns:cf="client-form">
+    <form method="POST" class="lift:Clients.form" action="/admin/clients">
+      <table>
         <tr>
           <td>Name for client</td>
-          <td><cf:title></cf:title></td>
+          <td data-name="title"></td>
         </tr>
         <tr>
           <td></td>
-          <td><cf:submit></cf:submit></td>
+          <td data-name="submit"></td>
         </tr>
       </table>
     </form>
   </div>
   <div>
     <h3>Client list</h3>
-    <table>
+    <table class="table small">
       <thead>
         <tr>
+          <td>Created On</td>
           <td>Title</td>
           <td>Private key</td>
           <td>Public key</td>
@@ -45,11 +46,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr class="lift:Clients.list" xmlns:cl="client-list">
-          <td><cl:title></cl:title></td>
-          <td><cl:private></cl:private></td>
-          <td><cl:public></cl:public></td>
-          <td><cl:delete></cl:delete></td>
+      <tr class="lift:Clients.list">
+          <td data-name="created"></td>
+          <td data-name="title"></td>
+          <td data-name="private"></td>
+          <td data-name="public"></td>
+          <td data-name="delete"></td>
         </tr>
       </tbody>
     </table>

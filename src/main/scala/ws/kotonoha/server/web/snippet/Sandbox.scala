@@ -17,6 +17,9 @@
 package ws.kotonoha.server.web.snippet
 
 import net.liftweb.http.SHtml
+import net.liftweb.http.js.{JE, JsCmd, JsExp}
+
+import scala.xml.NodeSeq
 
 /**
  * @author eiennohito
@@ -34,5 +37,12 @@ object Sandbox {
     val holder = SHtml.checkbox[String](List("1", "2", "5", "hatered!"), Nil, println(_))
     "li" #> SHtml.multiSelect(list, 1 to 3 map (_.toString), selected(_)) &
     ".cb" #> holder.toForm
+  }
+
+  def slowOp(ns: NodeSeq): NodeSeq = {
+    SHtml.ajaxButton("I am slow", () => {
+      synchronized { this.wait(10 * 1000) }
+      (): JsCmd
+    }, "class" -> "btn")
   }
 }
