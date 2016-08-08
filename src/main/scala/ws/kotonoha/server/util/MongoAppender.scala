@@ -34,13 +34,14 @@ package ws.kotonoha.server.util
 
 import ch.qos.logback.core.AppenderBase
 import org.joda.time.DateTime
-import ch.qos.logback.classic.spi.{IThrowableProxy, ILoggingEvent}
+import ch.qos.logback.classic.spi.{ILoggingEvent, IThrowableProxy}
 import ws.kotonoha.server.mongodb.{MongoDbInit, NamedDatabase}
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord, BsonMetaRecord, BsonRecord}
+import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoMetaRecord, MongoRecord}
 import net.liftweb.mongodb.record.field.{BsonRecordField, ObjectIdPk}
-import net.liftweb.record.field.{IntField, EnumField, StringField, DateTimeField}
-import net.liftweb.common.{Box, Full, Empty}
-import ws.kotonoha.server.records.{JodaDateField, DateJsonFormat}
+import net.liftweb.record.field.{DateTimeField, EnumField, IntField, StringField}
+import net.liftweb.common.{Box, Empty, Full}
+import ws.kotonoha.server.records.DateJsonFormat
+import ws.kotonoha.server.records.meta.JodaDateField
 
 /**
  * @author eiennohito

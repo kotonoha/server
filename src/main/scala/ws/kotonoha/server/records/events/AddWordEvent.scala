@@ -16,14 +16,14 @@
 
 package ws.kotonoha.server.records.events
 
-import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.mongodb.record.field.{ObjectIdField, MongoCaseClassListField, MongoListField, ObjectIdPk}
-import ws.kotonoha.server.model.EventTypes
-import net.liftweb.record.field.{LongField, OptionalStringField, StringField, BooleanField}
-import ws.kotonoha.server.mongodb.NamedDatabase
-import ws.kotonoha.server.records.KotonohaMongoRecord
-import ws.kotonoha.server.actors.tags.{TagOps, TagOp}
 import net.liftweb.json.DefaultFormats
+import net.liftweb.mongodb.record.field.{MongoCaseClassListField, ObjectIdField, ObjectIdPk}
+import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
+import net.liftweb.record.field.{BooleanField, OptionalStringField, StringField}
+import ws.kotonoha.model.EventTypes
+import ws.kotonoha.server.actors.tags.{TagOp, TagOps}
+import ws.kotonoha.server.mongodb.NamedDatabase
+import ws.kotonoha.server.records.meta.KotonohaMongoRecord
 
 /**
  * @author eiennohito
@@ -33,7 +33,7 @@ import net.liftweb.json.DefaultFormats
 class AddWordRecord private() extends MongoRecord[AddWordRecord] with ObjectIdPk[AddWordRecord] with EventRecord[AddWordRecord] {
   def meta = AddWordRecord
 
-  protected def myType = EventTypes.ADD
+  protected def myType = EventTypes.Add
 
   object processed extends BooleanField(this, false)
 
@@ -50,7 +50,6 @@ class AddWordRecord private() extends MongoRecord[AddWordRecord] with ObjectIdPk
   }
 
   object source extends StringField(this, 100)
-
 }
 
 object AddWordRecord extends AddWordRecord with MongoMetaRecord[AddWordRecord] with NamedDatabase

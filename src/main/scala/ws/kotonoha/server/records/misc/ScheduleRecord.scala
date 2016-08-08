@@ -17,12 +17,12 @@
 package ws.kotonoha.server.records.misc
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.mongodb.record.field.{MongoCaseClassListField, MongoCaseClassField, ObjectIdField, ObjectIdPk}
+import net.liftweb.mongodb.record.field.{MongoCaseClassField, MongoCaseClassListField, ObjectIdField, ObjectIdPk}
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.record.field.{StringField, LongField}
-import ws.kotonoha.server.actors.schedulers.{State, ReviewCard, CardRequest}
-import ws.kotonoha.server.records.{KotonohaMongoRecord, JodaDateField}
+import net.liftweb.record.field.{LongField, StringField}
+import ws.kotonoha.server.actors.schedulers.{CardRequest, ReviewCard, State}
 import net.liftweb.json.DefaultFormats
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 import ws.kotonoha.server.util.{EnumToStringSerializer, OidSerializer}
 
 /**

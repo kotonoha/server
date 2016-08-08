@@ -16,26 +16,23 @@
 
 package ws.kotonoha.server.records.events
 
-import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import ws.kotonoha.server.model.EventTypes
-import net.liftweb.record.field._
+import net.liftweb.mongodb.record.MongoRecord
 import net.liftweb.mongodb.record.field._
-import ws.kotonoha.server.records.{UserRecord, JodaDateField}
+import ws.kotonoha.model.EventTypes
+import ws.kotonoha.server.records.UserRecord
+import ws.kotonoha.server.records.meta.{JodaDateField, PbEnumField}
 
 /**
  * @author eiennohito
  * @since 30.01.12
  */
 
-trait EventRecord[OwnerType <: MongoRecord[OwnerType]] extends ObjectIdPk[OwnerType] {
-  self: OwnerType =>
-  protected def myType: Int
+trait EventRecord[OwnerType <: MongoRecord[OwnerType]] extends ObjectIdPk[OwnerType] { self: OwnerType =>
+  protected def myType: EventTypes
 
-  object eventType extends IntField(this.asInstanceOf[OwnerType], myType)
+  object eventType extends PbEnumField(this.asInstanceOf[OwnerType], EventTypes, myType.value)
 
   object datetime extends JodaDateField(this.asInstanceOf[OwnerType])
 
   object user extends ObjectIdRefField(this.asInstanceOf[OwnerType], UserRecord)
-
 }

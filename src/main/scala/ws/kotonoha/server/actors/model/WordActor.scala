@@ -17,22 +17,25 @@
 package ws.kotonoha.server.actors.model
 
 
-import akka.util.Timeout
 import akka.actor.ActorLogging
-import ws.kotonoha.server.model.CardMode
-import ws.kotonoha.server.actors._
-import tags.{Priority, CalculatePriority}
-import ws.kotonoha.server.records.{WordCardRecord, WordStatus, WordRecord}
-import net.liftweb.common.Empty
-import ws.kotonoha.akane.unicode.KanaUtil
-import org.bson.types.ObjectId
-import concurrent.Future
+import akka.util.Timeout
+import com.google.inject.Inject
 import com.mongodb.casbah.WriteConcern
-import ws.kotonoha.server.records.events.MarkEventRecord
+import com.typesafe.scalalogging.StrictLogging
+import net.liftweb.common.Empty
 import net.liftweb.json.JsonAST.JObject
+import org.bson.types.ObjectId
+import ws.kotonoha.akane.unicode.KanaUtil
+import ws.kotonoha.model.CardMode
+import ws.kotonoha.server.actors._
+import ws.kotonoha.server.actors.tags.{CalculatePriority, Priority}
+import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.learning.ProcessMarkEvents
-import ws.kotonoha.server.actors.SaveRecord
+import ws.kotonoha.server.records.events.MarkEventRecord
+import ws.kotonoha.server.records.{WordCardRecord, WordRecord, WordStatus}
 import ws.kotonoha.server.web.comet.Candidate
+
+import scala.concurrent.{ExecutionContext, Future}
 
 trait WordMessage extends KotonohaMessage
 
@@ -49,13 +52,19 @@ case class PresentStatus(cand: Candidate, present: List[SimilarWord], queue: Lis
   }
 }
 
+class WordService @Inject() (uc: UserContext) (
+  implicit ec: ExecutionContext
+) extends StrictLogging {
+  def register(rec: WordRecord) = ???
+}
 
 class WordActor extends UserScopedActor with ActorLogging {
 
-  import concurrent.duration._
   import akka.pattern.{ask, pipe}
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
+
+  import concurrent.duration._
 
   implicit val timeout: Timeout = 1 second
   implicit val dispatcher = context.dispatcher
@@ -77,7 +86,7 @@ class WordActor extends UserScopedActor with ActorLogging {
     case SimilarWordsRequest(c) => findSimilar(c)
   }
 
-  def checkReadingWriting(word: WordRecord) = {
+  def needsReadingCard(word: WordRecord) = {
     val read = word.reading.stris
     val writ = word.writing.stris
     if (writ == null || writ == "") {
@@ -144,13 +153,13 @@ class WordActor extends UserScopedActor with ActorLogging {
       true
     })
 
-    if (checkReadingWriting(word)) {
+    if (needsReadingCard(word)) {
       futures ::= priF flatMap {
-        p => card ? RegisterCard(wordid, CardMode.READING, p.prio)
+        p => card ? RegisterCard(wordid, CardMode.Reading.value, p.prio)
       }
     }
     futures ::= priF flatMap {
-      p => card ? RegisterCard(wordid, CardMode.WRITING, p.prio)
+      p => card ? RegisterCard(wordid, CardMode.Writing.value, p.prio)
     }
 
     val s = Future.sequence(futures.map(_.mapTo[Boolean])).flatMap(_ => self ? ChangeWordStatus(wordid, st))

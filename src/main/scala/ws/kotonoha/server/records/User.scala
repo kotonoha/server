@@ -17,17 +17,18 @@
 package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import net.liftweb.common.{Empty, Box, Full}
+import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
+import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.mongodb.record.field._
 import net.liftweb.util.FieldError
 import net.liftmodules.oauth.OAuthConsumer
 import net.liftweb.record.field.{DateTimeField, EnumField, StringField}
-import ws.kotonoha.server.util.{UserUtil, DateTimeUtils}
+import ws.kotonoha.server.util.{DateTimeUtils, UserUtil}
 import net.liftweb.http.S
 import net.liftweb.http.provider.HTTPCookie
 import org.bson.types.ObjectId
 import ws.kotonoha.server.KotonohaConfig
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 
 /**
  * @author eiennohito

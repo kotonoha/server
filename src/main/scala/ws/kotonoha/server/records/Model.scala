@@ -18,10 +18,11 @@ package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field._
-import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
+import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoMetaRecord, MongoRecord}
 import net.liftweb.http.S
+
 import xml.NodeSeq
-import net.liftweb.common.{Full, Box, Empty}
+import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.S.SFuncHolder
 import net.liftweb.record.field._
 import net.liftweb.json.JsonAST._
@@ -32,6 +33,7 @@ import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JBool
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 
 /**
  * @author eiennohito

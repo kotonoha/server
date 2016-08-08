@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
+ * Copyright 2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.records
+package ws.kotonoha.server.records.meta
 
-import net.liftweb.record._
-import org.joda.time.DateTime
-import net.liftweb.json.DefaultFormats
-import net.liftweb.util.Helpers
+import java.util
+
+import com.mongodb.WriteConcern
+import com.trueaccord.scalapb.GeneratedEnum
 import net.liftweb.common.{Box, Empty, Failure, Full}
 import net.liftweb.http.S
 import net.liftweb.http.S.SFuncHolder
-
-import xml.{NodeSeq, Null, UnprefixedAttribute}
 import net.liftweb.http.js.JE.{JsNull, Str}
+import net.liftweb.json.DefaultFormats
 import net.liftweb.json.JsonAST.JValue
-import ws.kotonoha.server.util.DateTimeUtils
-import java.util
-
-import org.joda.time.format.ISODateTimeFormat
-import net.liftweb.mongodb.record.field.MongoFieldFlavor
-import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord}
-import com.mongodb.{DBObject, WriteConcern}
 import net.liftweb.mongodb.MongoMeta
+import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord}
+import net.liftweb.record._
+import net.liftweb.util.Helpers
+import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
+import ws.kotonoha.server.util.DateTimeUtils
+
+import scala.xml.{NodeSeq, Null, UnprefixedAttribute}
 
 /**
  * @author eiennohito
@@ -44,8 +44,8 @@ import net.liftweb.mongodb.MongoMeta
 trait JodaDateTimeTypedField[MyType <: BsonRecord[MyType]]
   extends TypedField[DateTime] {
 
-  import ws.kotonoha.server.util.DateTimeUtils._
   import net.liftweb.util.TimeHelpers._
+  import ws.kotonoha.server.util.DateTimeUtils._
 
   def format(date: DateTime): String = {
     val fb = ISODateTimeFormat.basicDateTime()
@@ -121,12 +121,9 @@ class OptionalJodaDateField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
 trait KotonohaBsonMeta[T <: BsonRecord[T]] extends BsonMetaRecord[T] { self: T =>
   override def fieldDbValue(f: Field[_, T]) = {
     f.valueBox flatMap {
-      case d: DateTime => {
-        Full(d)
-      }
-      case _ => {
-        super.fieldDbValue(f)
-      }
+      case d: DateTime => Full(d)
+      case v: GeneratedEnum => Full(v.value)
+      case _ => super.fieldDbValue(f)
     }
   }
 }

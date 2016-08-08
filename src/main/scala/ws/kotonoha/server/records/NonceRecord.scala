@@ -18,12 +18,13 @@ package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field.ObjectIdPk
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
+import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.record.field.StringField
 import ws.kotonoha.server.util.DateTimeUtils._
 import org.joda.time.DateTime
 import net.liftmodules.oauth.{OAuthNonce, OAuthNonceMeta}
 import com.mongodb.WriteConcern
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 
 /**
  * @author eiennohito

@@ -20,7 +20,7 @@ import net.liftweb.mongodb.record.field.{ObjectIdField, ObjectIdPk}
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.record.field.StringField
-import ws.kotonoha.server.records.{KotonohaMongoRecord, JodaDateField}
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 
 /**
  * @author eiennohito

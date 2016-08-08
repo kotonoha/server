@@ -20,7 +20,7 @@ import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.mongodb.record.field.{LongPk, MongoListField}
 import net.liftweb.record.field.{LongField, StringField}
 import ws.kotonoha.server.mongodb.{DictDatabase, NamedDatabase}
-import ws.kotonoha.server.records.KotonohaMongoRecord
+import ws.kotonoha.server.records.meta.KotonohaMongoRecord
 
 /**
  * @author eiennohito

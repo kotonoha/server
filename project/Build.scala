@@ -224,14 +224,12 @@ object Kotonoha {
     "javax.transaction" % "jta" % "1.0.1B" % "provided",
 
     "org.mongodb" %% "casbah" % "2.8.2" exclude("org.specs2", "*"),
+    "org.reactivemongo" %% "reactivemongo" % "0.11.14",
 
     "net.java.sen" % "lucene-gosen" % "6.0",
 
     "com.google.zxing" % "javase" % "3.2.1",
-    "org.bouncycastle" % "bcprov-jdk15on" % "1.54",
-
-    "com.j256.ormlite" % "ormlite-jdbc" % "4.42" % "test",
-    "org.xerial" % "sqlite-jdbc" % "3.6.16" % "test"
+    "org.bouncycastle" % "bcprov-jdk15on" % "1.54"
   )
 
   import com.earldouglas.xwp.WebappPlugin.{autoImport => wapp}
@@ -271,19 +269,4 @@ object Kotonoha {
       resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/",
       libraryDependencies ++= (liftDeps ++ akkaDeps ++ rogueDeps ++ luceneDeps ++ kotonohaRestDeps)
     )
-
-  val modelDeps = Seq(
-    "joda-time" % "joda-time" % "2.1",
-    "org.joda" % "joda-convert" % "1.2",
-
-    "com.google.code.gson" % "gson" % "2.2.2",
-    "com.j256.ormlite" % "ormlite-core" % "4.43",
-    "org.scribe" % "scribe" % "1.3.3"
-  )
-
-  lazy val modelSettings = Seq(
-    name := "kotonoha-model",
-    crossPaths := false,
-    libraryDependencies ++= modelDeps
-  )
 }

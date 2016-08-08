@@ -1,0 +1,16 @@
+syntax = "proto2";
+
+option java_package = "ws.kotonoha.model";
+
+enum CardMode {
+  Writing = 1;
+  Reading = 2;
+  Meaning = 3;
+}
+
+enum EventTypes {
+  Mark = 1;
+  Add = 2;
+  ChangeWordStatus = 3;
+  Tag = 4;
+}

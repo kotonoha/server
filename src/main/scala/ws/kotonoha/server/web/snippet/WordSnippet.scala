@@ -16,25 +16,25 @@
 
 package ws.kotonoha.server.web.snippet
 
-import net.liftweb.json.JsonAST.{JString, JArray, JObject}
-import net.liftweb.mongodb.{Limit, Skip}
-import net.liftweb.util.{Helpers, BindHelpers}
-import scala.util.matching.Regex
-import xml.{Elem, Text, NodeSeq}
-import net.liftweb.common.{Full, Box}
-import net.liftweb.http.{RequestVar, SHtml, SortedPaginatorSnippet, S}
-import net.liftweb.http.js.{JE, JsCmd}
+import net.liftweb.common.{Box, Full}
 import net.liftweb.http.js.JsCmds.SetHtml
-import com.foursquare.rogue.Rogue
-import ws.kotonoha.server.records._
-import ws.kotonoha.server.util.{DateTimeUtils, ParseUtil, Formatting, Strings}
-import ws.kotonoha.server.model.CardMode
-import org.joda.time.Period
-import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
-import ws.kotonoha.server.actors.model.{MarkForDeletion, ChangeWordStatus}
-import ws.kotonoha.server.util.unapply.{XOid, XHexLong}
-import org.bson.types.ObjectId
+import net.liftweb.http.js.{JE, JsCmd}
+import net.liftweb.http.{RequestVar, S, SHtml, SortedPaginatorSnippet}
+import net.liftweb.json.JsonAST.{JArray, JObject, JString}
+import net.liftweb.mongodb.{Limit, Skip}
 import net.liftweb.util.ControlHelpers.tryo
+import net.liftweb.util.{BindHelpers, Helpers}
+import org.bson.types.ObjectId
+import org.joda.time.Period
+import ws.kotonoha.model.CardMode
+import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
+import ws.kotonoha.server.actors.model.{ChangeWordStatus, MarkForDeletion}
+import ws.kotonoha.server.records._
+import ws.kotonoha.server.util.unapply.XOid
+import ws.kotonoha.server.util.{DateTimeUtils, Formatting, Strings}
+
+import scala.util.matching.Regex
+import scala.xml.{Elem, NodeSeq, Text}
 
 /**
   * @author eiennohito
@@ -65,7 +65,6 @@ object WordSnippet extends Akka with ReleaseAkka {
 
   def renderForm(in: NodeSeq): NodeSeq = {
     import Helpers._
-    import ws.kotonoha.server.util.DateTimeUtils._
     word.get match {
       case Full(w) => {
         bind("word", SHtml.ajaxForm(in),
@@ -134,8 +133,8 @@ object WordSnippet extends Akka with ReleaseAkka {
 
   def renderLearning(box: Box[ItemLearningDataRecord]): NodeSeq = box match {
     case Full(il) => {
-      import ws.kotonoha.server.math.MathUtil.round
       import DateTimeUtils._
+      import ws.kotonoha.server.math.MathUtil.round
 
       val period = {
         def render(p: Period) = {
@@ -194,8 +193,8 @@ object WordSnippet extends Akka with ReleaseAkka {
   }
 
   def mode(m: Int) = m match {
-    case CardMode.READING => "Reading"
-    case CardMode.WRITING => "Writing"
+    case CardMode.Reading.value => "Reading"
+    case CardMode.Writing.value => "Writing"
     case _ => "Unknown"
   }
 
@@ -221,8 +220,8 @@ object WordSnippet extends Akka with ReleaseAkka {
 
 class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka with ReleaseAkka {
 
-  import ws.kotonoha.server.util.KBsonDSL._
   import ws.kotonoha.server.actors.UserSupport._
+  import ws.kotonoha.server.util.KBsonDSL._
 
   def headers = ("adate" -> "createdOn") :: ("status" -> "status") :: ("writing" -> "writing") :: ("reading" -> "reading") :: Nil
 
@@ -321,7 +320,6 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
 
   def renderPage(in: NodeSeq): NodeSeq = {
     import BindHelpers._
-    import ws.kotonoha.server.util.DateTimeUtils._
 
     def v(id: ObjectId) = {
       val link = "row-%s".format(id.toString)

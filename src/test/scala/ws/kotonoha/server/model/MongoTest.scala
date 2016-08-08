@@ -79,7 +79,7 @@ with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
     word.user(userId)
     val time = dtNow minus (1 day)
     word.createdOn(time)
-    word.save
+    word.save(WriteConcern.ACKNOWLEDGED)
     word.id.valueBox.isEmpty should be(false)
 
     val found = WordRecord.find(word.id.get)
@@ -90,7 +90,7 @@ with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
   test("card saved with empty learning loads with such") {
     val rec = WordCardRecord.createRecord
     rec.learning(Empty)
-    rec.save
+    rec.save(WriteConcern.ACKNOWLEDGED)
 
     val rec2 = WordCardRecord.find(rec.id.get).openTheBox
     rec2.learning.valueBox.isEmpty should be(true)
@@ -100,7 +100,7 @@ with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
     val rec = WordCardRecord.createRecord
     val l = ItemLearningDataRecord.createRecord
     rec.learning(l)
-    rec.save
+    rec.save(WriteConcern.ACKNOWLEDGED)
 
     val rec2 = WordCardRecord.find(rec.id.get).openOrThrowException("Babah!")
     rec2.learning.valueBox.isEmpty should be(false)
@@ -151,7 +151,7 @@ with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
     sched.receive(SchedulePaired(id, card.cardMode.get))
     val cid = cards.last.id.get
 
-    val anotherCard = WordCardRecord.find(cid).get
+    val anotherCard = WordCardRecord.find(cid).openOrThrowException("okay")
     anotherCard.notBefore.value should not be (None)
     anotherCard.notBefore.get should be >= (new DateTime)
   }
@@ -258,7 +258,7 @@ with BeforeAndAfterAll with MongoAwareTest with OneInstancePerTest {
     proc ! ProcessMarkEvent(ev4)
     receiveOne(1 minute)
 
-    val updatedCard = WordCardRecord.find(cid).get
+    val updatedCard = WordCardRecord.find(cid).openOrThrowException("okay")
     updatedCard.learning.valueBox.isEmpty should be(false)
     updatedCard.learning.value.lapse.get should be(2)
   }

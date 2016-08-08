@@ -18,7 +18,7 @@ package ws.kotonoha.server.records
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.mongodb.record.field._
-import net.liftweb.record.field.{EnumField, DateTimeField, StringField}
+import net.liftweb.record.field.{DateTimeField, EnumField, StringField}
 import net.liftweb.json.JsonAST._
 import ws.kotonoha.server.mongodb.NamedDatabase
 import ws.kotonoha.server.mongodb.record.DelimitedStringList
@@ -27,6 +27,7 @@ import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JBool
 import net.liftweb.json.JsonAST.JObject
 import ws.kotonoha.server.actors.tags.Taggable
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 
 object WordStatus extends Enumeration {
   type WordStatus = Value

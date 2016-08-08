@@ -17,8 +17,8 @@
 package ws.kotonoha.server.mongodb
 
 import com.foursquare.rogue.{DateTimeModifyField, DateTimeQueryField, LiftRogue}
-import ws.kotonoha.server.records.JodaDateField
 import net.liftweb.mongodb.record.BsonRecord
+import ws.kotonoha.server.records.meta.JodaDateField
 
 import scala.language.implicitConversions
 

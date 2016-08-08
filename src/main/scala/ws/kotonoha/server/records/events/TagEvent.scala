@@ -16,13 +16,14 @@
 
 package ws.kotonoha.server.records.events
 
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
-import ws.kotonoha.server.mongodb.NamedDatabase
-import ws.kotonoha.server.records.{WordRecord, KotonohaMongoRecord}
-import ws.kotonoha.server.model.EventTypes
-import net.liftweb.mongodb.record.field.{MongoCaseClassListField, MongoListField, ObjectIdRefField, MongoRefField}
-import ws.kotonoha.server.actors.tags.{TagOps, TagOp}
 import net.liftweb.json.DefaultFormats
+import net.liftweb.mongodb.record.field.{MongoCaseClassListField, MongoListField, ObjectIdRefField}
+import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
+import ws.kotonoha.model.EventTypes
+import ws.kotonoha.server.actors.tags.{TagOp, TagOps}
+import ws.kotonoha.server.mongodb.NamedDatabase
+import ws.kotonoha.server.records.WordRecord
+import ws.kotonoha.server.records.meta.KotonohaMongoRecord
 
 /**
  * @author eiennohito
@@ -32,7 +33,7 @@ import net.liftweb.json.DefaultFormats
 class TagEvent private() extends MongoRecord[TagEvent] with EventRecord[TagEvent] {
   def meta = TagEvent
 
-  protected def myType = EventTypes.TAG
+  protected def myType = EventTypes.Tag
 
   object word extends ObjectIdRefField(this, WordRecord)
 

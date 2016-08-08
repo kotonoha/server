@@ -16,11 +16,12 @@
 
 package ws.kotonoha.server.records
 
-import net.liftweb.mongodb.record.field.{ObjectIdField, ObjectIdPk, LongPk}
+import net.liftweb.mongodb.record.field.{LongPk, ObjectIdField, ObjectIdPk}
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import ws.kotonoha.server.actors.LifetimeObjects
 import net.liftweb.record.field.{DateTimeField, EnumField, LongField}
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 
 /**
  * @author eiennohito

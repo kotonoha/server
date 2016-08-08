@@ -87,6 +87,7 @@ object GlobalMongoHolder extends StrictLogging {
             mongoClient.close()
             mongoClient = null
             logger.debug("destroying mongo thread")
+            return
           }
           lock.wait(1000)
         }

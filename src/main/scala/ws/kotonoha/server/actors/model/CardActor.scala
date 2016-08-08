@@ -16,19 +16,20 @@
 
 package ws.kotonoha.server.actors.model
 
-import akka.actor.{ActorLogging, Actor}
-import ws.kotonoha.server.model.CardMode
-import ws.kotonoha.server.math.MathUtil
-import ws.kotonoha.server.records.{WordRecord, UserTagInfo, WordCardRecord}
-import ws.kotonoha.server.util.DateTimeUtils
-import net.liftweb.common.Empty
-import ws.kotonoha.server.actors.{UserScopedActor, SaveRecord, RootActor, KotonohaMessage}
+import akka.actor.ActorLogging
 import akka.util.Timeout
-import org.joda.time.ReadableDuration
-import org.bson.types.ObjectId
 import com.mongodb.casbah.WriteConcern
-import concurrent.{Future, ExecutionContext}
+import net.liftweb.common.Empty
+import org.bson.types.ObjectId
+import org.joda.time.ReadableDuration
+import ws.kotonoha.model.CardMode
 import ws.kotonoha.server.actors.tags.{CalculatePriority, Priority}
+import ws.kotonoha.server.actors.{KotonohaMessage, SaveRecord, UserScopedActor}
+import ws.kotonoha.server.math.MathUtil
+import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
+import ws.kotonoha.server.util.DateTimeUtils
+
+import scala.concurrent.Future
 
 trait CardMessage extends KotonohaMessage
 
@@ -52,10 +53,11 @@ case class TagCards(wid: ObjectId, tags: List[String], prio: Int) extends CardMe
 
 class CardActor extends UserScopedActor with ActorLogging {
 
-  import concurrent.duration._
+  import DateTimeUtils._
   import akka.pattern.{ask, pipe}
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
-  import DateTimeUtils._
+
+  import concurrent.duration._
 
   implicit val timeout: Timeout = 1 second
 
@@ -90,7 +92,7 @@ class CardActor extends UserScopedActor with ActorLogging {
   }
 
   override def receive = {
-    case SchedulePaired(word, cardMode) => schedulePaired(cardMode, word)
+    case SchedulePaired(word, cardMode) => schedulePaired(CardMode.values(cardMode), word)
     case ChangeCardEnabled(word, status) => {
       val q = WordCardRecord where (_.word eqs word) modify (_.enabled setTo status)
       q.updateMulti()
@@ -120,8 +122,11 @@ class CardActor extends UserScopedActor with ActorLogging {
     case TagCards(wid, tags, prio) => tagCards(wid, tags, prio)
   }
 
-  def schedulePaired(cardMode: Int, word: ObjectId) {
-    val cardType = if (cardMode == CardMode.READING) CardMode.WRITING else CardMode.READING
+  def schedulePaired(cardMode: CardMode, word: ObjectId) {
+    val cardType = cardMode match {
+      case CardMode.Writing => CardMode.Reading.value
+      case _ => CardMode.Writing.value
+    }
     val date = now plus ((3.2 * MathUtil.ofrandom) days)
     val q = WordCardRecord where (_.cardMode eqs cardType) and
       (_.word eqs word) modify (_.notBefore setTo date)

@@ -17,11 +17,12 @@
 package ws.kotonoha.server.records.events
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.mongodb.record.field.{ObjectIdField, ObjectIdRefField, ObjectIdPk}
-import ws.kotonoha.server.model.EventTypes
-import net.liftweb.record.field.{LongField, StringField, DoubleField, IntField}
+import net.liftweb.mongodb.record.field.{ObjectIdField, ObjectIdPk, ObjectIdRefField}
+import net.liftweb.record.field.{DoubleField, IntField, LongField, StringField}
+import ws.kotonoha.model.EventTypes
 import ws.kotonoha.server.mongodb.NamedDatabase
-import ws.kotonoha.server.records.{KotonohaMongoRecord, WordCardRecord}
+import ws.kotonoha.server.records.WordCardRecord
+import ws.kotonoha.server.records.meta.KotonohaMongoRecord
 
 /**
  * @author eiennohito
@@ -31,7 +32,7 @@ import ws.kotonoha.server.records.{KotonohaMongoRecord, WordCardRecord}
 class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with ObjectIdPk[MarkEventRecord] with EventRecord[MarkEventRecord] {
   def meta = MarkEventRecord
 
-  protected def myType = EventTypes.MARK
+  protected def myType = EventTypes.Mark
 
   object card extends ObjectIdRefField(this, WordCardRecord)
 

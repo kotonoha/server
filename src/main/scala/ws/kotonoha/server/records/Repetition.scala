@@ -18,9 +18,10 @@ package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.mongodb.record.field.{ObjectIdPk, ObjectIdRefField}
-import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord, MongoMetaRecord}
-import net.liftweb.record.field.{IntField, DoubleField}
+import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoMetaRecord, MongoRecord}
+import net.liftweb.record.field.{DoubleField, IntField}
 import org.bson.types.ObjectId
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaBsonMeta}
 
 /**
  * @author eiennohito

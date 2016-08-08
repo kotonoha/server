@@ -16,14 +16,15 @@
 
 package ws.kotonoha.server.web.snippet
 
-import net.liftweb.http.{RequestVar, PaginatorSnippet, DispatchSnippet}
+import net.liftweb.http.{DispatchSnippet, PaginatorSnippet, RequestVar}
 import ws.kotonoha.server.records.events.MarkEventRecord
 import org.bson.types.ObjectId
-import ws.kotonoha.server.records.{WordRecord, WordCardRecord, UserRecord}
-import scala.xml.{Text, NodeSeq}
+import ws.kotonoha.server.records.{UserRecord, WordCardRecord, WordRecord}
+
+import scala.xml.{NodeSeq, Text}
 import ws.kotonoha.server.util.Formatting
 import ws.kotonoha.akane.unicode.UnicodeUtil
-import ws.kotonoha.server.model.CardMode
+import ws.kotonoha.model.CardMode
 
 /**
  * @author eiennohito
@@ -64,8 +65,8 @@ object LearningHistory extends DispatchSnippet {
           <a href={href}>{cont}</a>
       }
       val mode = m.mode.get match {
-        case CardMode.WRITING => "Writing"
-        case CardMode.READING => "Reading"
+        case CardMode.Writing.value => "Writing"
+        case CardMode.Reading.value => "Reading"
         case _ => "Unknown"
       }
       val client = m.client.get match {

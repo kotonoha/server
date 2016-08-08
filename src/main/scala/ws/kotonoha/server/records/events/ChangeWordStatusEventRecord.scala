@@ -16,18 +16,19 @@
 
 package ws.kotonoha.server.records.events
 
-import net.liftweb.mongodb.record.field.{ObjectIdRefField, ObjectIdPk}
+import net.liftweb.mongodb.record.field.{ObjectIdPk, ObjectIdRefField}
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.record.field.EnumField
-import ws.kotonoha.server.model.EventTypes
+import ws.kotonoha.model.EventTypes
 import ws.kotonoha.server.mongodb.NamedDatabase
-import ws.kotonoha.server.records.{KotonohaMongoRecord, WordRecord, WordStatus}
+import ws.kotonoha.server.records.meta.KotonohaMongoRecord
+import ws.kotonoha.server.records.{WordRecord, WordStatus}
 
 class ChangeWordStatusEventRecord private() extends MongoRecord[ChangeWordStatusEventRecord]
 with ObjectIdPk[ChangeWordStatusEventRecord] with EventRecord[ChangeWordStatusEventRecord] {
   def meta = ChangeWordStatusEventRecord
 
-  protected def myType = EventTypes.CHANGE_WORD_STATUS
+  protected def myType = EventTypes.ChangeWordStatus
 
   object word extends ObjectIdRefField(this, WordRecord)
 
