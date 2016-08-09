@@ -16,7 +16,7 @@
 
 package ws.kotonoha.server.web.snippet
 
-import xml.NodeSeq
+import xml.{NodeSeq, Text}
 import ws.kotonoha.server.util.Formatting
 import org.joda.time.DateTime
 import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
@@ -44,6 +44,11 @@ object Common {
 
     val link = <a href="https://github.com/kotonoha/server">Git revision {gitId}</a> ;
     <span>Version {version}, {link} on {formatDate(gitDate)}</span>
+  }
+
+  def year(in: NodeSeq): NodeSeq = {
+    val year = DateTime.now().getYear.toString
+    Text(year)
   }
 }
 

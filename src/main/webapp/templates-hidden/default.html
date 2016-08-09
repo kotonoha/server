@@ -25,10 +25,10 @@
     </script>
   </head_merge>
 </head>
-<body>
+<body class="container-fluid">
 <div class="lift:GlobalComet"></div>
-<div class="container-fluid">
-  <div class="row koto-header">
+<div class="row">
+  <div class="col-xs-12 p-x-0 koto-header">
     <div class="col-xs-10">
       <a href="/"><img class="logo-img" src="/static/images/logo_200.png"></a>
       <span class="brand-title">Kotonoha</span>
@@ -42,8 +42,8 @@
     </div>
   </div>
 </div>
-<div class="row container-fluid">
-  <div class="col-md-3 lift:MenuPostproc?eager_eval=true">
+<div class="row">
+  <div class="lift:MenuPostproc?eager_eval=true left-nav">
     <lift:Menu.builder xmlns:li="http://cxf.apache.org/jaxws"
                        xmlns:li_item="http://geronimo.apache.org/xml/ns/attributes-1.1"
                        xmlns:ul="http://geronimo.apache.org/xml/ns/j2ee/application-1.2"
@@ -57,15 +57,15 @@
     <!--<div class="lift:Menu.builder?expandAll=true&li:class=nav-item&li_item:class=active&ul:class=nav+nav-stacked+nav-pills"></div> -->
     <div class="lift:Msgs?showAll=true"></div>
   </div>
-  <div class="col-md-9">
+  <div class="main-content">
     <div id="content">The main content will get bound here</div>
   </div>
 </div>
 <hr style="clear: both;"/>
 <footer>
-  <div class="column last" style="text-align: center; width: 100%;">
-    <div class="alt small">
-      Copyright 2016 Arseny Tolmachev. Kotonoha is supported by MEXT Scholarship.<br>
+  <div class="col-xs-12 last" style="text-align: center;">
+    <div class="alt xsmall">
+      Copyright © <span class="lift:Common.year"></span> Arseny Tolmachev. Kotonoha is supported by MEXT Scholarship.<br>
       <span class="lift:Common.versionInfo"></span>
     </div>
   </div>

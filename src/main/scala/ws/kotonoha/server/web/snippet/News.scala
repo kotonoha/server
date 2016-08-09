@@ -48,6 +48,8 @@ class News @Inject()(
 }
 
 class NewsItem extends DispatchSnippet with StatelessBehavior {
+  import ws.kotonoha.server.web.lift.Binders._
+
   override def dispatch = {
     case "index" => index
   }
@@ -55,7 +57,8 @@ class NewsItem extends DispatchSnippet with StatelessBehavior {
   override def statelessDispatch = dispatch
 
   def index(x: NodeSeq): NodeSeq = {
-    NewsCache.renderPage("index")
+    val index = NewsCache.renderPage("index")
+    ("* *" #> index).apply(x)
   }
 }
 

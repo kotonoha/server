@@ -100,7 +100,7 @@ class ChildProcessor extends UserScopedActor with ActorLogging {
       log.warning("multiple schedules: {}", scheds)
     }
 
-    if (!scheds.isEmpty) {
+    if (scheds.nonEmpty) {
       val head = scheds.head
       mr.source(head.source.get)
       mr.seq(head.seq.get)
