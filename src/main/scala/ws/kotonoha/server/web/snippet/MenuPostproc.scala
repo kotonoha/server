@@ -27,8 +27,8 @@ import net.liftweb.util.Helpers._
   * @since 2016/08/03
   */
 class MenuPostproc @Inject() (
-  ls: LiftSession
-) extends DispatchSnippet {
+
+) {
 
   val tf1 = "[class]" #> "active"
   val tf2 = "li.active [class!]" #> "active"
@@ -50,9 +50,5 @@ class MenuPostproc @Inject() (
       ".nav-item a [class]" #> "nav-link" &
       ".active" #> { addActive _ }
     tf.apply(in)
-  }
-
-  override def dispatch = {
-    case _ => render
   }
 }

@@ -17,12 +17,13 @@
 package ws.kotonoha.server.ioc
 
 import java.lang.annotation.Annotation
+import java.lang.reflect.Constructor
 
 import com.google.inject._
 import com.google.inject.name.Names
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
-import net.liftweb.common.{Box, Empty, Failure, Full}
+import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http._
 import net.liftweb.util.{Helpers, ThreadGlobal, Vendor}
 import ws.kotonoha.server.actors.GlobalActorsModule
@@ -90,7 +91,25 @@ object KotonohaLiftSession {
   object sessionForIoc extends ThreadGlobal[LiftSession]()
 }
 
-class KotonohaLiftInjector(inj: Injector) extends SnippetInstantiation {
+object IocSupport {
+  def checkIfSuitable(clz: Class[_]): Boolean = {
+    val ctors = clz.getDeclaredConstructors
+    ctors.exists(ctorFilter)
+  }
+
+  private val javaxInject = classOf[javax.inject.Inject]
+  private val guiceInject = classOf[Inject]
+
+  private def ctorFilter(c: Constructor[_]): Boolean = {
+    c.getAnnotation(javaxInject) != null ||
+    c.getAnnotation(guiceInject) != null ||
+    c.getParameterTypes.length == 0
+  }
+}
+
+class KotonohaLiftInjector(inj: Injector) {
+  import IocSupport._
+
   def cometCreation: Vendor[(CometCreationInfo) => Box[LiftCometActor]] = {
     Vendor(internalCreate _)
   }
@@ -107,25 +126,5 @@ class KotonohaLiftInjector(inj: Injector) extends SnippetInstantiation {
         Full(actor)
       } else Empty
     }
-  }
-
-  def checkIfSuitable(clz: Class[_]): Boolean = {
-    val ctors = clz.getDeclaredConstructors
-    ctors.exists(_.getAnnotation(classOf[Inject]) != null)
-  }
-
-  override def factoryFor[T](clz: Class[T]): Box[ConstructorType] = {
-    implicit val mf = Manifest.classType[T](clz)
-    if (checkIfSuitable(clz)) {
-      try {
-        Full(SnippetInstantiation { (pp, sess) =>
-          KotonohaLiftSession.sessionForIoc.doWith(sess) {
-            inj.getInstance(clz)
-          }
-        })
-      } catch {
-        case e: IopProvisionException => Failure(s"can't create instance of $clz", Full(e), Empty)
-      }
-    } else Empty
   }
 }

@@ -35,6 +35,7 @@ import ws.kotonoha.server.actors.{InitUsers, ReleaseAkkaMain}
 import ws.kotonoha.server.ioc.{KotonohaIoc, KotonohaLiftInjector}
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
+import ws.kotonoha.server.web.lift.{SnippetResolver, SnippetResolverConfig}
 import ws.kotonoha.server.web.loc.{NewsLoc, WikiLoc}
 import ws.kotonoha.server.web.rest._
 import ws.kotonoha.server.web.rest.admin.{OFHistory, Stats}
@@ -77,8 +78,15 @@ class Boot extends Logging {
     val ioc = new KotonohaIoc(config)
 
     val kotoLift = new KotonohaLiftInjector(ioc.injector)
-    LiftRules.snippetInstantiation = Full(kotoLift)
+
     LiftRules.cometCreationFactory.default.set(kotoLift.cometCreation)
+    val rcfg = new SnippetResolverConfig
+    rcfg.shortcut("cpres", ClasspathResource)
+    rcfg.shortcut("mode", ModeSnippet)
+    rcfg.shortcut("cdn", CdnSnippet)
+    val res = new SnippetResolver(ioc.injector, rcfg)
+    LiftRules.snippets.append(res)
+
 
     MongoDbInit.init()
 
@@ -230,13 +238,5 @@ class Boot extends Logging {
 
     // Make a transaction span the whole HTTP request
     //S.addAround(DB.buildLoanWrapper)
-
-    LiftRules.snippetDispatch.append(
-      Map(
-        "cpres" -> ClasspathResource,
-        "mode" -> ModeSnippet,
-        "cdn" -> CdnSnippet
-      )
-    )
   }
 }
