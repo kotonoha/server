@@ -54,7 +54,7 @@ object DuplicateMarkFinder {
         val end = mer.datetime.get plus (mer.interval.get days)
         l.intervalEnd(end)
         l.intervalLength(mer.interval.get)
-        c.save
+        c.save()
       })
     })
 

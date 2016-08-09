@@ -73,8 +73,8 @@ class UserRecord private() extends MegaProtoUser[UserRecord] {
 
   object status extends EnumField(this, UserStatus, UserStatus.Active)
 
-  override def save = {
-    val r = super.save()
+  override def save(safe: Boolean = true) = {
+    val r = super.save(safe)
     InviteRecord.delete("key" -> invite.get)
     r
   }

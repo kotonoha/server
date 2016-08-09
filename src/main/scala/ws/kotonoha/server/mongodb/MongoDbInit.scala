@@ -19,6 +19,7 @@ package ws.kotonoha.server.mongodb
 import com.mongodb.{MongoClient, MongoClientOptions, MongoClientURI}
 import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.mongodb.{MongoDB, MongoMeta}
+import net.liftweb.record.MetaRecord
 import net.liftweb.util.ConnectionIdentifier
 import org.bson.{BSON, Transformer}
 import org.joda.time.DateTime
@@ -109,10 +110,10 @@ object DictId extends ConnectionIdentifier {
   def jndiName = dbName
 }
 
-trait NamedDatabase { self: MongoMeta[_] =>
-  override def mongoIdentifier = DbId
+trait NamedDatabase { self: MongoMeta[_] with MetaRecord[_] =>
+  abstract override def connectionIdentifier: ConnectionIdentifier = DbId
 }
 
-trait DictDatabase {self: MongoMeta[_] =>
-  override def mongoIdentifier = DictId
+trait DictDatabase {self: MongoMeta[_] with MetaRecord[_] =>
+  abstract override def connectionIdentifier: ConnectionIdentifier = DictId
 }

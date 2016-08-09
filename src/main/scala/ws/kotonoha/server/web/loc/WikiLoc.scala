@@ -45,8 +45,8 @@ class WikiLoc extends Loc[WikiPage] {
   override def rewrite: LocRewrite = Full({
     case RewriteRequest(ParsePath("wiki" :: lst, _, _, _), _, _) => {
       lst match {
-        case Nil => RewriteResponse("wiki-page" :: Nil, true) -> WikiPage("main" :: Nil)
-        case _ => RewriteResponse("wiki-page" :: Nil, true) -> WikiPage(lst)
+        case Nil => RewriteResponse("wiki-page" :: Nil, true) -> Full(WikiPage("main" :: Nil))
+        case _ => RewriteResponse("wiki-page" :: Nil, true) -> Full(WikiPage(lst))
       }
     }
   })

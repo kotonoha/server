@@ -214,11 +214,11 @@ class SnippetResolver(inj: Injector, cfg: SnippetResolverConfig) extends LiftRul
     clzOpt match {
       case Full(c) =>
         val snip = makeSnippet(x, c, prefix, method)
-        logger.debug(s"resolved ${x.mkString("(", ",", ")")} to $snip")
+        logger.trace(s"resolved ${x.mkString("(", ",", ")")} to $snip")
         cache.put(x, snip)
         snip.isDefined
       case _ =>
-        logger.debug(s"could not find class for ${x.mkString("(", ",", ")")}")
+        logger.trace(s"could not find class for ${x.mkString("(", ",", ")")}")
         cache.put(x, Empty)
         false
     }

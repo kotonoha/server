@@ -39,7 +39,7 @@ class RepetitionStateResolverTest extends AkkaWithUser {
         lrn.intervalEnd(dtNow.plusDays(i))
         rec.learning(lrn)
         rec.enabled(true)
-        rec.save
+        rec.save()
     }
   }
 

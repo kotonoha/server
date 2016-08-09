@@ -46,7 +46,7 @@ class SecurityActor extends Actor {
     }
     case GrantRole(u, r) => {
       val rec = GrantRecord.createRecord
-      rec.role(r).user(u).save
+      rec.role(r).user(u).save()
     }
     case RevokeRole(u, r) => {
       GrantRecord.revokeRole(u, r)

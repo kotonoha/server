@@ -39,7 +39,7 @@ class TagService extends KotonohaActor {
     val alias = TagAlias.createRecord
     alias.alias(from)
     alias.tag(to)
-    alias.save
+    alias.save()
     Tags.updateAliases(Tags.aliases + (from -> to))
   }
 

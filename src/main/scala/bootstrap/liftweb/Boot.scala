@@ -21,6 +21,8 @@ package bootstrap.liftweb
  * @since 07.10.11 
  */
 
+import java.util.concurrent.Executor
+
 import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.actor.{ILAExecute, LAScheduler}
 import net.liftweb.common._
@@ -42,6 +44,7 @@ import ws.kotonoha.server.web.rest.admin.{OFHistory, Stats}
 import ws.kotonoha.server.web.rest.model.{Cards, Words}
 import ws.kotonoha.server.web.snippet.{CdnSnippet, ClasspathResource, ModeSnippet}
 
+import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
 
@@ -62,7 +65,7 @@ class Boot extends Logging {
       rec.superUser(true)
       rec.validated(true)
       try {
-        rec.save
+        rec.save()
         logger.info(s"Created a new superUser with email $email")
       } catch {
         case NonFatal(t) => logger.error("There was no admin account present and creating it failed")
@@ -87,7 +90,6 @@ class Boot extends Logging {
     val res = new SnippetResolver(ioc.injector, rcfg)
     LiftRules.snippets.append(res)
 
-
     MongoDbInit.init()
 
     LiftRules.unloadHooks.append(() => ioc.close())
@@ -108,7 +110,10 @@ class Boot extends Logging {
     ReleaseAkkaMain.global ! Ping
     ReleaseAkkaMain.global ! InitUsers
 
-    val ec = ReleaseAkkaMain.context.prepare()
+    //TODO: fix CSR
+    LiftRules.securityRules = () => SecurityRules(https = None, content = None)
+
+    val ec = ioc.spawn[ExecutionContext]
 
     val liftex = new ILAExecute {
       def shutdown() {}

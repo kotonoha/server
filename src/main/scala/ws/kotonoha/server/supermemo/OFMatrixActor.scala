@@ -168,7 +168,7 @@ class OFMatrixHolder(user: ObjectId) extends Logging {
       case None => {
         val el = mc.copyTo(OFElementRecord.createRecord)
         el.value(value)
-        el.save
+        el.save()
         elements += mc -> el
       }
     }

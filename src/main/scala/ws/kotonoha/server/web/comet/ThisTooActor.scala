@@ -72,7 +72,7 @@ class ThisTooActor extends NamedCometActor with AkkaInterop with Logging with Re
   }
 
   override def lowPriority = {
-    case o: ProcessThisToo => if (userId.isDefined) thisToo(o, userId.get)
+    case o: ProcessThisToo => if (userId.isDefined) thisToo(o, userId.openOrThrowException("ok"))
     case ps: PresentStatus => replyToClient(ps)
   }
 }

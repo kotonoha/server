@@ -18,7 +18,7 @@ package ws.kotonoha.server.web.lift
 
 import net.liftweb.common.Full
 import net.liftweb.record.Field
-import net.liftweb.util.{BindHelpers, CanBind}
+import net.liftweb.util.{CanBind, HtmlHelpers}
 import ws.kotonoha.server.util.NodeSeqUtil
 
 import scala.xml.NodeSeq
@@ -27,7 +27,7 @@ import scala.xml.NodeSeq
   * @author eiennohito
   * @since 2016/08/08
   */
-object Binders extends BindHelpers {
+object Binders extends HtmlHelpers {
   implicit def field2Bind[T](implicit render: Render[T]): CanBind[Field[T, _]] = new CanBind[Field[T, _]] {
     override def apply(it: => Field[T, _])(ns: NodeSeq) = it.valueBox match {
       case Full(d) => render.render(d)

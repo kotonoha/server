@@ -117,7 +117,7 @@ class KotonohaLiftInjector(inj: Injector) {
   private[this] val cometClz = classOf[LiftCometActor]
 
   def internalCreate(cci: CometCreationInfo): Box[LiftCometActor] = {
-    val tpe = cci.contType
+    val tpe = cci.cometType
     val clz = Helpers.findClass(tpe, LiftRules.buildPackage("comet"))
     clz.flatMap { c =>
       if (checkIfSuitable(c) && cometClz.isAssignableFrom(c)) {

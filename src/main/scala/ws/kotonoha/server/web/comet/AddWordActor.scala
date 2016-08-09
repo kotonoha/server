@@ -167,7 +167,7 @@ class AddWordActor @Inject() (
         r.user(uid)
         r.tags(ops.ops)
         r.source("default")
-        r.save
+        r.save()
     }
     partialUpdate(RedirectTo(s"/words/approve_added?list=$lid"))
   }
@@ -230,7 +230,7 @@ class AddWordActor @Inject() (
   def handlePublish(data: JValue): Unit = {
     data match {
       case JString(s) => processAddData(s)
-      case s => logger.warn(s"Invalid js from ng: ${j.compact(j.render(s))}")
+      case s => logger.warn(s"Invalid js from ng: ${j.compactRender(s)}")
     }
   }
 
@@ -268,7 +268,7 @@ class AddWordActor @Inject() (
   def process(jv: JValue): Unit = jv match {
     case JObject(JField("cmd", JString(cmd)) :: JField("data", jv) :: Nil) => fromPage(cmd, jv)
     case x =>
-      def js = j.compact(j.render(x))
+      def js = j.compactRender(x)
       logger.warn(s"Invalida js from ng: $js")
   }
 

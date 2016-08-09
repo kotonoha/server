@@ -72,7 +72,7 @@ case class ProcessJson(obj: JValue)
 trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaInterop with Logging {
   lazy val root = akkaServ.global
   val self = this
-  private val uid = UserRecord.currentId.get
+  private val uid = UserRecord.currentId.openOrThrowException("should be here")
   var uact: ActorRef = _
 
   import akka.pattern.{ask => apa}

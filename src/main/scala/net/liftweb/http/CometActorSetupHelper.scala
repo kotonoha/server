@@ -24,12 +24,6 @@ import net.liftweb.common.Box
   */
 object CometActorSetupHelper {
   def setup(actor: LiftCometActor, tpe: Box[String], msg: CometCreationInfo) = {
-    actor.callInitCometActor(
-      msg.session,
-      tpe,
-      msg.name,
-      msg.defaultXml,
-      msg.attributes
-    )
+    actor.callInitCometActor(msg)
   }
 }

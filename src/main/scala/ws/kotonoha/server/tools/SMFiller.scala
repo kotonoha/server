@@ -39,7 +39,7 @@ object SMFiller {
   def createCard(d: DateTime) = {
     val rec = WordCardRecord.createRecord
     rec.user(userId).notBefore(d)
-    rec.save
+    rec.save()
   }
 
   val rng = new Random(73L)

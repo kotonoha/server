@@ -131,7 +131,7 @@ class RepeatActor @Inject() (
   } catch { case _: Throwable => None }
 
   def publish(words: List[WordRecord], cards: List[WordCardRecord], seq: List[ReviewCard]): Unit = {
-    import net.liftweb.json.{compact => jc, render => jr}
+    import net.liftweb.json.{compactRender}
     import ws.kotonoha.server.util.KBsonDSL._
     val wm = words.map(w => (w.id.get, w)).toMap
     val cm = cards.map(c => (c.id.get, c)).toMap
@@ -157,7 +157,7 @@ class RepeatActor @Inject() (
         ("cid" -> c.id.get.toString) ~ ("mode" -> c.cardMode.get) ~ ("examples" -> getExamples(w.examples.get, 5)) ~
         ("additional" -> procInfo) ~ ("wid" -> c.word.get.toString) ~ ("src" -> it.source)
     })
-    partialUpdate(Call("publish_new", jc(jr(data))).cmd)
+    partialUpdate(Call("publish_new", compactRender(data)).cmd)
   }
 
   def processMark(mark: WebMark): Unit = {

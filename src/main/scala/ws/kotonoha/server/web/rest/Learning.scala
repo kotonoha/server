@@ -110,7 +110,7 @@ trait LearningRest extends KotonohaRest {
       val (json, req) = reqV
       val add = json.children flatMap (AddWordRecord.fromJValue(_)) map (_.user(userId))
       JsonResponse("values" -> Tr(add.map {
-        a => a.save
+        a => a.save()
         1
       }))
     }

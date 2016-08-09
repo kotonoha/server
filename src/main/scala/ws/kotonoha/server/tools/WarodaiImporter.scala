@@ -74,7 +74,7 @@ object WarodaiImporter extends Logging {
       val warId = hdr.id
       rec.warodaiId(warId).
         readings(hdr.readings).writings(hdr.writings).rusReadings(hdr.rusReadings).
-        body(word.body).save
+        body(word.body).save()
     }
   }
 }

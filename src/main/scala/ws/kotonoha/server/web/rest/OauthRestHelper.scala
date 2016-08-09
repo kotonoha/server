@@ -87,7 +87,7 @@ trait OauthRestHelper extends RestHelper {
       } else {
         val user = userId.flatMap(UserRecord.find(_))
         if (!S.inStatefulScope_?) {
-          S.init(in, LiftSession.apply(in)) {
+          S.init(Full(in), LiftSession.apply(in)) {
             UserRecord.doWithUser(user) {
               super.apply(in)
             }

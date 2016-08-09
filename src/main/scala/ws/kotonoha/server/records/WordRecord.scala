@@ -58,11 +58,12 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
 
   override def asJValue = {
     val v = super.asJValue
-    val tfed = v transform {
+    val tfed = v.transformField {
       case JField("examples", o) =>
-        o.transform {
+        val res = o.transform {
           case JObject(lst) => JObject(JField("selected", JBool(true)) :: lst)
         }
+        JField("examples", res)
     }
     tfed.asInstanceOf[JObject]
   }
@@ -81,7 +82,7 @@ object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with Koton
   }
 
   def filterExamples(value: JValue) = {
-    val tfed = value transform {
+    val tfed = value.transformField {
       case JField("examples", exobj) => JField("examples",
         exobj remove {
           case j: JObject => j \ "selected" match {
@@ -91,7 +92,7 @@ object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with Koton
           case _ => false
         }
       )
-    } remove {
+    }.removeField {
       case JField("selected", _) => true
       case _ => false
     }
@@ -99,7 +100,7 @@ object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with Koton
   }
 
   def trimInternal(in: JValue, out: Boolean = true) = {
-    val trimmed = in remove {
+    val trimmed = in removeField {
       case JField("user" | "deleteOn", _) => true
       case JField("createdOn" | "status" | "_id" | "tags", _) => !out
       case _ => false

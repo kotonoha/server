@@ -131,7 +131,7 @@ object BadCards extends DispatchSnippet with Akka with ReleaseAkka with UserActo
   }
 
   def words(in: NodeSeq): NodeSeq = {
-    val uid = UserRecord.currentId.openTheBox
+    val uid = UserRecord.currentId.openOrThrowException("present")
     val obj = userAsk[WordsAndCards](LoadReviewList(maxRecs.get))
     val res = Await.result(obj, 5.0 seconds)
 

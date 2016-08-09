@@ -63,7 +63,7 @@ object UserUtil extends UserUtilT {
         kgen.init(256)
         val k = kgen.generateKey().getEncoded
         AppConfig().myKey(k)
-        AppConfig.save
+        AppConfig.save()
         k
     }
   }

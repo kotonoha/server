@@ -4,9 +4,9 @@ let millisInDay = 1000 * 60 * 60 * 24;
 
 function process(objs) {
   let l = [];
-  for (let x of objs) {
-    let y = objs[x];
-    l.push([y - 1, x]);
+  for (let i = 0; i < objs.length; ++i) {
+    let x = objs[i];
+    l.push([i - 1, x]);
   }
   return l;
 }
@@ -26,12 +26,14 @@ function display(stats) {
 }
 
 function drawNext10(dates) {
-  $.jqplot("next10", [
+  let data = [
     process(dates.ready),
     process(dates.bad),
     process(dates.readyNa),
     process(dates.badNa)
-  ], {
+  ];
+
+  $.jqplot("next10", data, {
     title: "Scheduled count for next 10 days",
     stackSeries: true,
     seriesDefaults: {

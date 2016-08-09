@@ -49,6 +49,6 @@ object UserSettings extends UserSettings with MongoMetaRecord[UserSettings] with
 
   def current = cached.get
 
-  def forUser(id: ObjectId): UserSettings = find(id).openOr(UserSettings.createRecord.id(id).save)
+  def forUser(id: ObjectId): UserSettings = find(id).openOr(UserSettings.createRecord.id(id).save())
 }
 

@@ -47,5 +47,5 @@ object ConfigRecord extends ConfigRecord with MongoMetaRecord[ConfigRecord] with
 
 object AppConfig {
   def apply() = ConfigRecord.instance
-  def save = apply().save(WriteConcern.Acknowledged)
+  def save() = apply().save(WriteConcern.Acknowledged)
 }

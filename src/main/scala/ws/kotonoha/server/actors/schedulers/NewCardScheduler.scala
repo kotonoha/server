@@ -81,7 +81,7 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
           if (lims.contains(tag)) {
             val entry = NewCardSchedule.createRecord
             entry.user(uid).card(cid).date(now).tag(tag)
-            entry.save
+            entry.save()
           }
       }
     }

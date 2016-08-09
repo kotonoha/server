@@ -29,10 +29,17 @@ import net.liftweb.json.JsonAST
 
 
 object JsonAstUtil {
+  private def recFld(in: JField, saveArrays: Boolean): List[JField] = {
+    rec(in.value, saveArrays) match {
+      case Nil => Nil
+      case x :: _ => List(JField(in.name, x))
+    }
+  }
+
   private def rec(in: JValue, saveArrays: Boolean): List[JValue] = {
     in match {
       case JObject(flds) => {
-        val lst = flds.flatMap(rec(_, saveArrays))
+        val lst = flds.flatMap(recFld(_, saveArrays))
         lst match {
           case Nil => Nil
           case x: List[JField] => List(JObject(x))
@@ -43,10 +50,6 @@ object JsonAstUtil {
         case Nil if saveArrays => List(JArray(Nil))
         case Nil => Nil
         case v => List(JArray(v))
-      }
-      case JField(name, v) => rec(v, saveArrays) match {
-        case Nil => Nil
-        case x :: _ => List(JField(name, x))
       }
       case JNothing | JNull => Nil
       case x => List(x)

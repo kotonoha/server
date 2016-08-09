@@ -48,7 +48,8 @@ object Juman extends KotonohaRest with ReleaseAkka {
       if (!okay) {
         ForbiddenResponse("length below limit or no body")
       } else {
-        val data = new String(req.body.get, "utf-8")
+        val method = req.body.openOrThrowException("is okay")
+        val data = new String(method, "utf-8")
         async(wer) {
           wr => {
             val parser = new AozoraParser(new AozoraStringInput(data))

@@ -34,18 +34,23 @@ class KnpActor extends CometActor with NgLiftActor with AkkaInterop with Release
   val self = this
 
   override def receiveJson = {
-    case x => self ! ProcessJson(x)
+    case x =>
+      self ! ProcessJson(x)
   }
 
   def processJson(value: JValue): Unit = {
-    value \\ "cmd" match {
-      case JString("analyze") =>
-        value \\ "content" match {
+    val cmd = value.findField(_.name == "cmd").map(_.value)
+    cmd match {
+      case Some(JString("analyze")) =>
+        val content = value \\ "content"
+        content.obj.head.value match {
           case JString(x) =>
             toAkka(KnpRequest(x))
           case _ =>
             logger.warn("unacceptable command for knp: " + value)
         }
+      case _ =>
+        logger.warn("unacceptable command for knp: " + value)
     }
   }
 

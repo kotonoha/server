@@ -39,7 +39,7 @@ class NewsLoc extends Loc[NewsId] {
 
   override def rewrite = Full({
     case RewriteRequest(ParsePath("news" :: date :: _, _, _, _), _, _) if NewsCache.info.contains(date) =>
-      RewriteResponse(List("news")) -> NewsId(date)
+      RewriteResponse(List("news")) -> Full(NewsId(date))
   })
 
   override def stateless_? = true

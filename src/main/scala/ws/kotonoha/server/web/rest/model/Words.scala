@@ -45,7 +45,7 @@ object Words extends KotonohaRest with ReleaseAkka {
       val js = WordRecord.trimInternal(updated, out = false)
       val c = r.setFieldsFromJValue(js)
       //r.fields().map(_.validate)
-      r.save
+      r.save()
       val tags = updated \ "tags"
       val data = TagParser.parseOps(tags)
       val f = if (data.ops.nonEmpty)
@@ -65,7 +65,7 @@ object Words extends KotonohaRest with ReleaseAkka {
       val jv = uid.flatMap(user => {
         WordRecord where (_.id eqs (id)) and (_.user eqs (user)) get()
       }).map {
-        _.stripped.map {
+        _.stripped.mapField {
           case JField("status", JInt(v)) => JField("status", JString(WordStatus.fromValue(v.intValue()).name))
           case x => x
         }

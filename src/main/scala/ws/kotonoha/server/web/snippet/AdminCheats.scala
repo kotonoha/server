@@ -27,7 +27,7 @@ import ws.kotonoha.server.records.UserRecord
  */
 
 object AdminCheats {
-  import net.liftweb.util.BindHelpers._
+  import ws.kotonoha.server.web.lift.Binders._
   def impersonForm(in: NodeSeq) = {
 
     def changeId(s: String) = {

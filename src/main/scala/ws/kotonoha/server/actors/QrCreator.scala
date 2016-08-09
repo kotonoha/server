@@ -35,7 +35,7 @@ class QrCreator extends UserScopedActor {
     val rend = new QrRenderer(s)
     val data = rend.toStream.toByteArray
     val obj = QrEntry.createRecord.user(user).content(s).binary(data)
-    obj.save
+    obj.save()
   }
 
   def createQr(user: ObjectId, s: String) {

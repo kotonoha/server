@@ -40,7 +40,7 @@ object Common {
     version := "0.2-SNAPSHOT",
     resolvers += "kyouni" at "http://lotus.kuee.kyoto-u.ac.jp/nexus/content/groups/public/",
     excludeDependencies ++= Seq(
-      SbtExclusionRule("net.liftweb"),
+      //SbtExclusionRule("net.liftweb"),
       SbtExclusionRule("javax.transaction")
     )
   ) ++ scalacSupport
@@ -175,8 +175,8 @@ object Kotonoha {
   )
 
 
-  val liftPackage = "ws.kotonoha.liftweb"
-  val liftVersion = "2.6.3.di"
+  val liftPackage = "net.liftweb"
+  val liftVersion = "3.0-RC3"
   val akkaVer = "2.4.8"
   val rogueVer = "2.5.0"
   val luceneVersion = "6.1.0"
@@ -190,12 +190,12 @@ object Kotonoha {
     liftPackage %% "lift-util" % liftVersion exclude("joda-time", "joda-time"),
     liftPackage %% "lift-json-ext" % liftVersion exclude("joda-time", "joda-time"),
     liftPackage %% "lift-webkit" % liftVersion,
-    liftPackage %% "lift-wizard" % liftVersion,
+    //liftPackage %% "lift-wizard" % liftVersion,
     liftPackage %% "lift-mongodb-record" % liftVersion exclude("org.mongodb", "mongo-java-driver"),
     liftPackage %% "lift-json-scalaz7" % liftVersion exclude("org.scalaz", "scalaz-core_2.9.1"),
-    "net.liftmodules" %% "oauth_2.6" % "1.2-SNAPSHOT",
+    "net.liftmodules" %% "oauth_3.0" % "1.2-SNAPSHOT",
     liftPackage %% "lift-testkit" % liftVersion % "test",
-    "javax.servlet" % "servlet-api" % "2.5" % "provided",
+    "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
     "com.thoughtworks.paranamer" % "paranamer" % "2.8" //for json
   )
 

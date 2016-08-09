@@ -102,7 +102,7 @@ object TatoebaImporter {
             leftLang(ExampleSentenceRecord.langOf(left)).
             rightLang(ExampleSentenceRecord.langOf(right)).id(i)
           i += 1
-          rec.save
+          rec.save()
         }
         case _ => println("line wasn't processed:" + line)
       }

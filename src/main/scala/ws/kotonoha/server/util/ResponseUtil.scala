@@ -33,27 +33,24 @@ object ResponseUtil {
 
   object Tr {
     def apply[T <: MongoRecord[T]](lst: List[T]): JArray = list2JList(lst)
-
-    def apply[A <% JValue](lst: List[A]): JArray = JsonDSL.seq2jvalue(lst)
+    def apply[A](lst: List[A])(implicit tf: A => JValue): JArray = JsonDSL.seq2jvalue(lst)
   }
 
   def deuser(x: JValue) = {
-    x remove {
+    x.removeField {
       case JField("user", _) => true
       case _ => false
     }
   }
 
   def stripLift(x: JValue) = {
-    x transform {
+    x.transform {
       case JObject(JField("$dt" | "$oid", JString(s)) :: Nil) => JString(s)
     }
   }
 
   implicit def list2JList[T <: MongoRecord[T]](lst: List[T]): JArray = {
-    lst map {
-      _.asJValue
-    }
+    JArray(lst.map(_.asJValue))
   }
 
   def jsonResponse(data: WordsAndCards): JValue = {

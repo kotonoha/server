@@ -47,7 +47,7 @@ class UserTokenActor extends Actor {
     val tokenPrivate = randomHex(16)
     val tokenPublic = randomHex(16)
     token.tokenPublic(tokenPublic).tokenSecret(tokenPrivate)
-    token.save
+    token.save()
     token
   }
 
@@ -55,7 +55,7 @@ class UserTokenActor extends Actor {
   implicit val formats = DefaultFormats
   def createEncryptedString(req: CreateToken, key: String) = {
     val data = makeToken(req.user, req.label)
-    val raw = json.compact(json.render(Extraction.decompose(data.auth)))
+    val raw = json.compactRender(Extraction.decompose(data.auth))
     val encKey = SecurityUtil.makeArray(key)
     val obj = SecurityUtil.uriAesEncrypt(raw, encKey)
     sender ! obj
