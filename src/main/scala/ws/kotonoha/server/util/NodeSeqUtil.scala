@@ -16,8 +16,7 @@
 
 package ws.kotonoha.server.util
 
-import scala.xml.{Node, NodeSeq}
-import scala.collection.mutable.ListBuffer
+import scala.xml.NodeSeq
 
 /**
  * @author eiennohito
@@ -28,17 +27,18 @@ object NodeSeqUtil {
 
   type NodeSeqFn = NodeSeq => NodeSeq
 
-  def mixSeq[T <% NodeSeq, S <% NodeSeq](seq: TraversableOnce[T], sep: S): NodeSeq = {
-    val buf = new ListBuffer[Node]
+  def mixSeq[T, S](seq: TraversableOnce[T], sep: S)(implicit cv1: T => NodeSeq, cv2: S => NodeSeq): NodeSeq = {
+    val buf = NodeSeq.newBuilder
     var first = true
-    val sep0: NodeSeq = sep
+    val sep0: NodeSeq = cv2(sep)
     for (x <- seq) {
+      val cvt = cv1(x)
       if (first) {
         first = false
-        buf.appendAll(x)
+        buf ++= cvt
       } else {
-        buf.appendAll(sep0)
-        buf.appendAll(x)
+        buf ++= sep0
+        buf ++= cvt
       }
     }
     buf.result()
