@@ -68,7 +68,8 @@ object KotonohaTestAkka {
   def modules = Seq[Module](
     new TestModule(cfg),
     new AkkaModule("kt" + counter.getAndIncrement()),
-    new GlobalActorsModule
+    new GlobalActorsModule,
+    new RMongoModule
   )
 }
 

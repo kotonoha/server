@@ -23,7 +23,7 @@ import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.mongodb.record.MongoRecord
 import org.joda.time.DateTime
 import ws.kotonoha.server.ioc.Res
-import ws.kotonoha.server.mongo.MongoAwareTest
+import ws.kotonoha.server.mongodb.MongoAwareTest
 import ws.kotonoha.server.records.UserRecord
 
 import scala.concurrent.duration._

@@ -17,7 +17,7 @@
 package ws.kotonoha.server.wiki
 
 import org.scalatest.{FreeSpec, Matchers}
-import ws.kotonoha.server.mongo.MongoAwareTest
+import ws.kotonoha.server.mongodb.MongoAwareTest
 
 /**
  * @author eiennohito

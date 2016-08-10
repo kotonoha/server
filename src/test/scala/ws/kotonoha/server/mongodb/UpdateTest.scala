@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.mongo
+package ws.kotonoha.server.mongodb
 
-import com.mongodb.{MongoClient, MongoClientURI}
 import com.mongodb.casbah.WriteConcern
+import com.mongodb.{MongoClient, MongoClientURI}
 import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.{Empty, Full}
 import net.liftweb.mongodb.MongoDB
@@ -26,8 +26,6 @@ import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoMetaRecord, 
 import net.liftweb.record.field.StringField
 import net.liftweb.util.DefaultConnectionIdentifier
 import org.scalatest.{BeforeAndAfterAll, FreeSpec, Matchers, Suite}
-import ws.kotonoha.server.KotonohaConfig
-import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.test.KotonohaTestAkka
 
 /**
@@ -61,12 +59,15 @@ object GlobalMongoHolder extends StrictLogging {
     override def run(): Unit = {
       try {
         import ws.kotonoha.akane.config.ScalaConfig._
-        mongoClient = new MongoClient(new MongoClientURI(conf.optStr("mongo.uri").getOrElse("mongodb://localhost")))
+        val uri = new MongoClientURI(conf.optStr("mongo.uri").getOrElse("mongodb://localhost"))
+        mongoClient = new MongoClient(uri)
         MongoDB.defineDb(DefaultConnectionIdentifier, mongoClient, "tests")
-        MongoDbInit.register(mongoClient, "kototests", "kotodictests")
+        val dbname = conf.optStr("mongo.data").getOrElse("kototests")
+        val dicname = conf.optStr("mongo.dict").getOrElse("kotodictests")
+        MongoDbInit.register(mongoClient, dbname, dicname)
         mongoClient.fsync(false)
         created = true
-        logger.debug("created mongo thread")
+        logger.debug(s"created mongo thread with uri: $uri, db: $dbname dics: $dicname")
         loop()
       } catch {
         case e: Throwable =>

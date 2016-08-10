@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.ops
+package ws.kotonoha.server.mongodb
 
-import com.google.inject.Inject
-import com.typesafe.scalalogging.StrictLogging
-import ws.kotonoha.model.WordStatus
-import ws.kotonoha.server.ioc.UserContext
-import ws.kotonoha.server.records.WordRecord
-
-import scala.concurrent.ExecutionContext
+import reactivemongo.bson.{BSONReader, BSONValue}
 
 /**
   * @author eiennohito
-  * @since 2016/08/08
+  * @since 2016/08/10
   */
-class WordService @Inject() (uc: UserContext) (
-  implicit ec: ExecutionContext
-) extends StrictLogging {
-  def register(rec: WordRecord, status: WordStatus) = ???
+
+trait ReactiveReader[T] {
+  def read(b: BSONValue): T
+}
+
+
+object ReactiveReader {
+  implicit def spawn[T](implicit internal: BSONReader[_ <: BSONValue, T]): ReactiveReader[T] = {
+    new ReactiveReader[T] {
+      private val rdr = internal.asInstanceOf[BSONReader[BSONValue, T]]
+      override def read(b: BSONValue) = rdr.read(b)
+    }
+  }
 }

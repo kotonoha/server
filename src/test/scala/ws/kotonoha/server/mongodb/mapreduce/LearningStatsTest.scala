@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.mongo.mapreduce
+package ws.kotonoha.server.mongodb.mapreduce
 
 import com.mongodb.WriteConcern
 import net.liftweb.json.DefaultFormats
 import org.bson.types.ObjectId
 import org.scalatest.{FreeSpec, Matchers}
-import ws.kotonoha.server.mongo.MongoAwareTest
+import ws.kotonoha.server.mongodb.MongoAwareTest
 import ws.kotonoha.server.mongodb.mapreduce.LearningStats
 import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.util.DateTimeUtils

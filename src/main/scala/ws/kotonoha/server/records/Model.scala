@@ -16,24 +16,19 @@
 
 package ws.kotonoha.server.records
 
-import ws.kotonoha.server.mongodb.NamedDatabase
+import net.liftweb.common.{Box, Empty, Full}
+import net.liftweb.http.S
+import net.liftweb.http.S.SFuncHolder
 import net.liftweb.mongodb.record.field._
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoMetaRecord, MongoRecord}
-import net.liftweb.http.S
-
-import xml.NodeSeq
-import net.liftweb.common.{Box, Empty, Full}
-import net.liftweb.http.S.SFuncHolder
 import net.liftweb.record.field._
-import net.liftweb.json.JsonAST._
-import ws.kotonoha.server.util.{DateTimeUtils, ResponseUtil}
-import net.liftweb.json.JsonAST.JObject
-import net.liftweb.common.Full
-import net.liftweb.json.JsonAST.JField
-import net.liftweb.json.JsonAST.JBool
 import org.bson.types.ObjectId
-import org.joda.time.DateTime
-import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
+import ws.kotonoha.server.mongodb.NamedDatabase
+import ws.kotonoha.server.mongodb.record.BsonListField
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaBsonField, KotonohaBsonMeta, KotonohaMongoRecord}
+import ws.kotonoha.server.util.DateTimeUtils
+
+import scala.xml.NodeSeq
 
 /**
  * @author eiennohito
@@ -48,10 +43,9 @@ class ExampleRecord private() extends BsonRecord[ExampleRecord] {
   object translation extends StringField(this, 500)
 
   object id extends LongField(this)
-
 }
 
-object ExampleRecord extends ExampleRecord with BsonMetaRecord[ExampleRecord]
+object ExampleRecord extends ExampleRecord with KotonohaBsonMeta[ExampleRecord]
 
 trait TextAreaHtml {
   self: StringTypedField =>
@@ -83,7 +77,7 @@ class WordCardRecord private() extends MongoRecord[WordCardRecord] with ObjectId
 
   object word extends ObjectIdRefField(this, WordRecord)
 
-  object learning extends BsonRecordField(this, ItemLearningDataRecord, Empty) {
+  object learning extends KotonohaBsonField(this, ItemLearningDataRecord, Empty) {
     override def required_? = false
   }
 
@@ -97,7 +91,7 @@ class WordCardRecord private() extends MongoRecord[WordCardRecord] with ObjectId
 
   object priority extends IntField(this, 0)
 
-  object tags extends MongoListField[WordCardRecord, String](this)
+  object tags extends BsonListField[WordCardRecord, String](this)
 
 }
 
@@ -105,7 +99,7 @@ object WordCardRecord extends WordCardRecord with KotonohaMongoRecord[WordCardRe
 
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
-  def enabledFor(id: ObjectId) = {
-    this where (_.user eqs id) and (_.enabled eqs true)
+  def enabledFor(uid: ObjectId) = {
+    this where (_.user eqs uid) and (_.enabled eqs true)
   }
 }

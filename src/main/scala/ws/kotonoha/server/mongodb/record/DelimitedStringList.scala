@@ -16,20 +16,21 @@
 
 package ws.kotonoha.server.mongodb.record
 
-import net.liftweb.mongodb.record.field.MongoFieldFlavor
-import net.liftweb.mongodb.record.BsonRecord
-import net.liftweb.common.{Failure, Empty, Box}
-import net.liftweb.json.JsonAST._
-import net.liftweb.record.{FieldHelpers, MandatoryTypedField, Field}
 import com.mongodb.{BasicDBList, DBObject}
-import net.liftweb.util.Helpers._
-import net.liftweb.json.JsonParser
+import net.liftweb.common.{Box, Empty, Failure, Full}
 import net.liftweb.http.SHtml
-import xml.NodeSeq
-import net.liftweb.common.Full
-import scala.Some
-import net.liftweb.json.JsonAST.JArray
-import net.liftweb.json.JsonAST.JString
+import net.liftweb.json.JsonAST.{JArray, JString, _}
+import net.liftweb.json.JsonParser
+import net.liftweb.mongodb.record.BsonRecord
+import net.liftweb.mongodb.record.field.MongoFieldFlavor
+import net.liftweb.record.{Field, FieldHelpers, MandatoryTypedField}
+import net.liftweb.util.Helpers._
+import reactivemongo.bson.{BSONArray, BSONHandler, BSONValue, DefaultBSONHandlers}
+import ws.kotonoha.server.mongodb.ReactiveBsonSupport
+
+import scala.collection.mutable.ListBuffer
+import scala.reflect.ClassTag
+import scala.xml.NodeSeq
 
 /**
  * Stolen from Mongo record -- need to override one return type
@@ -37,14 +38,18 @@ import net.liftweb.json.JsonAST.JString
  * @tparam OwnerType
  * @tparam ListType
  */
-private [record] class MyCoolMongoListField[OwnerType <: BsonRecord[OwnerType], ListType: Manifest](rec: OwnerType)
+private [record] class MyCoolMongoListField[OwnerType <: BsonRecord[OwnerType], ListType: ClassTag]
+  (rec: OwnerType)(
+    implicit bh: BSONHandler[BSONValue, ListType]
+  )
   extends Field[List[ListType], OwnerType]
   with MandatoryTypedField[List[ListType]]
   with MongoFieldFlavor[List[ListType]]
+  with ReactiveBsonSupport
 {
   //import Reflection._
 
-  lazy val mf = manifest[ListType]
+  private[this] val mf = implicitly[ClassTag[ListType]]
 
   override type MyType = List[ListType]
 
@@ -55,9 +60,9 @@ private [record] class MyCoolMongoListField[OwnerType <: BsonRecord[OwnerType], 
   def setFromAny(in: Any): Box[MyType] = {
     in match {
       case dbo: DBObject => setFromDBObject(dbo)
-      case list@c::xs if mf.erasure.isInstance(c) => setBox(Full(list.asInstanceOf[MyType]))
-      case Some(list@c::xs) if mf.erasure.isInstance(c) => setBox(Full(list.asInstanceOf[MyType]))
-      case Full(list@c::xs) if mf.erasure.isInstance(c) => setBox(Full(list.asInstanceOf[MyType]))
+      case list@mf(_)::_ => setBox(Full(list.asInstanceOf[MyType]))
+      case Some(list@mf(_)::_) => setBox(Full(list.asInstanceOf[MyType]))
+      case Full(list@mf(_)::_) => setBox(Full(list.asInstanceOf[MyType]))
       case s: String => setFromString(s)
       case Some(s: String) => setFromString(s)
       case Full(s: String) => setFromString(s)
@@ -126,6 +131,24 @@ private [record] class MyCoolMongoListField[OwnerType <: BsonRecord[OwnerType], 
   // set this field's value using a DBObject returned from Mongo.
   def setFromDBObject(dbo: DBObject): Box[MyType] =
     setBox(Full(dbo.asInstanceOf[BasicDBList].toList.asInstanceOf[MyType]))
+
+  override def rbsonValue = {
+    valueBox.toStream.map { i =>
+      BSONArray(i.map(x => bh.write(x)))
+    }
+  }
+
+  override def fromRBsonValue(v: BSONValue) = {
+    v match {
+      case a: BSONArray =>
+        val inst = new ListBuffer[ListType]()
+        for (v <- a.values) {
+          inst += bh.read(v)
+        }
+        this.setBox(Full(inst.result()))
+      case _ => Failure(s"$v was not an array")
+    }
+  }
 }
 
 /**
@@ -134,7 +157,10 @@ private [record] class MyCoolMongoListField[OwnerType <: BsonRecord[OwnerType], 
  */
 
 class DelimitedStringList[Parent <: BsonRecord[Parent]] (p: Parent, delims: String = ",")
-  extends MyCoolMongoListField[Parent, String] (p)
+  extends MyCoolMongoListField[Parent, String] (p)(
+    implicitly[ClassTag[String]],
+    DefaultBSONHandlers.BSONStringHandler.asInstanceOf[BSONHandler[BSONValue, String]]
+  )
   with Field[List[String], Parent]{
 
   private val re = "[%s]".format(delims).r
@@ -156,7 +182,7 @@ class DelimitedStringList[Parent <: BsonRecord[Parent]] (p: Parent, delims: Stri
   }
 
   def apply(s : Box[String]) = {
-    setBox(s map (parseItems(_)))
+    setBox(s map parseItems)
     p
   }
 

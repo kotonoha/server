@@ -18,9 +18,11 @@ package ws.kotonoha.server.ioc
 
 import com.google.inject.{Provides, Singleton}
 import com.typesafe.config.Config
+import com.typesafe.scalalogging.StrictLogging
 import net.codingwell.scalaguice.ScalaModule
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.{DefaultDB, MongoConnection, MongoDriver}
+import ws.kotonoha.server.mongodb.RMData
 
 import scala.concurrent.{Await, ExecutionContext}
 
@@ -28,7 +30,7 @@ import scala.concurrent.{Await, ExecutionContext}
   * @author eiennohito
   * @since 2016/08/08
   */
-class RMongoModule extends ScalaModule {
+class RMongoModule extends ScalaModule with StrictLogging {
   import ws.kotonoha.akane.config.ScalaConfig._
   import scala.concurrent.duration._
 
@@ -56,12 +58,23 @@ class RMongoModule extends ScalaModule {
     val uri = MongoConnection.parseURI(cfg.getString("mongo.uri")).get
     val conn = drver.connection(uri)
     val dbname = cfg.optStr("mongo.data").getOrElse("kotonoha")
+    logger.info(s"creating reactivemongo with uri $uri and db $dbname")
     new DataMongo {
       override val connection = conn
       override val database = Await.result(conn.database(dbname), 1.minute)
     }
   }
+
+  @Provides
+  def rmdata(
+    dm: DataMongo,
+    ctx: ExecutionContext
+  ): RMData = new RMData {
+    override protected def db = dm.database
+    override protected implicit def ec = ctx
+  }
 }
+
 
 trait DataMongo {
   def connection: MongoConnection

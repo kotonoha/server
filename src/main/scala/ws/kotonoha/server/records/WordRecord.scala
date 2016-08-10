@@ -23,8 +23,8 @@ import net.liftweb.record.field.StringField
 import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors.tags.Taggable
 import ws.kotonoha.server.mongodb.NamedDatabase
-import ws.kotonoha.server.mongodb.record.DelimitedStringList
-import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord, PbEnumField}
+import ws.kotonoha.server.mongodb.record.{BsonListField, DelimitedStringList}
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaBsonListField, KotonohaMongoRecord, PbEnumField}
 import ws.kotonoha.server.tools.JsonAstUtil
 
 
@@ -40,9 +40,9 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
   object meaning extends StringField(this, 1000) with TextAreaHtml
   object createdOn extends JodaDateField(this)
   object status extends PbEnumField(this, WordStatus, WordStatus.New)
-  object tags extends MongoListField[WordRecord, String](this)
+  object tags extends BsonListField[WordRecord, String](this)
 
-  object examples extends BsonRecordListField(this, ExampleRecord)
+  object examples extends KotonohaBsonListField(this, ExampleRecord)
   object user extends ObjectIdRefField(this, UserRecord)
 
   def stripped: JValue = {

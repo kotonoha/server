@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.mongo
+package ws.kotonoha.server.mongodb
 
 import net.liftweb.mongodb.record.field.LongPk
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}

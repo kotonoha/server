@@ -24,7 +24,7 @@ import net.liftweb.json.DefaultFormats
 import net.liftweb.mongodb.JObjectParser
 import org.bson.types.Code
 import org.scalatest.Matchers
-import ws.kotonoha.server.mongo.MongoAwareTest
+import ws.kotonoha.server.mongodb.MongoAwareTest
 import ws.kotonoha.server.records.WordRecord
 
 import scala.collection.JavaConversions

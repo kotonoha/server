@@ -27,11 +27,13 @@ import net.liftweb.http.js.JE.{JsNull, Str}
 import net.liftweb.json.DefaultFormats
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.mongodb.MongoMeta
-import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord}
+import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoRecord}
 import net.liftweb.record._
 import net.liftweb.util.Helpers
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
+import reactivemongo.bson.{BSONDateTime, BSONValue}
+import ws.kotonoha.server.mongodb.{ReactiveBsonMeta, ReactiveBsonSupport, ReactiveMongoMeta}
 import ws.kotonoha.server.util.DateTimeUtils
 
 import scala.xml.{NodeSeq, Null, UnprefixedAttribute}
@@ -42,7 +44,7 @@ import scala.xml.{NodeSeq, Null, UnprefixedAttribute}
  */
 
 trait JodaDateTimeTypedField[MyType <: BsonRecord[MyType]]
-  extends TypedField[DateTime] {
+  extends TypedField[DateTime] with ReactiveBsonSupport {
 
   import net.liftweb.util.TimeHelpers._
   import ws.kotonoha.server.util.DateTimeUtils._
@@ -58,6 +60,10 @@ trait JodaDateTimeTypedField[MyType <: BsonRecord[MyType]]
 
   def setFromAny(in: Any): Box[DateTime] = {
     toDate(in).flatMap(d => setBox(Full(dateToCal(d)))) or genericSetFromAny(in)
+  }
+
+  override def setBox(in: Box[DateTime]): Box[DateTime] = {
+    super.setBox(in.map(d => d.withZone(DateTimeUtils.UTC)))
   }
 
   def dateToCal(date: util.Date): DateTime = new DateTime(date, UTC)
@@ -92,6 +98,13 @@ trait JodaDateTimeTypedField[MyType <: BsonRecord[MyType]]
       ISODateTimeFormat.basicDateTime().parseDateTime(v).withZone(UTC)
     }
   }
+
+  override def rbsonValue = valueBox.map(v => BSONDateTime(v.getMillis)).toStream
+
+  override def fromRBsonValue(v: BSONValue) = v match {
+    case BSONDateTime(d) => setBox(Full(new DateTime(d)))
+    case _ => Failure(s"should pass DateTime instad of $v")
+  }
 }
 
 class JodaDateField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
@@ -118,7 +131,7 @@ class OptionalJodaDateField[OwnerType <: BsonRecord[OwnerType]](rec: OwnerType)
   }
 }
 
-trait KotonohaBsonMeta[T <: BsonRecord[T]] extends BsonMetaRecord[T] { self: T =>
+trait KotonohaBsonMeta[T <: BsonRecord[T]] extends BsonMetaRecord[T] with ReactiveBsonMeta[T] { self: T =>
   override def fieldDbValue(f: Field[_, T]) = {
     f.valueBox flatMap {
       case d: DateTime => Full(d)
@@ -128,7 +141,7 @@ trait KotonohaBsonMeta[T <: BsonRecord[T]] extends BsonMetaRecord[T] { self: T =
   }
 }
 
-trait KotonohaMongoRecord[T <: BsonRecord[T]] extends KotonohaBsonMeta[T] {
+trait KotonohaMongoRecord[T <: MongoRecord[T]] extends KotonohaBsonMeta[T] with ReactiveMongoMeta[T] {
   self: T with MongoMeta[T] =>
 
   def bulkInsert(items: TraversableOnce[T], wc: WriteConcern = WriteConcern.ACKNOWLEDGED) = {

@@ -70,7 +70,7 @@ object MongoDbInit extends Logging {
       val co = new MongoClientOptions.Builder()
       val uri = new MongoClientURI(KotonohaConfig.string("mongo.uri"), co)
 
-      logger.info(s"using on server ${uri.getHosts.get(0)}")
+      logger.info(s"using on server ${uri.getHosts.get(0)} dbs: $dbname and $dictname")
 
       client = new MongoClient(uri)
 

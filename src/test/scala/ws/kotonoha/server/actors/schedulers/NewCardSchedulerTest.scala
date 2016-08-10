@@ -22,7 +22,7 @@ import net.liftweb.common.Empty
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.scalatest.{BeforeAndAfter, FreeSpecLike, Matchers}
-import ws.kotonoha.server.mongo.MongoAwareTest
+import ws.kotonoha.server.mongodb.MongoAwareTest
 import ws.kotonoha.server.records.events.NewCardSchedule
 import ws.kotonoha.server.records.{UserRecord, UserTagInfo, WordCardRecord}
 import ws.kotonoha.server.test.{TestWithAkka, UserTestContext}
