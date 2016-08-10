@@ -16,8 +16,9 @@
 
 package ws.kotonoha.server.web.snippet
 
-import net.liftweb.http.SHtml
+import net.liftweb.http.{OkResponse, SHtml}
 import net.liftweb.http.js.{JE, JsCmd, JsExp}
+import net.liftweb.http.rest.RestContinuation
 
 import scala.xml.NodeSeq
 
@@ -39,10 +40,16 @@ object Sandbox {
     ".cb" #> holder.toForm
   }
 
+  private val sync = new Object
+
   def slowOp(ns: NodeSeq): NodeSeq = {
     SHtml.ajaxButton("I am slow", () => {
-      synchronized { this.wait(10 * 1000) }
-      (): JsCmd
+      RestContinuation.async { resp =>
+        sync.synchronized {
+          sync.wait(3 * 1000)
+        }
+        resp(OkResponse())
+      }
     }, "class" -> "btn")
   }
 }

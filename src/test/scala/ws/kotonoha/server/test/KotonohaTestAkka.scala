@@ -79,7 +79,7 @@ class KotonohaTestAkka extends AkkaMain {
   def system: ActorSystem = inj.getInstance(classOf[ActorSystem])
   override def global = inj.getInstance(classOf[GlobalActors]).global
 
-  def userContext(uid: ObjectId) = new UserContext(this, uid)
+  def userContext(uid: ObjectId) = new UserTestContext(this, uid)
 
   private[test] val cnt = new AtomicInteger()
 }
@@ -90,7 +90,7 @@ class SupervisorActor extends UserScopedActor {
   }
 }
 
-class UserContext(akka: KotonohaTestAkka, uid: ObjectId) {
+class UserTestContext(akka: KotonohaTestAkka, uid: ObjectId) {
   private implicit val timeout: Timeout = 10 minutes
   private implicit def system = akka.system
   lazy val actor = akka.userActor(uid)

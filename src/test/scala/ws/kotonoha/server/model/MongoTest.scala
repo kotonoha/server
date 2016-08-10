@@ -30,7 +30,7 @@ import ws.kotonoha.server.actors.{AkkaFun, PingUser}
 import ws.kotonoha.server.learning.{ProcessMarkEvent, ProcessMarkEvents}
 import ws.kotonoha.server.mongo.MongoAwareTest
 import ws.kotonoha.server.records.events.MarkEventRecord
-import ws.kotonoha.server.test.UserContext
+import ws.kotonoha.server.test.UserTestContext
 import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.server.util.DateTimeUtils.{now => dtNow}
 
@@ -50,7 +50,7 @@ class MongoTest extends AkkaFun with MongoAwareTest with BeforeAndAfter {
 
   def userId = user.id.get
 
-  var ucont: UserContext = null
+  var ucont: UserTestContext = null
   implicit def executor = kta.context
 
   before {

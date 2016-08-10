@@ -21,15 +21,12 @@ package bootstrap.liftweb
  * @since 07.10.11 
  */
 
-import java.util.concurrent.Executor
-
 import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.actor.{ILAExecute, LAScheduler}
 import net.liftweb.common._
 import net.liftweb.http._
 import net.liftweb.sitemap.Loc._
 import net.liftweb.sitemap._
-import net.liftweb.util.Helpers._
 import net.liftweb.util._
 import ws.kotonoha.server.KotonohaConfig
 import ws.kotonoha.server.actors.lift.Ping
@@ -74,6 +71,10 @@ class Boot extends Logging {
   }
 
   def boot() = {
+
+    LiftRules.logUnreadRequestVars = true
+    LiftRules.updateAsyncMetaList(_ => List(new Servlet31AsyncProviderMeta))
+
     logger.info(s"run mode: ${Props.mode}")
 
     val config = KotonohaConfig.config
@@ -89,6 +90,7 @@ class Boot extends Logging {
     rcfg.shortcut("cdn", CdnSnippet)
     val res = new SnippetResolver(ioc.injector, rcfg)
     LiftRules.snippets.append(res)
+
 
     MongoDbInit.init()
 

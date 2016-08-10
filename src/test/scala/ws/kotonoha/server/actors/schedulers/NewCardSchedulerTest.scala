@@ -25,7 +25,7 @@ import org.scalatest.{BeforeAndAfter, FreeSpecLike, Matchers}
 import ws.kotonoha.server.mongo.MongoAwareTest
 import ws.kotonoha.server.records.events.NewCardSchedule
 import ws.kotonoha.server.records.{UserRecord, UserTagInfo, WordCardRecord}
-import ws.kotonoha.server.test.{TestWithAkka, UserContext}
+import ws.kotonoha.server.test.{TestWithAkka, UserTestContext}
 
 /**
  * @author eiennohito
@@ -36,7 +36,7 @@ abstract class AkkaFree extends TestWithAkka with FreeSpecLike with Matchers
 
 trait AkkaWithUser extends AkkaFree with MongoAwareTest with BeforeAndAfter {
   protected var uid: ObjectId = null
-  protected var usvc: UserContext = null
+  protected var usvc: UserTestContext = null
   protected var actor: TestActorRef[NewCardScheduler] = null
 
   before {

@@ -16,11 +16,11 @@
 
 package ws.kotonoha.server.actors.auth
 
-import akka.actor.Actor
+import akka.pattern.ask
+import ws.kotonoha.server.actors.{ClientMessage, KotonohaActor, SaveRecord}
 import ws.kotonoha.server.records.ClientRecord
-import akka.pattern.{ask}
-import concurrent.duration._
-import ws.kotonoha.server.actors.{KotonohaActor, ClientMessage, SaveRecord, RootActor}
+
+import scala.concurrent.duration._
 
 /**
  * @author eiennohito

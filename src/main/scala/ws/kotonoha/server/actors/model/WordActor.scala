@@ -19,9 +19,7 @@ package ws.kotonoha.server.actors.model
 
 import akka.actor.ActorLogging
 import akka.util.Timeout
-import com.google.inject.Inject
 import com.mongodb.casbah.WriteConcern
-import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.Empty
 import net.liftweb.json.JsonAST.JObject
 import org.bson.types.ObjectId
@@ -29,13 +27,12 @@ import ws.kotonoha.akane.unicode.KanaUtil
 import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.actors._
 import ws.kotonoha.server.actors.tags.{CalculatePriority, Priority}
-import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.learning.ProcessMarkEvents
 import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
 import ws.kotonoha.server.web.comet.Candidate
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 trait WordMessage extends KotonohaMessage
 

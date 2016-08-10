@@ -21,13 +21,12 @@ import net.liftweb.http.SHtml
 import net.liftweb.http.js.JsCmd
 import net.liftweb.http.js.JsCmds.SetHtml
 import net.liftweb.http.js.jquery.JqJsCmds.FadeOut
-import net.liftweb.json
 import net.liftweb.json.{DefaultFormats, Extraction}
 import net.liftweb.util.Helpers
 import ws.kotonoha.server.actors.{CreateQrWithLifetime, CreateToken}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.records.{QrEntry, UserRecord, UserTokenRecord}
-import ws.kotonoha.server.util.Formatting
+import ws.kotonoha.server.util.{Formatting, Json}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.xml.{NodeSeq, Text}
@@ -50,8 +49,6 @@ class UserToken @Inject() (
 
   implicit val formats = DefaultFormats
 
-
-
   def create(in: NodeSeq): NodeSeq = {
     var name: String = ""
 
@@ -59,7 +56,7 @@ class UserToken @Inject() (
       val fut = ux.askUser[UserTokenRecord](CreateToken(ux.uid, name))
       val qrFut = fut flatMap {
         x =>
-          val authStr = json.pretty(json.render(Extraction.decompose(x.auth)))
+          val authStr = Json.str(Extraction.decompose(x.auth))
           ux.askUser[QrEntry](CreateQrWithLifetime(authStr, 1.minute))
       }
       val qr = Await.result(qrFut, 5.seconds)

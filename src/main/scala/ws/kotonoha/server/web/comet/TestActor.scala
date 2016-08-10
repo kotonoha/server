@@ -16,8 +16,11 @@
 
 package ws.kotonoha.server.web.comet
 
+import akka.actor.Scheduler
 import com.google.inject.Inject
 import net.liftweb.actor.LiftActor
+import net.liftweb.http.OkResponse
+import net.liftweb.http.rest.RestContinuation
 import net.liftweb.json.JsonAST.{JArray, JInt, JString}
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
@@ -29,8 +32,11 @@ import scala.concurrent.ExecutionContext
  * @since 22.10.12 
  */
 
-class TestActor @Inject() (ec: ExecutionContext) extends LiftActor with NgLiftActor with AkkaInterop with ReleaseAkka {
+class TestActor @Inject() (
+  schd: Scheduler
+)(implicit ec: ExecutionContext) extends LiftActor with NgLiftActor with AkkaInterop with ReleaseAkka {
   import ws.kotonoha.server.util.KBsonDSL._
+  import scala.concurrent.duration._
 
   override protected def dontCacheRendering = true
 
@@ -38,6 +44,11 @@ class TestActor @Inject() (ec: ExecutionContext) extends LiftActor with NgLiftAc
 
   override def receiveJson = {
     case JString("asdf") => ngMessage(JInt(10))
+    case JString("sdaf") => RestContinuation.async { resp =>
+      schd.scheduleOnce(3.seconds) {
+        resp(OkResponse())
+      }
+    }
     case JString(s) => ngMessage(("hey" -> 5) ~ ("length" -> s.length))
     case JArray(JString(x) :: _) => ngMessage(("hey" -> 5) ~ ("length" -> x.length))
   }

@@ -12,6 +12,7 @@
       <param-name>useFileMappedBuffer</param-name>
       <param-value>false</param-value>
     </init-param>
+    <async-supported>true</async-supported>
   </filter>
 
 
@@ -21,13 +22,19 @@
   </filter-mapping>
 
   <servlet>
-      <!-- Override init parameter to avoid nasty -->
-      <!-- file locking issue on windows.         -->
-      <servlet-name>default</servlet-name>
-      <init-param>
-          <param-name>useFileMappedBuffer</param-name>
-          <param-value>false</param-value>
-      </init-param>
+    <!-- Override init parameter to avoid nasty -->
+    <!-- file locking issue on windows.         -->
+    <servlet-name>default</servlet-name>
+    <init-param>
+      <param-name>useFileMappedBuffer</param-name>
+      <param-value>false</param-value>
+    </init-param>
+    <async-supported>true</async-supported>
   </servlet>
+
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
 
 </web-app>

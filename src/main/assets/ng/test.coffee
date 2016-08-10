@@ -1,9 +1,10 @@
 tens = (start) ->
   ({name: i, tens: i * 10} for i in [start..start+10])
 
-module = angular.module('kotonoha', ['ui.autosize', 'ui.popover2'])
+module = angular.module('kotonoha', ['ui.autosize', 'ui.popover4'])
 
-window.Model = ($scope, testSvc) ->
+
+modelctor = ($scope, testSvc) ->
   $scope.start = 23
   $scope.regenerate = -> $scope.items = tens($scope.start)
   $scope.regenerate()
@@ -22,6 +23,8 @@ window.Model = ($scope, testSvc) ->
       $scope.$apply ->
         $scope.xlen = o.length
 
+module.controller('Model', ['$scope', 'testSvc', modelctor])
+
 module.directive 'dataGrid', ($injector) ->
   restrict: 'A'
   transclude: false
@@ -35,7 +38,7 @@ module.directive 'dataGrid', ($injector) ->
 
 
 
-window.TC2 = ($scope) ->
+tc2ctor = ($scope) ->
   $scope.tagNfo = [
     { group: 'User tags', tags: [
       { name: 'tag1', descr: 'tag number 1, a great tag'}
@@ -60,6 +63,7 @@ window.TC2 = ($scope) ->
   ]
   $scope.text = "This is a test. Don't worry, be happy!"
 
+module.controller('TC2', ['$scope', tc2ctor])
 
 module.directive 'chosen', ->
   linker = (scope, elem, attr) ->

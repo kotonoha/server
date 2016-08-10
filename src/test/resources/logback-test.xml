@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<configuration>
+<configuration scan="true">
   <!--<appender name="mongo" class="ws.kotonoha.server.util.MongoAppender" />-->
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
@@ -23,6 +23,7 @@
   </appender>
 
   <logger name="akka" level="INFO" />
+
 
   <root level="DEBUG">
     <appender-ref ref="console" />
