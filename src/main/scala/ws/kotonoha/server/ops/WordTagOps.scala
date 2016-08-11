@@ -19,6 +19,7 @@ package ws.kotonoha.server.ops
 import java.util.concurrent.atomic.AtomicReference
 
 import com.google.inject.{Inject, Singleton}
+import com.typesafe.scalalogging.StrictLogging
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.UserTagInfo
@@ -34,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class WordTagOps @Inject() (
   ucx: UserContext,
   rm: RMData
-)(implicit ec: ExecutionContext) extends AtomicReference[Future[TagCache]] {
+)(implicit ec: ExecutionContext) extends AtomicReference[Future[TagCache]] with StrictLogging {
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   def invalidate(): Unit = set(null)
@@ -59,7 +60,9 @@ class WordTagOps @Inject() (
     val nfos = UserTagInfo.where(_.user eqs uid).limit(2000) //get 2k tags
     rm.fetch(nfos).map { lst =>
       val cached = lst.view.map(i => CachedTag(i.tag.get, i.priority.get, i.limit.get, i.usage.get))
-      new TagCache(cached.map(i => i.tag -> i).toMap)
+      val cache = cached.map(i => i.tag -> i).toMap
+      logger.debug(s"fetched tag information for u=$uid from db: ${cache.size} in xxx ms")
+      new TagCache(cache)
     }
   }
 }
