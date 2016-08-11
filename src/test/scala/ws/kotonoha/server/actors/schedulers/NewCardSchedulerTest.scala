@@ -21,18 +21,11 @@ import com.mongodb.casbah.WriteConcern
 import net.liftweb.common.Empty
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
-import org.scalatest.{BeforeAndAfter, FreeSpecLike, Matchers}
+import org.scalatest.{BeforeAndAfter, FreeSpecLike, LoneElement, Matchers}
 import ws.kotonoha.server.mongodb.MongoAwareTest
 import ws.kotonoha.server.records.events.NewCardSchedule
 import ws.kotonoha.server.records.{UserRecord, UserTagInfo, WordCardRecord}
-import ws.kotonoha.server.test.{TestWithAkka, UserTestContext}
-
-/**
- * @author eiennohito
- * @since 06.03.13 
- */
-
-abstract class AkkaFree extends TestWithAkka with FreeSpecLike with Matchers
+import ws.kotonoha.server.test.{AkkaFree, TestWithAkka, UserTestContext}
 
 trait AkkaWithUser extends AkkaFree with MongoAwareTest with BeforeAndAfter {
   protected var uid: ObjectId = null

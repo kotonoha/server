@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
+ * Copyright 2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.actors.schedulers
+package ws.kotonoha.server.test
 
-import org.bson.types.ObjectId
-import ws.kotonoha.server.test.AkkaFree
+import org.scalatest.{FreeSpecLike, LoneElement, Matchers}
+
+import scala.concurrent.{Await, Awaitable}
 
 /**
  * @author eiennohito
- * @since 02.03.13 
+ * @since 06.03.13
  */
 
-class SmallSchedulersTest extends AkkaFree {
-  val uid = new ObjectId()
-
-  val uctx = kta.userContext(uid)
-
-  "new scheduler" - {
-    "don't go forever" in {
-
-    }
+abstract class AkkaFree extends TestWithAkka with FreeSpecLike with Matchers with LoneElement {
+  import scala.concurrent.duration._
+  def ares[T](x: => Awaitable[T], dur: FiniteDuration = 1.second): T = {
+    Await.result(x, dur)
   }
 }

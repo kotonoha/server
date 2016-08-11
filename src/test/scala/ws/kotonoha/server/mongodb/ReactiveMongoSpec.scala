@@ -27,9 +27,9 @@ import org.joda.time.DateTime
 import org.scalatest.Matchers
 import org.scalatest.matchers.{MatchResult, Matcher}
 import ws.kotonoha.model.{CardMode, WordStatus}
-import ws.kotonoha.server.actors.schedulers.AkkaFree
 import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 import ws.kotonoha.server.records.{ExampleRecord, ItemLearningDataRecord, WordCardRecord, WordRecord}
+import ws.kotonoha.server.test.AkkaFree
 
 import scala.concurrent.Await
 
@@ -88,7 +88,7 @@ class ReactiveMongoSpec extends AkkaFree with Matchers with RecordMatchers {
       works[WordRecord] { r =>
         val ex = ExampleRecord.createRecord.
           example("asdf").translation("dsfas")
-        r.user(ObjectId.get()).tags(List("as", "das")).writing("sdas,dsa").examples(List(ex)).status(WordStatus.Deleting)
+        r.user(ObjectId.get()).tags(List("as", "das")).writing("sdas,dsa").examples(List(ex, ex)).status(WordStatus.Deleting)
       }
     }
   }

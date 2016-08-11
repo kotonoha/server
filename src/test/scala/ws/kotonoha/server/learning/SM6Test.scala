@@ -18,9 +18,9 @@ package ws.kotonoha.server.learning
 
 import akka.actor.Props
 import org.bson.types.ObjectId
-import ws.kotonoha.server.actors.schedulers.AkkaFree
 import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord}
 import ws.kotonoha.server.supermemo.{ProcessMark, SM6}
+import ws.kotonoha.server.test.AkkaFree
 
 import scala.concurrent.Await
 

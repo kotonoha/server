@@ -16,6 +16,7 @@
 
 package ws.kotonoha.server.mongodb
 
+import net.liftweb.mongodb.MongoMeta
 import net.liftweb.mongodb.record.MongoRecord
 import net.liftweb.mongodb.record.field.ObjectIdPk
 import org.bson.types.ObjectId
@@ -31,15 +32,19 @@ import scala.concurrent.{ExecutionContext, Future}
   * @since 2016/08/10
   */
 
-trait ReactiveOps {
+trait ReactiveOpsAccess {
   protected implicit def ec: ExecutionContext
+
+  protected[mongodb] def collection(name: String): BSONCollection
+  protected[mongodb] def collection(meta: MongoMeta[_]): BSONCollection = collection(meta.collectionName)
+}
+
+trait ReactiveOps extends ReactiveOpsAccess {
   protected def db: DefaultDB
+  protected[mongodb] def collection(name: String): BSONCollection = db.collection[BSONCollection](name)
+}
 
-  private[this] def collection(meta: ReactiveMongoMeta[_]): BSONCollection = {
-    val collName = meta.collectionName
-    db.collection[BSONCollection](collName)
-  }
-
+trait ReactiveCoreOps extends ReactiveOpsAccess {
   def save[T <: MongoRecord[T]](objs: Seq[T], writeConcern: WriteConcern = WriteConcern.Acknowledged)(implicit meta: ReactiveMongoMeta[T]) = {
     val coll = collection(meta)
     val data = objs.map(meta.toRMong)
@@ -65,4 +70,4 @@ trait ReactiveOps {
   }
 }
 
-trait RMData extends ReactiveOps
+trait RMData extends ReactiveOps with ReactiveCoreOps

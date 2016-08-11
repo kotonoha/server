@@ -55,10 +55,11 @@ class RMongoModule extends ScalaModule with StrictLogging {
     drver: MongoDriver,
     cfg: Config
   )(implicit ec: ExecutionContext): DataMongo = {
-    val uri = MongoConnection.parseURI(cfg.getString("mongo.uri")).get
+    val strUri = cfg.getString("mongo.uri")
+    val uri = MongoConnection.parseURI(strUri).get
     val conn = drver.connection(uri)
     val dbname = cfg.optStr("mongo.data").getOrElse("kotonoha")
-    logger.info(s"creating reactivemongo with uri $uri and db $dbname")
+    logger.info(s"creating reactivemongo with uri $strUri and db $dbname")
     new DataMongo {
       override val connection = conn
       override val database = Await.result(conn.database(dbname), 1.minute)
