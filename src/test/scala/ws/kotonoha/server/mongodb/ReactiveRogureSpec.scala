@@ -16,6 +16,7 @@
 
 package ws.kotonoha.server.mongodb
 
+import org.joda.time.DateTime
 import ws.kotonoha.server.test.AkkaFree
 import ws.kotonoha.server.util.DateTimeUtils
 
@@ -28,8 +29,12 @@ class ReactiveRogureSpec extends AkkaFree { test =>
   private val date = DateTimeUtils.now
   override protected def beforeAll(): Unit = {
     super.beforeAll()
+    createRecord(date)
+  }
+
+  def createRecord(dt: DateTime): Unit = {
     val rec = ReactiveRecord.createRecord
-    rec.textfld("test").date(date).save()
+    rec.textfld("test").date(dt).save()
   }
 
   val rrogue: ReactiveRogue = new ReactiveRogue {
@@ -38,11 +43,27 @@ class ReactiveRogureSpec extends AkkaFree { test =>
   }
 
   "ReactiveRogure" - {
-    "works" in {
-      import KotonohaLiftRogue._
+    import KotonohaLiftRogue._
+
+    "fetch works" in {
       val q = ReactiveRecord.where(_.date eqs date).limit(10)
       val res = rrogue.fetch(q)
       ares(res).loneElement.date.get shouldBe date
+    }
+
+    "update works" in {
+      val q = ReactiveRecord.where(_.date eqs date)
+      val upd = q.modify(_.textfld.setTo("asdf"))
+      ares(rrogue.update(upd)).nModified shouldBe 1
+      val loaded = q.fetch()
+      loaded.loneElement.textfld.get shouldBe "asdf"
+    }
+
+    "delete works" in {
+      val d2 = date.plusDays(2)
+      createRecord(d2)
+      val q = ReactiveRecord.where(_.date.eqs(d2))
+      ares(rrogue.remove(q)).n shouldBe 1
     }
   }
 }

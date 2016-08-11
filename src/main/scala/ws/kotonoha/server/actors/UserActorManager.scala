@@ -21,7 +21,7 @@ import akka.actor._
 import com.google.inject.Inject
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
-import ws.kotonoha.server.ioc.IocActors
+import ws.kotonoha.server.ioc.{IocActors, UserContextService}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,11 +34,12 @@ class UserActorManager @Inject()(ioc: IocActors) extends Actor with ActorLogging
   import ws.kotonoha.server.util.DateTimeUtils._
   var userMap = Map[ObjectId, ActorRef]()
   var lifetime = Map[ObjectId, DateTime]()
+  private val ucs = ioc.inst[UserContextService]
 
   private def create(uid: ObjectId) = {
     val name = uid.toString
     log.debug(s"trying to create an actor for uid $name")
-    context.actorOf(Props(new PerUserActor(ioc, uid)), name)
+    context.actorOf(ucs.of(uid).props[PerUserActor], name)
   }
 
   def userActor(uid: ObjectId) = {

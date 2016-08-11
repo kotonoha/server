@@ -17,23 +17,25 @@
 package ws.kotonoha.server.actors
 
 import akka.actor._
+import akka.event.LoggingAdapter
 import akka.util.Timeout
+import com.google.inject.Inject
 import org.bson.types.ObjectId
-import ws.kotonoha.server.ioc.IocActors
+import ws.kotonoha.server.ioc.UserContext
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
  * @author eiennohito
  * @since 06.01.13 
  */
 
-class PerUserActor(ioc: IocActors, oid: ObjectId) extends Actor {
+class PerUserActor @Inject() (ioc: UserContext) extends Actor {
   val guard = context.actorOf(ioc.props[UserGuardActor], "guard")
 
   override def receive = {
-    case UserId => sender ! oid
+    case UserId => sender ! ioc.uid
     case x => guard.forward(x)
   }
 }
@@ -81,7 +83,7 @@ trait RootActor { this: KotonohaActor =>
   }
 }
 
-trait UserScopedActor extends KotonohaActor {
+trait UserScopedActor extends KotonohaActor with ActorLogging {
   def userActorPath: ActorPath = {
     val mypath = self.path
     val rootpath = userPath
@@ -105,7 +107,18 @@ trait UserScopedActor extends KotonohaActor {
     val f = (userActor ? UserId).mapTo[ObjectId]
     Await.result(f, 1 minute)
   }
+
+  implicit def implicitlog: LoggingAdapter = log
 }
+
+object UserScopedActor {
+  implicit class FutureExts[T](val f: Future[T]) extends AnyVal {
+    def logFailure(implicit log: LoggingAdapter, ec: ExecutionContext) = f.onFailure {
+      case e: Exception => log.error(e, "error in future")
+    }
+  }
+}
+
 
 
 

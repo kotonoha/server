@@ -16,10 +16,13 @@
 
 package ws.kotonoha.server.mongodb
 
-import com.foursquare.rogue.Query
+import com.foursquare.rogue.MongoHelpers.MongoBuilder
+import com.foursquare.rogue.{ModifyQuery, Query}
+import com.mongodb.DBObject
 import net.liftweb.mongodb.record.MongoRecord
 import org.bson.{BSON => BSONDef}
-import reactivemongo.bson
+import reactivemongo.api.commands.{UpdateWriteResult, WriteResult}
+import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.buffer.ArrayReadableBuffer
 
 import scala.concurrent.Future
@@ -31,11 +34,8 @@ import scala.concurrent.Future
 trait ReactiveRogue extends ReactiveOpsAccess {
   def fetch[M <: MongoRecord[M], R]
     (q: Query[M, R, _])(implicit meta: ReactiveMongoMeta[M]): Future[List[R]] = {
-    val bytes = BSONDef.encode(q.asDBObject)
-    val rdr = ArrayReadableBuffer(bytes)
-    val obj = bson.BSONDocument.read(rdr)
     val coll = this.collection(q.collectionName)
-
+    val obj = ReactiveRogue.rbson(q.asDBObject)
     val limit = q.lim.getOrElse(Int.MaxValue)
     var bldr = coll.find(obj)
     val cursor = bldr.cursor()
@@ -46,5 +46,32 @@ trait ReactiveRogue extends ReactiveOpsAccess {
         b += meta.fillRMong(doc, rec).openOrThrowException("should not be empty").asInstanceOf[R]
       }.map(_.result())
     } else ???
+  }
+
+  def update[M <: MongoRecord[M]]
+    (mq: ModifyQuery[M, _], upsert: Boolean = false, multiple: Boolean = false): Future[UpdateWriteResult] = {
+    val q: Query[M, _, _] = mq.query
+    val coll = this.collection(q.collectionName)
+    val sobj = ReactiveRogue.rbson(q.asDBObject)
+    val mobj = ReactiveRogue.rbson(MongoBuilder.buildModify(mq.mod))
+
+    coll.update(sobj, mobj, upsert = upsert, multi = multiple)
+  }
+
+  def remove[M <: MongoRecord[M]]
+  (q: Query[M, _, _], firstMatch: Boolean = false)(implicit meta: ReactiveMongoMeta[M]): Future[WriteResult] = {
+    val coll = this.collection(meta.collectionName)
+    val sobj = ReactiveRogue.rbson(q.asDBObject)
+
+    coll.remove(sobj, firstMatchOnly = firstMatch)
+  }
+}
+
+object ReactiveRogue {
+  def rbson(o: DBObject): BSONDocument = {
+    val bytes = BSONDef.encode(o)
+    val rdr = ArrayReadableBuffer(bytes)
+    val obj = BSONDocument.read(rdr)
+    obj
   }
 }

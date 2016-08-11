@@ -16,17 +16,20 @@
 
 package ws.kotonoha.server.actors
 
-import net.liftweb.mongodb.record.MongoRecord
-import akka.actor.{ActorLogging, ActorRef, Actor}
-import com.mongodb.casbah.WriteConcern
 import akka.actor.Status.Failure
+import akka.actor.{Actor, ActorLogging, ActorRef}
+import com.mongodb.casbah.WriteConcern
+import net.liftweb.mongodb.record.MongoRecord
+import ws.kotonoha.server.mongodb.ReactiveMongoMeta
 
 /**
  * @author eiennohito
  * @since 01.02.12
  */
 
-case class SaveRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMessage
+case class SaveRecord[T <: MongoRecord[T]: ReactiveMongoMeta](rec: MongoRecord[T]) extends DbMessage {
+  def meta = implicitly[ReactiveMongoMeta[T]]
+}
 
 case class UpdateRecord[T <: MongoRecord[T]](rec: MongoRecord[T]) extends DbMessage
 

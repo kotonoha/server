@@ -16,14 +16,15 @@
 
 package ws.kotonoha.server.ops
 
+import akka.NotUsed
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
+import ws.kotonoha.akane.unicode.KanaUtil
 import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.mongodb.RMData
-import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
-import ws.kotonoha.server.util.DateTimeUtils
+import ws.kotonoha.server.records.WordRecord
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,30 +32,59 @@ import scala.concurrent.{ExecutionContext, Future}
   * @author eiennohito
   * @since 2016/08/08
   */
-class WordOps @Inject() (uc: UserContext) (
-  implicit ec: ExecutionContext
-) extends StrictLogging {
-  def register(rec: WordRecord, status: WordStatus) = ???
-}
-
-case class CreateCard(mode: CardMode, priority: Int, cid: ObjectId = ObjectId.get())
-
-class FlashcardOps @Inject() (
+class WordOps @Inject() (
   uc: UserContext,
-  rm: RMData
+  rm: RMData,
+  tops: WordTagOps,
+  cops: FlashcardOps
 )(implicit ec: ExecutionContext) extends StrictLogging {
-  def register(wid: ObjectId, mode: CardMode, priority: Int): Future[ObjectId] = {
-    this.register(wid, Seq(CreateCard(mode, priority))).map(_.head)
-  }
+  import OpsExtensions._
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
+  import ws.kotonoha.server.util.DateTimeUtils._
 
-  def register(wid: ObjectId, info: Seq[CreateCard]): Future[Seq[ObjectId]] = {
-    val nbef = DateTimeUtils.now.minusMinutes(5)
-    val cards = info.map { cc =>
-      val card = WordCardRecord.createRecord
-      card.id(cc.cid).user(uc.uid).word(wid)
-        .cardMode(cc.mode.value).notBefore(nbef).priority(cc.priority)
+  def register(word: WordRecord, status: WordStatus): Future[NotUsed] = {
+    val wordid = word.id.get
+
+    val enabled = WordOps.enableCards(status)
+
+    def calcInfo(prio: Int) = {
+      val rd = if (WordOps.needsReadingCard(word)) {
+        List(CreateCard(CardMode.Reading, prio, enabled))
+      } else Nil
+      CreateCard(CardMode.Writing, prio, enabled) :: rd
     }
 
-    rm.save(cards).map(_ => info.map(_.cid))
+    val f1 = rm.save(Seq(word.status(status)))
+    for {
+      prio <- tops.calculator.map(_.priority(word.tags.get))
+      _ <- cops.register(wordid, calcInfo(prio))
+      _ <- f1
+    } yield NotUsed
+  }
+
+  def setTags(wid: ObjectId, tags: List[String]): Future[NotUsed] = {
+    val q = WordRecord.where(_.id eqs wid).modify(_.tags setTo tags)
+    rm.update(q).mod(1)
+  }
+}
+
+object WordOps {
+  def needsReadingCard(word: WordRecord): Boolean = {
+    val read = word.reading.stris
+    val writ = word.writing.stris
+    if (writ == null || writ == "") {
+      word.writing(word.reading.get)
+      false
+    } else {
+      //normalized katakana == hiragana equals
+      !KanaUtil.kataToHira(read).equalsIgnoreCase(KanaUtil.kataToHira(writ))
+    }
+  }
+
+  def enableCards(status: WordStatus) = {
+    status match {
+      case WordStatus.Approved => true
+      case _ => false
+    }
   }
 }

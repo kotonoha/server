@@ -19,20 +19,18 @@ package ws.kotonoha.server.actors.model
 
 import akka.actor.ActorLogging
 import akka.util.Timeout
+import com.google.inject.Inject
 import com.mongodb.casbah.WriteConcern
 import net.liftweb.common.Empty
 import net.liftweb.json.JsonAST.JObject
 import org.bson.types.ObjectId
-import ws.kotonoha.akane.unicode.KanaUtil
-import ws.kotonoha.model.{CardMode, WordStatus}
+import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors._
-import ws.kotonoha.server.actors.tags.{CalculatePriority, Priority}
 import ws.kotonoha.server.learning.ProcessMarkEvents
+import ws.kotonoha.server.ops.WordOps
 import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
 import ws.kotonoha.server.web.comet.Candidate
-
-import scala.concurrent.Future
 
 trait WordMessage extends KotonohaMessage
 
@@ -49,7 +47,9 @@ case class PresentStatus(cand: Candidate, present: List[SimilarWord], queue: Lis
   }
 }
 
-class WordActor extends UserScopedActor with ActorLogging {
+class WordActor @Inject() (
+  wops: WordOps
+) extends UserScopedActor with ActorLogging {
 
   import akka.pattern.{ask, pipe}
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
@@ -67,7 +67,7 @@ class WordActor extends UserScopedActor with ActorLogging {
   }
 
   override def receive = {
-    case RegisterWord(word, st) => registerWord(word, st)
+    case RegisterWord(word, st) => wops.register(word, st).map(_ => word.id.get).pipeTo(sender())
     case ChangeWordStatus(word, stat) => changeWordStatus(word, stat)
     case MarkAllWordCards(word, mark) => markAllCards(word, mark)
     case DeleteReadyWords => deleteReadyWords()
@@ -75,18 +75,6 @@ class WordActor extends UserScopedActor with ActorLogging {
       WordRecord where (_.id eqs word) modify (_.deleteOn setTo (now.plusDays(1))) updateOne()
       self ! ChangeWordStatus(word, WordStatus.Deleting)
     case SimilarWordsRequest(c) => findSimilar(c)
-  }
-
-  def needsReadingCard(word: WordRecord) = {
-    val read = word.reading.stris
-    val writ = word.writing.stris
-    if (writ == null || writ == "") {
-      word.writing(word.reading.get)
-      false
-    } else {
-      //normalized katakana == hiragana equals
-      !KanaUtil.kataToHira(read).equalsIgnoreCase(KanaUtil.kataToHira(writ))
-    }
   }
 
   import ActorUtil.aOf
@@ -131,31 +119,6 @@ class WordActor extends UserScopedActor with ActorLogging {
     }
     f map {
       x => 1
-    } pipeTo sender
-
-  }
-
-  def registerWord(word: WordRecord, st: WordStatus) {
-    val wordid = word.id.get
-    val priF = (tags ? CalculatePriority(word.tags.get)).mapTo[Priority]
-
-    var futures = List(Future[Any] {
-      word.save(WriteConcern.Acknowledged)
-      true
-    })
-
-    if (needsReadingCard(word)) {
-      futures ::= priF flatMap {
-        p => card ? RegisterCard(wordid, CardMode.Reading.value, p.prio)
-      }
-    }
-    futures ::= priF flatMap {
-      p => card ? RegisterCard(wordid, CardMode.Writing.value, p.prio)
-    }
-
-    val s = Future.sequence(futures.map(_.mapTo[Boolean])).flatMap(_ => self ? ChangeWordStatus(wordid, st))
-    s map {
-      x => wordid
     } pipeTo sender
 
   }

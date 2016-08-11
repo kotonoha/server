@@ -16,11 +16,12 @@
 
 package ws.kotonoha.server.records
 
-import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
+import net.liftweb.common.Empty
+import net.liftweb.mongodb.record.MongoRecord
 import net.liftweb.mongodb.record.field.{ObjectIdField, ObjectIdPk}
 import net.liftweb.record.field._
-import net.liftweb.common.Empty
+import ws.kotonoha.server.mongodb.NamedDatabase
+import ws.kotonoha.server.records.meta.KotonohaMongoRecord
 
 /**
  * @author eiennohito
@@ -40,7 +41,7 @@ class TagInfo private() extends MongoRecord[TagInfo] with ObjectIdPk[TagInfo] {
 
 }
 
-object TagInfo extends TagInfo with MongoMetaRecord[TagInfo] with NamedDatabase
+object TagInfo extends TagInfo with KotonohaMongoRecord[TagInfo] with NamedDatabase
 
 class TagAlias private() extends MongoRecord[TagAlias] with ObjectIdPk[TagAlias] {
   def meta = TagAlias
@@ -51,7 +52,7 @@ class TagAlias private() extends MongoRecord[TagAlias] with ObjectIdPk[TagAlias]
 
 }
 
-object TagAlias extends TagAlias with MongoMetaRecord[TagAlias] with NamedDatabase
+object TagAlias extends TagAlias with KotonohaMongoRecord[TagAlias] with NamedDatabase
 
 class TagDescription private() extends MongoRecord[TagDescription] with ObjectIdPk[TagDescription] {
   def meta = TagDescription
@@ -64,7 +65,7 @@ class TagDescription private() extends MongoRecord[TagDescription] with ObjectId
 
 }
 
-object TagDescription extends TagDescription with MongoMetaRecord[TagDescription] with NamedDatabase
+object TagDescription extends TagDescription with KotonohaMongoRecord[TagDescription] with NamedDatabase
 
 class UserTagInfo private() extends MongoRecord[UserTagInfo] with ObjectIdPk[UserTagInfo] {
   def meta = UserTagInfo
@@ -81,7 +82,7 @@ class UserTagInfo private() extends MongoRecord[UserTagInfo] with ObjectIdPk[Use
 
 }
 
-object UserTagInfo extends UserTagInfo with MongoMetaRecord[UserTagInfo] with NamedDatabase
+object UserTagInfo extends UserTagInfo with KotonohaMongoRecord[UserTagInfo] with NamedDatabase
 
 class WordTagInfo private() extends MongoRecord[WordTagInfo] with ObjectIdPk[WordTagInfo] {
   def meta = WordTagInfo
@@ -96,4 +97,4 @@ class WordTagInfo private() extends MongoRecord[WordTagInfo] with ObjectIdPk[Wor
 
 }
 
-object WordTagInfo extends WordTagInfo with MongoMetaRecord[WordTagInfo] with NamedDatabase
+object WordTagInfo extends WordTagInfo with KotonohaMongoRecord[WordTagInfo] with NamedDatabase

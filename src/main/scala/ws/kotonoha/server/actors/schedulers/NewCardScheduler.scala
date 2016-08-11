@@ -16,17 +16,18 @@
 
 package ws.kotonoha.server.actors.schedulers
 
-import ws.kotonoha.server.actors.UserScopedActor
-import org.bson.types.ObjectId
-import ws.kotonoha.server.records.events.NewCardSchedule
-import com.foursquare.rogue.Iter
-import ws.kotonoha.server.records.{WordCardRecord, UserTagInfo}
-import util.Random
-import collection.immutable.VectorBuilder
 import akka.actor.ActorLogging
-import annotation.tailrec
-import collection.immutable.ListSet.ListSetBuilder
-import collection.mutable.ListBuffer
+import com.foursquare.rogue.Iter
+import org.bson.types.ObjectId
+import ws.kotonoha.model.CardMode
+import ws.kotonoha.server.actors.UserScopedActor
+import ws.kotonoha.server.records.events.NewCardSchedule
+import ws.kotonoha.server.records.{UserTagInfo, WordCardRecord}
+
+import scala.annotation.tailrec
+import scala.collection.immutable.VectorBuilder
+import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 /**
  * @author eiennohito
@@ -38,7 +39,7 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
-  case class CacheItem(cid: ObjectId, tags: List[String], mode: Int, word: ObjectId)
+  case class CacheItem(cid: ObjectId, tags: List[String], mode: CardMode, word: ObjectId)
 
   def limits() = {
     val list = UserTagInfo where (_.user eqs uid) and
@@ -109,7 +110,7 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
     @tailrec
     def rec(rem: Int, usg: Map[String, Int], banned: List[String], prev: Vector[CacheItem]): Vector[CacheItem] = {
       val ignore = (cached ++ prev).map(_.word)
-      val objs = query(cnt, ignore, banned) map (CacheItem.tupled)
+      val objs = query(cnt, ignore, banned) map CacheItem.tupled
       val bldr = new VectorBuilder[CacheItem]()
 
       val usm = objs.foldLeft(usg) {
@@ -143,7 +144,7 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
       case (u, t) =>
         if (u.isDefined) {
           val u1 = u.get
-          val cur = u1.get(t).getOrElse(0)
+          val cur = u1.getOrElse(t, 0)
           if (lims(t) > cur) Some(u1.updated(t, cur + 1)) else None
         } else None
     }

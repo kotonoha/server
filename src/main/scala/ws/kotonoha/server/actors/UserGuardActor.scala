@@ -18,13 +18,13 @@ package ws.kotonoha.server.actors
 
 import akka.actor._
 import com.google.inject.Inject
-import dict.{DictionaryActor, ExampleActor, ExampleMessage}
-import learning._
-import model.{CardActor, CardMessage, WordActor, WordMessage}
-import tags.{TagActor, TagMessage}
-import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
+import ws.kotonoha.server.actors.dict.{DictionaryActor, ExampleActor, ExampleMessage}
+import ws.kotonoha.server.actors.learning._
+import ws.kotonoha.server.actors.model.{CardActor, CardMessage, WordActor, WordMessage}
 import ws.kotonoha.server.actors.recommend.{RecommendActor, RecommenderMessage}
-import ws.kotonoha.server.ioc.IocActors
+import ws.kotonoha.server.actors.tags.{TagActor, TagMessage}
+import ws.kotonoha.server.ioc.UserContext
+import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
 
 /**
  * @author eiennohito
@@ -37,9 +37,10 @@ object UserGuardNames {
   val tags = "tags"
 }
 
-class UserGuardActor @Inject() (ioc: IocActors) extends UserScopedActor with ActorLogging {
+class UserGuardActor @Inject() (ioc: UserContext) extends UserScopedActor with ActorLogging {
 
   import SupervisorStrategy._
+
   import concurrent.duration._
 
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 1.minute) {
@@ -48,16 +49,16 @@ class UserGuardActor @Inject() (ioc: IocActors) extends UserScopedActor with Act
 
   import UserGuardNames._
 
-  val mongo = context.actorOf(Props[MongoDBActor], "mongo")
+  val mongo = context.actorOf(ioc.props[MongoDBActor], "mongo")
   val wordSelector = context.actorOf(ioc.props[SelectorFacade], "selector")
-  val markProcessor = context.actorOf(Props[EventProcessor], "markProc")
-  val qractor = context.actorOf(Props[QrCreator], "qr")
-  val userToken = context.actorOf(Props[UserTokenActor], "token")
-  val wordActor = context.actorOf(Props[WordActor], word)
-  val cardActor = context.actorOf(Props[CardActor], card)
+  val markProcessor = context.actorOf(ioc.props[EventProcessor], "markProc")
+  val qractor = context.actorOf(ioc.props[QrCreator], "qr")
+  val userToken = context.actorOf(ioc.props[UserTokenActor], "token")
+  val wordActor = context.actorOf(ioc.props[WordActor], word)
+  val cardActor = context.actorOf(ioc.props[CardActor], card)
   val dictActor = context.actorOf(ioc.props[DictionaryActor], "dict")
-  val exampleActor = context.actorOf(Props[ExampleActor], "example")
-  val tagActor = context.actorOf(Props[TagActor], tags)
+  val exampleActor = context.actorOf(ioc.props[ExampleActor], "example")
+  val tagActor = context.actorOf(ioc.props[TagActor], tags)
   val recommender = context.actorOf(ioc.props[RecommendActor], "recommend")
 
   def dispatch(msg: KotonohaMessage) {

@@ -23,9 +23,10 @@ import net.liftweb.mongodb.record.field._
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoMetaRecord, MongoRecord}
 import net.liftweb.record.field._
 import org.bson.types.ObjectId
+import ws.kotonoha.model.CardMode
 import ws.kotonoha.server.mongodb.NamedDatabase
 import ws.kotonoha.server.mongodb.record.BsonListField
-import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaBsonField, KotonohaBsonMeta, KotonohaMongoRecord}
+import ws.kotonoha.server.records.meta._
 import ws.kotonoha.server.util.DateTimeUtils
 
 import scala.xml.NodeSeq
@@ -73,7 +74,7 @@ trait TextAreaHtml {
 class WordCardRecord private() extends MongoRecord[WordCardRecord] with ObjectIdPk[WordCardRecord] {
   def meta = WordCardRecord
 
-  object cardMode extends IntField(this)
+  object cardMode extends PbEnumField(this, CardMode)
 
   object word extends ObjectIdRefField(this, WordRecord)
 

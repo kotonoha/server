@@ -140,7 +140,7 @@ class MongoTest extends AkkaFun with MongoAwareTest with BeforeAndAfter {
     cards.length should equal(2)
     val card = cards.head
 
-    val sched = ucont.userActor(Props[CardActor].withDispatcher(CallingThreadDispatcher.Id), "ca")
+    val sched = ucont.userActor[CardActor]("ca", _.withDispatcher(CallingThreadDispatcher.Id))
     sched.receive(SchedulePaired(id, card.cardMode.get))
     val cid = cards.last.id.get
 

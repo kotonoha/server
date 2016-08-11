@@ -110,9 +110,9 @@ object WordSnippet {
     case _ => Text("Not yet scheduled")
   }
 
-  def mode(m: Int) = m match {
-    case CardMode.Reading.value => "Reading"
-    case CardMode.Writing.value => "Writing"
+  def mode(m: CardMode) = m match {
+    case CardMode.Reading => "Reading"
+    case CardMode.Writing => "Writing"
     case _ => "Unknown"
   }
 

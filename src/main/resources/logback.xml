@@ -29,6 +29,8 @@
     <appender-ref ref="console" />
   </logger>
 
+  <logger name="reactivemongo" level="INFO" />
+
   <root level="debug">
     <appender-ref ref="console"/>
   </root>

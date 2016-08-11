@@ -65,8 +65,8 @@ object LearningHistory extends DispatchSnippet {
           <a href={href}>{cont}</a>
       }
       val mode = m.mode.get match {
-        case CardMode.Writing.value => "Writing"
-        case CardMode.Reading.value => "Reading"
+        case CardMode.Writing => "Writing"
+        case CardMode.Reading => "Reading"
         case _ => "Unknown"
       }
       val client = m.client.get match {

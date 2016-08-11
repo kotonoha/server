@@ -203,7 +203,7 @@ class ClientRecord private() extends MongoRecord[ClientRecord] with ObjectIdPk[C
   def xdatetime = registeredDate.get.toDate
 }
 
-object ClientRecord extends ClientRecord with MongoMetaRecord[ClientRecord] with NamedDatabase
+object ClientRecord extends ClientRecord with KotonohaMongoRecord[ClientRecord] with NamedDatabase
 
 class UserTokenRecord private() extends MongoRecord[UserTokenRecord] with ObjectIdPk[UserTokenRecord] {
   def meta = UserTokenRecord

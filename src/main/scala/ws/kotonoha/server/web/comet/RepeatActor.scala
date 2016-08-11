@@ -32,6 +32,7 @@ import org.apache.lucene.search.BooleanClause.Occur
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.dic.jmdict.JmdictTag
 import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
+import ws.kotonoha.model.CardMode
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.actors.learning.{LoadWords, WordsAndCards}
 import ws.kotonoha.server.actors.lift.{AkkaInterop, Ping}
@@ -154,7 +155,7 @@ class RepeatActor @Inject() (
         nsString(_)
       } getOrElse ""
       ("writing" -> w.writing.stris) ~ ("reading" -> w.reading.stris) ~ ("meaning" -> w.meaning) ~
-        ("cid" -> c.id.get.toString) ~ ("mode" -> c.cardMode.get) ~ ("examples" -> getExamples(w.examples.get, 5)) ~
+        ("cid" -> c.id.get.toString) ~ ("mode" -> c.cardMode.get.value) ~ ("examples" -> getExamples(w.examples.get, 5)) ~
         ("additional" -> procInfo) ~ ("wid" -> c.word.get.toString) ~ ("src" -> it.source)
     })
     partialUpdate(Call("publish_new", compactRender(data)).cmd)
@@ -167,7 +168,8 @@ class RepeatActor @Inject() (
 
     val me = MarkEventRecord.createRecord
     val cid = new ObjectId(mark.card)
-    me.card(cid).mark(mark.mark).mode(mark.mode).time(mark.time)
+    val mode = CardMode.fromValue(mark.mode)
+    me.card(cid).mark(mark.mark).mode(mode).time(mark.time)
     me.client("web-repeat")
     me.user(userId)
     me.datetime(now)

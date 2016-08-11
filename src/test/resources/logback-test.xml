@@ -23,7 +23,7 @@
   </appender>
 
   <logger name="akka" level="INFO" />
-
+  <logger name="reactivemongo" level="INFO" />
 
   <root level="DEBUG">
     <appender-ref ref="console" />

@@ -18,26 +18,21 @@ package ws.kotonoha.server.actors.model
 
 import akka.actor.ActorLogging
 import akka.util.Timeout
-import com.mongodb.casbah.WriteConcern
-import net.liftweb.common.Empty
+import com.google.inject.Inject
 import org.bson.types.ObjectId
 import org.joda.time.ReadableDuration
 import ws.kotonoha.model.CardMode
-import ws.kotonoha.server.actors.tags.{CalculatePriority, Priority}
-import ws.kotonoha.server.actors.{KotonohaMessage, SaveRecord, UserScopedActor}
-import ws.kotonoha.server.math.MathUtil
+import ws.kotonoha.server.actors.{KotonohaMessage, UserScopedActor}
+import ws.kotonoha.server.ops.{FlashcardOps, TagCache, WordTagOps}
 import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
-import ws.kotonoha.server.util.DateTimeUtils
 
 import scala.concurrent.Future
 
 trait CardMessage extends KotonohaMessage
 
-case class SchedulePaired(wordId: ObjectId, cardType: Int) extends CardMessage
+case class SchedulePaired(wordId: ObjectId, cardType: CardMode) extends CardMessage
 
 case class ChangeCardEnabled(wordId: ObjectId, status: Boolean) extends CardMessage
-
-case class RegisterCard(word: ObjectId, cardMode: Int, priority: Int) extends CardMessage
 
 case class ClearNotBefore(card: ObjectId) extends CardMessage
 
@@ -51,10 +46,12 @@ case object PrioritiesApplied
 
 case class TagCards(wid: ObjectId, tags: List[String], prio: Int) extends CardMessage
 
-class CardActor extends UserScopedActor with ActorLogging {
+class CardActor @Inject() (
+  cops: FlashcardOps,
+  tops: WordTagOps
+) extends UserScopedActor with ActorLogging {
 
-  import DateTimeUtils._
-  import akka.pattern.{ask, pipe}
+  import akka.pattern.pipe
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
   import concurrent.duration._
@@ -65,72 +62,38 @@ class CardActor extends UserScopedActor with ActorLogging {
   lazy val word = scoped("word")
   lazy val tags = scoped("tags")
 
-  def reprioritizeCards(): Unit = {
+  def reprioritizeCards(c: TagCache): Unit = {
     val q = WordCardRecord where (_.user eqs uid) and (_.learning exists false)
-    val zero = Priority(0)
-    val res = q select(_.id, _.word) fetch() map {
-      case (cid, wid) =>
+    val res = q select(_.id, _.word) fetch() map {  case (cid, wid) =>
         val pri = WordRecord where (_.id eqs wid) select (_.tags) get() match {
           case None =>
             log.debug("card {} has no word attached (word should have id {})", cid, wid)
-            Future.successful(zero)
-          case Some(w) => {
-            (tags ? CalculatePriority(w)).mapTo[Priority]
-          }
+            0
+          case Some(tgs) =>
+            c.priority(tgs)
         }
-        pri.map {
-          p => WordCardRecord where (_.id eqs cid) modify (_.priority setTo p.prio) updateOne()
-          Nil
-        }
+        cops.setPriority(cid, pri)
     }
-    Future.sequence(res).map(_ => PrioritiesApplied) pipeTo sender
+    Future.sequence(res).map(_ => PrioritiesApplied) pipeTo sender()
   }
 
   def tagCards(wid: ObjectId, tags: List[String], prio: Int): Unit = {
-    val q = WordCardRecord where (_.word eqs wid) modify (_.tags setTo (tags)) and (_.priority setTo (prio))
-    q.updateMulti(WriteConcern.Normal)
+
   }
+
+  import UserScopedActor._
 
   override def receive = {
-    case SchedulePaired(word, cardMode) => schedulePaired(CardMode.values(cardMode), word)
-    case ChangeCardEnabled(word, status) => {
-      val q = WordCardRecord where (_.word eqs word) modify (_.enabled setTo status)
-      q.updateMulti()
-      sender ! true
-    }
-    case RegisterCard(word, mode, pri) => {
-      val card = WordCardRecord.createRecord
-      val time = now.minusMinutes(5)
-      card.user(uid).word(word).cardMode(mode).learning(Empty).notBefore(time).priority(pri)
-      val s = sender
-      ask(mongo, SaveRecord(card)) pipeTo (s)
-    }
-    case ClearNotBefore(card) => {
-      log.debug("Clearning not before for card id {}", card)
-      val q = WordCardRecord where (_.id eqs card) modify (_.notBefore setTo now.minusSeconds(5))
-      q updateOne()
-    }
-    case ScheduleLater(card, interval) => {
-      val time = now plus (interval)
-      val q = WordCardRecord where (_.id eqs card) modify (_.notBefore setTo (time))
-      q.updateOne()
-    }
-    case DeleteCardsForWord(word) => {
-      WordCardRecord where (_.word eqs word) bulkDelete_!! (WriteConcern.Normal)
-    }
-    case ReprioritizeCards => reprioritizeCards()
-    case TagCards(wid, tags, prio) => tagCards(wid, tags, prio)
-  }
-
-  def schedulePaired(cardMode: CardMode, word: ObjectId) {
-    val cardType = cardMode match {
-      case CardMode.Writing => CardMode.Reading.value
-      case _ => CardMode.Writing.value
-    }
-    val date = now plus ((3.2 * MathUtil.ofrandom) days)
-    val q = WordCardRecord where (_.cardMode eqs cardType) and
-      (_.word eqs word) modify (_.notBefore setTo date)
-    q.updateOne()
-    sender ! true
+    case SchedulePaired(wid, cardMode) => cops.schedulePaired(wid, cardMode).map(_ => true).pipeTo(sender())
+    case ChangeCardEnabled(wid, status) => cops.enableFor(wid, status).map(_ => true).pipeTo(sender())
+    case ClearNotBefore(card) => cops.clearNotBefore(card).logFailure
+    case ScheduleLater(card, interval) =>
+      cops.scheduleAfter(card, FiniteDuration(interval.getMillis, MILLISECONDS)).logFailure
+    case DeleteCardsForWord(wid) => cops.deleteFor(wid).logFailure
+    case TagCards(wid, tags, prio) => cops.tagCards(wid, tags, prio).logFailure
+    case ReprioritizeCards =>
+      tops.calculator pipeTo self
+    case c: TagCache =>
+      reprioritizeCards(c)
   }
 }

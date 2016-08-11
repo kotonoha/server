@@ -45,7 +45,7 @@ trait ReactiveOps extends ReactiveOpsAccess {
 }
 
 trait ReactiveCoreOps extends ReactiveOpsAccess {
-  def save[T <: MongoRecord[T]](objs: Seq[T], writeConcern: WriteConcern = WriteConcern.Acknowledged)(implicit meta: ReactiveMongoMeta[T]) = {
+  def save[T <: MongoRecord[T]](objs: Seq[T], writeConcern: WriteConcern = WriteConcern.Acknowledged)(implicit meta: ReactiveMongoMeta[T]): Future[MultiBulkWriteResult] = {
     val coll = collection(meta)
     val data = objs.map(meta.toRMong)
     val future = coll.bulkInsert(data.toStream, ordered = false, writeConcern = writeConcern)
@@ -70,4 +70,4 @@ trait ReactiveCoreOps extends ReactiveOpsAccess {
   }
 }
 
-trait RMData extends ReactiveOps with ReactiveCoreOps
+trait RMData extends ReactiveOps with ReactiveCoreOps with ReactiveRogue

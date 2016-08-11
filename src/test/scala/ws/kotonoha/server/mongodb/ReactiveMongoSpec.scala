@@ -78,7 +78,7 @@ class ReactiveMongoSpec extends AkkaFree with Matchers with RecordMatchers {
       works[WordCardRecord] { r =>
         val l = ItemLearningDataRecord.createRecord
         l.lapse(1).repetition(2)
-        r.user(new ObjectId()).enabled(true).cardMode(CardMode.Writing.value)
+        r.user(new ObjectId()).enabled(true).cardMode(CardMode.Writing)
             .createdOn(DateTime.now).priority(100).tags(List("a", "b"))
             .learning(l)
       }

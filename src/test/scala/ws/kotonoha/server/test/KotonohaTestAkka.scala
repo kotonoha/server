@@ -69,6 +69,7 @@ object KotonohaTestAkka {
     new TestModule(cfg),
     new AkkaModule("kt" + counter.getAndIncrement()),
     new GlobalActorsModule,
+    new UserContextModule,
     new RMongoModule
   )
 }
@@ -80,7 +81,7 @@ class KotonohaTestAkka extends AkkaMain {
   def system: ActorSystem = inj.getInstance(classOf[ActorSystem])
   override def global = inj.getInstance(classOf[GlobalActors]).global
 
-  def userContext(uid: ObjectId) = new UserTestContext(this, uid)
+  def userContext(uid: ObjectId) = new UserTestContext(this, uid, ioc.inst[UserContextService].of(uid))
 
   private[test] val cnt = new AtomicInteger()
 }
@@ -91,7 +92,7 @@ class SupervisorActor extends UserScopedActor {
   }
 }
 
-class UserTestContext(akka: KotonohaTestAkka, uid: ObjectId) {
+class UserTestContext(akka: KotonohaTestAkka, val uid: ObjectId, val ctx: UserContext) {
   private implicit val timeout: Timeout = 10 minutes
   private implicit def system = akka.system
   lazy val actor = akka.userActor(uid)
@@ -105,8 +106,9 @@ class UserTestContext(akka: KotonohaTestAkka, uid: ObjectId) {
     TestActorRef(props, supervisor, name)
   }
 
-  def userActor[T <: UserScopedActor](name: String)(implicit ct: Manifest[T]) = {
-    TestActorRef.apply[T](akka.ioc.props[T], supervisor, name)
+  def userActor[T <: UserScopedActor](name: String, tf: Props => Props = identity)(implicit ct: Manifest[T]) = {
+    val props = ctx.props[T]
+    TestActorRef.apply[T](tf(props), supervisor, name)
   }
 
   def svcActor(props: Props, name: String) = {

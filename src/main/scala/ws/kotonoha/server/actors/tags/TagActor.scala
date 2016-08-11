@@ -16,26 +16,34 @@
 
 package ws.kotonoha.server.actors.tags
 
-import akka.actor.{ActorLogging, Actor, ActorRef}
+import javax.inject.Inject
+
+import akka.actor.{ActorLogging, ActorRef}
 import akka.pattern.{ask, pipe}
-import auto.PossibleTagRequest
-import ws.kotonoha.server.actors.UserScopedActor
-import scala.concurrent.Await
 import akka.util.Timeout
-import concurrent.duration._
-import ws.kotonoha.server.records.{UserSettings, WordTagInfo, UserTagInfo, WordRecord}
-import collection.mutable.ListBuffer
-import org.bson.types.ObjectId
 import com.mongodb.WriteConcern
-import ws.kotonoha.server.actors.model.{TagCards, PrioritiesApplied, ReprioritizeCards}
 import net.liftweb.util.{Props => LP}
+import org.bson.types.ObjectId
+import ws.kotonoha.server.actors.UserScopedActor
+import ws.kotonoha.server.actors.model.{PrioritiesApplied, ReprioritizeCards}
+import ws.kotonoha.server.actors.tags.auto.PossibleTagRequest
+import ws.kotonoha.server.ops.{FlashcardOps, WordOps, WordTagOps}
+import ws.kotonoha.server.records.{UserSettings, UserTagInfo, WordRecord}
+
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 /**
  * @author eiennohito
  * @since 07.01.13 
  */
 
-class TagActor extends UserScopedActor with ActorLogging {
+class TagActor @Inject() (
+  to: WordTagOps,
+  wo: WordOps,
+  co: FlashcardOps
+) extends UserScopedActor with ActorLogging {
 
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
@@ -75,7 +83,7 @@ class TagActor extends UserScopedActor with ActorLogging {
       }
       case RenameTag(from, to) if cur.contains(from) => {
         val cnt = cur.count(_ == from)
-        cur = (cur.filterNot(_ == from) += to)
+        cur = cur.filterNot(_ == from) += to
         handleTagWrit(from, wrs, -cnt)
         handleTagWrit(to, wrs, 1)
       }
@@ -83,10 +91,10 @@ class TagActor extends UserScopedActor with ActorLogging {
         log.debug("ignoring tagging operation {}", x)
     }
     val res = cur.result()
-    WordRecord where (_.id eqs rec.id.get) modify (_.tags setTo res) updateOne()
-    val prio = priority(res)
-    userActor ! TagCards(rec.id.get, res, prio)
-    sender ! Tagged(rec.id.get, res)
+    val wid = rec.id.get
+    val setOp = wo.setTags(wid, res)
+    val prioF = to.calculator.map(_.priority(res))
+    prioF.flatMap(prio => co.tagCards(wid, res, prio)) pipeTo sender()
   }
 
   var canPublishPrio = true
@@ -103,25 +111,7 @@ class TagActor extends UserScopedActor with ActorLogging {
       }
       canPublishPrio = false
     }
-    priorities(tag) = pr
-  }
-
-  lazy val priorities = new PriorityCache(uid)
-
-  def calculatePriority(tags: List[String]): Unit = {
-    sender ! Priority(priority(tags))
-  }
-
-  def priority(tags: List[String]): Int = {
-    val res = tags match {
-      case Nil => 0
-      case tags =>
-        val prio = tags.foldLeft(0) {
-          _ + priorities(_)
-        }
-        prio / tags.length
-    }
-    res
+    to.invalidate()
   }
 
   def taglist(): Taglist = {
@@ -133,31 +123,12 @@ class TagActor extends UserScopedActor with ActorLogging {
     case PrioritiesApplied => canPublishPrio = true
     case TagWord(wr, ops) => tagWord(wr, ops)
     case UpdateTagPriority(tag, pr, lim) => changeTagPriority(tag, pr, lim)
-    case CalculatePriority(tags) => calculatePriority(tags)
+    case CalculatePriority(tags) => to.calculator.map(c => Priority(c.priority(tags))).pipeTo(sender())
     case TaglistRequest => sender ! taglist()
     case ptr@PossibleTagRequest =>
   }
 }
 
-class PriorityCache (uid: ObjectId) {
-  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
-
-  def apply(tag: String): Int = cache(tag)
-  def update(tag: String, prio: Int): Unit = mycache = cache.updated(tag, prio)
-
-  private var mycache: Map[String, Int] = _
-
-  def load(): Map[String, Int] = {
-    val nfos = UserTagInfo where (_.user eqs uid) and (_.priority neqs 0) fetch()
-    nfos.map(i => i.tag.get -> i.priority.get).toMap.withDefaultValue(0)
-  }
-
-  def cache = {
-    if (mycache == null)
-      mycache = load()
-    mycache
-  }
-}
 
 case class Tagged(wid: ObjectId, tags: List[String])
 

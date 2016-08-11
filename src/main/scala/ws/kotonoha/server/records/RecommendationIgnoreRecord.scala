@@ -17,9 +17,10 @@
 package ws.kotonoha.server.records
 
 import ws.kotonoha.server.mongodb.NamedDatabase
-import net.liftweb.mongodb.record.{MongoRecord, MongoMetaRecord}
+import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.mongodb.record.field.{ObjectIdField, ObjectIdPk}
 import net.liftweb.record.field.LongField
+import ws.kotonoha.server.records.meta.KotonohaMongoRecord
 
 /**
  * @author eiennohito
@@ -33,4 +34,4 @@ class RecommendationIgnore private() extends MongoRecord[RecommendationIgnore] w
   object jmdict extends LongField(this)
 }
 
-object RecommendationIgnore extends RecommendationIgnore with MongoMetaRecord[RecommendationIgnore] with NamedDatabase
+object RecommendationIgnore extends RecommendationIgnore with KotonohaMongoRecord[RecommendationIgnore] with NamedDatabase
