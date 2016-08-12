@@ -132,10 +132,3 @@ class TagActor @Inject() (
 
 case class Tagged(wid: ObjectId, tags: List[String])
 
-trait Taggable {
-  def curTags: List[String]
-
-  def writeTags(tags: List[String])
-}
-
-

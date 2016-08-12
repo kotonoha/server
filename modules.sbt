@@ -3,13 +3,13 @@ import org.irundaia.sbt.sass._
 lazy val kotonoha = (project in file("."))
   .enablePlugins(BuildInfoPlugin, JettyPlugin, SbtWeb)
   .settings(Common.buildSettings)
-  .settings(Kotonoha.kotonohaSettings, Pbuf.pbScala(), Pbuf.protoIncludes(eapi, `akane-knp`, `akane-dic`))
+  .settings(Kotonoha.kotonohaSettings, Pbuf.pbScala(), Pbuf.protoIncludes(eapi, `akane-knp`, `akane-dic`, model))
   .settings(jrebelSettings)
   .settings(
     pipelineStages in Assets += postcss,
     includeFilter in SassKeys.sassify := "main.scss"
   )
-  .dependsOn(`akane-legacy`, knockoff, eapi, `grpc-streaming`, jmdict)
+  .dependsOn(`akane-legacy`, knockoff, eapi, `grpc-streaming`, jmdict, model, `lift-macros` % Provided)
   .enablePlugins(BuildInfoPlugin, JettyPlugin)
   .aggregate(jmdict)
 
@@ -46,3 +46,16 @@ lazy val jmdict = (project in file("jmdict"))
         "joda-time" % "joda-time" % "2.9.4"
       )
     ).dependsOn(`akane-dic`)
+
+lazy val model = (project in file("model"))
+    .settings(Common.buildSettings, Pbuf.pbScala())
+
+lazy val `lift-macros` = (project in file("lift-macros"))
+    .settings(Common.buildSettings)
+    .settings(
+      libraryDependencies ++= Seq(
+        Kotonoha.liftPackage %% "lift-json" % Kotonoha.liftVersion,
+        Kotonoha.liftPackage %% "lift-common" % Kotonoha.liftVersion,
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      )
+    )

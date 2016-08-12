@@ -16,6 +16,7 @@
 
 package ws.kotonoha.server.mongodb
 
+import com.google.protobuf.ByteString
 import com.mongodb.casbah.WriteConcern
 import net.liftweb.common.Full
 import net.liftweb.mongodb.record.field.ObjectIdPk
@@ -24,11 +25,14 @@ import net.liftweb.record.field.StringField
 import net.liftweb.record.{Field, Record}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
+import org.scalacheck.Gen
 import org.scalatest.Matchers
 import org.scalatest.matchers.{MatchResult, Matcher}
+import org.scalatest.prop.PropertyChecks
+import ws.kotonoha.examples.api.{ExamplePack, ExampleSentence, SentenceUnit}
 import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
-import ws.kotonoha.server.records.{ExampleRecord, ItemLearningDataRecord, WordCardRecord, WordRecord}
+import ws.kotonoha.server.records._
 import ws.kotonoha.server.test.AkkaFree
 
 import scala.concurrent.Await
@@ -89,6 +93,23 @@ class ReactiveMongoSpec extends AkkaFree with Matchers with RecordMatchers {
         val ex = ExampleRecord.createRecord.
           example("asdf").translation("dsfas")
         r.user(ObjectId.get()).tags(List("as", "das")).writing("sdas,dsa").examples(List(ex, ex)).status(WordStatus.Deleting)
+      }
+    }
+
+    "works with RepetitionExamples" in {
+      works[RepetitionExamples] { r =>
+        val su1 = SentenceUnit("test", false)
+        val su2 = SentenceUnit("me", true)
+
+        val s1 = ExampleSentence(
+          id = ByteString.copyFromUtf8("jdlksajfasafsad"),
+          Seq(su1, su2)
+        )
+        val x = ExamplePack(
+          Seq(s1, s1)
+        )
+
+        r.word(ObjectId.get()).user(ObjectId.get()).data(x)
       }
     }
   }

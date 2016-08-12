@@ -20,7 +20,6 @@ import net.liftweb.mongodb.record.field.LongPk
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import org.scalatest.{FreeSpec, LoneElement, Matchers}
 import ws.kotonoha.model.WordStatus
-import ws.kotonoha.server.mongodb.{MongoDbInit, NamedDatabase}
 import ws.kotonoha.server.records.WordRecord
 import ws.kotonoha.server.records.meta.{KotonohaMongoRecord, PbEnumField}
 

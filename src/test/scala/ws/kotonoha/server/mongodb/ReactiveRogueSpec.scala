@@ -24,7 +24,7 @@ import ws.kotonoha.server.util.DateTimeUtils
   * @author eiennohito
   * @since 2016/08/11
   */
-class ReactiveRogureSpec extends AkkaFree { test =>
+class ReactiveRogueSpec extends AkkaFree { test =>
   private [this] val acc = kta.ioc.inst[RMData]
   private val date = DateTimeUtils.now
   override protected def beforeAll(): Unit = {

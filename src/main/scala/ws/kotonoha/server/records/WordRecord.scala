@@ -19,9 +19,8 @@ package ws.kotonoha.server.records
 import net.liftweb.json.JsonAST.{JBool, JField, JObject, _}
 import net.liftweb.mongodb.record.field._
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.record.field.StringField
+import net.liftweb.record.field.{OptionalLongField, StringField}
 import ws.kotonoha.model.WordStatus
-import ws.kotonoha.server.actors.tags.Taggable
 import ws.kotonoha.server.mongodb.NamedDatabase
 import ws.kotonoha.server.mongodb.record.{BsonListField, DelimitedStringList}
 import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaBsonListField, KotonohaMongoRecord, PbEnumField}
@@ -32,7 +31,7 @@ import ws.kotonoha.server.tools.JsonAstUtil
  * @author eiennohito
  * @since 18.10.12 
  */
-class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordRecord] with Taggable {
+class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordRecord] {
   def meta = WordRecord
 
   object writing extends DelimitedStringList(this, ",、･")
@@ -44,16 +43,11 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
 
   object examples extends KotonohaBsonListField(this, ExampleRecord)
   object user extends ObjectIdRefField(this, UserRecord)
+  object deleteOn extends JodaDateField(this)
+  object jmdictLink extends OptionalLongField(this)
 
   def stripped: JValue = {
     WordRecord.trimInternal(asJValue)
-  }
-
-
-  def curTags = tags.get
-
-  def writeTags(tags: List[String]) {
-    this.tags(tags)
   }
 
   override def asJValue = {
@@ -67,8 +61,6 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
     }
     tfed.asInstanceOf[JObject]
   }
-
-  object deleteOn extends JodaDateField(this)
 }
 
 object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with KotonohaMongoRecord[WordRecord] with NamedDatabase {
