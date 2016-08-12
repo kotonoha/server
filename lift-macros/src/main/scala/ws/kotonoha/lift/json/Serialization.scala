@@ -54,8 +54,6 @@ object JWrite {
       else JNothing
     }
   }
-
-  def write[T <: Product]: JWrite[T] = macro SerializationMacros.writeCaseClass[T]
 }
 
 trait JRead[T] {
