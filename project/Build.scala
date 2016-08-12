@@ -229,7 +229,9 @@ object Kotonoha {
     "net.java.sen" % "lucene-gosen" % "6.0",
 
     "com.google.zxing" % "javase" % "3.2.1",
-    "org.bouncycastle" % "bcprov-jdk15on" % "1.54"
+    "org.bouncycastle" % "bcprov-jdk15on" % "1.54",
+
+    "com.lihaoyi" %% "sourcecode" % "0.1.2"
   )
 
   import com.earldouglas.xwp.WebappPlugin.{autoImport => wapp}

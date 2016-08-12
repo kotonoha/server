@@ -17,12 +17,7 @@
 package ws.kotonoha.server.ops
 
 import akka.NotUsed
-import com.google.inject.Inject
-import com.typesafe.scalalogging.StrictLogging
 import reactivemongo.api.commands.{MultiBulkWriteResult, UpdateWriteResult, WriteResult}
-import ws.kotonoha.model.WordStatus
-import ws.kotonoha.server.ioc.UserContext
-import ws.kotonoha.server.records.WordRecord
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
@@ -32,7 +27,8 @@ object OpsExtensions {
   implicit def rmfuture2extended[T: WtfWriteResult](f: Future[T]): RMFutureExt[T] = new RMFutureExt[T](f)
 
   class RMFutureExt[T](val f: Future[T]) extends AnyVal {
-    @inline def minMod[R](n: Int, fn: => R = NotUsed)(implicit ec: ExecutionContext, w: WtfWriteResult[T]): Future[R] = {
+    @inline def minMod[R](n: Int, fn: => R = NotUsed)(
+      implicit ec: ExecutionContext, w: WtfWriteResult[T], name: sourcecode.FullName): Future[R] = {
       f.map(x => {
         mongoOk(w.ok(x))
         passWithMore(w.n(x), n)
@@ -40,7 +36,8 @@ object OpsExtensions {
       })
     }
 
-    @inline def maxMod[R](n: Int, fn: => R = NotUsed)(implicit ec: ExecutionContext, w: WtfWriteResult[T]): Future[R] = {
+    @inline def maxMod[R](n: Int, fn: => R = NotUsed)(
+      implicit ec: ExecutionContext, w: WtfWriteResult[T], name: sourcecode.FullName): Future[R] = {
       f.map(x => {
         mongoOk(w.ok(x))
         passWithLess(w.n(x), n)
@@ -48,7 +45,8 @@ object OpsExtensions {
       })
     }
 
-    @inline def mod[R](n: Int, fn: => R = NotUsed)(implicit ec: ExecutionContext, w: WtfWriteResult[T]): Future[R] = {
+    @inline def mod[R](n: Int, fn: => R = NotUsed)(
+      implicit ec: ExecutionContext, w: WtfWriteResult[T], name: sourcecode.FullName): Future[R] = {
       f.map { x =>
         mongoOk(w.ok(x))
         passWithExact(w.n(x), n)
@@ -56,7 +54,8 @@ object OpsExtensions {
       }
     }
 
-    @inline def isOk[R](fn: => R = NotUsed)(implicit ec: ExecutionContext, w: WtfWriteResult[T]): Future[R] = {
+    @inline def isOk[R](fn: => R = NotUsed)(
+      implicit ec: ExecutionContext, w: WtfWriteResult[T], name: sourcecode.FullName): Future[R] = {
       f.map(x => {
         mongoOk(w.ok(x))
         fn
@@ -64,27 +63,27 @@ object OpsExtensions {
     }
   }
 
-  def passWithExact(x: Int, n: Int): Unit = {
+  def passWithExact(x: Int, n: Int)(implicit name: sourcecode.FullName): Unit = {
     if (x != n) {
-      error(s"required number of modifications was $x instead of $n")
+      error(s"${name.value}: required number of modifications was $x instead of $n")
     }
   }
 
-  def passWithLess(x: Int, n: Int): Unit = {
+  def passWithLess(x: Int, n: Int)(implicit name: sourcecode.FullName): Unit = {
     if (x > n) {
-      error(s"number of items $x was greater than expected $n")
+      error(s"${name.value}: number of items $x was greater than expected $n")
     }
   }
 
-  def passWithMore(x: Int, n: Int): Unit = {
+  def passWithMore(x: Int, n: Int)(implicit name: sourcecode.FullName): Unit = {
     if (x < n) {
-      error(s"number of items $x was lesser than expected $n")
+      error(s"${name.value}: number of items $x was lesser than expected $n")
     }
   }
 
-  def mongoOk(x: Boolean): Unit = {
+  def mongoOk(x: Boolean)(implicit name: sourcecode.FullName): Unit = {
     if (!x) {
-      error("error in mongo")
+      error(s"${name.value}: error in mongo")
     }
   }
 

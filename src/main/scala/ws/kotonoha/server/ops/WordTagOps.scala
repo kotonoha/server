@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 import com.google.inject.{Inject, Singleton}
 import com.typesafe.scalalogging.StrictLogging
+import ws.kotonoha.akane.utils.timers.Millitimer
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.UserTagInfo
@@ -57,11 +58,12 @@ class WordTagOps @Inject() (
   }
 
   private def calculate(): Future[TagCache] = {
+    val timer = new Millitimer
     val nfos = UserTagInfo.where(_.user eqs uid).limit(2000) //get 2k tags
     rm.fetch(nfos).map { lst =>
       val cached = lst.view.map(i => CachedTag(i.tag.get, i.priority.get, i.limit.get, i.usage.get))
       val cache = cached.map(i => i.tag -> i).toMap
-      logger.debug(s"fetched tag information for u=$uid from db: ${cache.size} in xxx ms")
+      logger.debug(s"fetched tag information for u=$uid from db: ${cache.size} in ${timer.eplaced} ms")
       new TagCache(cache)
     }
   }
