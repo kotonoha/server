@@ -44,10 +44,10 @@ object ValueConverter {
     override def rtl(r: Any) = Full(r)
   }
 
-  implicit def reverse[L, R](implicit c: ValueConverter[L, R]): ValueConverter[R, L] = new ValueConverter[R, L] {
-    override def ltr(l: R) = c.rtl(l)
-    override def rtl(r: L) = c.ltr(r)
-  }
+//  implicit def reverse[L, R](implicit c: ValueConverter[L, R]): ValueConverter[R, L] = new ValueConverter[R, L] {
+//    override def ltr(l: R) = c.rtl(l)
+//    override def rtl(r: L) = c.ltr(r)
+//  }
 
   implicit def single[T]: ValueConverter[T, T] = identity.asInstanceOf[ValueConverter[T, T]]
 }
@@ -78,14 +78,25 @@ class RecordSerializationMacros(val c: blackbox.Context)  {
         case None => EmptyTree
         case Some(r) =>
           val access = q"$param.$name"
+
+          def convert(pfx: Tree, t: Tree) = {
+            if (r.tpe =:= cleanType) {
+              q"$pfx.set($t)"
+            } else {
+              val cnv = q"implicitly[ws.kotonoha.lift.json.ValueConverter[$cleanType, ${r.tpe}]].ltr($t)"
+              q"$pfx.setBox($cnv)"
+            }
+          }
+
           isOptional match {
             case true =>
               q"""
-                  if ($access.isDefined) {
-                    $recName.${r.name}($access.get)
-                  }
+              if ($access.isDefined) {
+                ${convert(q"$recName.${r.name}", q"$access.get")}
+              }
                """
-            case false => q"$recName.${r.name}($access)"
+            case false =>
+              convert(q"$recName.${r.name}", q"$access")
           }
       }
     }
@@ -94,9 +105,17 @@ class RecordSerializationMacros(val c: blackbox.Context)  {
       rec match {
         case None => EmptyTree
         case Some(r) =>
+          val prefix =
+            if (r.tpe =:= cleanType) {
+              q"$paramName.${r.name}.valueBox"
+            } else {
+              val converter = q"implicitly[ws.kotonoha.lift.json.ValueConverter[$cleanType, ${r.tpe}]].rtl"
+              q"$paramName.${r.name}.valueBox.flatMap(o => $converter(o))"
+            }
+
           val bdy = isOptional match {
             case true =>
-              q"""$paramName.${r.name}.valueBox match {
+              q"""$prefix match {
                     case f: net.liftweb.common.Full[_] => Some(f.value)
                     case net.liftweb.common.Empty => None
                     case f: net.liftweb.common.Failure =>
@@ -105,7 +124,7 @@ class RecordSerializationMacros(val c: blackbox.Context)  {
                  }
                """
             case _ =>
-              q"""$paramName.${r.name}.valueBox match {
+              q"""$prefix match {
                     case f: net.liftweb.common.Full[_] => f.value
                     case net.liftweb.common.Empty =>
                       $fail = net.liftweb.common.Full(net.liftweb.common.Failure(${s"$name was empty"}, net.liftweb.common.Empty, $fail))
@@ -124,6 +143,8 @@ class RecordSerializationMacros(val c: blackbox.Context)  {
       val tpc = tpe.typeConstructor
       tpc != NoType && tpc == option
     }
+
+    val cleanType = if (isOptional) tpe.typeArgs.head else tpe
 
     val varName = TermName(s"__var__$name")
   }
@@ -164,7 +185,7 @@ class RecordSerializationMacros(val c: blackbox.Context)  {
        $failName match {
          case net.liftweb.common.Full(f) => f
          case _ =>
-          val x = new ${ot.tpe.typeSymbol}(..${cases.map(_.varName)})
+          val x = new $ot(..${cases.map(_.varName)})
           net.liftweb.common.Full(x)
        }
        """
@@ -187,7 +208,7 @@ class RecordSerializationMacros(val c: blackbox.Context)  {
      }
      """
 
-    //println(tree)
+    println(tree)
     tree
   }
 }
