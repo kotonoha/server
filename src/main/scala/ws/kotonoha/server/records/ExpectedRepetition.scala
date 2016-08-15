@@ -30,6 +30,8 @@ import ws.kotonoha.server.records.meta.KotonohaMongoRecord
   */
 
 
+import ws.kotonoha.server.examples.api.ApiLift._
+
 class ExpectedRepetition private() extends MongoRecord[ExpectedRepetition] with ObjectIdPk[ExpectedRepetition] {
   override def meta = ExpectedRepetition
 

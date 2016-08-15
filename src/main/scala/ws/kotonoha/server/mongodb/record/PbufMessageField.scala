@@ -17,19 +17,23 @@
 package ws.kotonoha.server.mongodb.record
 
 import com.mongodb.{BasicDBObject, DBObject}
+import com.trueaccord.scalapb.{GeneratedMessage, GeneratedMessageCompanion, Message}
 import net.liftweb.common.{Box, Empty, Failure, Full}
+import net.liftweb.json.JValue
 import net.liftweb.mongodb.record.field.MongoCaseClassField
 import net.liftweb.record.Record
 import org.bson.BSON
 import reactivemongo.bson.buffer.{ArrayBSONBuffer, ArrayReadableBuffer}
 import reactivemongo.bson.{BSONDocument, BSONHandler, BSONValue}
+import ws.kotonoha.lift.json.JFormat
 import ws.kotonoha.server.mongodb.ReactiveBsonSupport
 
 /**
   * @author eiennohito
   * @since 2016/08/12
   */
-class PbufMessageField[O <: Record[O], T](rec: O)(implicit mf: Manifest[T], bh: BSONHandler[BSONDocument, T])
+class PbufMessageField[O <: Record[O], T <: GeneratedMessage with Message[T]](rec: O)
+  (implicit mf: Manifest[T], bh: BSONHandler[BSONDocument, T], jf: JFormat[T], meta: GeneratedMessageCompanion[T])
   extends MongoCaseClassField[O, T](rec) with ReactiveBsonSupport {
   override def rbsonValue = valueBox.toStream.map(bh.write)
 
@@ -57,6 +61,10 @@ class PbufMessageField[O <: Record[O], T](rec: O)(implicit mf: Manifest[T], bh: 
     val doc = BSONDocument.read(ArrayReadableBuffer.apply(binary))
     fromRBsonValue(doc)
   }
-}
 
-object ProtobufByteStringSerializer
+  override def asJValue: JValue = jf.write(value)
+
+  override def setFromJValue(jvalue: JValue): Box[T] = setBox(jf.read(jvalue))
+
+  override def defaultValue: MyType = meta.defaultInstance
+}
