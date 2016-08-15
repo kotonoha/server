@@ -16,9 +16,10 @@
 
 package ws.kotonoha.lift.json
 
-import net.liftweb.common.{Box, Empty, Failure}
+import net.liftweb.common.{Box, Empty, Failure, Full}
 import net.liftweb.record.{Field, MetaRecord, Record}
 
+import scala.annotation.implicitNotFound
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
@@ -29,6 +30,26 @@ import scala.reflect.macros.blackbox
 trait RecordConverter[T, Rec <: Record[Rec]] {
   def toRecord(o: T)(implicit meta: MetaRecord[Rec]): Rec
   def fromRecord(o: Rec): Box[T]
+}
+
+@implicitNotFound("can't find ValueConverter ${L} <-> ${R}")
+trait ValueConverter[L, R] {
+  def ltr(l: L): Box[R]
+  def rtl(r: R): Box[L]
+}
+
+object ValueConverter {
+  implicit object identity extends ValueConverter[Any, Any] {
+    override def ltr(l: Any) = Full(l)
+    override def rtl(r: Any) = Full(r)
+  }
+
+  implicit def reverse[L, R](implicit c: ValueConverter[L, R]): ValueConverter[R, L] = new ValueConverter[R, L] {
+    override def ltr(l: R) = c.rtl(l)
+    override def rtl(r: L) = c.ltr(r)
+  }
+
+  implicit def single[T]: ValueConverter[T, T] = identity.asInstanceOf[ValueConverter[T, T]]
 }
 
 
