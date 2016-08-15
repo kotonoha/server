@@ -17,10 +17,10 @@
 package ws.kotonoha.server.lift.json
 
 import net.liftweb.common.Box
-import net.liftweb.json.JsonAST.{JBool, JInt, JString}
+import net.liftweb.json.JsonAST.{JBool, JDouble, JInt, JString}
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FreeSpec, Matchers}
-import ws.kotonoha.lift.json.{JFormat, JWrite}
+import ws.kotonoha.lift.json.{JFormat, JRead, JWrite}
 
 import scala.language.implicitConversions
 
@@ -58,12 +58,46 @@ class BasicSerializerSpec extends FreeSpec with Matchers with PropertyChecks wit
       }
     }
 
+    "works with floats" in {
+      forAll { (i: Float) =>
+        val f = implicitly[JFormat[Float]]
+        val jv = f.write(i)
+        jv.asInstanceOf[JDouble].values shouldBe i
+        f.read(jv).open shouldBe i
+      }
+    }
+
+    "works with doubles" in {
+      forAll { (i: Double) =>
+        val f = implicitly[JFormat[Double]]
+        val jv = f.write(i)
+        jv.asInstanceOf[JDouble].num shouldBe i
+        f.read(jv).open shouldBe i
+      }
+    }
+
     "works with strings" in {
       forAll { (i: String) =>
         val f = implicitly[JFormat[String]]
         val jv = f.write(i)
         jv.asInstanceOf[JString].s shouldBe i
         f.read(jv).open shouldBe i
+      }
+    }
+
+    "works with array" in {
+      forAll { (s: Array[Int]) =>
+        val w = implicitly[JWrite[Array[Int]]].write(s)
+        val o = implicitly[JRead[Array[Int]]].read(w)
+        o.open shouldBe s
+      }
+    }
+
+    "works with seq" in {
+      forAll { (s: Seq[Double]) =>
+        val w = implicitly[JWrite[Seq[Double]]].write(s)
+        val o = implicitly[JRead[Seq[Double]]].read(w)
+        o.open shouldBe s
       }
     }
   }

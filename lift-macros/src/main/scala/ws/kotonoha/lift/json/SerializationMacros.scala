@@ -27,18 +27,15 @@ import scala.reflect.macros.blackbox
   * @since 2016/08/12
   */
 
-trait Builder[T] {
-  def appendField(fld: JField)
-  def result(): Box[T]
-}
-
 object JLCaseClass {
   def write[T <: Product]: JWrite[T] = macro SerializationMacros.writeCaseClass[T]
   def read[T <: Product]: JRead[T] = macro SerializationMacros.readCaseClass[T]
   def format[T <: Product]: JFormat[T] = macro SerializationMacros.formatCaseClass[T]
 }
 
-abstract class AbstractBuilder[T] extends Builder[T] {
+abstract class AbstractBuilder[T] {
+  def appendField(fld: JField)
+  def result(): Box[T]
   protected var errors: Box[Failure] = Empty
   def addError(f: Failure) = errors = Full(f.copy(chain = errors))
 }
@@ -67,13 +64,7 @@ class SerializationMacros(val c: blackbox.Context) {
       case m: MethodSymbol => m.isCaseAccessor
       case _ => false
     }.map { i =>
-      val name = i.name.decodedName.toString
-      val fldtype = i.info.resultType
-      val access = q"$obj.$i"
-      val jout = tq"ws.kotonoha.lift.json.JWrite[$fldtype]"
-      val jvtree = q"implicitly[$jout].write($access)"
-      val rhs = q"new net.liftweb.json.JsonAST.JField($name, $jvtree)"
-      q"$bname += $rhs"
+      new FieldSpawner(i.name.decodedName.toString, i.info.resultType)
     }
 
     val bldr = reify { List.newBuilder[JField] }
@@ -82,7 +73,7 @@ class SerializationMacros(val c: blackbox.Context) {
        new $wr {
          def write($obj: $tp): $jv = {
             val $bname = $bldr
-            ..$decls
+            ..${decls.map(_.serializeField(obj, bname))}
             net.liftweb.json.JsonAST.JObject($bname.result())
          }
        }
@@ -135,6 +126,23 @@ class SerializationMacros(val c: blackbox.Context) {
           ${if (isOptional) q"None" else defaultTrees(myType)}
        }
       """
+
+    def serializeField(obj: TermName, bldr: TermName): Tree = {
+      val root = q"$obj.$nm"
+      val access = if (isOptional) q"$root.get" else root
+      val jout = tq"ws.kotonoha.lift.json.JWrite[$myType]"
+      val jvtree = q"implicitly[$jout].write($access)"
+      val rhs = q"new net.liftweb.json.JsonAST.JField($name, $jvtree)"
+      if (isOptional) {
+        q"""
+           if ($root.isDefined) {
+             $bldr += $rhs
+           }
+         """
+      } else {
+        q"$bldr += $rhs"
+      }
+    }
 
   }
 

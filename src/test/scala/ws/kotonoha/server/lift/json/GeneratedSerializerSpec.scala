@@ -17,9 +17,10 @@
 package ws.kotonoha.server.lift.json
 
 import net.liftweb.json.{DefaultFormats, Extraction}
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FreeSpec, Matchers}
-import ws.kotonoha.lift.json.JLCaseClass
+import ws.kotonoha.lift.json.{JFormat, JLCaseClass}
 
 
 /**
@@ -28,41 +29,33 @@ import ws.kotonoha.lift.json.JLCaseClass
   */
 
 private[json] case class Test1(i: Int, l: Long, s: String, io: Option[Int])
-
-private [json] object Test1 {
-
-}
-
+private[json] case class Test2(t1: Test1, t2: Option[Test1], t3: List[Test1])
 
 class GeneratedSerializerSpec extends FreeSpec with Matchers with PropertyChecks {
-  val wr = JLCaseClass.format[Test1]
+  implicit val fmt1 = JLCaseClass.format[Test1]
+  implicit val fmt2 = JLCaseClass.format[Test2]
+
+  implicit val t1a: Arbitrary[Test1] = Arbitrary(Gen.resultOf(Test1))
+  implicit val t2a: Arbitrary[Test2] = Arbitrary(Gen.resultOf(Test2))
+
+  def checkEquiv[T](msg: T)(implicit fmt: JFormat[T], mf: Manifest[T]): Unit = {
+    val jv1 = fmt.write(msg)
+    implicit val fmts = DefaultFormats
+    val jv2 = Extraction.decompose(msg)
+    val o1 = fmt.read(jv2).openOrThrowException("ok")
+    val o2 = Extraction.extract[T](jv1)
+    o1 shouldBe o2
+    msg shouldBe o1
+    msg shouldBe o2
+  }
 
   "GeneratesSerializer" - {
-
     "works with case class" in {
-      val msg = Test1(3, 2, "asd", Some(3))
-      val jv1 = wr.write(msg)
-      implicit val fmts = DefaultFormats
-      val jv2 = Extraction.decompose(msg)
-      val o1 = wr.read(jv2).openOrThrowException("ok")
-      val o2 = Extraction.extract[Test1](jv1)
-      o1 shouldBe o2
-      msg shouldBe o1
-      msg shouldBe o2
+      forAll { (msg: Test1) => checkEquiv(msg) }
     }
 
-    "works with case class and properies" in {
-      forAll { (i1: Int, l1: Long, s1: String, io: Option[Int]) =>
-        val msg = Test1(i1, l1, s1, io)
-        val jv1 = wr.write(msg)
-        implicit val fmts = DefaultFormats
-        val jv2 = Extraction.decompose(msg)
-        val o1 = wr.read(jv2).openOrThrowException("ok")
-        val o2 = Extraction.extract[Test1](jv1)
-        o1 shouldBe o2
-        msg shouldBe o1
-        msg shouldBe o2
-      }
+    "works with two classes" in {
+      forAll { (msg: Test2) => checkEquiv(msg) }
     }
   }
 }
