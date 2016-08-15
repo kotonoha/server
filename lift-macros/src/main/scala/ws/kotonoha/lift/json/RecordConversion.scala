@@ -33,9 +33,16 @@ trait RecordConverter[T, Rec <: Record[Rec]] {
 }
 
 @implicitNotFound("can't find ValueConverter ${L} <-> ${R}")
-trait ValueConverter[L, R] {
+trait ValueConverter[L, R] { t =>
   def ltr(l: L): Box[R]
   def rtl(r: R): Box[L]
+  def reverse: ValueConverter[R, L] = new ReversedValueConverter[R, L](this)
+}
+
+final class ReversedValueConverter[R, L](c: ValueConverter[L, R]) extends ValueConverter[R, L] {
+  override def ltr(l: R) = c.rtl(l)
+  override def rtl(r: L) = c.ltr(r)
+  override def reverse: ValueConverter[L, R] = c
 }
 
 object ValueConverter {
@@ -208,7 +215,7 @@ class RecordSerializationMacros(val c: blackbox.Context)  {
      }
      """
 
-    println(tree)
+    //println(tree)
     tree
   }
 }
