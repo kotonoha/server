@@ -56,6 +56,7 @@ lazy val `lift-macros` = (project in file("lift-macros"))
       libraryDependencies ++= Seq(
         Kotonoha.liftPackage %% "lift-json" % Kotonoha.liftVersion,
         Kotonoha.liftPackage %% "lift-common" % Kotonoha.liftVersion,
+        Kotonoha.liftPackage %% "lift-record" % Kotonoha.liftVersion,
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
       )
     )
