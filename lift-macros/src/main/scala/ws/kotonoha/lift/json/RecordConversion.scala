@@ -28,7 +28,13 @@ import scala.reflect.macros.blackbox
   * @since 2016/08/15
   */
 trait RecordConverter[T, Rec <: Record[Rec]] {
-  def toRecord(o: T)(implicit meta: MetaRecord[Rec]): Rec
+  def toRecord(o: T)(implicit meta: MetaRecord[Rec]): Rec = {
+    val initial = meta.createRecord
+    fillRecord(initial, o)
+    initial
+  }
+
+  def fillRecord(r: Rec, o: T): Unit
   def fromRecord(o: Rec): Box[T]
 }
 
@@ -82,7 +88,9 @@ class RecordSerializationMacros(val c: blackbox.Context)  {
   case class DataClassFieldInfo(tpe: Type, name: TermName) {
     def fillRec(param: TermName, recName: TermName, rec: Option[RecordFieldInfo]): Tree = {
       rec match {
-        case None => EmptyTree
+        case None =>
+          c.warning(c.enclosingPosition, s"could not find suitable record field for case class field $name: $tpe")
+          EmptyTree
         case Some(r) =>
           val access = q"$param.$name"
 
@@ -198,11 +206,9 @@ class RecordSerializationMacros(val c: blackbox.Context)  {
        """
 
     val recName = TermName("rec")
-    val toBody =
+    val fillBody =
       q"""{
-          val $recName = meta.createRecord
           ..${cases.map(c => c.fillRec(paramName, recName, recflds.find(_.name == c.name)))}
-          $recName
          }
        """
 
@@ -211,7 +217,7 @@ class RecordSerializationMacros(val c: blackbox.Context)  {
     val tree = q"""
      new $wr {
        def fromRecord($paramName: $rt): $boxOt = $fromBody
-       def toRecord($paramName: $ot)(implicit meta: $metaTp): $rt = $toBody
+       def fillRecord($recName: $rt, $paramName: $ot): Unit = $fillBody
      }
      """
 
