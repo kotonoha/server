@@ -18,7 +18,7 @@ package ws.kotonoha.server.web.comet
 
 import akka.actor.{ActorRef, Status}
 import com.google.inject.Inject
-import com.typesafe.scalalogging.{StrictLogging => Logging}
+import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.js.JE.{Call, JsRaw}
 import net.liftweb.http.js.JsCmds
@@ -32,11 +32,11 @@ import org.bson.types.ObjectId
 import ws.kotonoha.akane.dic.jmdict.JmdictTag
 import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
 import ws.kotonoha.model.CardMode
-import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import ws.kotonoha.server.actors.AkkaMain
 import ws.kotonoha.server.actors.learning.{LoadWords, WordsAndCards}
-import ws.kotonoha.server.actors.lift.pertab.NamedCometActor
 import ws.kotonoha.server.actors.lift.{AkkaInterop, Ping}
 import ws.kotonoha.server.actors.schedulers.{RepetitionStateResolver, ReviewCard}
+import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.japanese.ConjObj
 import ws.kotonoha.server.learning.ProcessMarkEvent
 import ws.kotonoha.server.records._
@@ -60,15 +60,17 @@ case class WebMark(card: String, mode: Int, time: Double, mark: Int, remaining: 
 case object UpdateNum
 
 class RepeatActor @Inject() (
-  jms: LuceneJmdict
-) extends NamedCometActor with AkkaInterop with Logging with ReleaseAkka {
+  jms: LuceneJmdict,
+  uc: UserContext,
+  val akkaServ: AkkaMain
+) extends AkkaInterop with StrictLogging {
   import DateTimeUtils._
 
   import concurrent.duration._
 
   def self = this
 
-  var userId: ObjectId = null
+  def userId: ObjectId = uc.uid
   var uact: ActorRef = _
   var count = 0
 
@@ -84,10 +86,9 @@ class RepeatActor @Inject() (
     RenderOut(Full(defaultHtml), Empty, Full(jsonToIncludeInCode & js), Empty, ignoreHtmlOnJs = true)
   }
 
-
-  override def localShutdown {
+  override def localShutdown() {
     cancellable.cancel()
-    super.localShutdown
+    super.localShutdown()
   }
 
   override def receiveJson = {
@@ -132,7 +133,7 @@ class RepeatActor @Inject() (
   } catch { case _: Throwable => None }
 
   def publish(words: List[WordRecord], cards: List[WordCardRecord], seq: List[ReviewCard]): Unit = {
-    import net.liftweb.json.{compactRender}
+    import net.liftweb.json.compactRender
     import ws.kotonoha.server.util.KBsonDSL._
     val wm = words.map(w => (w.id.get, w)).toMap
     val cm = cards.map(c => (c.id.get, c)).toMap
@@ -158,8 +159,12 @@ class RepeatActor @Inject() (
         ("cid" -> c.id.get.toString) ~ ("mode" -> c.cardMode.get.value) ~ ("examples" -> getExamples(w.examples.get, 5)) ~
         ("additional" -> procInfo) ~ ("wid" -> c.word.get.toString) ~ ("src" -> it.source)
     })
+    logger.debug("call publish_new")
     partialUpdate(Call("publish_new", compactRender(data)).cmd)
   }
+
+
+  override protected def alwaysReRenderOnPageLoad: Boolean = true
 
   def processMark(mark: WebMark): Unit = {
     import DateTimeUtils._
@@ -182,12 +187,14 @@ class RepeatActor @Inject() (
     }
   }
 
+
+  override protected def localSetup(): Unit = {
+    super.localSetup()
+    uact = akkaServ.userActor(userId)
+    uact ! LoadWords(15, 0)
+  }
+
   override def lowPriority = {
-    case RepeatUser(id) => {
-      userId = id
-      uact = akkaServ.userActor(userId)
-      uact ! LoadWords(15, 0)
-    }
     case RecieveJson(o) => processJson(o)
     case WordsAndCards(words, cards, seq) => publish(words, cards, seq)
     case m: WebMark =>
@@ -207,5 +214,5 @@ class RepeatActor @Inject() (
       }
   }
 
-  override def lifespan: Box[TimeSpan] = Full(15 minutes)
+  override def lifespan: Box[TimeSpan] = Full(15.minutes)
 }

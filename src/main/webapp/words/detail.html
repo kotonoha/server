@@ -23,7 +23,6 @@
     <script class="lift:cpres.js?src=taglist"></script>
     <script class="lift:cpres.ng?src=word/word-rest"></script>
   </head_merge>
-  <h2>Word card</h2>
 
   <div ng-controller="WordCon" class="container">
     <div ng-show="status" class="col-xs-12">
@@ -69,7 +68,7 @@
       </table>
       <div class="col-xs-5">
         <div class="tags">
-          <span><i class="icon-tags"></i> <b>Tags</b></span>
+          <span><i class="fa fa-tags"></i> <b>Tags</b></span>
           <div taglist="true" data="word.tags" tagNfo="[]" class="distance" style="width: 95%"></div>
         </div>
         <div class="lift:WordSnippet.renderCards">

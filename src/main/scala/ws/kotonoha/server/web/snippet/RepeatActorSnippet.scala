@@ -16,25 +16,19 @@
 
 package ws.kotonoha.server.web.snippet
 
-import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
-import ws.kotonoha.server.records.UserRecord
 import net.liftweb.util.Helpers
-import ws.kotonoha.server.actors.lift.pertab.InsertNamedComet
-import ws.kotonoha.server.web.comet.RepeatUser
+
+import scala.xml.NodeSeq
 
 /**
  * @author eiennohito
  * @since 21.05.12
  */
 
-object Repeat extends Akka with ReleaseAkka {
-
-}
-
-object RepeatActorSnippet extends InsertNamedComet {
+object RepeatActorSnippet {
   def cometClass = "RepeatActor"
 
-  override def messages = RepeatUser(UserRecord.currentId.openOrThrowException("No logged in user")) :: Nil
-
-  override def name = UserRecord.currentUserId openOr Helpers.nextFuncName
+  def render(ns: NodeSeq): NodeSeq = {
+    <lift:comet type={cometClass} name={Helpers.nextFuncName}>{ns}</lift:comet>
+  }
 }

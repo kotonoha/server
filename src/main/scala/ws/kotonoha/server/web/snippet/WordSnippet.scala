@@ -256,8 +256,6 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
       SHtml.hidden(func _, sp.toString, "name" -> ascendingParam),
       SHtml.hidden(func _, ap.toString, "name" -> sortParam))
 
-    logger.info(searchQuery)
-
     val tf =
       "@q [value]" #> searchQuery &
       ";other" #> hidden
