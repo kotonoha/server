@@ -17,10 +17,9 @@
 package ws.kotonoha.server.actors.lift
 
 import akka.actor.{Actor, ActorRef}
-import akka.pattern.{ask, pipe}
-import com.fmpwizard.cometactor.pertab.namedactor.NamedCometMessage
 import net.liftweb.http.js.JsCmd
 import org.bson.types.ObjectId
+import ws.kotonoha.server.actors.lift.pertab.NamedCometMessage
 
 /**
  * @author eiennohito
@@ -41,7 +40,7 @@ class PerUserActorSvc extends Actor {
   override def receive = {
     case RegisterPerUserActor(user, actor) => storage += user -> actor
     case DestroyActor(user) => storage -= user
-    case CmdForUser(user, cmd) => storage.get(user) map {a => a.forward(ExecJs(cmd))}
+    case CmdForUser(user, cmd) => storage.get(user) foreach {a => a.forward(ExecJs(cmd))}
     case Bcast(cmd) => storage.foreach {case (_, a) => a.forward(ExecJs(cmd))}
   }
 }

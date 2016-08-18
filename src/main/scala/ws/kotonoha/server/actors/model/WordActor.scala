@@ -27,10 +27,9 @@ import org.bson.types.ObjectId
 import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors._
 import ws.kotonoha.server.learning.ProcessMarkEvents
-import ws.kotonoha.server.ops.WordOps
+import ws.kotonoha.server.ops.{SimilarWordOps, WordOps}
 import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
-import ws.kotonoha.server.web.comet.Candidate
 
 trait WordMessage extends KotonohaMessage
 
@@ -41,14 +40,9 @@ case class MarkForDeletion(word: ObjectId) extends WordMessage
 case object DeleteReadyWords extends WordMessage
 case class SimilarWordsRequest(cand: Candidate) extends WordMessage
 
-case class PresentStatus(cand: Candidate, present: List[SimilarWord], queue: List[SimilarWord]) {
-  def fullMatch = {
-    present.exists(w => w.writings.contains(cand.writing)) || queue.exists(w => w.writings.contains(cand.writing))
-  }
-}
-
 class WordActor @Inject() (
-  wops: WordOps
+  wops: WordOps,
+  swops: SimilarWordOps
 ) extends UserScopedActor with ActorLogging {
 
   import akka.pattern.{ask, pipe}
@@ -60,11 +54,6 @@ class WordActor @Inject() (
   implicit val timeout: Timeout = 1 second
   implicit val dispatcher = context.dispatcher
 
-  def findSimilar(cand: Candidate): Unit = {
-    val ws = SimilarWords.similarWords(uid, cand)
-    val adds = SimilarWords.similarAdds(uid, cand)
-    sender ! PresentStatus(cand, ws, adds)
-  }
 
   override def receive = {
     case RegisterWord(word, st) => wops.register(word, st).map(_ => word.id.get).pipeTo(sender())
@@ -74,7 +63,7 @@ class WordActor @Inject() (
     case MarkForDeletion(word) =>
       WordRecord where (_.id eqs word) modify (_.deleteOn setTo (now.plusDays(1))) updateOne()
       self ! ChangeWordStatus(word, WordStatus.Deleting)
-    case SimilarWordsRequest(c) => findSimilar(c)
+    case SimilarWordsRequest(c) => swops.similarRegistered(c).pipeTo(sender())
   }
 
   import ActorUtil.aOf

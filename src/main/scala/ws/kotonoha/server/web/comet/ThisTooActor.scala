@@ -16,19 +16,19 @@
 
 package ws.kotonoha.server.web.comet
 
-import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
-import ws.kotonoha.server.actors.lift.{ToAkka, AkkaInterop}
+import com.google.inject.Inject
 import com.typesafe.scalalogging.{StrictLogging => Logging}
-import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.http.js.{JsExp, JE}
-import net.liftweb.json.{Extraction, DefaultFormats}
-import ws.kotonoha.server.records.{WordRecord, UserRecord}
-import org.bson.types.ObjectId
-import ws.kotonoha.server.records.events.AddWordRecord
-import scala.collection.mutable
-import ws.kotonoha.server.actors.model.{SimilarWordsRequest, PresentStatus}
-import ws.kotonoha.server.actors.ForUser
-import net.liftweb.json.JsonAST.{JString, JField, JObject}
+import net.liftweb.common.{Box, Full}
+import net.liftweb.http.js.{JE, JsExp}
+import net.liftweb.json.DefaultFormats
+import net.liftweb.json.JsonAST.{JField, JObject, JString}
+import ws.kotonoha.lift.json.JLift
+import ws.kotonoha.server.actors.AkkaMain
+import ws.kotonoha.server.actors.lift.pertab.NamedMessageComet
+import ws.kotonoha.server.actors.model.{Candidate, PresentStatus}
+import ws.kotonoha.server.ops.SimilarWordOps
+
+import scala.concurrent.ExecutionContext
 
 /**
  * @author eiennohito
@@ -37,44 +37,42 @@ import net.liftweb.json.JsonAST.{JString, JField, JObject}
 
 case class ProcessThisToo(candidate: Candidate, id: String, src: String)
 
-class ThisTooActor extends NamedCometActor with AkkaInterop with Logging with ReleaseAkka {
-  def render = <head_merge>
-    <lift:cpres.js src="tools/this_too"></lift:cpres.js>
-  </head_merge>
+case class ThisTooUpdate(ptt: ProcessThisToo, ps: PresentStatus)
 
-  lazy val userId = UserRecord.currentId
-
-  val storage = new mutable.HashMap[Candidate, ProcessThisToo]()
+class ThisTooActor @Inject() (
+  swo: SimilarWordOps,
+  val akkaServ: AkkaMain
+)(implicit val ec: ExecutionContext) extends NamedMessageComet with Logging {
 
   implicit val formats = DefaultFormats
 
   import JsExp._
-  def thisToo(ptt: ProcessThisToo, uid: ObjectId): Unit = {
+  def thisToo(ptt: ProcessThisToo): Unit = {
     val cand = ptt.candidate
-    toAkka(ForUser(uid, SimilarWordsRequest(cand)))
-    storage.update(cand, ptt)
+    swo.similarRegistered(cand).map(x => this ! ThisTooUpdate(ptt, x)).onFailure {
+      case t => logger.error(s"error when processing $ptt", t)
+    }
   }
 
-  def replyToClient(ps: PresentStatus): Unit = {
+  def replyToClient(tu: ThisTooUpdate): Unit = {
+    val ps = tu.ps
+    logger.info(s"we have match: ${ps.fullMatch} -> $tu")
     if (!ps.fullMatch) {
-      storage.get(ps.cand) match {
-        case Some(ptt) =>
-          val cand = ps.cand
-          val part = JObject(JField("source", JString(ptt.src)) :: Nil)
-          val jv = Extraction.decompose(cand).merge(part)
-          storage.remove(cand)
-          partialUpdate(JE.Call("resolve_thistoo", JE.Str(ptt.id), jv).cmd)
-        case _ =>
-      }
-    } else {
-      storage.remove(ps.cand)
+      val ptt = tu.ptt
+      val part = JObject(JField("source", JString(ptt.src)) :: Nil)
+      val jv = JLift.write(ps.cand).merge(part)
+      partialUpdate(JE.Call("resolve_thistoo", JE.Str(ptt.id), jv).cmd)
     }
   }
 
   override def lowPriority = {
-    case o: ProcessThisToo => if (userId.isDefined) thisToo(o, userId.openOrThrowException("ok"))
-    case ps: PresentStatus => replyToClient(ps)
+    case o: ProcessThisToo => thisToo(o)
+    case ps: ThisTooUpdate => replyToClient(ps)
   }
+
+  import net.liftweb.util.Helpers._
+
+  override def lifespan: Box[TimeSpan] = Full(10.seconds)
 }
 
 

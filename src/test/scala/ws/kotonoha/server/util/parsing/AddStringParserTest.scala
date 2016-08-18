@@ -17,9 +17,9 @@
 package ws.kotonoha.server.util.parsing
 
 import org.scalatest.FreeSpec
-import org.scalatest.matchers.{MatchResult, BeMatcher, ShouldMatchers}
+import org.scalatest.matchers.{BeMatcher, MatchResult, ShouldMatchers}
 import util.parsing.input.CharSequenceReader
-import ws.kotonoha.server.web.comet.Candidate
+import ws.kotonoha.server.actors.model.Candidate
 
 /**
  * @author eiennohito

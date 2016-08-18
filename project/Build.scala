@@ -266,7 +266,7 @@ object Kotonoha {
       WebKeys.stagingDirectory := (target in wapp.webappPrepare).value / "static",
       SassKeys.cssStyle := Maxified,
       SassKeys.generateSourceMaps := false,
-      wapp.webappPrepare <<= wapp.webappPrepare.dependsOn(WebKeys.stage),
+      (products in Compile) <<= (products in Compile).dependsOn(WebKeys.stage in Compile),
       JsEngineKeys.engineType := JsEngineKeys.EngineType.Node,
       resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/",
       libraryDependencies ++= (liftDeps ++ akkaDeps ++ rogueDeps ++ luceneDeps ++ kotonohaRestDeps)

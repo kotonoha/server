@@ -27,45 +27,6 @@ import scala.reflect.macros.blackbox
   * @author eiennohito
   * @since 2016/08/15
   */
-trait RecordConverter[T, Rec <: Record[Rec]] {
-  def toRecord(o: T)(implicit meta: MetaRecord[Rec]): Rec = {
-    val initial = meta.createRecord
-    fillRecord(initial, o)
-    initial
-  }
-
-  def fillRecord(r: Rec, o: T): Unit
-  def fromRecord(o: Rec): Box[T]
-}
-
-@implicitNotFound("can't find ValueConverter ${L} <-> ${R}")
-trait ValueConverter[L, R] { t =>
-  def ltr(l: L): Box[R]
-  def rtl(r: R): Box[L]
-  def reverse: ValueConverter[R, L] = new ReversedValueConverter[R, L](this)
-}
-
-final class ReversedValueConverter[R, L](c: ValueConverter[L, R]) extends ValueConverter[R, L] {
-  override def ltr(l: R) = c.rtl(l)
-  override def rtl(r: L) = c.ltr(r)
-  override def reverse: ValueConverter[L, R] = c
-}
-
-object ValueConverter {
-  implicit object identity extends ValueConverter[Any, Any] {
-    override def ltr(l: Any) = Full(l)
-    override def rtl(r: Any) = Full(r)
-  }
-
-//  implicit def reverse[L, R](implicit c: ValueConverter[L, R]): ValueConverter[R, L] = new ValueConverter[R, L] {
-//    override def ltr(l: R) = c.rtl(l)
-//    override def rtl(r: L) = c.ltr(r)
-//  }
-
-  implicit def single[T]: ValueConverter[T, T] = identity.asInstanceOf[ValueConverter[T, T]]
-}
-
-
 object JLRecord {
   def cnv[O, T <: Record[T]]: RecordConverter[O, T] = macro RecordSerializationMacros.recordConverter[O, T]
 }

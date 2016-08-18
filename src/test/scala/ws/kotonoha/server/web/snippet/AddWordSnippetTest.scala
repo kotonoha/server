@@ -17,8 +17,8 @@
 package ws.kotonoha.server.web.snippet
 
 import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.{FunSuite, FreeSpec}
-import ws.kotonoha.server.web.comet.Candidate
+import org.scalatest.{FreeSpec, FunSuite}
+import ws.kotonoha.server.actors.model.Candidate
 
 /**
  * @author eiennohito

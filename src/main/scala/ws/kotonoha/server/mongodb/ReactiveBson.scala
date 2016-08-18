@@ -18,6 +18,7 @@ package ws.kotonoha.server.mongodb
 
 import java.util.Date
 
+import com.foursquare.rogue.{OptionalSelectField, SelectField}
 import com.trueaccord.scalapb.GeneratedEnum
 import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.{Box, Empty, Failure, Full}
@@ -35,15 +36,85 @@ import scala.util.matching.Regex
   * @author eiennohito
   * @since 2016/08/10
   */
+
+case class ProjectorField(slot: Int, tf: (BSONValue => Box[_]), default: () => Box[_], optional: Boolean)
+
+class BsonProjector(fields: Map[String, ProjectorField], size: Int) {
+  def project(v: BSONDocument): Box[List[Any]] = {
+    val data = new Array[Any](size)
+    var error: Box[Failure] = Empty
+    v.elements.foreach { case (nm, v) =>
+        fields.get(nm) match {
+          case None => //ignore
+          case Some(f) =>
+            f.tf(v).or(f.default()) match {
+              case Full(o) => data(f.slot) = if (f.optional) Some(o) else o
+              case f: Failure => error = Full(f.copy(chain = error))
+              case Empty => if (f.optional) data(f.slot) = None
+            }
+        }
+    }
+    val res = List.newBuilder[Any]
+    var i = 0
+    while (i < data.length) {
+      val o = data(i)
+      if (o == null) {
+        val name = fields.find(_._2.slot == i).get
+        if (name._2.optional) {
+          res += None
+        } else {
+          error = Failure(s"field ${name._1} was not present or had no default value in document ${BSONDocument.pretty(v)}", Empty, error)
+        }
+      } else {
+        res += o
+      }
+      i += 1
+    }
+    if (error.isEmpty) Full(res.result()) else error.openOrThrowException("it's ok")
+  }
+}
+
 object ReactiveBson extends StrictLogging {
+
+  def resolveDefault(f: SelectField[_, _], f2: Field[_, _]): () => Box[_] = {
+    f match {
+      case _: OptionalSelectField[_, _] => () => f2.defaultValueBox
+      case _ => () => Empty
+    }
+  }
+
+  def projector(o: BsonRecord[_], fields: List[SelectField[_, _]]): BsonProjector = {
+    var slot = 0
+    var pflds = Map.newBuilder[String, ProjectorField]
+    fields.foreach { f =>
+      val name = f.field.name
+      o.fieldByName(name) match {
+        case Full(fl) =>
+          val pf = fl match {
+            case fld: ReactiveBsonSupport =>
+              ProjectorField(slot, v => fld.fromRBsonValue(v), resolveDefault(f, fl), f.isInstanceOf[OptionalSelectField[_, _]])
+            case _ =>
+              ProjectorField(slot, v => fillCommon(fl, v), resolveDefault(f, fl), f.isInstanceOf[OptionalSelectField[_, _]])
+          }
+          slot += 1
+          pflds += name -> pf
+        case _ => throw new Exception("unsupported field")
+      }
+    }
+    new BsonProjector(pflds.result(), fields.size)
+  }
+
 
   def fillField(o: BsonRecord[_], f: Field[_, _], v: BSONValue): Box[_] = {
     f match {
       case support: ReactiveBsonSupport =>
-        return support.fromRBsonValue(v)
+        support.fromRBsonValue(v)
       case _ =>
+        fillCommon(f, v)
     }
+  }
 
+  def fillCommon(f: Field[_, _], v: BSONValue): Box[_] = {
     v match {
       case BSONObjectID(bts) => f.setFromAny(new ObjectId(bts))
       case BSONString(s) => f.setFromAny(s)

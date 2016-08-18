@@ -20,9 +20,10 @@ import net.liftweb.json.JsonAST.{JBool, JField, JObject, _}
 import net.liftweb.mongodb.record.field._
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.record.field.{OptionalLongField, StringField}
+import ws.kotonoha.examples.api.ExamplePack
 import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.mongodb.NamedDatabase
-import ws.kotonoha.server.mongodb.record.{BsonListField, DelimitedStringList}
+import ws.kotonoha.server.mongodb.record.{BsonListField, DelimitedStringList, PbufMessageField}
 import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaBsonListField, KotonohaMongoRecord, PbEnumField}
 import ws.kotonoha.server.tools.JsonAstUtil
 
@@ -31,6 +32,9 @@ import ws.kotonoha.server.tools.JsonAstUtil
  * @author eiennohito
  * @since 18.10.12 
  */
+import ws.kotonoha.server.examples.api.ApiLift._
+import ws.kotonoha.server.examples.ExamplesToBson._
+
 class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordRecord] {
   def meta = WordRecord
 
@@ -44,7 +48,9 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
   object examples extends KotonohaBsonListField(this, ExampleRecord)
   object user extends ObjectIdRefField(this, UserRecord)
   object deleteOn extends JodaDateField(this)
+
   object jmdictLink extends OptionalLongField(this)
+  object repExamples extends PbufMessageField[WordRecord, ExamplePack](this)
 
   def stripped: JValue = {
     WordRecord.trimInternal(asJValue)
@@ -64,15 +70,6 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
 }
 
 object WordRecord extends WordRecord with MongoMetaRecord[WordRecord] with KotonohaMongoRecord[WordRecord] with NamedDatabase {
-  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
-  def myApproved = {
-    myAll and (_.status eqs WordStatus.Approved)
-  }
-
-  def myAll = {
-    WordRecord where (_.user eqs UserRecord.currentId.openOrThrowException("Impossible"))
-  }
-
   def filterExamples(value: JValue) = {
     val tfed = value.transformField {
       case JField("examples", exobj) => JField("examples",

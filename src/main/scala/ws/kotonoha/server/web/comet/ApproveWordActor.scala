@@ -18,7 +18,6 @@ package ws.kotonoha.server.web.comet
 
 import akka.actor.{ActorRef, PoisonPill}
 import akka.util.Timeout
-import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.CometActor
@@ -32,6 +31,7 @@ import ws.kotonoha.akane.pipe.juman.ParsedQuery
 import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors.interop.ParseSentence
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import ws.kotonoha.server.actors.lift.pertab.NamedCometActor
 import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
 import ws.kotonoha.server.actors.model.{WordData, _}
 import ws.kotonoha.server.actors.recommend.{RecommendRequest, RecommenderReply}
@@ -85,7 +85,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
   private var list: Box[WordList] = Empty
   private var selector: WordDataCalculator = _
 
-  implicit val ec: ExecutionContext = akkaServ.context
+  override implicit def ec: ExecutionContext = akkaServ.context
 
   var wordCreator : ActorRef = _
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 eiennohito (Tolmachev Arseny)
+ * Copyright 2016 eiennohito (Tolmachev Arseny)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.actors.lift.pertab
+package ws.kotonoha.lift.json
 
 import net.liftweb.common.Box
-import net.liftweb.http.BaseCometActor
+import net.liftweb.json.JsonAST.JValue
 
 /**
- * These are the message we pass around to
- * register each named comet actor with a dispatcher that
- * only updates the specific version it monitors
- */
-case class RegisterCometActor(actor: BaseCometActor, name: Box[String])
-case class UnregisterCometActor(actor: BaseCometActor)
-case class CometName(name: String)
+  * @author eiennohito
+  * @since 2016/08/18
+  */
+object JLift {
+  def write[T](o: T)(implicit w: JWrite[T]): JValue = w.write(o)
+  def read[T](o: JValue)(implicit r: JRead[T]): Box[T] = r.read(o)
+}

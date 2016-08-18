@@ -21,18 +21,16 @@ import com.mongodb.casbah.WriteConcern
 import net.liftweb.common.Full
 import net.liftweb.mongodb.record.field.ObjectIdPk
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.record.field.StringField
+import net.liftweb.record.field.{OptionalIntField, StringField}
 import net.liftweb.record.{Field, Record}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
-import org.scalacheck.Gen
 import org.scalatest.Matchers
 import org.scalatest.matchers.{MatchResult, Matcher}
-import org.scalatest.prop.PropertyChecks
 import ws.kotonoha.examples.api.{ExamplePack, ExampleSentence, SentenceUnit}
 import ws.kotonoha.model.{CardMode, WordStatus}
-import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 import ws.kotonoha.server.records._
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 import ws.kotonoha.server.test.AkkaFree
 
 import scala.concurrent.Await
@@ -43,6 +41,8 @@ class ReactiveRecord private() extends MongoRecord[ReactiveRecord] with ObjectId
   override def meta = ReactiveRecord
 
   object textfld extends StringField(this, 60)
+  object opttest extends OptionalIntField(this)
+  object opttest2 extends OptionalIntField(this)
   object date extends JodaDateField(this)
 }
 
@@ -93,11 +93,7 @@ class ReactiveMongoSpec extends AkkaFree with Matchers with RecordMatchers {
         val ex = ExampleRecord.createRecord.
           example("asdf").translation("dsfas")
         r.user(ObjectId.get()).tags(List("as", "das")).writing("sdas,dsa").examples(List(ex, ex)).status(WordStatus.Deleting)
-      }
-    }
 
-    "works with RepetitionExamples" in {
-      works[RepetitionExamples] { r =>
         val su1 = SentenceUnit("test", false)
         val su2 = SentenceUnit("me", true)
 
@@ -109,7 +105,7 @@ class ReactiveMongoSpec extends AkkaFree with Matchers with RecordMatchers {
           Seq(s1, s1)
         )
 
-        r.word(ObjectId.get()).user(ObjectId.get()).data(x)
+        r.repExamples(x).jmdictLink(123L)
       }
     }
   }

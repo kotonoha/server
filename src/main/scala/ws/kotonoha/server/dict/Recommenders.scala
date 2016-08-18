@@ -21,7 +21,7 @@ import ws.kotonoha.akane.conjuation.{AdjI, Verb}
 import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry, JmdictTagMap}
 import ws.kotonoha.akane.unicode.KanaUtil
 import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
-import ws.kotonoha.server.web.comet.Candidate
+import ws.kotonoha.server.actors.model.Candidate
 
 /**
  * @author eiennohito

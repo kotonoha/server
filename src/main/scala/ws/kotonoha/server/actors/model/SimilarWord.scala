@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package ws.kotonoha.server.actors.lift.pertab
+package ws.kotonoha.server.actors.model
 
-import net.liftweb.common.Box
-import net.liftweb.http.BaseCometActor
+import org.bson.types.ObjectId
 
 /**
- * These are the message we pass around to
- * register each named comet actor with a dispatcher that
- * only updates the specific version it monitors
+ * @author eiennohito
+ * @since 14.03.13 
  */
-case class RegisterCometActor(actor: BaseCometActor, name: Box[String])
-case class UnregisterCometActor(actor: BaseCometActor)
-case class CometName(name: String)
+
+case class SimilarWord(id: ObjectId, writings: List[String], readings: List[String])
+
+case class PresentStatus(cand: Candidate, present: List[SimilarWord], queue: List[SimilarWord]) {
+  def fullMatch = {
+    present.exists(w => w.writings.contains(cand.writing)) || queue.exists(w => w.writings.contains(cand.writing))
+  }
+}

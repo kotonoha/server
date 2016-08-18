@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package com.fmpwizard.cometactor.pertab
-package namedactor
+package ws.kotonoha.server.actors.lift.pertab
 
 import net.liftweb.common.Full
 import net.liftweb.http.{DispatchSnippet, S, SessionVar}

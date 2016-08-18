@@ -140,7 +140,8 @@ class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging 
       ".debug *" #> debug(o.id, results.expls)
     } &
     ".total" #> results.totalHits &
-    ".found" #> results.data.length
+    ".found" #> results.data.length &
+    ".query" #> queryString
 
     fn apply in
   }

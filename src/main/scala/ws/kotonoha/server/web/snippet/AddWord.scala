@@ -18,7 +18,7 @@ package ws.kotonoha.server.web.snippet
 
 import net.liftweb.http.S
 import net.liftweb.common.Full
-import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
+import ws.kotonoha.server.actors.lift.pertab.InsertNamedComet
 import ws.kotonoha.server.util.unapply.XOid
 import ws.kotonoha.server.web.comet.{Cleanup, PrepareWords, WordList}
 import ws.kotonoha.server.records.UserRecord

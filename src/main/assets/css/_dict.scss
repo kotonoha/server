@@ -1,0 +1,74 @@
+//other dictionaries
+.dict-container {
+  span.writing {
+    margin: 2pt;
+  }
+
+  .dict-entry {
+    margin: 5pt;
+    border-bottom: dotted gray 1px;
+  }
+
+  div.m-ent {
+    display: table-row;
+  }
+
+  .dict-mean-tag {
+    color: #a52a2a;
+    font-style: italic;
+  }
+
+  .dict-rd-tag {
+    color: #a52a2a;
+    font-style: italic;
+    font-size: 0.7em;
+    vertical-align: super;
+  }
+
+  .dict-pos span {
+    margin-right: 3pt;
+  }
+
+  .dict-mean:after {
+  }
+
+  .dict-rw {
+    margin-left: 0.2em;
+  }
+
+  .dict-prio-2 {
+    color: deepskyblue;
+  }
+
+  .dict-prio-1 {
+    color: green;
+  }
+
+  .dict-prio-0 {
+    color: #808080;
+  }
+
+  .debug {
+    font-size: 9px;
+    line-height: 10px;
+  }
+
+  .meanings ol {
+    list-style: decimal;
+    margin: 0;
+  }
+
+  .debug li { line-height: 10px}
+}
+
+//word approve form
+#dictionary-entries {
+  .dict-entry {
+    border: 1px solid transparent;
+  }
+
+  .dict-entry:hover {
+    border: solid 1px red;
+    background-color: #fff969;
+  }
+}

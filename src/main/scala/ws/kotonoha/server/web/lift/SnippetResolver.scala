@@ -24,8 +24,9 @@ import com.google.inject.{Injector, Provider}
 import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http._
-import net.liftweb.util.{ClassHelpers, Props}
-import ws.kotonoha.server.ioc.IocSupport
+import net.liftweb.util._
+import ws.kotonoha.server.ioc.{IocActors, IocSupport, UserContextService}
+import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.web.lift.Binders.NodeSeqFn
 
 import scala.concurrent.ExecutionContextExecutor
@@ -77,7 +78,28 @@ class ShortcutResolver(full: Map[String, String], classes: Map[String, Class[_]]
 }
 
 class SnippetResolver(inj: Injector, cfg: SnippetResolverConfig) extends LiftRules.SnippetPF with StrictLogging {
+
   import net.codingwell.scalaguice.InjectorExtensions.ScalaInjector
+
+  private var ioc = inj.instance[IocActors]
+
+  def wrapUser() = new LoanWrapper {
+    private[this] val ucx = inj.instance[UserContextService]
+    override def apply[T](f: => T) = {
+      val toRestore = ioc
+      try {
+        UserRecord.currentId match {
+          case Full(uid) =>
+            ioc = ucx.of(uid)
+            logger.trace(s"using context for user $uid")
+            f
+          case _ => f
+        }
+      } finally {
+        ioc = toRestore
+      }
+    }
+  }
 
   private val sres = cfg.build()
 
@@ -111,7 +133,7 @@ class SnippetResolver(inj: Injector, cfg: SnippetResolverConfig) extends LiftRul
 
   private def makeProvider(clz: Class[_]): Provider[AnyRef] = {
     if (IocSupport.checkIfSuitable(clz)) {
-      val prov = inj.getProvider(clz).asInstanceOf[Provider[AnyRef]]
+      val prov = ioc.provider(Manifest.classType(clz)).asInstanceOf[Provider[AnyRef]]
       if (transient.isAssignableFrom(clz)) {
         prov
       } else new ReqScopedProvider(prov, clz.getSimpleName)
@@ -233,7 +255,30 @@ class SnippetResolver(inj: Injector, cfg: SnippetResolverConfig) extends LiftRul
     item.isDefined
   }
 
-  override def apply(v1: List[String]) = cache.getIfPresent(v1).openOrThrowException("should be present")
+  override def apply(v1: List[String]) = {
+    val present = cache.getIfPresent(v1)
+    if (present == null) {
+      throw new Exception(s"$v1 was null!")
+    } else present.openOrThrowException("should be present")
+  }
+
+  def cometCreation(): Vendor[(CometCreationInfo) => Box[LiftCometActor]] = {
+    Vendor(internalCreate _)
+  }
+
+  private[this] val cometClz = classOf[LiftCometActor]
+
+  def internalCreate(cci: CometCreationInfo): Box[LiftCometActor] = {
+    val tpe = cci.cometType
+    val clz = Helpers.findClass(tpe, LiftRules.buildPackage("comet"))
+    clz.flatMap { c =>
+      if (IocSupport.checkIfSuitable(c) && cometClz.isAssignableFrom(c)) {
+        val actor = ioc.inst(Manifest.classType(c)).asInstanceOf[LiftCometActor]
+        CometActorSetupHelper.setup(actor, Full(tpe), cci)
+        Full(actor)
+      } else Empty
+    }
+  }
 }
 
 object SnippetResolver {

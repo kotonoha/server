@@ -33,13 +33,6 @@ object JLCaseClass {
   def format[T <: Product]: JFormat[T] = macro SerializationMacros.formatCaseClass[T]
 }
 
-abstract class AbstractBuilder[T] {
-  def appendField(fld: JField)
-  def result(): Box[T]
-  protected var errors: Box[Failure] = Empty
-  def addError(f: Failure) = errors = Full(f.copy(chain = errors))
-}
-
 class SerializationMacros(val c: blackbox.Context) {
   import c.universe._
 

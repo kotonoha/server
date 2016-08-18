@@ -16,11 +16,11 @@
 
 package ws.kotonoha.server.web.snippet
 
-import ws.kotonoha.server.actors.ioc.{ReleaseAkka, Akka}
-import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
+import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.records.UserRecord
 import net.liftweb.util.Helpers
-import ws.kotonoha.server.web.comet.{RepeatUser}
+import ws.kotonoha.server.actors.lift.pertab.InsertNamedComet
+import ws.kotonoha.server.web.comet.RepeatUser
 
 /**
  * @author eiennohito
@@ -36,5 +36,5 @@ object RepeatActorSnippet extends InsertNamedComet {
 
   override def messages = RepeatUser(UserRecord.currentId.openOrThrowException("No logged in user")) :: Nil
 
-  override def name = UserRecord.currentUserId openOr(Helpers.nextFuncName)
+  override def name = UserRecord.currentUserId openOr Helpers.nextFuncName
 }

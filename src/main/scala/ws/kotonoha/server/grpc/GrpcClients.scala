@@ -16,12 +16,16 @@
 
 package ws.kotonoha.server.grpc
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 
-import com.google.inject.Provider
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.google.inject.{Inject, Provider}
 import io.grpc.{CallOptions, ManagedChannel, ManagedChannelBuilder}
 import net.codingwell.scalaguice.ScalaModule
 import org.eiennohito.grpc.stream.client.AClientFactory
+
+import scala.compat.java8.functionConverterImpls.AsJavaFunction
+import scala.concurrent.ExecutionContextExecutor
 
 /**
   * @author eiennohito
@@ -44,23 +48,24 @@ trait GrpcClients {
   def clientTo(uri: String): ClientContainer
 }
 
-class GrpcClientsImpl extends GrpcClients {
-  private val cache = new ConcurrentHashMap[String, ManagedChannel]()
+class GrpcClientsImpl @Inject() (
+  ece: ExecutionContextExecutor
+) extends GrpcClients {
+  private val cache = {
+    Caffeine.newBuilder()
+      .expireAfterAccess(15, TimeUnit.MINUTES)
+      .executor(ece)
+      .build[String, ManagedChannel]()
+  }
 
   def makeChannel(uri: String) = {
-    var cached = cache.get(uri)
-    if (cached == null) {
+    cache.get(uri, new AsJavaFunction[String, ManagedChannel](s => {
       val bldr = ManagedChannelBuilder.forTarget(uri)
       bldr.directExecutor()
       bldr.userAgent("Kotonotha Server/1.0")
       bldr.usePlaintext(true)
-      cached = bldr.build()
-      val present = cache.put(uri, cached)
-      if (present != null) {
-        present.shutdown()
-      }
-    }
-    cached
+      bldr.build()
+    }))
   }
 
   private val defautOpts = {
@@ -78,6 +83,6 @@ class GrpcClientsImpl extends GrpcClients {
 
 class GrpcModule extends ScalaModule {
   override def configure() = {
-    bind[GrpcClients].to[GrpcClientsImpl].in[javax.inject.Singleton]    
+    bind[GrpcClients].to[GrpcClientsImpl].in[javax.inject.Singleton]
   }
 }

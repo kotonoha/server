@@ -34,10 +34,6 @@
         padding-right: 5px;
       }
 
-      tr.search-header td a:visited {
-        color: blue;
-      }
-
       .pages a {
         margin: 0.5mm;
       }
@@ -101,21 +97,21 @@
     <span class="lift:WordPaginator.ajaxReq"></span>
   </div>
 
-  <table xmlns:sort="sort" class="table table-hover">
+  <table class="table table-hover">
     <thead>
     <tr class="search-header lift:WordPaginator.paginate">
       <td></td>
       <td>
-        <sort:adate>Added date</sort:adate>
+        <span class="adate">Added date</span>
       </td>
       <td>
-        <sort:status>Status</sort:status>
+        <span class="status">Status</span>
       </td>
       <td>
-        <sort:writing>Writing</sort:writing>
+        <span class="writing">Writing</span>
       </td>
       <td>
-        <sort:reading>Reading</sort:reading>
+        <span class="reading">Reading</span>
       </td>
       <td>Meaning</td>
     </tr>
@@ -132,17 +128,17 @@
     </tbody>
   </table>
   <div><span class="lift:WordPaginator.paginate" xmlns:nav="navigation">
-    <nav:first></nav:first>
+    <span class="first"></span>
     <span> | </span>
-    <nav:prev></nav:prev>
+    <span class="prev"></span>
     <span> | </span>
-    <span class="pages"><nav:zoomedpages></nav:zoomedpages></span>
+    <span class="pages zoomed-pages"></span>
     <span> | </span>
-    <nav:next></nav:next>
+    <span class="next"></span>
     <span> | </span>
-    <nav:last></nav:last>
+    <span class="last"></span>
     <span> | </span>
-    <nav:records></nav:records>
+    <span class="records"></span>
   </span></div>
 </div>
 </body>

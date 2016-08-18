@@ -16,9 +16,10 @@
 
 package ws.kotonoha.server.util.parsing
 
+import ws.kotonoha.server.actors.model.Candidate
+
 import scala.util.parsing.combinator.RegexParsers
 import ws.kotonoha.server.util.Strings
-import ws.kotonoha.server.web.comet.Candidate
 
 /**
  * @author eiennohito

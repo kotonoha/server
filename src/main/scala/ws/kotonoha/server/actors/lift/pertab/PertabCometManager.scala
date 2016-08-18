@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package com.fmpwizard.cometactor.pertab
-package namedactor
+package ws.kotonoha.server.actors.lift.pertab
 
 import net.liftweb.common.Box
-import akka.actor.{ActorLogging, Props, ActorRef, Actor}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import ws.kotonoha.server.actors.KotonohaMessage
+
 import scala.concurrent.Await
 import akka.pattern.ask
+
 import concurrent.duration._
-import ws.kotonoha.server.actors.lift.{PerUserMessage, PerUserActorSvc}
+import ws.kotonoha.server.actors.lift.{PerUserActorSvc, PerUserMessage}
 import akka.actor.Status.Failure
+import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.util.Helpers
 
 
@@ -55,7 +57,7 @@ case class FreeNamedComet(nc: NamedComet) extends NamedCometMessage
 case object Count
 
 
-class PertabCometManager extends Actor with ActorLogging {
+class PertabCometManager extends Actor with StrictLogging {
 
   private val listeners = new collection.mutable.HashMap[NamedComet, ActorRef]
   private lazy val perUser = context.actorOf(Props[PerUserActorSvc])
@@ -66,11 +68,11 @@ class PertabCometManager extends Actor with ActorLogging {
       return
     }
     val act = listeners.get(nc) match {
-      case Some(a) => log.info("Our map is {}", listeners); a
+      case Some(a) => logger.trace("Our map is {}", listeners); a
       case None => {
         val ret = context.actorOf(Props(new CometDispatcher(nc, self)), nc.name.openOr(Helpers.nextFuncName))
         listeners += nc -> ret
-        log.info("Our map is {}", listeners)
+        logger.trace("Our map is {}", listeners)
         ret
       }
     }
@@ -79,7 +81,7 @@ class PertabCometManager extends Actor with ActorLogging {
 
   override def receive = {
     case LookupNamedComet(nc) => listenerFor(nc)
-    case FreeNamedComet(nc) => listeners.remove(nc).foreach(context.stop(_))
+    case FreeNamedComet(nc) => listeners.remove(nc).foreach(context.stop)
     case msg: PerUserMessage => perUser.forward(msg)
   }
 }

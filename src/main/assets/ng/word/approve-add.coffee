@@ -1,6 +1,6 @@
 mod = angular.module('kotonoha', ['taglist', 'ui.autosize'])
 
-mod.controller 'AddWord', ($q, AddSvc, $scope) ->
+ctor = ($q, AddSvc, $scope) ->
   svc = AddSvc
   $scope.waiting = true;
   $scope.loaded = false;
@@ -71,19 +71,19 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
     processNext()
 
   $scope.skip = ->
-    cmd = { cmd: "skip", wid: $scope.word._id }
+    cmd = {cmd: "skip", wid: $scope.word._id}
     svc.toActor(cmd)
     $scope.cur += 1
     processNext()
 
   $scope.addExample = ->
-    $scope.word.examples.push({ example: "", translation: "", selected: true })
+    $scope.word.examples.push({example: "", translation: "", selected: true})
 
   $scope.copyDicEntry = (de) ->
     $scope.word.writing = de.writing
     $scope.word.reading = de.reading
     $scope.word.meaning = de.meaning
-    cmd = { cmd: "retag", data: de }
+    cmd = {cmd: "retag", data: de}
     svc.toActor(cmd)
 
   $scope.addFromDic = (de, ev) ->
@@ -125,7 +125,7 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
 
   $scope.process_recomendation = (item, ev) ->
     invalidate_rec_cache()
-    $(ev.target).parents('.rec-item').hide -> $scope.apply -> item.processed = true
+    $(ev.target).parents('.rec-item').hide -> $scope.$apply -> item.processed = true
     x = {}
     x.writing = item.writings.join(",")
     x.reading = item.readings.join(",")
@@ -138,7 +138,7 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
 
   $scope.mark_rec_ignored = (item, ev) ->
     invalidate_rec_cache()
-    $(ev.target).parents('.rec-item').hide -> $scope.apply -> item.processed = true
+    $(ev.target).parents('.rec-item').hide -> $scope.$apply -> item.processed = true
     cmd =
       cmd: "ignore-rec"
       id: item.id
@@ -160,4 +160,6 @@ mod.controller 'AddWord', ($q, AddSvc, $scope) ->
         updateIndices(obj)
       when "no-items"
         return
+
+mod.controller 'AddWord', ['$q', 'AddSvc', '$scope', ctor]
 

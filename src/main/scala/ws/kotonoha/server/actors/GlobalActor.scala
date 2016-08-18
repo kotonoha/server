@@ -93,4 +93,13 @@ class GlobalActorsModule extends ScalaModule {
     }
   }
 
+  @Provides
+  def akkaServ(
+    ga: GlobalActors,
+    asys: ActorSystem
+  ): AkkaMain = new AkkaMain {
+    override def global = ga.global
+    override def system = asys
+  }
+
 }

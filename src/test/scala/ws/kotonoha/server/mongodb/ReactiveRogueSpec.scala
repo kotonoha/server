@@ -34,7 +34,7 @@ class ReactiveRogueSpec extends AkkaFree { test =>
 
   def createRecord(dt: DateTime): Unit = {
     val rec = ReactiveRecord.createRecord
-    rec.textfld("test").date(dt).save()
+    rec.textfld("test").opttest(10).date(dt).save()
   }
 
   val rrogue: ReactiveRogue = new ReactiveRogue {
@@ -49,6 +49,30 @@ class ReactiveRogueSpec extends AkkaFree { test =>
       val q = ReactiveRecord.where(_.date eqs date).limit(10)
       val res = rrogue.fetch(q)
       ares(res).loneElement.date.get shouldBe date
+    }
+
+    "fetch with projection works with datetime" in {
+      val q = ReactiveRecord.where(_.date eqs date).select(_.date)
+      val res = rrogue.fetch(q)
+      ares(res).loneElement shouldBe date
+    }
+
+    "fetch with projection works with string" in {
+      val q = ReactiveRecord.where(_.date eqs date).select(_.textfld)
+      val res = rrogue.fetch(q)
+      ares(res).loneElement shouldBe "test"
+    }
+
+    "fetch with projection works with optint" in {
+      val q = ReactiveRecord.where(_.date eqs date).select(_.opttest)
+      val res = rrogue.fetch(q)
+      ares(res).loneElement shouldBe Some(10)
+    }
+
+    "fetch with projection works with optint2" in {
+      val q = ReactiveRecord.where(_.date eqs date).select(_.opttest2, _.opttest)
+      val res = rrogue.fetch(q)
+      ares(res).loneElement shouldBe (None, Some(10))
     }
 
     "update works" in {

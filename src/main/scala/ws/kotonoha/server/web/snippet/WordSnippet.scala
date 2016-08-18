@@ -17,9 +17,8 @@
 package ws.kotonoha.server.web.snippet
 
 import net.liftweb.common.{Box, Full}
-import net.liftweb.http.js.JsCmds.SetHtml
 import net.liftweb.http.js.{JE, JsCmd}
-import net.liftweb.http.{RequestVar, S, SHtml, SortedPaginatorSnippet}
+import net.liftweb.http.{S, SHtml, SortedPaginatorSnippet}
 import net.liftweb.json.JsonAST.{JArray, JObject, JString}
 import net.liftweb.mongodb.{Limit, Skip}
 import net.liftweb.util.ControlHelpers.tryo
@@ -30,10 +29,10 @@ import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.actors.model.{ChangeWordStatus, MarkForDeletion}
 import ws.kotonoha.server.records._
 import ws.kotonoha.server.util.unapply.XOid
-import ws.kotonoha.server.util.{DateTimeUtils, Formatting, Strings}
+import ws.kotonoha.server.util.{DateTimeUtils, Formatting, Json, Strings}
 
 import scala.util.matching.Regex
-import scala.xml.{Elem, NodeSeq, Text}
+import scala.xml.{NodeSeq, Text}
 
 /**
   * @author eiennohito
@@ -117,8 +116,8 @@ object WordSnippet {
   }
 
   def renderCards(in: NodeSeq): NodeSeq = {
-    import ws.kotonoha.server.web.lift.Binders._
     import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
+    import ws.kotonoha.server.web.lift.Binders._
     val cards = WordCardRecord where (_.word eqs wordId.openOrThrowException("should be present")) orderAsc (_.cardMode) fetch()
 
 
@@ -161,14 +160,13 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
   }
 
   def ajaxReq(in: NodeSeq) = {
-    import net.liftweb.json.{compact, render}
     def handler(s: String): JsCmd = {
       val ids = findIds(s)
       ids.foreach {
         akkaServ ! ChangeWordStatus(_, WordStatus.ReviewWord).u(uid)
       }
       val data = JArray(ids.toList.map { l => JString(l.toString) })
-      val x = compact(render(data))
+      val x = Json.str(data)
       JE.Call("update_data", JE.JsRaw(x), JE.Str("ReviewWord")).cmd
     }
 
@@ -178,7 +176,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
         akkaServ ! MarkForDeletion(_).u(uid)
       }
       val data = JArray(ids.toList.map { l => JString(l.toString) })
-      val x = compact(render(data))
+      val x = Json.str(data)
       JE.Call("update_data", JE.JsRaw(x), JE.Str("Deleting")).cmd
     }
 
@@ -188,7 +186,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
         akkaServ ! ChangeWordStatus(_, WordStatus.Approved).u(uid)
       }
       val data = JArray(ids.toList map { i => JString(i.toString) })
-      val x = compact(render(data))
+      val x = Json.str(data)
       JE.Call("update_data", JE.JsRaw(x), JE.Str("Approved")).cmd
     }
 
@@ -218,7 +216,7 @@ class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka
   def sortObj: JObject = {
     val (col, direction) = sort
     val sortint = if (direction) 1 else -1
-    (headers(col)._2 -> sortint)
+    headers(col)._2 -> sortint
   }
 
   import ws.kotonoha.server.web.lift.Binders._

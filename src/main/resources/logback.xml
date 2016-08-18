@@ -24,14 +24,13 @@
 
   <logger name="org.mongodb.driver" level="INFO"/>
 
-
   <logger name="net.liftweb.http.Servlet31AsyncProvider" level="TRACE" >
     <appender-ref ref="console" />
   </logger>
 
   <logger name="reactivemongo" level="INFO" />
 
-  <root level="debug">
+  <root level="DEBUG">
     <appender-ref ref="console"/>
   </root>
 </configuration>

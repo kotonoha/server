@@ -16,16 +16,16 @@
 
 package ws.kotonoha.server.web.comet
 
-import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
-import ws.kotonoha.server.actors.lift.{ToAkka, NgLiftActor}
-import ws.kotonoha.server.actors.ioc.ReleaseAkka
-import net.liftweb.http.js.JsCmds._Noop
-import net.liftweb.json.JsonAST.{JString, JField, JObject, JValue}
-import net.liftweb.json.{DefaultFormats, Extraction}
-import ws.kotonoha.server.records.{UserTagInfo, UserRecord}
-import ws.kotonoha.server.actors.ForUser
-import ws.kotonoha.server.actors.tags.{Taglist, TaglistRequest, UpdateTagPriority}
 import com.typesafe.scalalogging.{StrictLogging => Logging}
+import net.liftweb.http.js.JsCmds._Noop
+import net.liftweb.json.JsonAST.{JField, JObject, JString, JValue}
+import net.liftweb.json.{DefaultFormats, Extraction}
+import ws.kotonoha.server.actors.ForUser
+import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import ws.kotonoha.server.actors.lift.NgLiftActor
+import ws.kotonoha.server.actors.lift.pertab.NamedCometActor
+import ws.kotonoha.server.actors.tags.{Taglist, TaglistRequest, UpdateTagPriority}
+import ws.kotonoha.server.records.{UserRecord, UserTagInfo}
 
 /**
  * @author eiennohito

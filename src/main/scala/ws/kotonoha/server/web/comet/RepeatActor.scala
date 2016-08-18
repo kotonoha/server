@@ -17,7 +17,6 @@
 package ws.kotonoha.server.web.comet
 
 import akka.actor.{ActorRef, Status}
-import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import com.google.inject.Inject
 import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.common.{Box, Empty, Full}
@@ -35,6 +34,7 @@ import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
 import ws.kotonoha.model.CardMode
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.actors.learning.{LoadWords, WordsAndCards}
+import ws.kotonoha.server.actors.lift.pertab.NamedCometActor
 import ws.kotonoha.server.actors.lift.{AkkaInterop, Ping}
 import ws.kotonoha.server.actors.schedulers.{RepetitionStateResolver, ReviewCard}
 import ws.kotonoha.server.japanese.ConjObj

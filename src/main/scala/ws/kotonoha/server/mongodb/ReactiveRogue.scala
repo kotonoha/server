@@ -17,15 +17,15 @@
 package ws.kotonoha.server.mongodb
 
 import com.foursquare.rogue.MongoHelpers.MongoBuilder
-import com.foursquare.rogue.{ModifyQuery, Query}
+import com.foursquare.rogue.{ModifyQuery, Query, SelectField}
 import com.mongodb.DBObject
 import net.liftweb.mongodb.record.MongoRecord
 import org.bson.{BSON => BSONDef}
 import reactivemongo.api.commands.{UpdateWriteResult, WriteResult}
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{BSONDocument, BSONInteger}
 import reactivemongo.bson.buffer.ArrayReadableBuffer
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * @author eiennohito
@@ -38,14 +38,22 @@ trait ReactiveRogue extends ReactiveOpsAccess {
     val obj = ReactiveRogue.rbson(q.asDBObject)
     val limit = q.lim.getOrElse(Int.MaxValue)
     var bldr = coll.find(obj)
-    val cursor = bldr.cursor()
 
     if (q.select.isEmpty) {
+      val cursor = bldr.cursor()
       cursor.fold(List.newBuilder[R], limit) { (b, doc)  =>
         val rec = meta.createRecord
         b += meta.fillRMong(doc, rec).openOrThrowException("should not be empty").asInstanceOf[R]
       }.map(_.result())
-    } else ???
+    } else {
+      val sel = q.select.get
+      bldr = bldr.projection(ReactiveRogue.projection(sel.fields))
+      val item = meta.createRecord
+      val projector = ReactiveBson.projector(item, sel.fields)
+      bldr.cursor().fold(List.newBuilder[R], limit) { (b, doc) =>
+        b += sel.transformer(projector.project(doc).openOrThrowException("it's ok"))
+      }.map(_.result())
+    }
   }
 
   def update[M <: MongoRecord[M]]
@@ -65,9 +73,21 @@ trait ReactiveRogue extends ReactiveOpsAccess {
 
     coll.remove(sobj, firstMatchOnly = firstMatch)
   }
+
+  def count[M <: MongoRecord[M]](q: Query[M, _, _])(implicit ec: ExecutionContext): Future[Int] = {
+    val coll = this.collection(q.collectionName)
+    val sobj = ReactiveRogue.rbson(q.asDBObject)
+
+    coll.count(Some(sobj))
+  }
 }
 
 object ReactiveRogue {
+  def projection(fields: List[SelectField[_, _]]): BSONDocument = {
+    val flds = fields.map(p => p.field.name -> BSONInteger(p.slc.map(_._1).getOrElse(1)))
+    BSONDocument(flds)
+  }
+
   def rbson(o: DBObject): BSONDocument = {
     val bytes = BSONDef.encode(o)
     val rdr = ArrayReadableBuffer(bytes)

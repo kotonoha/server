@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import ws.kotonoha.akane.dic.jmdict.{CommonInfo, JMDictUtil, JmdictTag, JmdictTagMap}
 import ws.kotonoha.dict.jmdict.LuceneJmdict
 import ws.kotonoha.server.actors.UserScopedActor
-import ws.kotonoha.server.web.comet.Candidate
+import ws.kotonoha.server.actors.model.Candidate
 
 /**
  * @author eiennohito

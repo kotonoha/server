@@ -31,7 +31,7 @@ import net.liftweb.util._
 import ws.kotonoha.server.KotonohaConfig
 import ws.kotonoha.server.actors.lift.Ping
 import ws.kotonoha.server.actors.{InitUsers, ReleaseAkkaMain}
-import ws.kotonoha.server.ioc.{KotonohaIoc, KotonohaLiftInjector}
+import ws.kotonoha.server.ioc.{KotonohaIoc}
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.web.lift.{SnippetResolver, SnippetResolverConfig}
@@ -65,7 +65,7 @@ class Boot extends Logging {
         rec.save()
         logger.info(s"Created a new superUser with email $email")
       } catch {
-        case NonFatal(t) => logger.error("There was no admin account present and creating it failed")
+        case NonFatal(t) => logger.error("There was no admin account present and creating it failed", t)
       }
     }
   }
@@ -81,16 +81,7 @@ class Boot extends Logging {
 
     val ioc = new KotonohaIoc(config)
 
-    val kotoLift = new KotonohaLiftInjector(ioc.injector)
-
-    LiftRules.cometCreationFactory.default.set(kotoLift.cometCreation)
-    val rcfg = new SnippetResolverConfig
-    rcfg.shortcut("cpres", ClasspathResource)
-    rcfg.shortcut("mode", ModeSnippet)
-    rcfg.shortcut("cdn", CdnSnippet)
-    val res = new SnippetResolver(ioc.injector, rcfg)
-    LiftRules.snippets.append(res)
-
+    configureInjection(ioc)
 
     MongoDbInit.init()
 
@@ -147,7 +138,7 @@ class Boot extends Logging {
       Menu.i("Load resources") / "admin" / "resources"
       )
 
-    val emptyLink: LinkText[Unit] = new LinkText({ case _ => Nil })
+    val emptyLink: LinkText[Unit] = LinkText(_ => Nil)
     val loc = Loc("static", Link(List("static"), true, "/static"), emptyLink , Hidden)
     val static = Menu.apply(loc)
 
@@ -241,9 +232,21 @@ class Boot extends Logging {
 
     LiftRules.statelessReqTest.append({
       case StatelessReqTest("static" :: _, _) => true
+      //case StatelessReqTest(_, r) => r.cookies.exists(_.name == UserRecord.authCookie)
     })
 
     // Make a transaction span the whole HTTP request
     //S.addAround(DB.buildLoanWrapper)
+  }
+
+  private def configureInjection(ioc: KotonohaIoc) = {
+    val rcfg = new SnippetResolverConfig
+    rcfg.shortcut("cpres", ClasspathResource)
+    rcfg.shortcut("mode", ModeSnippet)
+    rcfg.shortcut("cdn", CdnSnippet)
+    val res = new SnippetResolver(ioc.injector, rcfg)
+    LiftRules.snippets.append(res)
+    S.addAround(res.wrapUser())
+    LiftRules.cometCreationFactory.default.set(res.cometCreation())
   }
 }

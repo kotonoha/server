@@ -18,19 +18,13 @@ package ws.kotonoha.server.records
 
 import net.liftweb.mongodb.record.MongoRecord
 import net.liftweb.mongodb.record.field.{ObjectIdField, ObjectIdPk}
-import reactivemongo.bson.Macros
-import ws.kotonoha.examples.api.ExamplePack
 import ws.kotonoha.server.mongodb.NamedDatabase
-import ws.kotonoha.server.mongodb.record.PbufMessageField
 import ws.kotonoha.server.records.meta.KotonohaMongoRecord
 
 /**
   * @author eiennohito
   * @since 2016/08/12
   */
-
-
-import ws.kotonoha.server.examples.api.ApiLift._
 
 class ExpectedRepetition private() extends MongoRecord[ExpectedRepetition] with ObjectIdPk[ExpectedRepetition] {
   override def meta = ExpectedRepetition
@@ -42,17 +36,3 @@ class ExpectedRepetition private() extends MongoRecord[ExpectedRepetition] with 
 }
 
 object ExpectedRepetition extends ExpectedRepetition with KotonohaMongoRecord[ExpectedRepetition] with NamedDatabase
-
-class RepetitionExamples private() extends MongoRecord[RepetitionExamples] with ObjectIdPk[RepetitionExamples] {
-  import ws.kotonoha.server.examples.ExamplesToBson._
-
-  object user extends ObjectIdField(this)
-  object word extends ObjectIdField(this)
-  object data extends PbufMessageField[RepetitionExamples, ExamplePack](this)
-
-  override def meta = RepetitionExamples
-}
-
-object RepetitionExamples extends RepetitionExamples with KotonohaMongoRecord[RepetitionExamples] with NamedDatabase {
-
-}

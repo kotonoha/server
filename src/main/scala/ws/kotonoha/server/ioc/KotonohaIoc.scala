@@ -106,25 +106,3 @@ object IocSupport {
     c.getParameterTypes.length == 0
   }
 }
-
-class KotonohaLiftInjector(inj: Injector) {
-  import IocSupport._
-
-  def cometCreation: Vendor[(CometCreationInfo) => Box[LiftCometActor]] = {
-    Vendor(internalCreate _)
-  }
-
-  private[this] val cometClz = classOf[LiftCometActor]
-
-  def internalCreate(cci: CometCreationInfo): Box[LiftCometActor] = {
-    val tpe = cci.cometType
-    val clz = Helpers.findClass(tpe, LiftRules.buildPackage("comet"))
-    clz.flatMap { c =>
-      if (checkIfSuitable(c) && cometClz.isAssignableFrom(c)) {
-        val actor = inj.getInstance(c).asInstanceOf[LiftCometActor]
-        CometActorSetupHelper.setup(actor, Full(tpe), cci)
-        Full(actor)
-      } else Empty
-    }
-  }
-}

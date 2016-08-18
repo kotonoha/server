@@ -16,26 +16,25 @@
 
 package ws.kotonoha.server.web.comet
 
-import com.fmpwizard.cometactor.pertab.namedactor.NamedCometActor
 import com.google.inject.Inject
 import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.http.js.JsCmds.{RedirectTo, _Noop}
 import net.liftweb.json.JsonAST.{JField, JObject, JString, JValue}
 import net.liftweb.json.{DefaultFormats, Extraction}
-import org.apache.lucene.search.BooleanClause.Occur
 import org.bson.types.ObjectId
-import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry}
-import ws.kotonoha.akane.unicode.UnicodeUtil
-import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
+import ws.kotonoha.akane.dic.jmdict.JmdictEntry
+import ws.kotonoha.dict.jmdict.LuceneJmdict
 import ws.kotonoha.server.actors.ForUser
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import ws.kotonoha.server.actors.lift.pertab.NamedCometActor
 import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
+import ws.kotonoha.server.actors.model.Candidate
 import ws.kotonoha.server.actors.tags.TagParser
 import ws.kotonoha.server.learning.ProcessMarkEvents
 import ws.kotonoha.server.records.events.{AddWordRecord, MarkEventRecord}
 import ws.kotonoha.server.records.{UserRecord, WordCardRecord, WordRecord}
+import ws.kotonoha.server.util.DateTimeUtils
 import ws.kotonoha.server.util.parsing.AddStringParser
-import ws.kotonoha.server.util.{DateTimeUtils, Strings}
 
 import scala.collection.Map
 import scala.util.parsing.input.CharSequenceReader
@@ -47,82 +46,9 @@ import scala.util.parsing.input.CharSequenceReader
 
 case class InvalidStringException(str: String) extends Exception("String " + str + " is not valid")
 
-case class Candidate(writing: String, reading: Option[String], meaning: Option[String]) {
-  def toQuery(re: Boolean = false): JObject = {
-    import ws.kotonoha.server.util.KBsonDSL._
-    def x(s: String): JValue = if (re) regex(s) else s
-    def regex(s: String) = "$regex" -> ("^" + s + ".*$")
-
-    if (writing.length > 0 && UnicodeUtil.isKana(writing)) {
-      "$or" -> List("reading.value" -> x(writing), "writing.value" -> x(writing))
-    } else if (writing.length == 0 && reading.isDefined) {
-      val rd = reading.get
-      "$or" -> List("reading.value" -> x(rd), "writing.value" -> x(rd))
-    } else {
-      val p1 = ("writing.value" -> x(writing))
-      if (reading.isDefined) {
-        p1 ~ ("reading.value" -> x(reading.get))
-      } else p1
-    }
-  }
-
-  def query(limit: Int = 10): JmdictQuery = {
-    JmdictQuery(
-      limit = limit,
-      writings = Seq(JmdictQueryPart(writing, Occur.SHOULD)),
-      readings = reading.map(r => JmdictQueryPart(r, Occur.MUST)).toSeq,
-      other = meaning.map(m => JmdictQueryPart(m, Occur.SHOULD)).toSeq
-    )
-  }
-
-  def isOnlyKana = writing.length > 0 && UnicodeUtil.isKana(writing)
-
-  def sameWR = reading match {
-    case Some(`writing`) => true
-    case _ => false
-  }
-
-  def sortResults(data: Seq[JmdictEntry], keep: Int = 3): Seq[JmdictEntry] = {
-    def penalty(r: JmdictEntry) = {
-      if ((isOnlyKana || sameWR) && r.writings.nonEmpty) 10 else 0
-    }
-    val processed = data.map(a => a -> (-JMDictUtil.calculatePriority(a) + penalty(a)))
-    processed.sortBy(_._2).take(keep).map(_._1)
-  }
-}
-
 case class Possibility(writing: String, reading: String, meaning: Seq[String], id: Option[String] = None)
 
 case class DisplayingEntry(item: Candidate, present: Seq[Possibility], dic: Seq[Possibility])
-
-object Candidate {
-
-  import UnicodeUtil._
-
-  def wrap(s1: String) = {
-    val s = Strings.trim(s1)
-    if (s == null || s.equals("")) {
-      None
-    } else {
-      Some(s)
-    }
-  }
-
-  def apply(in: String) = {
-    in.split("[|｜]", 3) match {
-      case Array(w) => new Candidate(w, None, None)
-      case Array(w, r, m) => new Candidate(w, wrap(r), wrap(m))
-      case Array(w, smt) => {
-        if (isKana(smt)) {
-          new Candidate(w, wrap(smt), None)
-        } else {
-          new Candidate(w, None, wrap(smt))
-        }
-      }
-      case _ => throw new InvalidStringException(in)
-    }
-  }
-}
 
 class AddWordActor @Inject() (
   jmd: LuceneJmdict

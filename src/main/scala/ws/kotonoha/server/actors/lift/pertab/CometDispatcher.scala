@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package com.fmpwizard.cometactor.pertab
-package namedactor
+package ws.kotonoha.server.actors.lift.pertab
 
-import net.liftweb.http.CometActor
-import net.liftweb.common.Full
-import akka.actor.{PoisonPill, ActorLogging, ActorRef, Actor}
+import akka.actor.{Actor, ActorRef}
+import com.typesafe.scalalogging.StrictLogging
+import net.liftweb.http.BaseCometActor
 
 
 /**
  * This class keeps a list of comet actors that need to update the UI
  */
-class CometDispatcher(nm: NamedComet, listener: ActorRef) extends Actor with ActorLogging {
+class CometDispatcher(nm: NamedComet, listener: ActorRef) extends Actor with StrictLogging {
 
   def name = nm.name
 
-  log.info("DispatcherActor got name: {}", name)
-  private var toUpdate = new collection.mutable.HashSet[CometActor]
+  logger.info("DispatcherActor got name: {}", name)
+  private var toUpdate = new collection.mutable.HashSet[BaseCometActor]
 
 
   override def receive = {
@@ -42,10 +41,10 @@ class CometDispatcher(nm: NamedComet, listener: ActorRef) extends Actor with Act
     }
 
     case UnregisterCometActor(actor) => {
-      log.info("before {}", toUpdate)
+      logger.trace("before {}", toUpdate)
       toUpdate -= actor
-      log.info("after {}", toUpdate)
-      if (toUpdate.size == 0) {
+      logger.trace("after {}", toUpdate)
+      if (toUpdate.isEmpty) {
         listener ! FreeNamedComet(nm)
       }
     }
@@ -62,7 +61,7 @@ class CometDispatcher(nm: NamedComet, listener: ActorRef) extends Actor with Act
       toUpdate.foreach {
         x => {
           x ! msg
-          log.info("We will update this comet actor: {} showing name: {}", x, name)
+          logger.info("We will update this comet actor: {} showing name: {}", x, name)
         }
       }
     }

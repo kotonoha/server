@@ -102,7 +102,7 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
 
   override protected def userFromStringId(id: String) = currentId.flatMap(find(_))
 
-  private val authCookie = "koto-auth"
+  val authCookie = "koto-auth"
 
   private def deleteCookie() {
     val p = conPath

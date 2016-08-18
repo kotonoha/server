@@ -16,20 +16,23 @@
 
 package ws.kotonoha.server.web.snippet
 
-import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
+import com.typesafe.scalalogging.StrictLogging
+
 import scala.xml.NodeSeq
 import net.liftweb.http.S
-import ws.kotonoha.server.web.comet.{ProcessThisToo, Candidate}
+import ws.kotonoha.server.web.comet.ProcessThisToo
 import ws.kotonoha.server.records.UserRecord
 import net.liftweb.common.Full
 import net.liftweb.util.Helpers
+import ws.kotonoha.server.actors.lift.pertab.InsertNamedComet
+import ws.kotonoha.server.actors.model.Candidate
 
 /**
  * @author eiennohito
  * @since 13.03.13 
  */
 
-object ThisToo {
+object ThisToo extends StrictLogging {
   def A = ThisTooActorSnippet
 
   def makeNodeSeq(cand: Candidate): (NodeSeq, String) = {
@@ -39,8 +42,10 @@ object ThisToo {
   }
 
   def render(in: NodeSeq): NodeSeq = {
-    UserRecord.currentUserId match {
-      case Full(_) =>
+    val uid = UserRecord.currentUserId
+
+    uid match {
+      case Full(_) if A.enabled =>
         val rd: Option[String] = S.attr("rd")
         val wr = S.attr("wr") openOr ""
         val c = Candidate(wr, rd, None)
@@ -62,7 +67,7 @@ object ThisToo {
 object ThisTooActorSnippet extends InsertNamedComet {
   def cometClass = "ThisTooActor"
 
-  override def enabled = S.statefulRequest_?
+  override def enabled = UserRecord.currentId.isDefined
 
   override def name = {
     val path = S.request.map(_.path.wholePath.mkString("_")).openOr("dummy")

@@ -42,6 +42,10 @@ class WordOps @Inject() (
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
+  def byId(wid: ObjectId) = {
+    WordRecord.where(_.id eqs wid).and(_.user eqs uc.uid)
+  }
+
   def register(word: WordRecord, status: WordStatus): Future[NotUsed] = {
     val wordid = word.id.get
 
@@ -63,7 +67,12 @@ class WordOps @Inject() (
   }
 
   def setTags(wid: ObjectId, tags: List[String]): Future[NotUsed] = {
-    val q = WordRecord.where(_.id eqs wid).modify(_.tags setTo tags)
+    val q = byId(wid).modify(_.tags setTo tags)
+    rm.update(q).mod(1)
+  }
+
+  def updateLink(wid: ObjectId, jmd: Long): Future[NotUsed] = {
+    val q = byId(wid).modify(_.jmdictLink.setTo(jmd))
     rm.update(q).mod(1)
   }
 }

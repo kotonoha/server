@@ -22,10 +22,10 @@ import akka.actor.{Actor, ActorLogging, OneForOneStrategy}
 import auth.ClientRegistry
 import interop.{JumanMessage, JumanRouter}
 import lift.{LiftActorService, LiftMessage}
-import com.fmpwizard.cometactor.pertab.namedactor.{NamedCometMessage, PertabCometManager}
 import akka.actor.SupervisorStrategy.Restart
 import tags.{TagMessage, TagService}
 import ws.kotonoha.server.actors.dict.{ExampleActor, ExampleMessage}
+import ws.kotonoha.server.actors.lift.pertab.{NamedCometMessage, PertabCometManager}
 import ws.kotonoha.server.ioc.IocActors
 
 /**

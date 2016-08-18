@@ -16,13 +16,14 @@
 
 package ws.kotonoha.server.web.snippet
 
-import xml.{NodeSeq, Text}
-import ws.kotonoha.server.util.Formatting
+import net.liftweb.http.{S, SessionVar}
 import org.joda.time.DateTime
-import com.fmpwizard.cometactor.pertab.namedactor.InsertNamedComet
-import ws.kotonoha.server.web.comet.ActorUser
+import ws.kotonoha.server.actors.lift.pertab.InsertNamedComet
 import ws.kotonoha.server.records.UserRecord
-import net.liftweb.http.{DispatchSnippet, S, SessionVar}
+import ws.kotonoha.server.util.Formatting
+import ws.kotonoha.server.web.comet.ActorUser
+
+import scala.xml.{NodeSeq, Text}
 
 /**
  * @author eiennohito

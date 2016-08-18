@@ -17,7 +17,7 @@
 package ws.kotonoha.server.actors.lift
 
 import akka.pattern.{ask => apa}
-import net.liftweb.http.CometActor
+import net.liftweb.http.{BaseCometActor, CometActor}
 import ws.kotonoha.server.actors.ioc.Akka
 import ws.kotonoha.server.actors.{CreateActor, KotonohaMessage}
 
@@ -35,15 +35,16 @@ import scala.reflect.ClassTag
 
 trait LiftMessage extends KotonohaMessage
 
-case class BindLiftActor(actor: CometActor) extends LiftMessage
+case class BindLiftActor(actor: BaseCometActor) extends LiftMessage
 
-case class UnbindLiftActor(actor: CometActor) extends LiftMessage
+case class UnbindLiftActor(actor: BaseCometActor) extends LiftMessage
 
 case object Ping extends LiftMessage
 
 case object Shutdown extends LiftMessage
 
-trait AkkaInterop extends CometActor with Akka {
+
+trait AkkaInteropBase extends BaseCometActor with Akka {
 
   import concurrent.duration._
 
@@ -72,9 +73,11 @@ trait AkkaInterop extends CometActor with Akka {
   def toAkka(msg: AnyRef) = akkaServ.global ! msg
 }
 
+trait AkkaInterop extends AkkaInteropBase with CometActor
+
 case class ToAkka(actor: ActorRef, in: Any)
 
-class LiftBridge(svc: ActorRef, lift: CometActor, ioc: IocActors) extends Actor {
+class LiftBridge(svc: ActorRef, lift: BaseCometActor, ioc: IocActors) extends Actor {
   override def receive = {
     case ToAkka(ar, msg) => ar ! msg
     case Ping => //do nothing
@@ -95,7 +98,7 @@ class LiftBridge(svc: ActorRef, lift: CometActor, ioc: IocActors) extends Actor 
 class LiftActorService @Inject() (
   ioc: IocActors
 ) extends Actor {
-  val actors = new collection.mutable.HashMap[CometActor, ActorRef]
+  val actors = new collection.mutable.HashMap[BaseCometActor, ActorRef]
 
   override def receive = {
     case BindLiftActor(lift) =>

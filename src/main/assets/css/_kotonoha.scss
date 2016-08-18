@@ -3,6 +3,7 @@
 @import "utils";
 @import "nav";
 @import "grid";
+@import "dict";
 
 textarea.nihongo, div.nihongo, input.nihongo, .nihongo {
   font-size: larger !important;
@@ -68,15 +69,6 @@ textarea.autoresize {
 
 a.non-existent {
   color: orange;
-}
-
-.dict-entry {
-  border: 1px solid transparent;
-}
-
-.dict-entry:hover {
-  border: solid 1px red;
-  background-color: #fff969;
 }
 
 td.checkbox_cell {

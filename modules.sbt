@@ -9,7 +9,7 @@ lazy val kotonoha = (project in file("."))
     pipelineStages in Assets += postcss,
     includeFilter in SassKeys.sassify := "main.scss"
   )
-  .dependsOn(`akane-legacy`, knockoff, eapi, `grpc-streaming`, jmdict, model, `lift-macros` % Provided)
+  .dependsOn(`akane-legacy`, knockoff, eapi, `grpc-streaming`, jmdict, model, `lift-tcjson`, `lift-macros` % Provided)
   .enablePlugins(BuildInfoPlugin, JettyPlugin)
   .aggregate(jmdict)
 
@@ -54,9 +54,17 @@ lazy val `lift-macros` = (project in file("lift-macros"))
     .settings(Common.buildSettings)
     .settings(
       libraryDependencies ++= Seq(
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      )
+    )
+    .dependsOn(`lift-tcjson`)
+
+lazy val `lift-tcjson` = (project in file("lift-tcjson"))
+    .settings(Common.buildSettings)
+    .settings(
+      libraryDependencies ++= Seq(
         Kotonoha.liftPackage %% "lift-json" % Kotonoha.liftVersion,
         Kotonoha.liftPackage %% "lift-common" % Kotonoha.liftVersion,
-        Kotonoha.liftPackage %% "lift-record" % Kotonoha.liftVersion,
-        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+        Kotonoha.liftPackage %% "lift-record" % Kotonoha.liftVersion
       )
     )

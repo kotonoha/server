@@ -18,71 +18,8 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
-  <head_merge>
-    <style type="text/css">
-      span.writing {
-        margin: 2pt;
-      }
-
-      .nihongo {
-        font-family: Meiryo, MS Gothic;
-        font-size: larger;
-      }
-
-      .dict-entry {
-        margin: 5pt;
-        border-bottom: dotted gray 1px;
-      }
-
-      div.m-ent {
-        display: table-row;
-      }
-
-      .dict-mean-tag {
-        color: #a52a2a;
-        font-style: italic;
-      }
-
-      .dict-rd-tag {
-        color: #a52a2a;
-        font-style: italic;
-        font-size: 0.7em;
-        vertical-align: super;
-      }
-
-      .dict-pos span {
-        margin-right: 3pt;
-      }
-
-      .dict-mean:after {
-      }
-
-      .dict-rw {
-        margin-left: 0.2em;
-      }
-
-      .dict-prio-2 {
-        color: deepskyblue;
-      }
-
-      .dict-prio-1 {
-        color: green;
-      }
-
-      .dict-prio-0 {
-        color: #808080;
-      }
-
-      .debug {
-        font-size: 9px;
-        line-height: 10px;
-      }
-
-      .debug li { line-height: 10px}
-
-    </style>
-  </head_merge>
   <div class="lift:ThisTooActorSnippet"></div>
+  <script class="lift:cpres.js?src=tools/this_too" ></script>
   <form method="GET" action="jmdict" class="lift:JMDict.fld">
     <label>
       Query <input type="text" name="query" class="query-string">
@@ -96,9 +33,9 @@
       <span class="dict-prio-0">Uncommon</span>.
     </p>
   </div>
-  <div class="lift:JMDict.list">
-    <div>Displaying <span class="found"></span> of <span class="total"></span> elements</div>
-    <div class="dict-entry row">
+  <div class="lift:JMDict.list dict-container">
+    <div>Displaying <span class="found"></span> of <span class="total"></span> elements for the query: <span class="query"></span></div>
+    <div class="dict-entry col-xs-12 p-x-0">
       <div style="display: inline-block" class="debug pull-right"></div>
       <div class="nihongo">
         <span class="writing"></span>
