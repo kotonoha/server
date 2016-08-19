@@ -48,6 +48,7 @@ case class JmdictInfo(update: LocalDate, build: DateTime)
 trait LuceneJmdict {
   def find(q: JmdictQuery): JmdictSearchResults
   def ids(q: JmdictIdQuery): Seq[Long]
+  def byId(id: Long): Option[JmdictEntry]
   def info: JmdictInfo
 }
 
@@ -221,6 +222,12 @@ class LuceneJmdictImpl(ir: IndexReader, ec: ExecutionContextExecutor, val info: 
     }
 
     bq.build()
+  }
+
+  override def byId(id: Long) = {
+    val q = new TermQuery(new Term("id", DataConversion.longBytes(id)))
+    val res = searcher.search(q, 1)
+    getDocs(res, q, explain = false).data.headOption
   }
 
   override def ids(q: JmdictIdQuery): Seq[Long] = {

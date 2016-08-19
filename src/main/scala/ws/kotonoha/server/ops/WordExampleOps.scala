@@ -19,13 +19,15 @@ package ws.kotonoha.server.ops
 import com.google.inject.{Inject, Provider, Provides}
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
-import ws.kotonoha.akane.dic.jmdict.JmdictEntry
-import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
+import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry, JmdictTag}
+import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, JmdictSearchResults, LuceneJmdict}
 import ws.kotonoha.examples.ExampleClient
 import ws.kotonoha.examples.api.{ExamplePackRequest, ExampleQuery, ExampleTag}
 import ws.kotonoha.server.grpc.GrpcClients
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.WordRecord
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * @author eiennohito
@@ -48,47 +50,122 @@ class WordJmdictOps @Inject() (
     score
   }
 
-  def bestMatch(dic: Seq[JmdictEntry], rec: WordRecordWrapper): Option[JmdictEntry] = {
-    if (dic.isEmpty) return None
+  def similarEntriesImpl(dic: Seq[JmdictEntry], rec: WordRecordWrapper): Seq[JmdictEntry]  = {
+    if (dic.isEmpty) return Nil
     val scores = dic.map { d =>
       d -> score(d, rec)
     }
-    Some(scores.maxBy(_._2)._1)
+    scores.sortBy(-_._2).map(_._1)
+  }
+
+  def bestMatchImpl(dic: Seq[JmdictEntry], rec: WordRecordWrapper): Option[JmdictEntry] = {
+    if (dic.isEmpty) None
+    similarEntriesImpl(dic, rec).headOption
   }
 
   def entryForWord(rec: WordRecord) = {
+    val result: JmdictSearchResults = rawSimilar(rec)
+    bestMatchImpl(result.data, new WordRecordWrapper(rec))
+  }
+
+  def nsimilarForWord(rec: WordRecord, n: Int = 10) = {
+    val result: JmdictSearchResults = rawSimilar(rec, n)
+    similarEntriesImpl(result.data, new WordRecordWrapper(rec))
+  }
+
+  def rawSimilar(rec: WordRecord, n: Int = 10): JmdictSearchResults = {
     val q = JmdictQuery(
-      limit = 10,
+      limit = n,
       readings = rec.reading.get.map(r => JmdictQueryPart(term = r)),
       writings = rec.writing.get.map(r => JmdictQueryPart(term = r))
     )
-    val result = jmd.find(q)
-    bestMatch(result.data, new WordRecordWrapper(rec))
+    jmd.find(q)
   }
 }
 
 class WordExampleOps @Inject() (
-  rm: RMData,
-  word: WordOps,
-  esvc: Provider[ExampleClient]
+  esvc: Provider[ExampleClient],
+  jmd: LuceneJmdict,
+  wjo: WordJmdictOps
 ) {
 
-  def unknownExReq(rec: WordRecord): ExamplePackRequest = {
-    val q = ExampleQuery(rec.writing.value.head, rec.reading.value.head)
+  def jmdictReq(e: JmdictEntry) = {
+    val qs = e.readings.flatMap { r =>
+      val matchingWrs = if (r.restr.isEmpty) {
+        e.writings
+      } else {
+        r.restr.map(e.writings.apply)
+      }
+      matchingWrs.map { w =>
+        ExampleQuery(w.content, r.content) -> (JMDictUtil.calculatePriority(r) + JMDictUtil.calculatePriority(w))
+      }
+    }
+
+    val qentries = qs.sortBy(-_._2).map(_._1)
+    val qtags = new ArrayBuffer[ExampleTag]()
+
+    val allTags = e.meanings.flatMap(_.pos).toSet
+
+    if (allTags.contains(JmdictTag.vs)) {
+      qtags += ExampleTag.SuruVerb
+    }
+
+    if (allTags.contains(JmdictTag.n)) {
+      qtags += ExampleTag.Noun
+    }
+
+    if (allTags.intersect(JMDictUtil.verbTags).nonEmpty) {
+      qtags += ExampleTag.Verb
+    }
+
+    if (allTags.intersect(JMDictUtil.adjTags).nonEmpty) {
+      qtags += ExampleTag.Adjective
+    }
+
+    if (allTags.intersect(JMDictUtil.advTags).nonEmpty) {
+      qtags += ExampleTag.Adverb
+    }
+
+    if (allTags.isEmpty) {
+      qtags += ExampleTag.Unknown
+    }
 
     ExamplePackRequest(
-      tags = Seq(ExampleTag.Unknown),
-      candidates = Seq(q)
+      qtags, qentries, limit = 15
     )
   }
 
+  def wordRecordReq(rec: WordRecord): ExamplePackRequest = {
+    val q = ExampleQuery(rec.writing.value.head, rec.reading.value.head)
+
+    val tgs = rec.tags.get match {
+      case t if t.contains("noun") && t.contains("vs") => ExampleTag.SuruVerb
+      case t if t.contains("noun") => ExampleTag.Noun
+      case t if t.contains("verb") => ExampleTag.Verb
+      case t if t.contains("adj") => ExampleTag.Adjective
+      case t if t.contains("adv") => ExampleTag.Adverb
+      case _ => ExampleTag.Unknown
+    }
+
+    ExamplePackRequest(
+      tags = Seq(tgs),
+      candidates = Seq(q),
+      limit = 15
+    )
+  }
+
+  def makeRequest(w: WordRecord) = {
+    w.jmdictLink.get.flatMap(jmd.byId).orElse(wjo.entryForWord(w)) match {
+      case Some(je) => jmdictReq(je)
+      case None => wordRecordReq(w)
+    }
+  }
+
   def acquireExamples(w: WordRecord) = {
-    val req = unknownExReq(w)
+    val req = wordRecordReq(w)
     val res = esvc.get().generic(req)
     res
   }
-
-
 
 }
 

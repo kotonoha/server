@@ -35,6 +35,7 @@ object ApiLift {
       case JInt(i) => Full(c.fromValue(i.intValue()))
       case _ => Failure(s"input should be JInt, was $v")
     }
+
     override def write(o: E) = JInt(o.value)
   }
 
@@ -48,6 +49,7 @@ object ApiLift {
         }
       case _ => Failure(s"input value should be JString, was $v")
     }
+
     override def write(o: ByteString) = {
       JString(new String(Hex.encodeHex(o.toByteArray)))
     }
@@ -59,4 +61,8 @@ object ApiLift {
 
   implicit val queryFmt = JLCaseClass.format[ExampleQuery]
   implicit val preqFmt = JLCaseClass.format[ExamplePackRequest]
+
 }
+
+
+

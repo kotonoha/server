@@ -30,13 +30,16 @@ import ws.kotonoha.lift.json.{JFormat, JLCaseClass}
 
 private[json] case class Test1(i: Int, l: Long, s: String, io: Option[Int])
 private[json] case class Test2(t1: Test1, t2: Option[Test1], t3: List[Test1])
+private[json] case class Test3(t1: Seq[Test1])
 
 class GeneratedSerializerSpec extends FreeSpec with Matchers with PropertyChecks {
   implicit val fmt1 = JLCaseClass.format[Test1]
   implicit val fmt2 = JLCaseClass.format[Test2]
+  implicit val fmt3 = JLCaseClass.format[Test3]
 
   implicit val t1a: Arbitrary[Test1] = Arbitrary(Gen.resultOf(Test1))
   implicit val t2a: Arbitrary[Test2] = Arbitrary(Gen.resultOf(Test2))
+  implicit val t3a: Arbitrary[Test3] = Arbitrary(Gen.resultOf(Test3))
 
   def checkEquiv[T](msg: T)(implicit fmt: JFormat[T], mf: Manifest[T]): Unit = {
     val jv1 = fmt.write(msg)
@@ -56,6 +59,10 @@ class GeneratedSerializerSpec extends FreeSpec with Matchers with PropertyChecks
 
     "works with two classes" in {
       forAll { (msg: Test2) => checkEquiv(msg) }
+    }
+
+    "works with three classes" in {
+      forAll { (msg: Test3) => checkEquiv(msg) }
     }
   }
 }

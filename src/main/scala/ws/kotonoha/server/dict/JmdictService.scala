@@ -216,4 +216,5 @@ object EmptyJmdict extends LuceneJmdict {
   )
   override val info = JmdictInfo.apply(LocalDate.now(), DateTime.now().minusYears(5))
   override def ids(q: JmdictIdQuery) = Nil
+  override def byId(id: Long) = None
 }

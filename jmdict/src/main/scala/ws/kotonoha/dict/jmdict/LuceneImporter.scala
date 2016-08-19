@@ -55,12 +55,6 @@ class LuceneImporter(iw: IndexWriter) {
   }
 
 
-  def ref(i: Long) = {
-    val bldr = new BytesRefBuilder
-    DataConversion.writeSignedVLong(i, bldr)
-    bldr.toBytesRef
-  }
-
   def fixedInt(i: Int): BytesRef = {
     val abyte = new Array[Byte](4)
     abyte(0) = ((i >>> 24) & 0xff).toByte
@@ -73,7 +67,7 @@ class LuceneImporter(iw: IndexWriter) {
   def makeDoc(entry: JmdictEntry) = {
     val doc = new Document
 
-    val id = new StringField("id", ref(entry.id), Store.YES)
+    val id = new StringField("id", DataConversion.longBytes(entry.id), Store.YES)
     doc.add(id)
     val idset = new LongPoint("idset", entry.id)
     doc.add(idset)
@@ -179,6 +173,12 @@ object DataConversion {
       shift += 7
     }
     l
+  }
+
+  def longBytes(i: Long) = {
+    val bldr = new BytesRefBuilder
+    DataConversion.writeSignedVLong(i, bldr)
+    bldr.toBytesRef
   }
 }
 

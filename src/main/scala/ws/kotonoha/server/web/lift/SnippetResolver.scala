@@ -20,13 +20,12 @@ import java.lang.invoke.{MethodHandle, MethodHandles, MethodType}
 import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import com.google.inject.{Injector, Provider}
+import com.google.inject.Provider
 import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http._
 import net.liftweb.util._
-import ws.kotonoha.server.ioc.{IocActors, IocSupport, UserContextService}
-import ws.kotonoha.server.records.UserRecord
+import ws.kotonoha.server.ioc.{IocActors, IocSupport}
 import ws.kotonoha.server.web.lift.Binders.NodeSeqFn
 
 import scala.concurrent.ExecutionContextExecutor
@@ -77,35 +76,12 @@ class ShortcutResolver(full: Map[String, String], classes: Map[String, Class[_]]
   }
 }
 
-class SnippetResolver(inj: Injector, cfg: SnippetResolverConfig) extends LiftRules.SnippetPF with StrictLogging {
-
-  import net.codingwell.scalaguice.InjectorExtensions.ScalaInjector
-
-  private var ioc = inj.instance[IocActors]
-
-  def wrapUser() = new LoanWrapper {
-    private[this] val ucx = inj.instance[UserContextService]
-    override def apply[T](f: => T) = {
-      val toRestore = ioc
-      try {
-        UserRecord.currentId match {
-          case Full(uid) =>
-            ioc = ucx.of(uid)
-            logger.trace(s"using context for user $uid")
-            f
-          case _ => f
-        }
-      } finally {
-        ioc = toRestore
-      }
-    }
-  }
-
+class SnippetResolver(ioc: IocActors, cfg: SnippetResolverConfig) extends LiftRules.SnippetPF with StrictLogging {
   private val sres = cfg.build()
 
   private val cache = {
     val bldr = Caffeine.newBuilder()
-    bldr.executor(inj.instance[ExecutionContextExecutor])
+    bldr.executor(ioc.inst[ExecutionContextExecutor])
     if (Props.devMode) {
       bldr.expireAfterAccess(2, TimeUnit.SECONDS)
     } else {
@@ -260,24 +236,6 @@ class SnippetResolver(inj: Injector, cfg: SnippetResolverConfig) extends LiftRul
     if (present == null) {
       throw new Exception(s"$v1 was null!")
     } else present.openOrThrowException("should be present")
-  }
-
-  def cometCreation(): Vendor[(CometCreationInfo) => Box[LiftCometActor]] = {
-    Vendor(internalCreate _)
-  }
-
-  private[this] val cometClz = classOf[LiftCometActor]
-
-  def internalCreate(cci: CometCreationInfo): Box[LiftCometActor] = {
-    val tpe = cci.cometType
-    val clz = Helpers.findClass(tpe, LiftRules.buildPackage("comet"))
-    clz.flatMap { c =>
-      if (IocSupport.checkIfSuitable(c) && cometClz.isAssignableFrom(c)) {
-        val actor = ioc.inst(Manifest.classType(c)).asInstanceOf[LiftCometActor]
-        CometActorSetupHelper.setup(actor, Full(tpe), cci)
-        Full(actor)
-      } else Empty
-    }
   }
 }
 

@@ -16,17 +16,18 @@
 
 package ws.kotonoha.server.web.snippet
 
+import com.google.inject.Inject
 import net.liftweb.common.{Box, Full}
 import net.liftweb.http.js.{JE, JsCmd}
 import net.liftweb.http.{S, SHtml, SortedPaginatorSnippet}
 import net.liftweb.json.JsonAST.{JArray, JObject, JString}
 import net.liftweb.mongodb.{Limit, Skip}
-import net.liftweb.util.ControlHelpers.tryo
 import org.bson.types.ObjectId
 import org.joda.time.Period
 import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.actors.model.{ChangeWordStatus, MarkForDeletion}
+import ws.kotonoha.server.ops.WordJmdictOps
 import ws.kotonoha.server.records._
 import ws.kotonoha.server.util.unapply.XOid
 import ws.kotonoha.server.util.{DateTimeUtils, Formatting, Json, Strings}
@@ -39,14 +40,11 @@ import scala.xml.{NodeSeq, Text}
   * @since 15.03.12
   */
 
-object WordSnippet {
+class WordSnippet @Inject() (
+  wj: WordJmdictOps
+) {
 
-  def wordId: Box[ObjectId] = {
-    S.param("w") flatMap (x => tryo {
-      new ObjectId(x)
-    })
-  }
-
+  val wordId: Box[ObjectId] = S.param("w").flatMap(XOid.unapply)
 
   def renderLearning(box: Box[ItemLearningDataRecord]): NodeSeq = box match {
     case Full(il) => {

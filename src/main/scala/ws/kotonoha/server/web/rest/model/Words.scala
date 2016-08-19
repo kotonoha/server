@@ -24,8 +24,10 @@ import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.actors.model.{ChangeWordStatus, MarkForDeletion}
 import ws.kotonoha.server.actors.tags.{TagParser, TagWord}
+import ws.kotonoha.server.ioc.IocActors
 import ws.kotonoha.server.records.{UserRecord, WordCardRecord, WordRecord}
 import ws.kotonoha.server.util.unapply.XOid
+import ws.kotonoha.server.web.lift.Words2
 import ws.kotonoha.server.web.rest.KotonohaRest
 
 import scala.concurrent.Future
@@ -35,7 +37,7 @@ import scala.concurrent.Future
  * @since 02.09.12
  */
 
-object Words extends KotonohaRest with ReleaseAkka {
+class Words(ioc: IocActors) extends KotonohaRest with ReleaseAkka {
   import ws.kotonoha.server.actors.UserSupport._
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
@@ -60,20 +62,9 @@ object Words extends KotonohaRest with ReleaseAkka {
   }
 
   serve("api" / "model" / "words" prefix {
-    case XOid(id) :: Nil JsonGet req => {
-      val uid = UserRecord.currentId
-      val jv = uid.flatMap(user => {
-        WordRecord where (_.id eqs (id)) and (_.user eqs (user)) get()
-      }).map {
-        _.stripped.mapField {
-          case JField("status", JInt(v)) => JField("status", JString(WordStatus.fromValue(v.intValue()).name))
-          case x => x
-        }
-      }
-      jv.map {
-        j => JsonResponse(j)
-      } ~> (401)
-    }
+    case XOid(id) :: Nil JsonGet _ =>
+      val w2 = ioc.inst[Words2]
+      w2.getWord(id)
     case XOid(wid) :: Nil JsonPost reqV => {
       val (obj, req) = reqV
       val uid = UserRecord.currentId
@@ -112,5 +103,11 @@ object Words extends KotonohaRest with ReleaseAkka {
       } map { ws => JsonResponse(JArray(ws.map(_.asJValue)))}
       Full(cards.openOr(ForbiddenResponse()))
     }
+    case XOid(wid) :: "similarjm" :: Nil Get req =>
+      val w2 = ioc.inst[Words2]
+      w2.similarJm(wid)
+    case XOid(wid) :: "autoex" :: Nil Get req =>
+      val w2 = ioc.inst[Words2]
+      w2.autoexamples(wid)
   })
 }

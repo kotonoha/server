@@ -31,10 +31,10 @@ import net.liftweb.util._
 import ws.kotonoha.server.KotonohaConfig
 import ws.kotonoha.server.actors.lift.Ping
 import ws.kotonoha.server.actors.{InitUsers, ReleaseAkkaMain}
-import ws.kotonoha.server.ioc.{KotonohaIoc}
+import ws.kotonoha.server.ioc.KotonohaIoc
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
-import ws.kotonoha.server.web.lift.{SnippetResolver, SnippetResolverConfig}
+import ws.kotonoha.server.web.lift.{LiftGuiceIntegration, SnippetResolverConfig}
 import ws.kotonoha.server.web.loc.{NewsLoc, WikiLoc}
 import ws.kotonoha.server.web.rest._
 import ws.kotonoha.server.web.rest.admin.{OFHistory, Stats}
@@ -80,8 +80,9 @@ class Boot extends Logging {
     val config = KotonohaConfig.config
 
     val ioc = new KotonohaIoc(config)
+    val lgi = new LiftGuiceIntegration(ioc.injector)
 
-    configureInjection(ioc)
+    configureInjection(lgi)
 
     MongoDbInit.init()
 
@@ -196,7 +197,7 @@ class Boot extends Logging {
     LiftRules.dispatch.append(QrRest)
     LiftRules.dispatch.append(new StatusApi)
 
-    LiftRules.dispatch.append(Words)
+    LiftRules.dispatch.append(new Words(lgi.iocActors))
     LiftRules.dispatch.append(Stats)
     LiftRules.dispatch.append(Grants)
     LiftRules.dispatch.append(Cards)
@@ -239,14 +240,13 @@ class Boot extends Logging {
     //S.addAround(DB.buildLoanWrapper)
   }
 
-  private def configureInjection(ioc: KotonohaIoc) = {
+  private def configureInjection(ioc: LiftGuiceIntegration) = {
     val rcfg = new SnippetResolverConfig
     rcfg.shortcut("cpres", ClasspathResource)
     rcfg.shortcut("mode", ModeSnippet)
     rcfg.shortcut("cdn", CdnSnippet)
-    val res = new SnippetResolver(ioc.injector, rcfg)
-    LiftRules.snippets.append(res)
-    S.addAround(res.wrapUser())
-    LiftRules.cometCreationFactory.default.set(res.cometCreation())
+    LiftRules.snippets.append(ioc.snippetResolver(rcfg))
+    S.addAround(ioc.wrapUser())
+    LiftRules.cometCreationFactory.default.set(ioc.cometCreation())
   }
 }
