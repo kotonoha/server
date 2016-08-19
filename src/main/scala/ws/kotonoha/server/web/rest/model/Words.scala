@@ -19,6 +19,7 @@ package ws.kotonoha.server.web.rest.model
 import net.liftweb.common.{Box, Failure, Full}
 import net.liftweb.http.{OkResponse, _}
 import net.liftweb.json.JsonAST._
+import net.liftweb.util.Props
 import org.bson.types.ObjectId
 import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
@@ -106,7 +107,7 @@ class Words(ioc: IocActors) extends KotonohaRest with ReleaseAkka {
     case XOid(wid) :: "similarjm" :: Nil Get req =>
       val w2 = ioc.inst[Words2]
       w2.similarJm(wid)
-    case XOid(wid) :: "autoex" :: Nil Get req =>
+    case XOid(wid) :: "autoex" :: Nil Get req if Props.devMode =>
       val w2 = ioc.inst[Words2]
       w2.autoexamples(wid)
   })
