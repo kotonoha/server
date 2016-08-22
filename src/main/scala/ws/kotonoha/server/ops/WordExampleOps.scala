@@ -16,18 +16,21 @@
 
 package ws.kotonoha.server.ops
 
-import com.google.inject.{Inject, Provider, Provides}
+import java.util.function.Function
+
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.google.inject.{Inject, Provider, Provides, Singleton}
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
 import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry, JmdictTag}
 import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, JmdictSearchResults, LuceneJmdict}
 import ws.kotonoha.examples.ExampleClient
-import ws.kotonoha.examples.api.{ExamplePackRequest, ExampleQuery, ExampleTag}
+import ws.kotonoha.examples.api.{ExamplePack, ExamplePackRequest, ExampleQuery, ExampleTag}
 import ws.kotonoha.server.grpc.GrpcClients
-import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.WordRecord
 
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 /**
   * @author eiennohito
@@ -83,11 +86,72 @@ class WordJmdictOps @Inject() (
   }
 }
 
+@Singleton
+class ExampleCacher @Inject() (
+  ecl: Provider[ExampleClient],
+  ece: ExecutionContextExecutor
+) {
+  private[this] val cache = {
+    Caffeine.newBuilder()
+        .maximumSize(10000)
+        .executor(ece)
+        .build[ExamplePackRequest, Future[ExamplePack]]()
+  }
+
+  private[this] val genericInt = new Function[ExamplePackRequest, Future[ExamplePack]] {
+    override def apply(t: ExamplePackRequest) = {
+      val f = ecl.get().generic(t)
+      f.onFailure {
+        case t => cache.invalidate(t)
+      }(ece)
+      f
+    }
+  }
+
+  def generic(req: ExamplePackRequest): Future[ExamplePack] = {
+    cache.get(req, genericInt)
+  }
+}
+
 class WordExampleOps @Inject() (
-  esvc: Provider[ExampleClient],
+  ec: ExampleCacher,
   jmd: LuceneJmdict,
   wjo: WordJmdictOps
 ) {
+  def exampleRequest(w: WordRecord): ExamplePackRequest = {
+    w.jmdictLink.get.flatMap(jmd.byId).orElse(wjo.entryForWord(w)) match {
+      case Some(je) => WordExampleOps.jmdictReq(je)
+      case None => WordExampleOps.wordRecordReq(w)
+    }
+  }
+
+  def acquireExamples(w: WordRecord): Future[ExamplePack] = {
+    val req = exampleRequest(w)
+    val res = ec.generic(req)
+    res
+  }
+}
+
+object WordExampleOps {
+  def wordRecordReq(rec: WordRecord): ExamplePackRequest = {
+    val q = ExampleQuery(rec.writing.value.head, rec.reading.value.head)
+
+    val tgs = rec.tags.get match {
+      case t if t.contains("noun") && t.contains("vs") => ExampleTag.SuruVerb
+      case t if t.contains("noun") => ExampleTag.Noun
+      case t if t.contains("verb") => ExampleTag.Verb
+      case t if t.contains("adj") => ExampleTag.Adjective
+      case t if t.contains("adv") => ExampleTag.Adverb
+      case _ => ExampleTag.Unknown
+    }
+
+    ExamplePackRequest(
+      tags = Seq(tgs),
+      candidates = Seq(q),
+      limit = 15
+    )
+  }
+
 
   def jmdictReq(e: JmdictEntry) = {
     val qs = e.readings.flatMap { r =>
@@ -134,39 +198,6 @@ class WordExampleOps @Inject() (
       qtags, qentries, limit = 15
     )
   }
-
-  def wordRecordReq(rec: WordRecord): ExamplePackRequest = {
-    val q = ExampleQuery(rec.writing.value.head, rec.reading.value.head)
-
-    val tgs = rec.tags.get match {
-      case t if t.contains("noun") && t.contains("vs") => ExampleTag.SuruVerb
-      case t if t.contains("noun") => ExampleTag.Noun
-      case t if t.contains("verb") => ExampleTag.Verb
-      case t if t.contains("adj") => ExampleTag.Adjective
-      case t if t.contains("adv") => ExampleTag.Adverb
-      case _ => ExampleTag.Unknown
-    }
-
-    ExamplePackRequest(
-      tags = Seq(tgs),
-      candidates = Seq(q),
-      limit = 15
-    )
-  }
-
-  def makeRequest(w: WordRecord) = {
-    w.jmdictLink.get.flatMap(jmd.byId).orElse(wjo.entryForWord(w)) match {
-      case Some(je) => jmdictReq(je)
-      case None => wordRecordReq(w)
-    }
-  }
-
-  def acquireExamples(w: WordRecord) = {
-    val req = wordRecordReq(w)
-    val res = esvc.get().generic(req)
-    res
-  }
-
 }
 
 case class ExampleServiceConfig(uri: String)
