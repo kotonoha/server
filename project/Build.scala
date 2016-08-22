@@ -177,7 +177,7 @@ object Kotonoha {
 
   val liftPackage = "net.liftweb"
   val liftVersion = "3.0-RC3"
-  val akkaVer = "2.4.8"
+  val akkaVer = "2.4.9"
   val rogueVer = "2.5.0"
   val luceneVersion = "6.1.0"
 

@@ -25,6 +25,8 @@
   <logger name="akka" level="INFO" />
   <logger name="reactivemongo" level="INFO" />
 
+  <logger name="ws.kotonoha.server.util.RateLimiter" level="TRACE" />
+
 
   <root level="DEBUG">
     <appender-ref ref="console" />
