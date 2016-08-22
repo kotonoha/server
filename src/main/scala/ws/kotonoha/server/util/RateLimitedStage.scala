@@ -47,7 +47,6 @@ class RateLimiter[T: ClassTag](hndl: ActorRef) extends GraphStageWithMaterialize
         val actor = getStageActor {
           case (_, MaxAtOnceActor.Acknowledge(p)) =>
             push(out, p.asInstanceOf[T])
-            logger.trace(s"ACQ: $p")
             if (finished) {
               completeStage()
             } else {
