@@ -36,7 +36,7 @@ class RateLimiter[T: ClassTag](hndl: ActorRef) extends GraphStageWithMaterialize
   val shape = FlowShape(in, out)
 
   override def createLogicAndMaterializedValue(inheritedAttributes: Attributes) = {
-    var aref = Promise[ActorRef]
+    val aref = Promise[ActorRef]
     val logic = new GraphStageLogic(shape) with InHandler with OutHandler {
       setHandlers(in, out, this)
 
