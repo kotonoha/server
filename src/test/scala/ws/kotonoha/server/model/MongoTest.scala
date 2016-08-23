@@ -147,18 +147,6 @@ class MongoTest extends AkkaFun with MongoAwareTest with BeforeAndAfter {
     anotherCard.notBefore.get should be >= (new DateTime)
   }
 
-  test("getting new cards from actor") {
-    val fs = Future.sequence(1 to 5 map {
-      x => saveWordAsync
-    })
-    val ids = Await.result(fs, 5 seconds)
-    ids should have size (5)
-
-    val ar = kta.userContext(userId).userActor[CardLoader]("usa")
-    ar.receive(LoadNewCards(userId, 10), testActor)
-    val cards = receiveOne(1.minute).asInstanceOf[List[WordCardRecord]]
-    cards should have length (10)
-  }
 
   test("getting new cards and words") {
     val fs = Future.sequence(1 to 5 map {

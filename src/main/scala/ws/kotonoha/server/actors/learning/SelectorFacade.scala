@@ -51,9 +51,7 @@ class SelectorFacade @Inject() (
       r => r.id.get -> r
     } toMap
     //val s = ObjectRenderer.renderJvalue(filter)
-    val ordered = ids flatMap {
-      wds.get(_)
-    }
+    val ordered = ids flatMap { wds.get }
     sender ! WordsAndCards(ordered, Nil, Nil)
   }
 
@@ -66,7 +64,9 @@ class SelectorFacade @Inject() (
   }
 }
 
-class CardSelectorFacade extends UserScopedActor with ActorLogging {
+class CardSelectorFacade @Inject() (
+  uc: UserContext
+) extends UserScopedActor with ActorLogging {
 
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
@@ -86,20 +86,18 @@ class CardSelectorFacade extends UserScopedActor with ActorLogging {
     }
   }
 
-  val scheduler = context.actorOf(Props[CardSelectorCache], "scheduler")
+  val scheduler = context.actorOf(uc.props[CardSelectorCache], "scheduler")
 
   def receive = {
-    case LoadWords(max, skip) => {
+    case LoadWords(max, skip) =>
       val f = ask(self, LoadCards(max, skip))(10 seconds).mapTo[WordsAndCards]
       f.map {
         lst => createResult(lst)
       } pipeTo sender
-    }
-    case msg: LoadCards => {
+    case msg: LoadCards =>
       val f = ask(scheduler, msg)(10 seconds).mapTo[WordsAndCards]
       f.map {
         wac => processPaired(wac.cards); wac
       } pipeTo sender
-    }
   }
 }

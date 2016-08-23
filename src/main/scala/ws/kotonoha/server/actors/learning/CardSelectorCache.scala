@@ -16,26 +16,27 @@
 
 package ws.kotonoha.server.actors.learning
 
-import ws.kotonoha.server.actors.UserScopedActor
-import ws.kotonoha.server.learning.{CardProcessed, RegisterCardListener, UnregisterCardListener}
-import org.bson.types.ObjectId
-import ws.kotonoha.server.actors.schedulers.{CoreScheduler, ReviewCard}
-import akka.actor.{ActorLogging, ActorRef, Props}
-import concurrent.Future
+import akka.actor.{ActorLogging, ActorRef}
 import akka.util.Timeout
+import com.google.inject.Inject
+import org.bson.types.ObjectId
+import ws.kotonoha.server.actors.UserScopedActor
+import ws.kotonoha.server.actors.schedulers.{CoreScheduler, ReviewCard}
+import ws.kotonoha.server.ioc.UserContext
+import ws.kotonoha.server.learning.{CardProcessed, RegisterCardListener}
 import ws.kotonoha.server.records.WordCardRecord
-import collection.immutable.VectorBuilder
-import collection.mutable
 
 /**
  * @author eiennohito
  * @since 01.03.13 
  */
 
-class CardSelectorCache extends UserScopedActor with ActorLogging {
+class CardSelectorCache @Inject() (
+  uc: UserContext
+) extends UserScopedActor with ActorLogging {
 
-  import akka.pattern.ask
-  import akka.pattern.pipe
+  import akka.pattern.{ask, pipe}
+
   import concurrent.duration._
 
   case class ProcessAnswer(to: ActorRef, data: WordsAndCards, cnt: Int, skip: Int)
@@ -46,7 +47,7 @@ class CardSelectorCache extends UserScopedActor with ActorLogging {
 
   var cache: Vector[ReviewCard] = Vector.empty
 
-  val impl = context.actorOf(Props[CoreScheduler])
+  val impl = context.actorOf(uc.props[CoreScheduler])
 
   def invalidate() = {
     val cnt = cache.length

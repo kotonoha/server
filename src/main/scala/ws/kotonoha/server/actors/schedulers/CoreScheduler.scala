@@ -16,13 +16,13 @@
 
 package ws.kotonoha.server.actors.schedulers
 
-import ws.kotonoha.server.actors.UserScopedActor
-import org.bson.types.ObjectId
-import akka.actor.{ActorLogging, Props}
-import ws.kotonoha.server.records.WordCardRecord
-import akka.util.Timeout
-import ws.kotonoha.server.actors.learning.{WordsAndCards, LoadCards}
+import akka.actor.ActorLogging
 import akka.pattern.pipe
+import akka.util.Timeout
+import com.google.inject.Inject
+import ws.kotonoha.server.actors.UserScopedActor
+import ws.kotonoha.server.actors.learning.{LoadCards, WordsAndCards}
+import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.records.misc.{CardSchedule, ScheduleRecord}
 
 /**
@@ -46,19 +46,22 @@ object SelectMutators {
 }
 
 
-class CoreScheduler extends UserScopedActor with ActorLogging {
+class CoreScheduler @Inject() (
+  uc: UserContext
+) extends UserScopedActor with ActorLogging {
 
   import ActorSupport._
-  import concurrent.duration._
   import ws.kotonoha.server.util.DateTimeUtils._
+
+  import concurrent.duration._
 
   lazy val resolver = new RepetitionStateResolver(uid)
 
-  lazy val bad = context.actorOf(Props[BadCardScheduler], "bad")
-  lazy val ready = context.actorOf(Props[ReadyCardScheduler], "ready")
-  lazy val newcard = context.actorOf(Props[NewCardScheduler], "new")
-  lazy val oldbal = context.actorOf(Props[OldBalancingScheduler], "oldbal")
-  lazy val lowrep = context.actorOf(Props[LowRepBigIntScheduler], "lowrep")
+  lazy val bad = context.actorOf(uc.props[BadCardScheduler], "bad")
+  lazy val ready = context.actorOf(uc.props[ReadyCardScheduler], "ready")
+  lazy val newcard = context.actorOf(uc.props[NewCardScheduler], "new")
+  lazy val oldbal = context.actorOf(uc.props[OldBalancingScheduler], "oldbal")
+  lazy val lowrep = context.actorOf(uc.props[LowRepBigIntScheduler], "lowrep")
 
   implicit val timeout: Timeout = 10 seconds
 
@@ -142,7 +145,7 @@ class CoreScheduler extends UserScopedActor with ActorLogging {
       reqLength = cnt,
       limits = Limits(0, 0),
       base = resolver.lastAvg.toInt,
-      next = resolver.nextTotal.toSeq
+      next = resolver.nextTotal
     )
     val mixer = mixers(state)
     log.debug("For user {} scheduler state = {}", uid, state)
