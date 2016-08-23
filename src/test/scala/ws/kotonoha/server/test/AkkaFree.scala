@@ -25,7 +25,7 @@ import scala.concurrent.{Await, Awaitable}
  * @since 06.03.13
  */
 
-abstract class AkkaFree extends TestWithAkka with FreeSpecLike with Matchers with LoneElement {
+abstract class AkkaFree extends TestWithAkka() with FreeSpecLike with Matchers with LoneElement {
   import scala.concurrent.duration._
   def ares[T](x: => Awaitable[T], dur: FiniteDuration = 1.second): T = {
     Await.result(x, dur)

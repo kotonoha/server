@@ -18,15 +18,16 @@ package ws.kotonoha.server.ioc
 
 import java.util.concurrent.TimeUnit
 
+import akka.actor.{ActorRef, ActorRefFactory}
 import akka.util.Timeout
-import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.{Caffeine, RemovalCause, RemovalListener}
 import com.google.inject._
 import net.codingwell.scalaguice.ScalaModule
 import org.bson.types.ObjectId
-import ws.kotonoha.server.actors.{ForUser, GlobalActors}
+import ws.kotonoha.server.actors._
 
 import scala.compat.java8.functionConverterImpls.AsJavaFunction
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.reflect.ClassTag
 
 /**
@@ -40,8 +41,20 @@ class UserContext(val uid: ObjectId, gact: GlobalActors, injector: Injector) ext
   import scala.concurrent.duration._
 
   def askUser[T: ClassTag](msg: AnyRef, timeout: Timeout = 2.seconds): Future[T] = {
-    val future = gact.users.ask(ForUser(uid, msg))(timeout)
+    val future = actor.ask(msg)(timeout)
     future.mapTo[T]
+  }
+
+  lazy val actor: ActorRef = {
+    implicit val timeout: Timeout = 1.second
+    val refF = gact.users.ask(UserActor(uid)).mapTo[ActorRef]
+    Await.result(refF, timeout.duration)
+  }
+
+  lazy val refFactory: ActorRefFactory = {
+    implicit val timeout: Timeout = 1.second
+    val f = actor.ask(GetArefFactory).mapTo[ActorRefFactory]
+    Await.result(f, timeout.duration)
   }
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[UserContext]
@@ -55,6 +68,10 @@ class UserContext(val uid: ObjectId, gact: GlobalActors, injector: Injector) ext
 
   override def hashCode(): Int = {
     uid.hashCode()
+  }
+
+  private[ioc] def wasRemoved(): Unit = {
+    gact.users ! InvalidateUserActor(uid)
   }
 }
 
@@ -90,10 +107,17 @@ class UserContextServiceImpl @Inject() (
     childInj.getInstance(classOf[UserContext])
   })
 
+  private val removalListener = new RemovalListener[ObjectId, UserContext] {
+    override def onRemoval(key: ObjectId, value: UserContext, cause: RemovalCause) = {
+      value.wasRemoved()
+    }
+  }
+
   private val cache = {
     Caffeine.newBuilder()
-        .expireAfterAccess(20, TimeUnit.MINUTES)
-        .build[ObjectId, UserContext]()
+      .expireAfterAccess(20, TimeUnit.MINUTES)
+      .removalListener(removalListener)
+      .build[ObjectId, UserContext]()
   }
 
   override def of(uid: ObjectId) = cache.get(uid, loader)

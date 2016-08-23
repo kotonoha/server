@@ -16,30 +16,35 @@
 
 package ws.kotonoha.server.actors.learning
 
-import ws.kotonoha.server.actors.UserScopedActor
-import ws.kotonoha.server.records.{WordRecord, WordCardRecord}
 import akka.actor.{ActorLogging, Props}
-import akka.actor.Status.Failure
 import akka.pattern.{ask, pipe}
-import scala.concurrent.duration._
+import com.google.inject.Inject
+import ws.kotonoha.server.actors.UserScopedActor
 import ws.kotonoha.server.actors.model.SchedulePaired
-import ws.kotonoha.server.actors.schedulers.CoreScheduler
+import ws.kotonoha.server.ioc.UserContext
+import ws.kotonoha.server.mongodb.RMData
+import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
+
+import scala.concurrent.duration._
 
 /**
  * @author eiennohito
  * @since 27.02.13
  */
 
-class SelectorFacade extends UserScopedActor {
+class SelectorFacade @Inject() (
+  ioc: UserContext,
+  rm: RMData
+) extends UserScopedActor {
 
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
   def loadReviewList(max: Int) {
     val q = WordCardRecord.enabledFor(uid) and (_.notBefore lt now.plus(1 day)) and
-      (_.learning.subfield(_.repetition) eqs (1)) and
-      (_.learning.subfield(_.lapse) neqs (1)) and
-      (_.learning.subfield(_.intervalEnd) before (now.plus(2 days)))
+      (_.learning.subfield(_.repetition) eqs 1) and
+      (_.learning.subfield(_.lapse) neqs 1) and
+      (_.learning.subfield(_.intervalEnd) before now.plus(2.days))
     val ids = q.select(_.word).limit(max).orderDesc(_.learning.subfield(_.lapse)) fetch()
     //val wds = WordRecord.findAll("id" -> ("$in" -> ids)) map {r => r.id.is -> r} toMap
     val wds = WordRecord where (_.id in ids) fetch() map {
@@ -52,7 +57,7 @@ class SelectorFacade extends UserScopedActor {
     sender ! WordsAndCards(ordered, Nil, Nil)
   }
 
-  val cards = context.actorOf(Props[CardSelectorFacade], "cards")
+  val cards = context.actorOf(ioc.props[CardSelectorFacade], "cards")
 
   def receive = {
     case LoadReviewList(max) => loadReviewList(max)

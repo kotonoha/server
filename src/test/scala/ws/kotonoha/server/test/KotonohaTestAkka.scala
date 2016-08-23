@@ -95,11 +95,10 @@ class SupervisorActor extends UserScopedActor {
 class UserTestContext(akka: KotonohaTestAkka, val uid: ObjectId, val ctx: UserContext) {
   private implicit val timeout: Timeout = 10 minutes
   private implicit def system = akka.system
-  lazy val actor = akka.userActor(uid)
+  def actor = ctx.actor
 
   private lazy val supervisor = {
-    Await.result((actor ? CreateActor(classOf[SupervisorActor], s"supervisor${akka.cnt.getAndAdd(1)}"))
-      .mapTo[ActorRef], 5.seconds)
+    ctx.refFactory.actorOf(ctx.props[SupervisorActor], s"sv${akka.cnt.getAndAdd(1)}")
   }
 
   def userActor(props: Props, name: String) = {

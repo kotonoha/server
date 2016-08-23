@@ -31,17 +31,6 @@ import scala.concurrent.{Await, ExecutionContext, Future}
  * @since 06.01.13 
  */
 
-class PerUserActor @Inject() (ioc: UserContext) extends Actor {
-  val guard = context.actorOf(ioc.props[UserGuardActor], "guard")
-
-  override def receive = {
-    case UserId => sender ! ioc.uid
-    case x => guard.forward(x)
-  }
-}
-
-case object UserId
-
 import ws.kotonoha.server.actors.GlobalActor._
 
 object ActorUtil {
@@ -59,11 +48,8 @@ object ActorUtil {
 import ws.kotonoha.server.actors.ActorUtil.aOf
 
 trait KotonohaActor extends Actor {
-
   def globalPath = context.system.child(globalName)
-
   def userPath: ActorPath = globalPath / userName
-
   def svcPath: ActorPath = globalPath / svcName
 
   lazy val users = {
@@ -91,9 +77,7 @@ trait UserScopedActor extends KotonohaActor with ActorLogging {
     rootpath / un
   }
 
-  def guardActorPath: ActorPath = {
-    userActorPath / "guard"
-  }
+  def guardActorPath: ActorPath = userActorPath
 
   def scoped(name: String): ActorRef = context.actFor(guardActorPath / name)
 
@@ -118,6 +102,7 @@ object UserScopedActor {
     }
   }
 }
+case object UserId
 
 
 

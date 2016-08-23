@@ -33,7 +33,7 @@ import scala.util.Random
  * @author eiennohito
  * @since 08.01.13
  */
-class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) extends TestKit(kta.system) with MongoAwareTest with StrictLogging {
+abstract class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTestAkka) extends TestKit(kta.system) with MongoAwareTest with StrictLogging {
   implicit val timeout: Timeout = 5 minutes
 
   def withRec[T <: MongoRecord[T]](fact: => T)(f: T => Unit): Unit = {

@@ -62,7 +62,6 @@ class UserGuardActor @Inject() (ioc: UserContext) extends UserScopedActor with A
   val recommender = context.actorOf(ioc.props[RecommendActor], "recommend")
 
   def dispatch(msg: KotonohaMessage) {
-    users ! PingUser(uid)
     msg match {
       case _: SelectWordsMessage => wordSelector.forward(msg)
       case _: EventMessage => markProcessor.forward(msg)
@@ -79,10 +78,14 @@ class UserGuardActor @Inject() (ioc: UserContext) extends UserScopedActor with A
   }
 
   override def receive = {
+    case UserId => sender ! ioc.uid
     case CreateActor(p, name) => name match {
       case null | "" => sender ! context.actorOf(ioc.props(Manifest.classType(p)))
       case _ => sender ! context.actorOf(ioc.props(Manifest.classType(p)), name)
     }
     case msg: KotonohaMessage => dispatch(msg)
+    case GetArefFactory => sender() ! context.asInstanceOf[ActorRefFactory]
   }
 }
+
+object GetArefFactory

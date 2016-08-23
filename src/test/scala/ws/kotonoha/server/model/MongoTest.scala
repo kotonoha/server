@@ -15,18 +15,17 @@
  */
 package ws.kotonoha.server.model
 
-import akka.actor.Props
 import akka.testkit.CallingThreadDispatcher
 import akka.util.Timeout
 import com.mongodb.WriteConcern
 import net.liftweb.common.{Empty, Full}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, OneInstancePerTest}
+import org.scalatest.BeforeAndAfter
 import ws.kotonoha.model.WordStatus
+import ws.kotonoha.server.actors.AkkaFun
 import ws.kotonoha.server.actors.learning.{LoadCards, LoadWords, WordsAndCards, _}
 import ws.kotonoha.server.actors.model.{CardActor, RegisterWord, SchedulePaired}
-import ws.kotonoha.server.actors.{AkkaFun, PingUser}
 import ws.kotonoha.server.learning.{ProcessMarkEvent, ProcessMarkEvents}
 import ws.kotonoha.server.mongodb.MongoAwareTest
 import ws.kotonoha.server.records.events.MarkEventRecord
@@ -56,7 +55,6 @@ class MongoTest extends AkkaFun with MongoAwareTest with BeforeAndAfter {
   before {
     user = UserRecord.createRecord.save()
     ucont = kta.userContext(userId)
-    kta ! PingUser(userId)
   }
 
   after {

@@ -20,10 +20,9 @@ import akka.actor.SupervisorStrategy.Restart
 import akka.actor._
 import com.google.inject.Inject
 import org.bson.types.ObjectId
-import org.joda.time.DateTime
 import ws.kotonoha.server.ioc.{IocActors, UserContextService}
 
-import scala.concurrent.duration._
+import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -31,44 +30,28 @@ import scala.concurrent.{ExecutionContext, Future}
  * @since 07.01.13 
  */
 class UserActorManager @Inject()(ioc: IocActors) extends Actor with ActorLogging {
-  import ws.kotonoha.server.util.DateTimeUtils._
-  var userMap = Map[ObjectId, ActorRef]()
-  var lifetime = Map[ObjectId, DateTime]()
   private val ucs = ioc.inst[UserContextService]
+  val userMap = new mutable.HashMap[ObjectId, ActorRef]()
 
   private def create(uid: ObjectId) = {
     val name = uid.toString
     log.debug(s"trying to create an actor for uid $name")
-    context.actorOf(ucs.of(uid).props[PerUserActor], name)
+    context.actorOf(ucs.of(uid).props[UserGuardActor], name)
   }
 
   def userActor(uid: ObjectId) = {
-    lifetime += uid -> now
-    userMap.get(uid) match {
+    val id = ucs.of(uid).uid
+    userMap.get(id) match {
       case Some(a) => a
-      case None => {
+      case None =>
         val a = create(uid)
-        userMap += uid -> a
+        userMap.put(uid, a)
         a
-      }
     }
-  }
-
-  def checkLife() {
-    val time = now.minusMinutes(15)
-    val uids = lifetime.filter(_._2.isBefore(time)).keySet
-    val (stale, good) = userMap.partition(c => uids.contains(c._1))
-    lifetime --= uids
-    userMap = good
-    stale.foreach { case (_, a) => a ! PoisonPill }
   }
 
   implicit val ec: ExecutionContext = context.system.dispatcher
 
-
-  override def preStart() {
-    context.system.scheduler.schedule(15 minutes, 5 minutes, self, Ping)
-  }
 
   import akka.pattern.ask
   import akka.util.Timeout
@@ -76,22 +59,25 @@ class UserActorManager @Inject()(ioc: IocActors) extends Actor with ActorLogging
   import scala.concurrent.duration._
 
   override def receive = {
-    case Ping => checkLife()
-    case PingUser(uid) => userActor(uid)
     case UserActor(uid) => sender ! userActor(uid)
     case ForUser(uid, msg) => userActor(uid).forward(msg)
     case AskAllUsers(msg) =>
       val answer = userMap.map {
-        case (u, a) => a.ask(msg)(Timeout(5 seconds)).map(u -> _)
+        case (u, a) => a.ask(msg)(Timeout(5.seconds)).map(u -> _)
       }.toList
       sender ! Future.sequence(answer)
     case TellAllUsers(msg) => userMap.values.foreach(_ ! msg)
     case InitUsers =>
-      val actor = userActor(ObjectId.get()) //lasy loading
-      context.system.scheduler.scheduleOnce(10 seconds, actor, PoisonPill) //and kill in 10 secs
+      val uid = ObjectId.get()
+      userActor(uid)
+    case InvalidateUserActor(uid) =>
+      userMap.remove(uid) match {
+        case None => log.warning("there was no user actor for uid={}", uid)
+        case Some(ar) =>
+          log.debug(s"stopping user actor for $uid")
+          context.stop(ar)
+      }
   }
-
-  case object Ping
 
   override def supervisorStrategy() = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 hour) {
     case e => log.error(e, "Error in Root user actor"); Restart
@@ -105,3 +91,4 @@ case class AskAllUsers(msg: AnyRef) extends MessageForUser
 case class TellAllUsers(msg: AnyRef) extends MessageForUser
 case class PingUser(uid: ObjectId) extends MessageForUser
 case object InitUsers extends MessageForUser
+case class InvalidateUserActor(uid: ObjectId) extends MessageForUser

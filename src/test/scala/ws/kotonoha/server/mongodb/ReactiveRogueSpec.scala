@@ -27,12 +27,22 @@ import ws.kotonoha.server.util.DateTimeUtils
   * @author eiennohito
   * @since 2016/08/11
   */
-class ReactiveRogueSpec extends AkkaFree { test =>
+
+object ReactiveRogueCleaner {
+  private lazy val cleaned: Boolean = {
+    ReactiveRecord.bulkDelete_!!(new BasicDBObject())
+    true
+  }
+
+  def clean(): Unit = cleaned
+}
+
+class ReactiveRogueSpec extends AkkaFree with MongoAwareTest { test =>
   private [this] val acc = kta.ioc.inst[RMData]
   private val date = DateTimeUtils.now
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    ReactiveRecord.bulkDelete_!!(new BasicDBObject())
+    ReactiveRogueCleaner.clean()
     createRecord(date)
   }
 
@@ -89,7 +99,7 @@ class ReactiveRogueSpec extends AkkaFree { test =>
     }
 
     "stream works with 300 items" in {
-      val items = (0 until 300) map {i =>
+      val items = (1 to 300) map {i =>
         ReactiveRecord.createRecord.date(date.plusSeconds(i)).textfld("what")
       }
       ares(acc.save(items)).n shouldBe 300
@@ -101,14 +111,14 @@ class ReactiveRogueSpec extends AkkaFree { test =>
 
     "stream works with 3k items and projection" in {
       val cnt = 3000
-      val items = (0 until cnt) map {i =>
-        ReactiveRecord.createRecord.date(date.plusSeconds(i)).textfld("what")
+      val items = (1 to cnt) map {i =>
+        ReactiveRecord.createRecord.date(date.plusSeconds(i)).textfld("what3k")
       }
       ares(acc.save(items)).n shouldBe cnt
-      val q = ReactiveRecord.where(_.textfld eqs "what").select(_.date)
+      val q = ReactiveRecord.where(_.textfld eqs "what3k").select(_.date)
       val str = acc.stream(q, 99)
       val f = str.runWith(Sink.fold(0L){(i, d) => i + new JDur(date, d).getStandardSeconds})
-      ares(f) shouldBe (cnt.toLong*(cnt - 1)/2)
+      ares(f) shouldBe (cnt.toLong*(cnt + 1)/2)
     }
 
     "update works" in {

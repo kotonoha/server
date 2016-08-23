@@ -31,7 +31,7 @@ import scala.concurrent.{Await, ExecutionContext}
   * @since 2016/08/22
   */
 class GlobalRateLimitingSpec extends AkkaFree {
-  implicit def amat = ActorMaterializer.create(kta.system)
+  implicit lazy val amat = ActorMaterializer.create(kta.system)
   implicit def ec = kta.ioc.inst[ExecutionContext]
 
   import scala.concurrent.duration._
