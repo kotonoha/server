@@ -44,7 +44,7 @@ class WarodaiCardMixerTest extends FreeSpec with ShouldMatchers {
 
   "CardMixer" - {
     "with two seqs should give good answer" in {
-      val mixer = CardMixer(Source(oids(5), 1.0), Source(oids(10), 2.0))
+      val mixer = CardMixer(CardSource(oids(5), 1.0), CardSource(oids(10), 2.0))
       val req = Requests.ready(10)
       val data = Await.result(mixer.process(req), 10 minutes)
       data.length should be > (5)

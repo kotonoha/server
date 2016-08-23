@@ -67,39 +67,39 @@ class CoreScheduler @Inject() (
 
   lazy val mixers = Map(
     State.Initial -> CardMixer(
-      Source(ready, 1),
-      Source(newcard, 1),
-      Source(bad, 0.5)
+      CardSource(ready, 1),
+      CardSource(newcard, 1),
+      CardSource(bad, 0.5)
     ),
     State.Normal -> CardMixer(
-      Source(ready, 5),
-      Source(newcard, 0.3),
-      Source(lowrep, 0.5),
-      Source(bad, 2.5)
+      CardSource(ready, 5),
+      CardSource(newcard, 0.3),
+      CardSource(lowrep, 0.5),
+      CardSource(bad, 2.5)
     ),
     State.AfterRest -> CardMixer(
-      Source(ready, 1),
-      Source(bad, 0.5)
+      CardSource(ready, 1),
+      CardSource(bad, 0.5)
     ),
     State.NewStarvation -> CardMixer(
-      Source(newcard, 0.3),
-      Source(ready, 1.5),
-      Source(bad, 1),
-      Source(oldbal, 0.5),
-      Source(lowrep, 0.5)
+      CardSource(newcard, 0.3),
+      CardSource(ready, 1.5),
+      CardSource(bad, 1),
+      CardSource(oldbal, 0.5),
+      CardSource(lowrep, 0.5)
     ),
     State.ReadyStarvation -> CardMixer(
-      Source(newcard, 0.7),
-      Source(ready, 1),
-      Source(bad, 1),
-      Source(oldbal, 0.2),
-      Source(lowrep, 0.4)
+      CardSource(newcard, 0.7),
+      CardSource(ready, 1),
+      CardSource(bad, 1),
+      CardSource(oldbal, 0.2),
+      CardSource(lowrep, 0.4)
     ),
     State.TotalStarvation -> CardMixer(
-      Source(newcard, 1),
-      Source(ready, 1),
-      Source(bad, 1),
-      Source(oldbal, 1)
+      CardSource(newcard, 1),
+      CardSource(ready, 1),
+      CardSource(bad, 1),
+      CardSource(oldbal, 1)
     )
   )
 

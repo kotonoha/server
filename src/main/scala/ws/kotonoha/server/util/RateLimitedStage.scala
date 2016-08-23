@@ -119,7 +119,7 @@ trait RateLimiter {
   def limit[I: ClassTag, O, M](proc: Flow[I, O, M]): Flow[I, O, M]
 }
 
-object GlobalRateLimiting {
+object GlobalRateLimiting extends StrictLogging {
   def limit[I: ClassTag, O, M](aref: ActorRef, proc: Flow[I, O, M])(implicit ec: ExecutionContext): Flow[I, O, M] = {
     import GraphDSL.Implicits._
     val g = GraphDSL.create(proc, new RateLimiterStage[I](aref)) {(a, b) => (a, b)} { implicit b => (p, lim) =>
@@ -131,7 +131,9 @@ object GlobalRateLimiting {
       val duplicator = b.add(new HoldWithWait[Future[ActorRef]])
 
       val zip = b.add(ZipWith((t: I, o: O, ar: Future[ActorRef]) => {
-        ar.foreach(a => aref.tell(MaxAtOnceActor.Finished(t), a))
+        ar.foreach { a =>
+          aref.tell(MaxAtOnceActor.Finished(t), a)
+        }
         o
       }))
 

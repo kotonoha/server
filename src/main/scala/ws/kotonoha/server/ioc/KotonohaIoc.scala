@@ -27,6 +27,7 @@ import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http._
 import net.liftweb.util.{Helpers, ThreadGlobal, Vendor}
 import ws.kotonoha.server.actors.GlobalActorsModule
+import ws.kotonoha.server.actors.examples.AssignExamplesModule
 import ws.kotonoha.server.grpc.GrpcModule
 import ws.kotonoha.server.ops.RepExampleModule
 
@@ -78,6 +79,7 @@ class KotonohaMainModule(cfg: Config, rm: ResourceManager) extends ScalaModule {
     install(new FormattingModule)
     install(new JumanModule)
     install(new RepExampleModule)
+    install(new AssignExamplesModule)
   }
 }
 

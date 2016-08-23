@@ -39,7 +39,7 @@ class MongoSourceStage(cur: Cursor[BSONDocument], limit: Int) extends GraphStage
     setHandler(out, this)
 
     private val docs = new mutable.Queue[BSONDocument]()
-    private var getNext: Promise[Cursor.State[NotUsed]] = _
+    @volatile private var getNext: Promise[Cursor.State[NotUsed]] = _
     private var inRequest = true
     private var finished = false
 
@@ -62,13 +62,14 @@ class MongoSourceStage(cur: Cursor[BSONDocument], limit: Int) extends GraphStage
       implicit val ec: ExecutionContext = materializer.executionContext
 
       cur.foldBulksM[NotUsed](NotUsed, limit) { (_, docs) =>
-        callback.invoke(docs)
-        if (!finished) {
+        val f: Future[Cursor.State[NotUsed]] = if (!finished) {
           getNext = Promise[Cursor.State[NotUsed]]
           getNext.future
         } else {
           Future.successful(Cursor.Done(NotUsed))
         }
+        callback.invoke(docs)
+        f
       }.onComplete(finishCallbach.invoke)
     }
 

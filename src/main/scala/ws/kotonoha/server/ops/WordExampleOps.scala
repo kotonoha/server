@@ -16,127 +16,92 @@
 
 package ws.kotonoha.server.ops
 
-import java.util.function.Function
-
-import akka.{Done, NotUsed}
-import akka.stream.scaladsl.Source
-import com.github.benmanes.caffeine.cache.Caffeine
-import com.google.inject.{Inject, Provider, Provides, Singleton}
-import com.typesafe.config.Config
-import net.codingwell.scalaguice.ScalaModule
+import akka.NotUsed
+import akka.stream.scaladsl.{Broadcast, Concat, Flow, GraphDSL, Source}
+import akka.stream.{OverflowStrategy, SourceShape}
+import com.google.inject.Inject
+import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry, JmdictTag}
-import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, JmdictSearchResults, LuceneJmdict}
-import ws.kotonoha.examples.ExampleClient
+import ws.kotonoha.akane.utils.timers.Millitimer
+import ws.kotonoha.dict.jmdict.LuceneJmdict
 import ws.kotonoha.examples.api.{ExamplePack, ExamplePackRequest, ExampleQuery, ExampleTag}
-import ws.kotonoha.server.grpc.GrpcClients
+import ws.kotonoha.server.actors.examples.ExampleAssignmentStatus
+import ws.kotonoha.server.actors.schedulers.SchedulingOps
+import ws.kotonoha.server.ioc.UserContextService
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.WordRecord
+import ws.kotonoha.server.util.stream.SummaryStage
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 /**
   * @author eiennohito
-  * @since 2016/08/16
+  * @since 2016/08/23
   */
-
-private[ops] class WordRecordWrapper(val rec: WordRecord) {
-  val writings = rec.writing.value.toSet
-  val readings = rec.reading.value.toSet
-}
-
-class WordJmdictOps @Inject() (
-  jmd: LuceneJmdict
-) {
-
-  def score(d: JmdictEntry, rec: WordRecordWrapper): Double = {
-    var score = 0.0
-    score += d.writings.count(k => rec.writings.contains(k.content)) * 2
-    score += d.readings.count(r => rec.readings.contains(r.content))
-    score
-  }
-
-  def similarEntriesImpl(dic: Seq[JmdictEntry], rec: WordRecordWrapper): Seq[JmdictEntry]  = {
-    if (dic.isEmpty) return Nil
-    val scores = dic.map { d =>
-      d -> score(d, rec)
-    }
-    scores.sortBy(-_._2).map(_._1)
-  }
-
-  def bestMatchImpl(dic: Seq[JmdictEntry], rec: WordRecordWrapper): Option[JmdictEntry] = {
-    if (dic.isEmpty) None
-    similarEntriesImpl(dic, rec).headOption
-  }
-
-  def entryForWord(rec: WordRecord) = {
-    val result: JmdictSearchResults = rawSimilar(rec)
-    bestMatchImpl(result.data, new WordRecordWrapper(rec))
-  }
-
-  def nsimilarForWord(rec: WordRecord, n: Int = 10) = {
-    val result: JmdictSearchResults = rawSimilar(rec, n)
-    similarEntriesImpl(result.data, new WordRecordWrapper(rec))
-  }
-
-  def rawSimilar(rec: WordRecord, n: Int = 10): JmdictSearchResults = {
-    val q = JmdictQuery(
-      limit = n,
-      readings = rec.reading.get.map(r => JmdictQueryPart(term = r)),
-      writings = rec.writing.get.map(r => JmdictQueryPart(term = r))
-    )
-    jmd.find(q)
-  }
-}
-
-@Singleton
-class ExampleCacher @Inject() (
-  ecl: Provider[ExampleClient],
-  ece: ExecutionContextExecutor
-) {
-  private[this] val cache = {
-    Caffeine.newBuilder()
-        .maximumSize(10000)
-        .executor(ece)
-        .build[ExamplePackRequest, Future[ExamplePack]]()
-  }
-
-  private[this] val genericInt = new Function[ExamplePackRequest, Future[ExamplePack]] {
-    override def apply(t: ExamplePackRequest) = {
-      val f = ecl.get().generic(t)
-      f.onFailure {
-        case t => cache.invalidate(t)
-      }(ece)
-      f
-    }
-  }
-
-  def generic(req: ExamplePackRequest): Future[ExamplePack] = {
-    cache.get(req, genericInt)
-  }
-}
-
 class WordExampleOps @Inject() (
   ec: ExampleCacher,
   jmd: LuceneJmdict,
   wjo: WordJmdictOps,
-  rd: RMData
-)(implicit ex: ExecutionContextExecutor) {
-  import OpsExtensions._
-
+  rd: RMData,
+  ucs: UserContextService
+)(implicit ex: ExecutionContextExecutor) extends StrictLogging {
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
+  /**
+    * Logic of this graph:
+    * concatenate:
+    *   1) words in future 200 repetitions
+    *   2) all other words
+    *
+    * First block of words is created by getting a list of cards from scheduler.
+    * Cards then are serve as source of individual queries to the db.
+    *
+    * Second block of words is a simple large query to the db.
+    */
   def wordsForAssign(uid: ObjectId): Source[WordRecord, NotUsed] = {
-    val q = WordRecord.where(_.user eqs uid).and(_.repExamples.exists(false))
-    rd.stream(q)
+    val uc = ucs.of(uid)
+    val sch = uc.inst[SchedulingOps]
+
+    import GraphDSL.Implicits._
+
+    val grph = GraphDSL.create() { implicit b =>
+      val s1 = b.add(sch.cardsRepeatedInFuture(200).flatMapConcat { wc =>
+        val q = WordRecord.where(_.user eqs uid).and(_.id eqs wc.word.get).and(_.repExamples.exists(false))
+        rd.stream(q).map { w => logger.trace("q={} id={} {}", q, w.id.get, w.writing.stris); w}
+      }.buffer(5, OverflowStrategy.backpressure))
+      val bc = b.add(Broadcast[WordRecord](2, eagerCancel = false))
+      val conc = b.add(Concat[WordRecord](2))
+      val summary = b.add(new SummaryStage[ObjectId])
+      s1 ~> bc.in
+      bc.map(_.id.get) ~> summary
+
+      val p2 = b.add {
+        Flow[Seq[ObjectId]].flatMapConcat { ids =>
+          logger.trace("ignoring {} words", ids.size)
+          val q = WordRecord.where(_.user eqs uid).and(_.repExamples.exists(false)).and(_.id nin ids)
+          rd.stream(q)
+        }.map(x => { logger.trace("rest: id={} {}", x.id, x.writing.stris); x })
+      }
+
+      summary ~> p2
+      bc ~> conc
+      p2 ~> conc
+
+      SourceShape(conc.out)
+    }
+
+    Source.fromGraph(grph)
   }
 
-  def findAndAssign(w: WordRecord): Future[Done] = {
+  def findAndAssign(w: WordRecord): Future[ExampleAssignmentStatus] = {
+    val timer = new Millitimer
     val exs = acquireExamples(w)
     exs.flatMap { pack =>
-      val upd = WordRecord.where(_.id eqs w.id.get).modify(_.repExamples.setTo(pack))
-      rd.update(upd).mod(1, Done)
-    }
+      logger.trace(s"setting ${w.writing.stris} <- ${pack.sentences.size}: ${pack.sentences.headOption.map(_.units.map(_.content).mkString)}")
+      val uc = ucs.of(w.user.get) //keeping user ctx alive
+      uc.inst[WordOps].setRepExamples(w.id.get, pack)
+    }.map(_ => ExampleAssignmentStatus(w.user.get, w.id.get, 1, timer.eplaced))
   }
 
   def exampleRequest(w: WordRecord): ExamplePackRequest = {
@@ -218,25 +183,5 @@ object WordExampleOps {
     ExamplePackRequest(
       qtags, qentries, limit = 15
     )
-  }
-}
-
-case class ExampleServiceConfig(uri: String)
-
-class RepExampleModule extends ScalaModule {
-  override def configure() = {}
-
-  @Provides
-  def cfg(cf: Config): ExampleServiceConfig = {
-    val uri = cf.getString("examples.uri")
-    ExampleServiceConfig(uri)
-  }
-
-  @Provides
-  def exClient(
-    cfg: ExampleServiceConfig,
-    gc: GrpcClients
-  ): ExampleClient = {
-    gc.clientTo(cfg.uri).service(ExampleClient)
   }
 }

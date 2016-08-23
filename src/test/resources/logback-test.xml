@@ -25,6 +25,12 @@
   <logger name="akka" level="INFO" />
   <logger name="reactivemongo" level="INFO" />
 
+  <logger name="io.grpc" level="WARN" />
+  <logger name="io.netty" level="INFO" />
+
+  <logger name="ws.kotonoha.server.ops.WordExampleOps" level="TRACE" />
+  <logger name="ws.kotonoha.server.util.GlobalRateLimiting$" level="TRACE" />
+  <logger name="ws.kotonoha.server.util.RateLimiterStage" level="TRACE" />
 
   <root level="DEBUG">
     <appender-ref ref="console" />

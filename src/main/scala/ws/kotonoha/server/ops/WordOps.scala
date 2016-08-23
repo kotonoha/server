@@ -16,11 +16,13 @@
 
 package ws.kotonoha.server.ops
 
-import akka.NotUsed
+import akka.{Done, NotUsed}
+import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.unicode.KanaUtil
+import ws.kotonoha.examples.api.ExamplePack
 import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.mongodb.RMData
@@ -50,6 +52,16 @@ class WordOps @Inject() (
     rm.fetch(qbyId(id).limit(1)).map(_.headOption)
   }
 
+  def byIds(ids: Traversable[ObjectId]): Source[WordRecord, NotUsed] = {
+    val q = WordRecord.where(_.user eqs uc.uid).and(_.id in ids)
+    rm.stream(q)
+  }
+
+  def exceptIds(ids: Traversable[ObjectId]): Source[WordRecord, NotUsed] = {
+    val q = WordRecord.where(_.user eqs uc.uid).and(_.id nin ids)
+    rm.stream(q)
+  }
+
   def register(word: WordRecord, status: WordStatus): Future[NotUsed] = {
     val wordid = word.id.get
 
@@ -73,6 +85,11 @@ class WordOps @Inject() (
   def setTags(wid: ObjectId, tags: List[String]): Future[NotUsed] = {
     val q = qbyId(wid).modify(_.tags setTo tags)
     rm.update(q).mod(1)
+  }
+
+  def setRepExamples(wid: ObjectId, pack: ExamplePack): Future[Done] = {
+    val upd = qbyId(wid).modify(_.repExamples.setTo(pack))
+    rm.update(upd).mod(1, Done)
   }
 
   def updateLink(wid: ObjectId, jmd: Long): Future[NotUsed] = {

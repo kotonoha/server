@@ -25,6 +25,7 @@ import lift.{LiftActorService, LiftMessage}
 import akka.actor.SupervisorStrategy.Restart
 import tags.{TagMessage, TagService}
 import ws.kotonoha.server.actors.dict.{ExampleActor, ExampleMessage}
+import ws.kotonoha.server.actors.examples.AssignExamplesActor
 import ws.kotonoha.server.actors.lift.pertab.{NamedCometMessage, PertabCometManager}
 import ws.kotonoha.server.ioc.IocActors
 
@@ -38,6 +39,7 @@ class ServiceActor @Inject() (
 
   import concurrent.duration._
 
+  val assignExamples = context.actorOf(ioc.props[AssignExamplesActor], "aex")
   val mongo = context.actorOf(ioc.props[MongoDBActor], "mongo")
   lazy val jumanActor = context.actorOf(ioc.props[JumanRouter], "juman")
   lazy val securityActor = context.actorOf(ioc.props[SecurityActor], "security")

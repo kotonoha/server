@@ -72,9 +72,10 @@ class UserActorManager @Inject()(ioc: IocActors) extends Actor with ActorLogging
       userActor(uid)
     case InvalidateUserActor(uid) =>
       userMap.remove(uid) match {
-        case None => log.warning("there was no user actor for uid={}", uid)
+        case None =>
+          log.debug("there was no user actor for uid={}", uid)
         case Some(ar) =>
-          log.debug(s"stopping user actor for $uid")
+          log.debug(s"stopping user actor for uid={}", uid)
           context.stop(ar)
       }
   }

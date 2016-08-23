@@ -41,8 +41,6 @@ class GlobalRateLimitingSpec extends AkkaFree {
 
       val cfg = RateLimitCfg(1, 5.seconds, new RateLimitTracing {
         override def finish(ref: ActorRef, tag: Any, start: Long) = calls += 1
-        override def start(ref: ActorRef, tag: Any, time: Long) = {}
-        override def timeout(ref: ActorRef, tag: Any, start: Long) = {}
       })
       val limiter = TestActorRef[MaxAtOnceActor](MaxAtOnceActor.props(cfg))(kta.system)
       val iseq = (0 until 10).toVector
@@ -59,8 +57,6 @@ class GlobalRateLimitingSpec extends AkkaFree {
 
       val cfg = RateLimitCfg(1, 1.minute, new RateLimitTracing {
         override def finish(ref: ActorRef, tag: Any, start: Long) = calls += 1
-        override def start(ref: ActorRef, tag: Any, time: Long) = {}
-        override def timeout(ref: ActorRef, tag: Any, start: Long) = {}
       })
       val limiter = TestActorRef[MaxAtOnceActor](MaxAtOnceActor.props(cfg))(kta.system)
       val iseq = (0 until 10).toVector

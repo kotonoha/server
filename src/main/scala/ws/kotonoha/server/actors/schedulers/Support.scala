@@ -29,21 +29,21 @@ import scala.util.Random
  * @since 26.02.13 
  */
 
-trait Source {
+trait CardSource {
   def provider: CardProvider
   def weight(req: CardRequest): Double
 }
 
-object Source {
-  def apply(prov: CardProvider, w: Double) = new StaticSource(prov, w)
+object CardSource {
+  def apply(prov: CardProvider, w: Double) = new StaticCardSource(prov, w)
   def apply(prov: CardProvider, base: Double, fn: (CardRequest, Double) => Double) = new DynamicSoruce(prov, base, fn)
 }
 
-class StaticSource(val provider: CardProvider, w: Double) extends Source {
+class StaticCardSource(val provider: CardProvider, w: Double) extends CardSource {
   def weight(req: CardRequest) = w
 }
 
-class DynamicSoruce(val provider: CardProvider, base: Double, tf: (CardRequest, Double) => Double) extends Source {
+class DynamicSoruce(val provider: CardProvider, base: Double, tf: (CardRequest, Double) => Double) extends CardSource {
   def weight(req: CardRequest) = tf(req, base)
 }
 
@@ -53,7 +53,7 @@ class ReqInfo(val weights: Array[Double]) {
   def cumulative = weights.scan(0.0)(_+_)
 }
 
-class CardMixer(input: List[Source]) extends Logging {
+class CardMixer(input: List[CardSource]) extends Logging {
   import java.util.Arrays.binarySearch
 
   private val count = input.length
@@ -110,7 +110,7 @@ class CardMixer(input: List[Source]) extends Logging {
 }
 
 object CardMixer {
-  def apply(srcs: Source*) = new CardMixer(srcs.toList)
+  def apply(srcs: CardSource*) = new CardMixer(srcs.toList)
 }
 
 case class ReviewCard(cid: ObjectId, source: String, seq: Long) {

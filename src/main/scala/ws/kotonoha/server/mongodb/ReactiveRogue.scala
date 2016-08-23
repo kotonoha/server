@@ -42,6 +42,10 @@ trait ReactiveRogue extends ReactiveOpsAccess {
     val limit = q.lim.getOrElse(Int.MaxValue)
     var bldr = coll.find(obj)
 
+    if (q.order.isDefined) {
+      bldr = bldr.sort(ReactiveRogue.rbson(MongoBuilder.buildOrder(q.order.get)))
+    }
+
     if (q.select.isEmpty) {
       bldr.cursor()
       val cursor = bldr.cursor()
@@ -74,6 +78,10 @@ trait ReactiveRogue extends ReactiveOpsAccess {
 
     if (batchSize != 0) {
       bldr = bldr.copy(options = bldr.options.copy(batchSizeN = batchSize))
+    }
+
+    if (q.order.isDefined) {
+      bldr = bldr.sort(ReactiveRogue.rbson(MongoBuilder.buildOrder(q.order.get)))
     }
 
     implicit val cp = CursorSourceProducer

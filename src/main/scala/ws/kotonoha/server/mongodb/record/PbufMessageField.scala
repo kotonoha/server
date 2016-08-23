@@ -20,6 +20,7 @@ import com.mongodb.{BasicDBObject, DBObject}
 import com.trueaccord.scalapb.{GeneratedMessage, GeneratedMessageCompanion, Message}
 import net.liftweb.common.{Box, Empty, Failure, Full}
 import net.liftweb.json.JValue
+import net.liftweb.json.JsonAST.JNothing
 import net.liftweb.mongodb.record.field.MongoCaseClassField
 import net.liftweb.record.Record
 import org.bson.BSON
@@ -59,9 +60,21 @@ class PbufMessageField[O <: Record[O], T <: GeneratedMessage with Message[T]](re
     fromRBsonValue(doc)
   }
 
-  override def asJValue: JValue = jf.write(value)
+  override def asJValue: JValue = valueBox match {
+    case Full(f) => jf.write(f)
+    case Empty => JNothing
+    case Failure(msg, ex, chn) =>
+      val e = new Exception(msg)
+      ex.foreach(e.addSuppressed)
+      throw e
+  }
 
   override def setFromJValue(jvalue: JValue): Box[T] = setBox(jf.read(jvalue))
 
   override def defaultValue: MyType = meta.defaultInstance
+
+  override def valueBox: Box[MyType] = super.valueBox match {
+    case Full(f) if f.equals(defaultValue) => Empty
+    case x => x
+  }
 }
