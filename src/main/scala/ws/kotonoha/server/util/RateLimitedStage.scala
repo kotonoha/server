@@ -30,7 +30,7 @@ import scala.reflect.ClassTag
   * @author eiennohito
   * @since 2016/08/22
   */
-class RateLimiter[T: ClassTag](hndl: ActorRef) extends GraphStageWithMaterializedValue[FlowShape[T, T], Future[ActorRef]] with StrictLogging {
+class RateLimiterStage[T: ClassTag](hndl: ActorRef) extends GraphStageWithMaterializedValue[FlowShape[T, T], Future[ActorRef]] with StrictLogging {
   val in = Inlet[T]("grls.in")
   val out = Outlet[T]("grls.out")
   val shape = FlowShape(in, out)
@@ -115,10 +115,14 @@ final class HoldWithWait[T](indefinitiely: Boolean = true) extends GraphStage[Fl
   }
 }
 
+trait RateLimiter {
+  def limit[I: ClassTag, O, M](proc: Flow[I, O, M]): Flow[I, O, M]
+}
+
 object GlobalRateLimiting {
   def limit[I: ClassTag, O, M](aref: ActorRef, proc: Flow[I, O, M])(implicit ec: ExecutionContext): Flow[I, O, M] = {
     import GraphDSL.Implicits._
-    val g = GraphDSL.create(proc, new RateLimiter[I](aref)) {(a, b) => (a, b)} { implicit b => (p, lim) =>
+    val g = GraphDSL.create(proc, new RateLimiterStage[I](aref)) {(a, b) => (a, b)} { implicit b => (p, lim) =>
       val split = b.add(new Broadcast[I](2, eagerCancel = false))
       lim.out ~> split
       split ~> p
@@ -139,5 +143,9 @@ object GlobalRateLimiting {
     }
 
     Flow.fromGraph(g).mapMaterializedValue(_._1)
+  }
+
+  def forActor(a: ActorRef)(implicit ec: ExecutionContext): RateLimiter = new RateLimiter {
+    override def limit[I: ClassTag, O, M](proc: Flow[I, O, M]) = GlobalRateLimiting.limit(a, proc)
   }
 }

@@ -18,15 +18,19 @@ package ws.kotonoha.server.ops
 
 import java.util.function.Function
 
+import akka.{Done, NotUsed}
+import akka.stream.scaladsl.Source
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.inject.{Inject, Provider, Provides, Singleton}
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
+import org.bson.types.ObjectId
 import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry, JmdictTag}
 import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, JmdictSearchResults, LuceneJmdict}
 import ws.kotonoha.examples.ExampleClient
 import ws.kotonoha.examples.api.{ExamplePack, ExamplePackRequest, ExampleQuery, ExampleTag}
 import ws.kotonoha.server.grpc.GrpcClients
+import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.WordRecord
 
 import scala.collection.mutable.ArrayBuffer
@@ -116,8 +120,25 @@ class ExampleCacher @Inject() (
 class WordExampleOps @Inject() (
   ec: ExampleCacher,
   jmd: LuceneJmdict,
-  wjo: WordJmdictOps
-) {
+  wjo: WordJmdictOps,
+  rd: RMData
+)(implicit ex: ExecutionContextExecutor) {
+  import OpsExtensions._
+
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
+  def wordsForAssign(uid: ObjectId): Source[WordRecord, NotUsed] = {
+    val q = WordRecord.where(_.user eqs uid).and(_.repExamples.exists(false))
+    rd.stream(q)
+  }
+
+  def findAndAssign(w: WordRecord): Future[Done] = {
+    val exs = acquireExamples(w)
+    exs.flatMap { pack =>
+      val upd = WordRecord.where(_.id eqs w.id.get).modify(_.repExamples.setTo(pack))
+      rd.update(upd).mod(1, Done)
+    }
+  }
+
   def exampleRequest(w: WordRecord): ExamplePackRequest = {
     w.jmdictLink.get.flatMap(jmd.byId).orElse(wjo.entryForWord(w)) match {
       case Some(je) => WordExampleOps.jmdictReq(je)

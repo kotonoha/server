@@ -17,9 +17,12 @@
 package ws.kotonoha.server.mongodb
 
 import com.foursquare.field.{Field => RField}
-import com.foursquare.rogue.{AbstractQueryField, DateTimeModifyField, DateTimeQueryField, LiftRogue}
-import com.trueaccord.scalapb.GeneratedEnum
+import com.foursquare.rogue._
+import com.mongodb.DBObject
+import com.trueaccord.scalapb.{GeneratedEnum, GeneratedMessage, Message}
 import net.liftweb.mongodb.record.BsonRecord
+import reactivemongo.bson.{BSONDocument, BSONDocumentWriter, BSONHandler, BSONWriter}
+import ws.kotonoha.server.mongodb.record.PbufMessageField
 import ws.kotonoha.server.records.meta.{JodaDateField, PbEnumField}
 
 import scala.language.implicitConversions
@@ -40,10 +43,28 @@ trait KotonohaLiftRogue extends LiftRogue {
   implicit def pbEnumField2QueryField[M <: BsonRecord[M], E <: GeneratedEnum](in: PbEnumField[M, E]): PbEnumQueryField[M, E] = {
     new PbEnumQueryField[M, E](in)
   }
+
+  implicit def pbMsgField2QueryField[M <: BsonRecord[M], T <: GeneratedMessage with Message[T]](in: PbufMessageField[M, T]): PbObjQueryField[M, T] = {
+    new PbObjQueryField[M, T](in)(in.bh)
+  }
+
+  implicit def pbMsgField2UpdateField[M <: BsonRecord[M], T <: GeneratedMessage with Message[T]](in: PbufMessageField[M, T]): PbObjUpdateField[M, T] = {
+    new PbObjUpdateField[M, T](in)(in.bh)
+  }
 }
 
 class PbEnumQueryField[M, E <: GeneratedEnum](fld: RField[E, M]) extends AbstractQueryField[E, E, Int, M](fld) {
   override def valueToDB(v: E) = v.value
+}
+
+class PbObjQueryField[M, T](field: RField[T, M])(implicit bdw: BSONWriter[T, BSONDocument]) extends AbstractQueryField[T, T, DBObject, M](field) {
+  override def valueToDB(v: T) = ReactiveRogue.dbobj(bdw.write(v))
+}
+
+class PbObjUpdateField[M, T](field: RField[T, M])(implicit bdw: BSONWriter[T, BSONDocument]) extends AbstractModifyField[T, DBObject, M](field) {
+  override def valueToDB(v: T) = {
+    ReactiveRogue.dbobj(bdw.write(v))
+  }
 }
 
 object KotonohaLiftRogue extends KotonohaLiftRogue

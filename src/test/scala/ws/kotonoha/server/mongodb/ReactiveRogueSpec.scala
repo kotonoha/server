@@ -16,7 +16,10 @@
 
 package ws.kotonoha.server.mongodb
 
-import org.joda.time.DateTime
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Sink
+import com.mongodb.BasicDBObject
+import org.joda.time.{DateTime, Duration => JDur}
 import ws.kotonoha.server.test.AkkaFree
 import ws.kotonoha.server.util.DateTimeUtils
 
@@ -29,6 +32,7 @@ class ReactiveRogueSpec extends AkkaFree { test =>
   private val date = DateTimeUtils.now
   override protected def beforeAll(): Unit = {
     super.beforeAll()
+    ReactiveRecord.bulkDelete_!!(new BasicDBObject())
     createRecord(date)
   }
 
@@ -73,6 +77,38 @@ class ReactiveRogueSpec extends AkkaFree { test =>
       val q = ReactiveRecord.where(_.date eqs date).select(_.opttest2, _.opttest)
       val res = rrogue.fetch(q)
       ares(res).loneElement shouldBe (None, Some(10))
+    }
+
+    implicit val amat = ActorMaterializer.create(kta.system)
+
+    "stream works" in {
+      val q = ReactiveRecord.where(_.date eqs date).limit(10)
+      val str = rrogue.stream(q)
+      val res = str.runWith(Sink.seq)
+      ares(res).loneElement.date.get shouldBe date
+    }
+
+    "stream works with 300 items" in {
+      val items = (0 until 300) map {i =>
+        ReactiveRecord.createRecord.date(date.plusSeconds(i)).textfld("what")
+      }
+      ares(acc.save(items)).n shouldBe 300
+      val q = ReactiveRecord.where(_.textfld eqs "what")
+      val str = acc.stream(q)
+      val f = str.runWith(Sink.fold(0){(i, _) => i + 1})
+      ares(f) shouldBe 300
+    }
+
+    "stream works with 3k items and projection" in {
+      val cnt = 3000
+      val items = (0 until cnt) map {i =>
+        ReactiveRecord.createRecord.date(date.plusSeconds(i)).textfld("what")
+      }
+      ares(acc.save(items)).n shouldBe cnt
+      val q = ReactiveRecord.where(_.textfld eqs "what").select(_.date)
+      val str = acc.stream(q, 99)
+      val f = str.runWith(Sink.fold(0L){(i, d) => i + new JDur(date, d).getStandardSeconds})
+      ares(f) shouldBe (cnt.toLong*(cnt - 1)/2)
     }
 
     "update works" in {

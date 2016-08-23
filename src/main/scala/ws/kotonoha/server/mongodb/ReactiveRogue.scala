@@ -16,14 +16,17 @@
 
 package ws.kotonoha.server.mongodb
 
+import akka.NotUsed
+import akka.stream.scaladsl.Source
 import com.foursquare.rogue.MongoHelpers.MongoBuilder
 import com.foursquare.rogue.{ModifyQuery, Query, SelectField}
-import com.mongodb.DBObject
+import com.mongodb.{BasicDBObject, DBObject}
 import net.liftweb.mongodb.record.MongoRecord
 import org.bson.{BSON => BSONDef}
+import reactivemongo.akkastream.CursorSourceProducer
 import reactivemongo.api.commands.{UpdateWriteResult, WriteResult}
 import reactivemongo.bson.{BSONDocument, BSONInteger}
-import reactivemongo.bson.buffer.ArrayReadableBuffer
+import reactivemongo.bson.buffer.{ArrayBSONBuffer, ArrayReadableBuffer}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,6 +43,7 @@ trait ReactiveRogue extends ReactiveOpsAccess {
     var bldr = coll.find(obj)
 
     if (q.select.isEmpty) {
+      bldr.cursor()
       val cursor = bldr.cursor()
       cursor.fold(List.newBuilder[R], limit) { (b, doc)  =>
         val rec = meta.createRecord
@@ -54,6 +58,37 @@ trait ReactiveRogue extends ReactiveOpsAccess {
         b += sel.transformer(projector.project(doc).openOrThrowException("it's ok"))
       }.map(_.result())
     }
+  }
+
+  def stream[M <: MongoRecord[M], R]
+    (q: Query[M, R, _], batchSize: Int = 0)(implicit meta: ReactiveMongoMeta[M]): Source[R, NotUsed] = {
+    val coll = this.collection(q.collectionName)
+    val obj = ReactiveRogue.rbson(q.asDBObject)
+    val limit = q.lim.getOrElse(Int.MaxValue)
+    var bldr = if (q.select.isEmpty) {
+      coll.find(obj)
+    } else {
+      val sel = q.select.get
+      coll.find(obj).projection(ReactiveRogue.projection(sel.fields))
+    }
+
+    if (batchSize != 0) {
+      bldr = bldr.copy(options = bldr.options.copy(batchSizeN = batchSize))
+    }
+
+    implicit val cp = CursorSourceProducer
+
+    val src = bldr.cursor().source(limit)
+    val tf: (BSONDocument => R) = if (q.select.isEmpty) { (doc: BSONDocument) =>
+      val rec = meta.createRecord
+      meta.fillRMong(doc, rec).openOrThrowException("should not be empty").asInstanceOf[R]
+    } else {
+      val item = meta.createRecord
+      val sel = q.select.get
+      val projector = ReactiveBson.projector(item, sel.fields)
+      (doc: BSONDocument) => sel.transformer(projector.project(doc).openOrThrowException("it's ok"))
+    }
+    src.map(tf)
   }
 
   def update[M <: MongoRecord[M]]
@@ -93,5 +128,12 @@ object ReactiveRogue {
     val rdr = ArrayReadableBuffer(bytes)
     val obj = BSONDocument.read(rdr)
     obj
+  }
+
+  def dbobj(bdoc: BSONDocument): DBObject = {
+    val binary = BSONDocument.write(bdoc, new ArrayBSONBuffer())
+    val buf = binary.toReadableBuffer()
+    val decode = BSONDef.decode(buf.readArray(buf.size))
+    new BasicDBObject(decode.toMap)
   }
 }

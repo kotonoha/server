@@ -26,14 +26,14 @@ import org.bson.BSON
 import reactivemongo.bson.buffer.{ArrayBSONBuffer, ArrayReadableBuffer}
 import reactivemongo.bson.{BSONDocument, BSONHandler, BSONValue}
 import ws.kotonoha.lift.json.JFormat
-import ws.kotonoha.server.mongodb.ReactiveBsonSupport
+import ws.kotonoha.server.mongodb.{ReactiveBsonSupport, ReactiveRogue}
 
 /**
   * @author eiennohito
   * @since 2016/08/12
   */
 class PbufMessageField[O <: Record[O], T <: GeneratedMessage with Message[T]](rec: O)
-  (implicit mf: Manifest[T], bh: BSONHandler[BSONDocument, T], jf: JFormat[T], meta: GeneratedMessageCompanion[T])
+  (implicit mf: Manifest[T], val bh: BSONHandler[BSONDocument, T], jf: JFormat[T], meta: GeneratedMessageCompanion[T])
   extends MongoCaseClassField[O, T](rec) with ReactiveBsonSupport {
   override def rbsonValue = valueBox.toStream.map(bh.write)
 
@@ -50,10 +50,7 @@ class PbufMessageField[O <: Record[O], T <: GeneratedMessage with Message[T]](re
 
   override def asDBObject: DBObject = {
     val xbson = bh.write(valueBox.openOrThrowException("it's okay"))
-    val binary = BSONDocument.write(xbson, new ArrayBSONBuffer())
-    val buf = binary.toReadableBuffer()
-    val decode = BSON.decode(buf.readArray(buf.size))
-    new BasicDBObject(decode.toMap)
+    ReactiveRogue.dbobj(xbson)
   }
 
   override def setFromDBObject(dbo: DBObject): Box[T] = {
