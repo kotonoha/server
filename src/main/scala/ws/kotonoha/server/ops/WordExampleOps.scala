@@ -26,6 +26,7 @@ import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry, JmdictTag}
 import ws.kotonoha.akane.utils.timers.{Millis, Millitimer}
 import ws.kotonoha.dict.jmdict.LuceneJmdict
 import ws.kotonoha.examples.api.{ExamplePack, ExamplePackRequest, ExampleQuery, ExampleTag}
+import ws.kotonoha.model.RepExampleStatus
 import ws.kotonoha.server.actors.examples.ExampleAssignmentStatus
 import ws.kotonoha.server.actors.schedulers.SchedulingOps
 import ws.kotonoha.server.ioc.UserContextService
@@ -67,7 +68,7 @@ class WordExampleOps @Inject() (
 
     val grph = GraphDSL.create() { implicit b =>
       val s1 = b.add(sch.cardsRepeatedInFuture(200).flatMapConcat { wc =>
-        val q = WordRecord.where(_.user eqs uid).and(_.id eqs wc.word.get).and(_.repExamples.exists(false))
+        val q = WordRecord.where(_.user eqs uid).and(_.id eqs wc.word.get).and(_.repExStatus.neqs(RepExampleStatus.Present))
         rd.stream(q).map { w => logger.trace("q={} id={} {}", q, w.id.get, w.writing.stris); w}
       }.buffer(5, OverflowStrategy.backpressure))
       val bc = b.add(Broadcast[WordRecord](2, eagerCancel = false))
@@ -79,7 +80,7 @@ class WordExampleOps @Inject() (
       val p2 = b.add {
         Flow[Seq[ObjectId]].flatMapConcat { ids =>
           logger.trace("ignoring {} words", ids.size)
-          val q = WordRecord.where(_.user eqs uid).and(_.repExamples.exists(false)).and(_.id nin ids)
+          val q = WordRecord.where(_.user eqs uid).and(_.repExStatus.neqs(RepExampleStatus.Present)).and(_.id nin ids)
           rd.stream(q)
         }.map(x => { logger.trace("rest: id={} {}", x.id, x.writing.stris); x })
       }
