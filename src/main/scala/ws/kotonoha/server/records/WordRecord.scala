@@ -53,6 +53,7 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
   object repExamples extends PbufMessageField[WordRecord, ExamplePack](this)
   object repExNext extends IntField(this, -1)
   object repExStatus extends PbEnumField(this, RepExampleStatus, RepExampleStatus.Fresh)
+  object repExDate extends JodaDateField(this)
 
   def stripped: JValue = {
     WordRecord.trimInternal(asJValue)

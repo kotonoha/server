@@ -27,6 +27,7 @@ import ws.kotonoha.model.{CardMode, RepExampleStatus, WordStatus}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.WordRecord
+import ws.kotonoha.server.util.DateTimeUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -89,7 +90,7 @@ class WordOps @Inject() (
 
   def setRepExamples(wid: ObjectId, pack: ExamplePack): Future[Done] = {
     val upd = qbyId(wid).modify(_.repExamples.setTo(pack)).modify(_.repExNext.setTo(-1))
-      .modify(_.repExStatus.setTo(RepExampleStatus.Present))
+      .modify(_.repExStatus.setTo(RepExampleStatus.Present)).modify(_.repExDate.setTo(DateTimeUtils.now))
     rm.update(upd).mod(1, Done)
   }
 
