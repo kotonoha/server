@@ -20,7 +20,10 @@ import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.inject.{Inject, Provider}
-import io.grpc.{CallOptions, ManagedChannel, ManagedChannelBuilder}
+import com.typesafe.scalalogging.StrictLogging
+import io.grpc.ClientCall.Listener
+import io.grpc.Status.Code
+import io.grpc._
 import net.codingwell.scalaguice.ScalaModule
 import org.eiennohito.grpc.stream.client.AClientFactory
 
@@ -50,7 +53,7 @@ trait GrpcClients {
 
 class GrpcClientsImpl @Inject() (
   ece: ExecutionContextExecutor
-) extends GrpcClients {
+) extends GrpcClients with StrictLogging {
   private val cache = {
     Caffeine.newBuilder()
       .expireAfterAccess(15, TimeUnit.MINUTES)
@@ -64,6 +67,40 @@ class GrpcClientsImpl @Inject() (
       bldr.directExecutor()
       bldr.userAgent("Kotonotha Server/1.0")
       bldr.usePlaintext(true)
+      bldr.intercept(new ClientInterceptor {
+        override def interceptCall[ReqT, RespT](method: MethodDescriptor[ReqT, RespT], callOptions: CallOptions, next: Channel) = {
+          new ForwardingClientCall[ReqT, RespT] { call =>
+            override val delegate: ClientCall[ReqT, RespT] = next.newCall(method, callOptions)
+            override def start(responseListener: Listener[RespT], headers: Metadata): Unit = {
+              val lstner = new ForwardingClientCallListener[RespT] {
+                override val delegate: Listener[RespT] = responseListener
+                override def onClose(status: Status, trailers: Metadata): Unit = {
+                  status.getCode match {
+                    case Code.INTERNAL | Code.UNIMPLEMENTED | Code.UNKNOWN =>
+                      val item = cache.getIfPresent(uri)
+                      if (item != null) {
+                        logger.info(s"invalidating client for uri=$uri")
+                        cache.invalidate(item)
+                        ece.execute(new Runnable {
+                          override def run() = try {
+                            item.shutdown()
+                            item.awaitTermination(5, TimeUnit.SECONDS)
+                          } catch {
+                            case e: Exception =>
+                              logger.error(s"error when terminating grpc channel for uri=$uri had an exception", e)
+                          }
+                        })
+                      }
+                    case _ =>
+                  }
+                  super.onClose(status, trailers)
+                }
+              }
+              super.start(lstner, headers)
+            }
+          }
+        }
+      })
       bldr.build()
     }))
   }

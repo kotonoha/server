@@ -19,9 +19,9 @@ package ws.kotonoha.server.records
 import net.liftweb.json.JsonAST.{JBool, JField, JObject, _}
 import net.liftweb.mongodb.record.field._
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.record.field.{OptionalLongField, StringField}
+import net.liftweb.record.field.{IntField, OptionalLongField, StringField}
 import ws.kotonoha.examples.api.ExamplePack
-import ws.kotonoha.model.WordStatus
+import ws.kotonoha.model.{RepExampleStatus, WordStatus}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import ws.kotonoha.server.mongodb.record.{BsonListField, DelimitedStringList, PbufMessageField}
 import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaBsonListField, KotonohaMongoRecord, PbEnumField}
@@ -51,6 +51,8 @@ class WordRecord private() extends MongoRecord[WordRecord] with ObjectIdPk[WordR
 
   object jmdictLink extends OptionalLongField(this)
   object repExamples extends PbufMessageField[WordRecord, ExamplePack](this)
+  object repExNext extends IntField(this, -1)
+  object repExStatus extends PbEnumField(this, RepExampleStatus, RepExampleStatus.Fresh)
 
   def stripped: JValue = {
     WordRecord.trimInternal(asJValue)

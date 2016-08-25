@@ -100,6 +100,17 @@
       <button class="btn btn-primary" ng-click="addExample()"><i class="icon-plus"></i> Add new example</button>
       <button class="btn btn-primary" ng-click="save('update')">Save</button>
     </div>
+    <div class="lift:mode.dev t-m-1">
+      <h6>Automatic examples</h6>
+      <ul>
+        <li data-ng-repeat="re in word.repExamples.sentences track by re.id" class="nihongo">
+          <span data-ng-repeat="u in re.units"><!--
+            --><span ng-bind="::u.content" ng-class="{'target-part': u.target}"></span><!--
+          --></span>
+        </li>
+      </ul>
+      <button class="btn" data-ng-click="loadAutoExamples()">Load Auto examples</button>
+    </div>
   </div>
 </div>
 </body>

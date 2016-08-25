@@ -17,7 +17,7 @@
 package ws.kotonoha.server.web.lift
 
 import com.google.inject.Inject
-import net.liftweb.http.{JsonResponse, LiftResponse, NotFoundResponse}
+import net.liftweb.http.{JsonResponse, LiftResponse, NotFoundResponse, OkResponse}
 import net.liftweb.json.JsonAST.{JField, JInt, JString}
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.dic.jmdict.JMDictUtil
@@ -69,12 +69,10 @@ class Words2 @Inject() (
   }
 
   def autoexamples(wid: ObjectId): Future[LiftResponse] = {
-    wops.byId(wid).flatMap {
-      case Some(x) =>
-        weo.acquireExamples(x).map { ep =>
-          JsonResponse(JLift.write(ep))
-        }
-      case None => Future.successful(NotFoundResponse())
+    weo.assignWordsById(wid).map { res =>
+      if (res.uid.getTimestamp == 0) {
+        NotFoundResponse()
+      } else OkResponse()
     }
   }
 

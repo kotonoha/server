@@ -24,6 +24,9 @@ ctor = ($scope, $http) ->
     $http.delete("../api/model/words/#{id}").success ->
       load()
 
+  $scope.loadAutoExamples = () ->
+    $http.post("../api/model/words/#{id}/updateAutoExamples").then( -> load())
+
   $scope.addExample = ->
     $scope.word.examples.push
       selected: true
@@ -36,15 +39,9 @@ ctor = ($scope, $http) ->
       ex.selected = fnc(ex)
     return
 
-  $scope.select_all = ->
-    selection(->
-      true)
-  $scope.select_none = ->
-    selection(->
-      false)
-  $scope.select_invert = ->
-    selection((e) ->
-      !e.selected)
+  $scope.select_all = -> selection(-> true)
+  $scope.select_none = -> selection(-> false)
+  $scope.select_invert = -> selection((e) -> !e.selected)
 
   return
 

@@ -23,7 +23,7 @@ import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry, JmdictTag}
-import ws.kotonoha.akane.utils.timers.Millitimer
+import ws.kotonoha.akane.utils.timers.{Millis, Millitimer}
 import ws.kotonoha.dict.jmdict.LuceneJmdict
 import ws.kotonoha.examples.api.{ExamplePack, ExamplePackRequest, ExampleQuery, ExampleTag}
 import ws.kotonoha.server.actors.examples.ExampleAssignmentStatus
@@ -92,6 +92,13 @@ class WordExampleOps @Inject() (
     }
 
     Source.fromGraph(grph)
+  }
+
+  def assignWordsById(wid: ObjectId): Future[ExampleAssignmentStatus] = {
+    rd.byId[WordRecord](wid).flatMap {
+      case None => Future.successful(ExampleAssignmentStatus(ObjectId.createFromLegacyFormat(0, 0, 0), wid, -1, Millis(0L)))
+      case Some(s) => findAndAssign(s)
+    }
   }
 
   def findAndAssign(w: WordRecord): Future[ExampleAssignmentStatus] = {

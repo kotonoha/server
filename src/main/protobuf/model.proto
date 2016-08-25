@@ -22,3 +22,10 @@ enum WordStatus {
   ReviewExamples = 3;
   Deleting = 4;
 }
+
+enum RepExampleStatus {
+  Fresh = 0;
+  Present = 1;
+  Failure = 2;
+  EmptyResponse = 3;
+}

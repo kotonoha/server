@@ -16,6 +16,13 @@
 
 package ws.kotonoha.server.util
 
+import com.typesafe.scalalogging.StrictLogging
+import net.liftweb.http.js.JsCmd
+import net.liftweb.http.rest.RestContinuation
+import net.liftweb.http.{JavaScriptResponse, OkResponse}
+
+import scala.concurrent.{ExecutionContext, Future}
+
 /*
  * Copyright 2012 eiennohito
  *
@@ -45,7 +52,7 @@ object ParseUtil {
   }
 }
 
-object Snippets {
+object Snippets extends StrictLogging {
 
   object XString {
     def unapply(in: Any): Option[String] = in match {
@@ -65,4 +72,13 @@ object Snippets {
       }
   }
 
+
+  def async(f: Future[JsCmd])(implicit ec: ExecutionContext, loc: sourcecode.FullName): JsCmd = RestContinuation.async((resp) => {
+    f.onComplete {
+      case scala.util.Success(s) => resp.apply(new JavaScriptResponse(s, Nil, Nil, 200))
+      case scala.util.Failure(e) =>
+        logger.error(s"${loc.value} async call failed: ", e)
+        resp.apply(OkResponse())
+    }
+  })
 }

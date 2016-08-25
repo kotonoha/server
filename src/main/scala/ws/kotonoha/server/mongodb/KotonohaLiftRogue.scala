@@ -44,6 +44,10 @@ trait KotonohaLiftRogue extends LiftRogue {
     new PbEnumQueryField[M, E](in)
   }
 
+  implicit def pbEnumField2ModifyField[M <: BsonRecord[M], E <: GeneratedEnum](in: PbEnumField[M, E]): PbEnumUpdateField[M, E] = {
+    new PbEnumUpdateField[M, E](in)
+  }
+
   implicit def pbMsgField2QueryField[M <: BsonRecord[M], T <: GeneratedMessage with Message[T]](in: PbufMessageField[M, T]): PbObjQueryField[M, T] = {
     new PbObjQueryField[M, T](in)(in.bh)
   }
@@ -54,6 +58,10 @@ trait KotonohaLiftRogue extends LiftRogue {
 }
 
 class PbEnumQueryField[M, E <: GeneratedEnum](fld: RField[E, M]) extends AbstractQueryField[E, E, Int, M](fld) {
+  override def valueToDB(v: E) = v.value
+}
+
+class PbEnumUpdateField[M, E <: GeneratedEnum](fld: RField[E, M]) extends AbstractModifyField[E, Int, M](fld) {
   override def valueToDB(v: E) = v.value
 }
 

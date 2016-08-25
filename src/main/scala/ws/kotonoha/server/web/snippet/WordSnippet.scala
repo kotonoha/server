@@ -18,7 +18,7 @@ package ws.kotonoha.server.web.snippet
 
 import com.google.inject.Inject
 import net.liftweb.common.{Box, Full}
-import net.liftweb.http.js.{JE, JsCmd}
+import net.liftweb.http.js.{JE, JsCmd, JsCmds, JsExp}
 import net.liftweb.http.{S, SHtml, SortedPaginatorSnippet}
 import net.liftweb.json.JsonAST.{JArray, JObject, JString}
 import net.liftweb.mongodb.{Limit, Skip}
@@ -27,11 +27,12 @@ import org.joda.time.Period
 import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.actors.ioc.{Akka, ReleaseAkka}
 import ws.kotonoha.server.actors.model.{ChangeWordStatus, MarkForDeletion}
-import ws.kotonoha.server.ops.WordJmdictOps
+import ws.kotonoha.server.ops.{WordExampleOps, WordJmdictOps}
 import ws.kotonoha.server.records._
 import ws.kotonoha.server.util.unapply.XOid
-import ws.kotonoha.server.util.{DateTimeUtils, Formatting, Json, Strings}
+import ws.kotonoha.server.util._
 
+import scala.concurrent.ExecutionContext
 import scala.util.matching.Regex
 import scala.xml.{NodeSeq, Text}
 
@@ -41,8 +42,10 @@ import scala.xml.{NodeSeq, Text}
   */
 
 class WordSnippet @Inject() (
-  wj: WordJmdictOps
-) {
+  wj: WordJmdictOps,
+  weo: WordExampleOps
+)(implicit ec: ExecutionContext) {
+  import ws.kotonoha.server.web.lift.Binders._
 
   val wordId: Box[ObjectId] = S.param("w").flatMap(XOid.unapply)
 
@@ -115,7 +118,6 @@ class WordSnippet @Inject() (
 
   def renderCards(in: NodeSeq): NodeSeq = {
     import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
-    import ws.kotonoha.server.web.lift.Binders._
     val cards = WordCardRecord where (_.word eqs wordId.openOrThrowException("should be present")) orderAsc (_.cardMode) fetch()
 
 
@@ -130,7 +132,6 @@ class WordSnippet @Inject() (
   def exampleAjaxForm(in: NodeSeq): NodeSeq = {
     SHtml.ajaxForm(in)
   }
-
 }
 
 class WordPaginator extends SortedPaginatorSnippet[WordRecord, String] with Akka with ReleaseAkka {

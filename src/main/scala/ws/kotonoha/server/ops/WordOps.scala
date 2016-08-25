@@ -23,7 +23,7 @@ import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.unicode.KanaUtil
 import ws.kotonoha.examples.api.ExamplePack
-import ws.kotonoha.model.{CardMode, WordStatus}
+import ws.kotonoha.model.{CardMode, RepExampleStatus, WordStatus}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.WordRecord
@@ -88,7 +88,8 @@ class WordOps @Inject() (
   }
 
   def setRepExamples(wid: ObjectId, pack: ExamplePack): Future[Done] = {
-    val upd = qbyId(wid).modify(_.repExamples.setTo(pack))
+    val upd = qbyId(wid).modify(_.repExamples.setTo(pack)).modify(_.repExNext.setTo(-1))
+      .modify(_.repExStatus.setTo(RepExampleStatus.Present))
     rm.update(upd).mod(1, Done)
   }
 

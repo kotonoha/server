@@ -37,7 +37,12 @@ object ModeSnippet extends DispatchSnippet {
     }
   }
 
+  def isDev(in: NodeSeq): NodeSeq = {
+    if (Props.devMode) in else NodeSeq.Empty
+  }
+
   def dispatch = {
     case "is" => is
+    case "dev" => isDev
   }
 }
