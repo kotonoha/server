@@ -99,7 +99,7 @@ class GrpcClientsImpl @Inject() (
           case e: Exception =>
             logger.error(s"error when terminating grpc channel for uri=$key had an exception", e)
         }
-      }
+      } (ece)
     }
   }
 
