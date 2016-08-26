@@ -126,9 +126,12 @@ class WordExampleOps @Inject() (
   }
 }
 
-object WordExampleOps {
+object WordExampleOps extends StrictLogging {
   def wordRecordReq(rec: WordRecord): ExamplePackRequest = {
-    val q = ExampleQuery(rec.writing.value.head, rec.reading.value.head)
+    val qs = for {
+      w <- rec.writing.value
+      r <- rec.reading.value
+    } yield ExampleQuery(w, r)
 
     val tgs = rec.tags.get match {
       case t if t.contains("noun") && t.contains("vs") => ExampleTag.SuruVerb
@@ -139,9 +142,13 @@ object WordExampleOps {
       case _ => ExampleTag.Unknown
     }
 
+    if (qs.isEmpty) {
+      logger.warn(s"word id=${rec.id.get} ${rec.writing.stris}|${rec.reading.stris} is invalid")
+    }
+
     ExamplePackRequest(
       tags = Seq(tgs),
-      candidates = Seq(q),
+      candidates = qs,
       limit = 15
     )
   }
