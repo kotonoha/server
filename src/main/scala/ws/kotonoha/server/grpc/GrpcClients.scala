@@ -18,7 +18,8 @@ package ws.kotonoha.server.grpc
 
 import java.util.concurrent.TimeUnit
 
-import com.github.benmanes.caffeine.cache.Caffeine
+import akka.actor.Scheduler
+import com.github.benmanes.caffeine.cache.{Cache, Caffeine, RemovalCause, RemovalListener}
 import com.google.inject.{Inject, Provider}
 import com.typesafe.scalalogging.StrictLogging
 import io.grpc.ClientCall.Listener
@@ -26,6 +27,7 @@ import io.grpc.Status.Code
 import io.grpc._
 import net.codingwell.scalaguice.ScalaModule
 import org.eiennohito.grpc.stream.client.AClientFactory
+import ws.kotonoha.server.ioc.Res
 
 import scala.compat.java8.functionConverterImpls.AsJavaFunction
 import scala.concurrent.ExecutionContextExecutor
@@ -51,56 +53,72 @@ trait GrpcClients {
   def clientTo(uri: String): ClientContainer
 }
 
+class InvalidatingInterceptor(cache: Cache[String, ManagedChannel], uri: String) extends ClientInterceptor with StrictLogging {
+  override def interceptCall[ReqT, RespT](method: MethodDescriptor[ReqT, RespT], callOptions: CallOptions, next: Channel) = {
+    new ForwardingClientCall[ReqT, RespT] { call =>
+      override val delegate: ClientCall[ReqT, RespT] = next.newCall(method, callOptions)
+      override def start(responseListener: Listener[RespT], headers: Metadata): Unit = {
+        val lstner = new ForwardingClientCallListener[RespT] {
+          override val delegate: Listener[RespT] = responseListener
+          override def onClose(status: Status, trailers: Metadata): Unit = {
+            status.getCode match {
+              case Code.INTERNAL | Code.UNIMPLEMENTED | Code.UNKNOWN =>
+                val item = cache.getIfPresent(uri)
+                if (item != null) {
+                  logger.info(s"invalidating client for uri=$uri")
+                  cache.invalidate(item)
+                }
+              case _ =>
+            }
+            super.onClose(status, trailers)
+          }
+        }
+        super.start(lstner, headers)
+      }
+    }
+  }
+
+}
+
 class GrpcClientsImpl @Inject() (
-  ece: ExecutionContextExecutor
-) extends GrpcClients with StrictLogging {
+  ece: ExecutionContextExecutor,
+  sch: Scheduler,
+  res: Res
+) extends GrpcClients with StrictLogging with AutoCloseable {
+
+  res.register(this)
+
+  private val listener = new RemovalListener[String, ManagedChannel] {
+    override def onRemoval(key: String, item: ManagedChannel, cause: RemovalCause): Unit = {
+      import scala.concurrent.duration._
+      sch.scheduleOnce(15.seconds) {
+        try {
+          item.shutdown()
+          item.awaitTermination(5, TimeUnit.SECONDS)
+        } catch {
+          case e: Exception =>
+            logger.error(s"error when terminating grpc channel for uri=$key had an exception", e)
+        }
+      }
+    }
+  }
+
   private val cache = {
     Caffeine.newBuilder()
       .expireAfterAccess(15, TimeUnit.MINUTES)
+      .removalListener(listener)
       .executor(ece)
       .build[String, ManagedChannel]()
   }
 
   def makeChannel(uri: String) = {
     cache.get(uri, new AsJavaFunction[String, ManagedChannel](s => {
-      val bldr = ManagedChannelBuilder.forTarget(uri)
+      logger.info(s"creating a new channel for uri=$s")
+      val bldr = ManagedChannelBuilder.forTarget(s)
       bldr.directExecutor()
       bldr.userAgent("Kotonotha Server/1.0")
       bldr.usePlaintext(true)
-      bldr.intercept(new ClientInterceptor {
-        override def interceptCall[ReqT, RespT](method: MethodDescriptor[ReqT, RespT], callOptions: CallOptions, next: Channel) = {
-          new ForwardingClientCall[ReqT, RespT] { call =>
-            override val delegate: ClientCall[ReqT, RespT] = next.newCall(method, callOptions)
-            override def start(responseListener: Listener[RespT], headers: Metadata): Unit = {
-              val lstner = new ForwardingClientCallListener[RespT] {
-                override val delegate: Listener[RespT] = responseListener
-                override def onClose(status: Status, trailers: Metadata): Unit = {
-                  status.getCode match {
-                    case Code.INTERNAL | Code.UNIMPLEMENTED | Code.UNKNOWN =>
-                      val item = cache.getIfPresent(uri)
-                      if (item != null) {
-                        logger.info(s"invalidating client for uri=$uri")
-                        cache.invalidate(item)
-                        ece.execute(new Runnable {
-                          override def run() = try {
-                            item.shutdown()
-                            item.awaitTermination(5, TimeUnit.SECONDS)
-                          } catch {
-                            case e: Exception =>
-                              logger.error(s"error when terminating grpc channel for uri=$uri had an exception", e)
-                          }
-                        })
-                      }
-                    case _ =>
-                  }
-                  super.onClose(status, trailers)
-                }
-              }
-              super.start(lstner, headers)
-            }
-          }
-        }
-      })
+      bldr.intercept(new InvalidatingInterceptor(cache, s))
       bldr.build()
     }))
   }
@@ -115,6 +133,13 @@ class GrpcClientsImpl @Inject() (
       override def get() = makeChannel(uri)
     }, defautOpts)
     ccont
+  }
+
+  override def close(): Unit = {
+    val iter = cache.asMap().entrySet().iterator()
+    while (iter.hasNext) {
+      iter.next().getValue.shutdownNow()
+    }
   }
 }
 
