@@ -21,13 +21,16 @@ import java.util.concurrent.TimeUnit
 import akka.NotUsed
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
+import net.liftweb.common.Full
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
+import reactivemongo.api.commands.GetLastError
+import ws.kotonoha.model.sm6.ItemCoordinate
 import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.math.MathUtil
 import ws.kotonoha.server.mongodb.{KotonohaLiftRogue, RMData}
-import ws.kotonoha.server.records.WordCardRecord
+import ws.kotonoha.server.records.{ItemLearningDataRecord, WordCardRecord}
 import ws.kotonoha.server.util.DateTimeUtils
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,7 +45,6 @@ class FlashcardOps @Inject() (
   uc: UserContext,
   rm: RMData
 )(implicit ec: ExecutionContext) extends StrictLogging {
-
   import DateTimeUtils._
   import KotonohaLiftRogue._
   import OpsExtensions._
@@ -53,6 +55,10 @@ class FlashcardOps @Inject() (
 
   private def forWord(wid: ObjectId) = {
     WordCardRecord.where(_.word.eqs(wid)).and(_.user.eqs(uid))
+  }
+
+  def byId(cid: ObjectId): Future[Option[WordCardRecord]] = {
+    rm.fetch(forId(cid).limit(1)).map { _.headOption }
   }
 
   def register(wid: ObjectId, mode: CardMode, priority: Int, enabled: Boolean): Future[ObjectId] = {
@@ -67,7 +73,7 @@ class FlashcardOps @Inject() (
         .cardMode(cc.mode).notBefore(nbef).priority(cc.priority)
     }
 
-    rm.save(cards).mod(info.size, info.map(_.cid))
+    rm.save(cards, GetLastError.Journaled).mod(info.size, info.map(_.cid))
   }
 
   def otherCardsAfter(wid: ObjectId, myMode: CardMode, nextDate: DateTime): Future[NotUsed] = {
@@ -112,6 +118,27 @@ class FlashcardOps @Inject() (
 
   def setPriority(cid: ObjectId, prio: Int): Future[NotUsed] = {
     val q = forId(cid).modify(_.priority.setTo(prio))
+    rm.update(q).mod(1)
+  }
+
+  def updateLearning(card: WordCardRecord, procTime: DateTime, crd: ItemCoordinate): Future[NotUsed] = {
+    val lrn = card.learning.valueBox match {
+      case Full(l) => l
+      case _ => ItemLearningDataRecord.createRecord
+    }
+
+    lrn.difficulty(crd.difficulty)
+    lrn.inertia(crd.inertia)
+    lrn.lapse(crd.lapse)
+    lrn.repetition(crd.repetition)
+    lrn.intervalStart(procTime)
+    val nextRep = procTime.plus(MathUtil.dayToMillis(crd.interval))
+    lrn.intervalEnd(nextRep)
+    lrn.intervalLength(crd.interval)
+
+    logger.debug(f"schedule card=${card.id.get} <${crd.difficulty}%.1f:${crd.repetition}:${crd.lapse}> in ${crd.interval}%.3fd on $nextRep")
+
+    val q = forId(card.id.get).modify(_.learning.setTo(lrn)).modify(_.notBefore.setTo(procTime.plusHours(2)))
     rm.update(q).mod(1)
   }
 }

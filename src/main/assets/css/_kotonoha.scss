@@ -108,9 +108,27 @@ div.selections {
   }
 }
 
+.mark-btns button {
+  width: calc(20% - 1mm);
+  border: 0;
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .koto-header {
   border-bottom: 1px dotted lightgray;
   margin-bottom: 1em;
+}
+
+.card-question {
+  span {
+    border-bottom: 1mm white;
+  }
+
+  span.target {
+    border-bottom: 1mm lightgreen solid;
+  }
 }
 
 a.btn-x {

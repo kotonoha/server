@@ -26,11 +26,11 @@ import ws.kotonoha.akane.dic.jmdict.JmdictEntry
 import ws.kotonoha.dict.jmdict.LuceneJmdict
 import ws.kotonoha.server.actors.ForUser
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
+import ws.kotonoha.server.actors.learning.ProcessMarkEvents
 import ws.kotonoha.server.actors.lift.pertab.NamedCometActor
 import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor}
 import ws.kotonoha.server.actors.model.Candidate
 import ws.kotonoha.server.actors.tags.TagParser
-import ws.kotonoha.server.learning.ProcessMarkEvents
 import ws.kotonoha.server.records.events.{AddWordRecord, MarkEventRecord}
 import ws.kotonoha.server.records.{UserRecord, WordCardRecord, WordRecord}
 import ws.kotonoha.server.util.DateTimeUtils
@@ -150,7 +150,7 @@ class AddWordActor @Inject() (
 
   def updateHttpVariants(data: List[DisplayingEntry]) {
     val js = Extraction.decompose(data)(DefaultFormats)
-    ngMessage(("cmd" -> "update") ~ ("data" -> js))
+    ngMessageRaw(("cmd" -> "update") ~ ("data" -> js))
   }
 
   def handlePublish(data: JValue): Unit = {

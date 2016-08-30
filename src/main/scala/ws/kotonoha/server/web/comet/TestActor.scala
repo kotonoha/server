@@ -43,13 +43,13 @@ class TestActor @Inject() (
   def svcName = "testSvc"
 
   override def receiveJson = {
-    case JString("asdf") => ngMessage(JInt(10))
+    case JString("asdf") => ngMessageRaw(JInt(10))
     case JString("sdaf") => RestContinuation.async { resp =>
       schd.scheduleOnce(3.seconds) {
         resp(OkResponse())
       }
     }
-    case JString(s) => ngMessage(("hey" -> 5) ~ ("length" -> s.length))
-    case JArray(JString(x) :: _) => ngMessage(("hey" -> 5) ~ ("length" -> x.length))
+    case JString(s) => ngMessageRaw(("hey" -> 5) ~ ("length" -> s.length))
+    case JArray(JString(x) :: _) => ngMessageRaw(("hey" -> 5) ~ ("length" -> x.length))
   }
 }

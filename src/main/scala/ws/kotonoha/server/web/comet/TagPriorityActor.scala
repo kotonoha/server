@@ -98,7 +98,7 @@ class TagPriorityActor extends NamedCometActor with NgLiftActor with ReleaseAkka
     }
     val jv = Extraction.decompose(data)
     val msg = ("cmd" -> "tags") ~ ("data" -> jv)
-    ngMessage(msg)
+    ngMessageRaw(msg)
   }
 
   override def lowPriority = {

@@ -16,9 +16,11 @@
 
 package ws.kotonoha.server.actors.schedulers
 
+import com.google.inject.Inject
 import ws.kotonoha.server.actors.UserScopedActor
-import ws.kotonoha.server.records.{WordCardRecord, OFMatrixRecord}
-import ws.kotonoha.server.supermemo.OFMatrixHolder
+import ws.kotonoha.server.mongodb.RMData
+import ws.kotonoha.server.records.WordCardRecord
+import ws.kotonoha.server.supermemo.{OfMatrixSnapshot, SuperMemoOps}
 
 /**
  * This one schedules cards with big intervals and low number of repetitions.
@@ -31,12 +33,19 @@ import ws.kotonoha.server.supermemo.OFMatrixHolder
  * @since 27.02.13 
  */
 
-class LowRepBigIntScheduler extends UserScopedActor {
-
+class LowRepBigIntScheduler @Inject() (
+  sm: SuperMemoOps,
+  rm: RMData
+) extends UserScopedActor {
+  import akka.pattern.pipe
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
-  lazy val of = new OFMatrixHolder(uid)
+  var of = new OfMatrixSnapshot(Map.empty)
+
+  override def preStart(): Unit = {
+    sm.values() pipeTo self
+  }
 
   def query(cnt: Int) = {
     val lower = of(1, 2.1) * of(2, 2.1)
@@ -46,15 +55,16 @@ class LowRepBigIntScheduler extends UserScopedActor {
     val q = WordCardRecord.enabledFor(uid) where (_.notBefore lt now) and
       (_.learning.subfield(_.intervalStart) lt borderline) and
       (_.learning.subfield(_.intervalLength) between(lower, upper)) select (_.id)
-    q.fetch(cnt)
+    rm.fetch(q)
   }
 
   def receive = {
-    case c: CardRequest => {
-      sender ! PossibleCards(query(c.reqLength).map {
-        cid => ReviewCard(cid, "LowRepBigInt")
-      })
-    }
+    case s: OfMatrixSnapshot =>
+      of = s
+    case c: CardRequest =>
+      query(c.reqLength).map{ objs =>
+        PossibleCards(objs.map(cid => ReviewCard(cid, "LowRepBigInt")))
+      }(context.dispatcher).pipeTo(sender())
     case _: CardsSelected =>
   }
 }

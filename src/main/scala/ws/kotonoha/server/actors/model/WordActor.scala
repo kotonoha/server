@@ -26,7 +26,7 @@ import net.liftweb.json.JsonAST.JObject
 import org.bson.types.ObjectId
 import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors._
-import ws.kotonoha.server.learning.ProcessMarkEvents
+import ws.kotonoha.server.actors.learning.ProcessMarkEvents
 import ws.kotonoha.server.ops.{SimilarWordOps, WordOps}
 import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
@@ -87,6 +87,7 @@ class WordActor @Inject() (
         r
       }
     }
+
     (userActor ? ProcessMarkEvents(data)) andThen {
       case _ =>
         data map {

@@ -186,7 +186,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
   }
 
   def updateIndices(cur: Int, total: Int): Unit = {
-    ngMessage(
+    ngMessageRaw(
       ("cmd" -> "update-indices") ~
         ("total" -> total) ~
         ("cur" -> cur)
@@ -222,7 +222,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
         }
       }
       case None => {
-        ngMessage("cmd" -> "no-items")
+        ngMessageRaw("cmd" -> "no-items")
       }
     }
   }
@@ -392,13 +392,13 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
       jv => "word" -> ("examples" -> jv)
     }
     exjs foreach {
-      d => ngMessage(jv.merge(d))
+      d => ngMessageRaw(jv.merge(d))
     }
   }
 
   def pushTags(tags: List[String]): Unit = {
     val jv: JValue = ("cmd" -> "retag") ~ ("tags" -> tags)
-    ngMessage(jv)
+    ngMessageRaw(jv)
   }
 
   def processRecommended(req: RecommendRequest, results: List[RecommendedSubresult]): Unit = {
@@ -408,7 +408,7 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
       ("cmd" -> "recommend") ~
       ("request" -> Extraction.decompose(req)) ~
       ("response" -> Extraction.decompose(data))
-    ngMessage(jv)
+    ngMessageRaw(jv)
   }
 
   override def lowPriority = {

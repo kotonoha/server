@@ -58,7 +58,7 @@ class KnpActor extends CometActor with NgLiftActor with AkkaInterop with Release
     import ws.kotonoha.server.util.KBsonDSL._
     val jv = Extraction.decompose(response)(DefaultFormats)
     val outjv = ("cmd" -> "results") ~ ("content" -> jv)
-    ngMessage(outjv)
+    ngMessageRaw(outjv)
   }
 
   override def lowPriority = {

@@ -100,7 +100,7 @@ class CardMixer(input: List[CardSource]) extends Logging {
     rewrap.map {
       lst =>
         val (cnt, data) = combine(lst.toArray, req.reqLength, ri)
-        logger.debug(s"Made a selection [${req.state}] -> (${cnt.mkString(", ")}})")
+        logger.debug(s"Made a selection [${req.state}] -> (${cnt.mkString(", ")})")
         cnt.zip(input).foreach {
           case (cnt, src) => src.provider.selected(cnt)
         }

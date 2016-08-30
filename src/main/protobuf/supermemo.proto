@@ -1,0 +1,34 @@
+syntax = "proto2";
+
+option java_package = "ws.kotonoha.model.sm6";
+
+message Matrix {
+  required bytes uid = 1;
+  repeated MatrixItem items = 2;
+}
+
+message MatrixItem {
+  required int32 difficulty = 1;
+  required int32 repetition = 2;
+  required double factor = 3;
+}
+
+message ItemCoordinate {
+  required double difficulty = 1;
+  required int32 repetition = 2;
+  required int32 lapse = 3;
+  required double interval = 4;
+  required double inertia = 5;
+}
+
+message MatrixMark {
+  required ItemCoordinate coord = 1;
+  required double mark = 2;
+  required double actualInterval = 3;
+  repeated ItemCoordinate history = 4;
+}
+
+message MatrixUpdate {
+  required ItemCoordinate coord = 1;
+  repeated MatrixItem updates = 2;
+}

@@ -30,6 +30,7 @@ import ws.kotonoha.akane.config.Configuration
 import ws.kotonoha.dict.jmdict.LuceneJmdict
 import ws.kotonoha.server.KotonohaConfig
 import ws.kotonoha.server.actors._
+import ws.kotonoha.server.actors.examples.AssignExamplesModule
 import ws.kotonoha.server.dict.{EmptyJmdict, JmdictService, JmdictServiceImpl}
 import ws.kotonoha.server.ioc._
 
@@ -70,7 +71,8 @@ object KotonohaTestAkka {
     new AkkaModule("kt" + counter.getAndIncrement()),
     new GlobalActorsModule,
     new UserContextModule,
-    new RMongoModule
+    new RMongoModule,
+    new AssignExamplesModule
   )
 }
 

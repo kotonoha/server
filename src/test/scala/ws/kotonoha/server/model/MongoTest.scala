@@ -26,7 +26,6 @@ import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors.AkkaFun
 import ws.kotonoha.server.actors.learning.{LoadCards, LoadWords, WordsAndCards, _}
 import ws.kotonoha.server.actors.model.{CardActor, RegisterWord, SchedulePaired}
-import ws.kotonoha.server.learning.{ProcessMarkEvent, ProcessMarkEvents}
 import ws.kotonoha.server.mongodb.MongoAwareTest
 import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.test.UserTestContext

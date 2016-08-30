@@ -21,6 +21,7 @@ import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
+import reactivemongo.api.commands.GetLastError
 import ws.kotonoha.akane.unicode.KanaUtil
 import ws.kotonoha.examples.api.ExamplePack
 import ws.kotonoha.model.{CardMode, RepExampleStatus, WordStatus}
@@ -75,7 +76,7 @@ class WordOps @Inject() (
       CreateCard(CardMode.Writing, prio, enabled) :: rd
     }
 
-    val f1 = rm.save(Seq(word.status(status)))
+    val f1 = rm.save(Seq(word.status(status)), GetLastError.Journaled)
     for {
       prio <- tops.calculator.map(_.priority(word.tags.get))
       _ <- cops.register(wordid, calcInfo(prio))
@@ -89,7 +90,7 @@ class WordOps @Inject() (
   }
 
   def setRepExamples(wid: ObjectId, pack: ExamplePack): Future[Done] = {
-    val upd = qbyId(wid).modify(_.repExamples.setTo(pack)).modify(_.repExNext.setTo(-1))
+    val upd = qbyId(wid).modify(_.repExamples.setTo(pack)).modify(_.repExSeen.setTo(0))
       .modify(_.repExStatus.setTo(RepExampleStatus.Present)).modify(_.repExDate.setTo(DateTimeUtils.now))
     rm.update(upd).mod(1, Done)
   }

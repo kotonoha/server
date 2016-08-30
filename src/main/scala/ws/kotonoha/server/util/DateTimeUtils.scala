@@ -67,7 +67,9 @@ object DateTimeUtils {
 
   def ts(dur: FiniteDuration) = akkaDurationToLiftTimeSpan(dur)
 
-  def now = new DateTime(UTC)
+  def now: DateTime = new DateTime(UTC)
+  def atMillis(millis: Long): DateTime = new DateTime(millis, UTC)
+  def duration(start: ReadableInstant, end: ReadableInstant) = new org.joda.time.Duration(start, end)
 
   def userNow(uid: Option[ObjectId]) = uid match {
     case Some(id) => {

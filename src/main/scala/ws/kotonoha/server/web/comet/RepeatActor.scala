@@ -16,200 +16,115 @@
 
 package ws.kotonoha.server.web.comet
 
-import akka.actor.{ActorRef, Status}
+import akka.actor.{PoisonPill, Scheduler}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
-import net.liftweb.common.{Box, Empty, Full}
-import net.liftweb.http.js.JE.{Call, JsRaw}
+import net.liftweb.common.{Box, Full}
+import net.liftweb.http.ShutDown
 import net.liftweb.http.js.JsCmds
-import net.liftweb.http.js.JsCmds.SetHtml
-import net.liftweb.http.{RenderOut, ShutDown}
-import net.liftweb.json.DefaultFormats
-import net.liftweb.json.JsonAST.{JField, JObject, JValue}
+import net.liftweb.json.JsonAST._
 import net.liftweb.util.Helpers.TimeSpan
-import org.apache.lucene.search.BooleanClause.Occur
-import org.bson.types.ObjectId
-import ws.kotonoha.akane.dic.jmdict.JmdictTag
-import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
+import ws.kotonoha.lift.json.{JLCaseClass, JWrite}
 import ws.kotonoha.model.CardMode
 import ws.kotonoha.server.actors.AkkaMain
-import ws.kotonoha.server.actors.learning.{LoadWords, WordsAndCards}
-import ws.kotonoha.server.actors.lift.{AkkaInterop, Ping}
-import ws.kotonoha.server.actors.schedulers.{RepetitionStateResolver, ReviewCard}
+import ws.kotonoha.server.actors.learning.RepeatBackendActor
+import ws.kotonoha.server.actors.lift.{AkkaInterop, NgLiftActor, Ping}
 import ws.kotonoha.server.ioc.UserContext
-import ws.kotonoha.server.japanese.ConjObj
-import ws.kotonoha.server.learning.ProcessMarkEvent
-import ws.kotonoha.server.records._
-import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.util.DateTimeUtils
 
-import scala.util.Random
-import scala.xml.{NodeSeq, Text, Utility}
+import scala.concurrent.ExecutionContext
 
 /**
- * @author eiennohito
- * @since 21.05.12
- */
+  * @author eiennohito
+  * @since 21.05.12
+  */
 
-case class RecieveJson(obj: JValue)
+object RepeatActor {
 
-case class RepeatUser(id: ObjectId)
+  import ws.kotonoha.server.actors.learning.RepeatBackend._
 
-case class WebMark(card: String, mode: Int, time: Double, mark: Int, remaining: Int)
+  implicit object cardModeStringWrite extends JWrite[CardMode] {
+    override def write(o: CardMode): JValue = o match {
+      case CardMode.Writing => JString("writing")
+      case CardMode.Reading => JString("reading")
+      case _ => JNothing
+    }
+  }
 
-case object UpdateNum
+  implicit val rqpWrite = JLCaseClass.write[RepQuestionPart]
+  implicit val reWrite = JLCaseClass.write[ReviewExample]
+  implicit val readdWrite = JLCaseClass.write[RepAdditional]
+  implicit val rcWrite = JLCaseClass.write[RepCard]
 
-class RepeatActor @Inject() (
-  jms: LuceneJmdict,
+  case class PublishCards(cards: Seq[RepCard])
+  case class WebMsg(cmd: String, data: JValue)
+
+  object WebMsg {
+    def apply[T](cmd: String, o: T)(implicit write: JWrite[T]): WebMsg = WebMsg(cmd, write.write(o))
+  }
+
+  implicit val wmFormat = JLCaseClass.format[WebMsg]
+  implicit val rcFormat = JLCaseClass.write[RepCount]
+
+  implicit val wmread = JLCaseClass.read[WebMark]
+}
+
+class RepeatActor @Inject()(
   uc: UserContext,
   val akkaServ: AkkaMain
-) extends AkkaInterop with StrictLogging {
+)(implicit ec: ExecutionContext, sch: Scheduler) extends AkkaInterop with NgLiftActor with StrictLogging {
   import DateTimeUtils._
+  import RepeatActor._
 
   import concurrent.duration._
 
-  def self = this
+  private val backend = uc.refFactory.actorOf(uc.props[RepeatBackendActor])
+  private def self = this
 
-  def userId: ObjectId = uc.uid
-  var uact: ActorRef = _
-  var count = 0
-
-  lazy val today = new RepetitionStateResolver(userId).today
-  implicit def context = akkaServ.context
-
-  val cancellable = akkaServ.system.scheduler.schedule(5 minutes, 1 minute)(self ! Ping)
-
-  var last = now
-
-  def render = {
-    val js = JsCmds.Function("send_to_actor", List("obj"), jsonSend(JsRaw("obj")))
-    RenderOut(Full(defaultHtml), Empty, Full(jsonToIncludeInCode & js), Empty, ignoreHtmlOnJs = true)
+  private val cancellable = sch.schedule(5 minutes, 1 minute) {
+    self ! Ping
   }
+
+  private var last = now
 
   override def localShutdown() {
     cancellable.cancel()
+    backend ! PoisonPill
     super.localShutdown()
   }
 
+  override def svcName: String = "RepeatBackend"
+
   override def receiveJson = {
-    case o => self ! RecieveJson(o); JsCmds.Noop
-  }
-
-  def processJson(obj: JValue): Unit = {
-    implicit val formats = DefaultFormats
-    import net.liftweb.json.Extraction.extract
-    obj match {
-      case JObject(JField("command", data) :: _) => {
-        val mark = extract[WebMark](data)
-        self ! mark
-        self ! UpdateNum
-      }
-      case _ => logger.debug("invalid json: " + obj)
+    case obj => obj \ "cmd" match {
+      case JString("mark") =>
+        wmread.read(obj) match {
+          case Full(m) => backend ! m
+          case x => logger.error(s"could not read mark from json $obj: $x")
+        }
+      case JString("nextTime") => logger.debug("next time here")
+      case _ => logger.warn(s"unknown json input $obj")
     }
+    JsCmds.Noop
   }
-
-
-  override protected def dontCacheRendering = true
-
-  def nsString(in: NodeSeq) = {
-    val sb = new StringBuilder
-    Utility.sequenceToXML(in, sb = sb)
-    sb.toString()
-  }
-
-  def processWord(writing: String, reading: Option[String]): Option[NodeSeq] = try {
-    val q = JmdictQuery(
-      limit = 5,
-      writings = Seq(JmdictQueryPart(writing, Occur.MUST)),
-      readings = reading.map(r => JmdictQueryPart(r, Occur.MUST)).toSeq
-    )
-    val entries = jms.find(q)
-    val meanings = entries.data.headOption.toSeq.flatMap(_.meanings)
-    val word_type = meanings.flatMap(_.pos)
-    val cobj = ConjObj(word_type.headOption.getOrElse(JmdictTag.exp).name, writing)
-    val ns1 = cobj.masuForm.data map {c => <div>{c}</div> }
-    val ns2 = cobj.teForm.data map {c => <div>{c}</div>}
-    ns1 flatMap{s => ns2 map {t => s ++ t}}
-  } catch { case _: Throwable => None }
-
-  def publish(words: List[WordRecord], cards: List[WordCardRecord], seq: List[ReviewCard]): Unit = {
-    import net.liftweb.json.compactRender
-    import ws.kotonoha.server.util.KBsonDSL._
-    val wm = words.map(w => (w.id.get, w)).toMap
-    val cm = cards.map(c => (c.id.get, c)).toMap
-    def getExamples(in: List[ExampleRecord], max: Int) = {
-      val selected = Random.shuffle(in).take(max)
-      val html = selected flatMap (e =>
-        <div class="nihongo">
-          {e.example.get}
-        </div>
-          <div>
-            {e.translation.get}
-          </div>)
-      nsString(html)
-    }
-    val data: JValue = seq map (it => {
-      val c = cm(it.cid)
-      val w = wm(c.word.get)
-      val addInfo = processWord(w.writing.stris, Some(w.reading.stris))
-      val procInfo = addInfo map {
-        nsString(_)
-      } getOrElse ""
-      ("writing" -> w.writing.stris) ~ ("reading" -> w.reading.stris) ~ ("meaning" -> w.meaning) ~
-        ("cid" -> c.id.get.toString) ~ ("mode" -> c.cardMode.get.value) ~ ("examples" -> getExamples(w.examples.get, 5)) ~
-        ("additional" -> procInfo) ~ ("wid" -> c.word.get.toString) ~ ("src" -> it.source)
-    })
-    logger.debug("call publish_new")
-    partialUpdate(Call("publish_new", compactRender(data)).cmd)
-  }
-
 
   override protected def alwaysReRenderOnPageLoad: Boolean = true
 
-  def processMark(mark: WebMark): Unit = {
-    import DateTimeUtils._
-
-    import concurrent.duration._
-
-    val me = MarkEventRecord.createRecord
-    val cid = new ObjectId(mark.card)
-    val mode = CardMode.fromValue(mark.mode)
-    me.card(cid).mark(mark.mark).mode(mode).time(mark.time)
-    me.client("web-repeat")
-    me.user(userId)
-    me.datetime(now)
-    val f = akka.pattern.ask(uact, ProcessMarkEvent(me))(10 seconds)
-    f.onSuccess {
-      case x: Int =>
-        if (mark.remaining < 5) {
-          uact ! LoadWords(15, mark.remaining)
-        }
-    }
-  }
-
-
   override protected def localSetup(): Unit = {
     super.localSetup()
-    uact = akkaServ.userActor(userId)
-    uact ! LoadWords(15, 0)
+    backend ! self
   }
 
   override def lowPriority = {
-    case RecieveJson(o) => processJson(o)
-    case WordsAndCards(words, cards, seq) => publish(words, cards, seq)
-    case m: WebMark =>
+    case PublishCards(cards) =>
+      self ! WebMsg("cards", cards)
+    case msg: WebMsg =>
+      ngMessage(msg)
       last = now
-      processMark(m)
-    case UpdateNum => {
-      partialUpdate(SetHtml("rpt-num", Text(s"Repeated $count word(s) in session, ${today + count} today")))
-      count += 1
-    }
-    case _: Int => //do nothing
-    case Status.Failure(ex) => logger.error("error in akka", ex)
     case Ping =>
       val dur = new org.joda.time.Duration(last, now)
       if (dur.getStandardMinutes > 13) {
-        partialUpdate(Call("learning_timeout").cmd)
+        ngMessage(WebMsg("timeout", JNothing))
         self ! ShutDown
       }
   }

@@ -16,15 +16,14 @@
 
 package ws.kotonoha.server.web.rest
 
-import ws.kotonoha.server.actors.learning.{LoadReviewList, WordsAndCards, LoadWords}
+import ws.kotonoha.server.actors.learning._
 import net.liftweb.common._
 import net.liftweb.util.BasicTypesHelpers.AsInt
 import net.liftweb.http._
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.util.ResponseUtil
-import ws.kotonoha.server.learning.{ProcessWordStatusEvent, ProcessMarkEvents}
 import com.typesafe.scalalogging.{StrictLogging => Logging}
-import ws.kotonoha.server.records.events.{ChangeWordStatusEventRecord, AddWordRecord, MarkEventRecord}
+import ws.kotonoha.server.records.events.{AddWordRecord, ChangeWordStatusEventRecord, MarkEventRecord}
 
 
 /**

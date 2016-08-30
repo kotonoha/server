@@ -74,7 +74,7 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
     val w = new java.io.StringWriter(65536) //64k buffer
     S.htmlProperties.htmlWriter(Group(xhtml), w)
     val cmd = ("cmd" -> "preview") ~ ("src" -> w.toString)
-    ngMessage(cmd)
+    ngMessageRaw(cmd)
   }
 
 
@@ -122,13 +122,13 @@ class EditWiki extends CometActor with NgLiftActor with Logging {
   }
 
   def ready(): Unit = {
-    ngMessage("cmd" -> "ready")
+    ngMessageRaw("cmd" -> "ready")
   }
 
   def display(rec: WikiPageRecord): Unit = {
     val src = rec.source.get
     val msg = ("cmd" -> "display") ~ ( "data" -> ("src" -> src) )
-    ngMessage(msg)
+    ngMessageRaw(msg)
   }
 
   def loadAndDisplay(info: WikiPage): Unit = {

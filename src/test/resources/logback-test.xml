@@ -30,7 +30,6 @@
 
   <logger name="ws.kotonoha.server.ops.WordExampleOps" level="TRACE" />
   <logger name="ws.kotonoha.server.util.GlobalRateLimiting$" level="TRACE" />
-  <logger name="ws.kotonoha.server.util.RateLimiterStage" level="TRACE" />
 
   <root level="DEBUG">
     <appender-ref ref="console" />

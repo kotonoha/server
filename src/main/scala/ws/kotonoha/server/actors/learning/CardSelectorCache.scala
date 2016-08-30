@@ -16,15 +16,21 @@
 
 package ws.kotonoha.server.actors.learning
 
+import akka.Done
 import akka.actor.{ActorLogging, ActorRef}
 import akka.util.Timeout
 import com.google.inject.Inject
+import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.UserScopedActor
 import ws.kotonoha.server.actors.schedulers.{CoreScheduler, ReviewCard}
 import ws.kotonoha.server.ioc.UserContext
-import ws.kotonoha.server.learning.{CardProcessed, RegisterCardListener}
+import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.WordCardRecord
+import ws.kotonoha.server.records.events.MarkEventRecord
+import ws.kotonoha.server.records.misc.CardSchedule
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * @author eiennohito
@@ -32,7 +38,9 @@ import ws.kotonoha.server.records.WordCardRecord
  */
 
 class CardSelectorCache @Inject() (
-  uc: UserContext
+  uc: UserContext,
+  meo: MarkEventOps,
+  spo: SelectionPackOps
 ) extends UserScopedActor with ActorLogging {
 
   import akka.pattern.{ask, pipe}
@@ -92,13 +100,63 @@ class CardSelectorCache @Inject() (
   }
 
   def receive = {
-    case CardProcessed(cid) => trim += cid
+    case CardProcessed(cid) =>
+      trim += cid
+      sender() ! Done
     case LoadCards(cnt, skip) => processLoad(cnt, skip)
     case ProcessAnswer(to, fresh, cnt, skip) => processReply(to, fresh, cnt, skip)
   }
 
   override def preStart() {
     super.preStart()
-    userActor ! RegisterCardListener(self)
+    implicit val timeout: Timeout = 1.second
+
+    meo.addCallback { mer =>
+      val f1 = self.ask(CardProcessed(mer.card.get))
+      for {
+        upd <- spo.updateMarkEvent(mer)
+        _ <- f1
+      } yield upd
+    }
+  }
+}
+
+class SelectionPackOps @Inject() (
+  rm: RMData,
+  uc: UserContext
+)(implicit ec: ExecutionContext) extends StrictLogging {
+  import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
+  import ws.kotonoha.server.ops.OpsExtensions._
+
+  def schedulesForCard(cid: ObjectId) = {
+    val q = CardSchedule.where(_.user eqs uc.uid).and(_.card eqs cid).orderDesc(_.date)
+    rm.fetch(q)
+  }
+
+  def deleteSchedules(cid: ObjectId) = {
+    val q = CardSchedule.where(_.user eqs uc.uid).and(_.card eqs cid)
+    rm.remove(q)
+  }
+
+  def updateMarkEvent(mr: MarkEventRecord): Future[MarkEventRecord] = {
+    schedulesForCard(mr.card.get).map { scheds =>
+      if (scheds.length > 1) {
+        logger.warn("multiple schedules: {}", scheds)
+      }
+
+      if (scheds.nonEmpty) {
+        val head = scheds.head
+        mr.source(head.source.get)
+        mr.seq(head.seq.get)
+        mr.bundle(head.bundle.get)
+        mr.scheduledOn(head.date.valueBox)
+
+        deleteSchedules(mr.card.get).minMod(1).onFailure {
+          case t => logger.warn("failed to remove schedules", t)
+        }
+      }
+
+      mr
+    }
   }
 }

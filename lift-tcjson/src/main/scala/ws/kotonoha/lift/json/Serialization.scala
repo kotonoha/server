@@ -38,6 +38,10 @@ trait JWrite[T] {
 }
 
 object JWrite {
+  implicit object jvWrite extends JWrite[JValue] {
+    override def write(o: JValue): JValue = o
+  }
+
   implicit object intWrite extends JWrite[Int] {
     override def write(o: Int) = JInt(o)
   }
@@ -76,7 +80,7 @@ object JWrite {
     }
   }
 
-  implicit def seqWrite[Tp[_], T](implicit w: JWrite[T], ev: Tp[T] <:< Traversable[T]): JWrite[Tp[T]] = new JWrite[Tp[T]] {
+  implicit def seqWrite[Tp[_], T](implicit ev: Tp[T] <:< Traversable[T], w: JWrite[T]): JWrite[Tp[T]] = new JWrite[Tp[T]] {
     override def write(o: Tp[T]) = {
       val objs = o.view.map(w.write).toList
       JArray(objs)
@@ -95,6 +99,10 @@ object JRead {
     } catch {
       case e: Exception => Failure("error when reading", Full(e), Empty)
     }
+  }
+
+  implicit object jvalRead extends JRead[JValue] {
+    override def read(v: JValue): Box[JValue] = Full(v)
   }
 
   implicit object intRead extends JRead[Int] {

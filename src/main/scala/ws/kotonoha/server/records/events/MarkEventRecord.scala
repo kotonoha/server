@@ -22,7 +22,7 @@ import net.liftweb.record.field.{DoubleField, IntField, LongField, StringField}
 import ws.kotonoha.model.{CardMode, EventTypes}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import ws.kotonoha.server.records.WordCardRecord
-import ws.kotonoha.server.records.meta.{KotonohaMongoRecord, PbEnumField}
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord, PbEnumField}
 
 /**
  * @author eiennohito
@@ -35,29 +35,29 @@ class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with Object
   protected def myType = EventTypes.Mark
 
   object card extends ObjectIdRefField(this, WordCardRecord)
-
   object mode extends PbEnumField(this, CardMode)
-
   object mark extends DoubleField(this)
 
   object time extends DoubleField(this)
+  object questionDur extends DoubleField(this)
+  object answerDur extends DoubleField(this)
+  object readyDur extends DoubleField(this)
+  object client extends StringField(this, 100)
 
   object diff extends DoubleField(this)
 
   //my difficulty when learning
   object interval extends DoubleField(this)
-
+  object actualInterval extends DoubleField(this)
+  object inertia extends DoubleField(this)
   object lapse extends IntField(this)
-
   object rep extends IntField(this)
 
+  //service information
   object source extends StringField(this, 100)
-
   object seq extends LongField(this)
-
   object bundle extends ObjectIdField(this)
-
-  object client extends StringField(this, 100)
+  object scheduledOn extends JodaDateField(this)
 }
 
 object MarkEventRecord extends MarkEventRecord with KotonohaMongoRecord[MarkEventRecord] with MongoMetaRecord[MarkEventRecord] with NamedDatabase

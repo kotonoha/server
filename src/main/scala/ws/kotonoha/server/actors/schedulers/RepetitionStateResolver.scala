@@ -116,13 +116,11 @@ class RepetitionStateResolver(uid: ObjectId) {
   lazy val nextTotal = next.total
 
   lazy val high = {
-    nextTotal.slice(2, 5).foldLeft(0) {
-      _ + _
-    } / 3
+    nextTotal.slice(2, 5).sum / 3
   }
 
   lazy val normal = {
-    nextTotal.drop(5).foldLeft(0)(_ + _) / 6
+    nextTotal.drop(5).sum / 6
   }
 
   def scheduledCnt = {

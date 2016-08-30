@@ -18,41 +18,56 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
-  <script class="lift:cpres.js?src=word/repeat&nomin=true"></script>
-  <div class="lift:RepeatActorSnippet" ng-controller="RepeatController">
-    <div class="word-display">
-      <div id="rpt-num">&nbsp;</div>
-      <div class="row col-xs-12">
-        <a ng-href="../words/detail?w={{wid}}"
-           ng-show="wid != null"
-           target="_blank"
-           title="Edit this word (opens in new window)">Edit this word</a>
-      </div>
+  <script class="lift:cpres.js?src=word/repeat2&nomin=true"></script>
+  <div class="lift:RepeatActorSnippet" data-ng-controller="RepeatController">
+    <div class="word-display ng-cloak">
+      <h4 class="ng-cloak" data-ng-show="curSession >= 0">Review: Session - {{curSession}}, {{today}} - today</h4>
       <div class="row">
         <div class="col-xs-12 col-sm-5 card-data">
           <div style="min-height: 20em;">
-            <div class="nihongo word-writing" id="word-writing"></div>
-            <div class="nihongo word-reading" id="word-reading"></div>
-            <div class="word-meaning" id="word-meaning"></div>
-            <div class="word-additional" id="word-additional"></div>
+            <div data-ng-show="state_question() || (contentVisible() && card.question.length > 1)" class="card-question japanese">
+              <span data-ng-repeat="p in card.question" data-ng-bind="p.content" data-ng-class="{target: p.target}"></span>
+            </div>
+            <div class="pull-right" ng-show="card != null && contentVisible()">
+              <a ng-href="../words/detail?w={{card.word}}"
+                 class="btn btn-outline-secondary btn-sm"
+                 target="_blank"
+                 title="Edit"><i class="fa fa-pencil"></i> Edit</a>
+              <a class="btn btn-outline-secondary btn-sm"><i class="fa fa-minus-circle"></i> Disable</a>
+            </div>
+            <div data-ng-show="contentVisible()">
+              <div class="nihongo word-writing" data-ng-bind="card.writings"></div>
+              <div class="nihongo word-reading" data-ng-bind="card.readings"></div>
+              <div class="word-meaning" data-ng-bind="card.meaning"></div>
+              <div class="word-additional"></div>
+            </div>
           </div>
-          <div class="button-pane" id="button-pane">
-            <div class="hor-center" id="mark-pane">
-              <button class="btn" id="mark1">1</button>
-              <button class="btn" id="mark2">2</button>
-              <button class="btn" id="mark3">3</button>
-              <button class="btn" id="mark4">4</button>
-              <button class="btn" id="mark5">5</button>
+          <div class="button-pane">
+            <div class="hor-center mark-btns" data-ng-show="state_answer()">
+              <button class="btn" data-ng-click="mark(1, 'btn')">1</button>
+              <button class="btn" data-ng-click="mark(2, 'btn')">2</button>
+              <button class="btn" data-ng-click="mark(3, 'btn')">3</button>
+              <button class="btn" data-ng-click="mark(4, 'btn')">4</button>
+              <button class="btn" data-ng-click="mark(5, 'btn')">5</button>
             </div>
-            <div id="next-word-pane">
-              <button class="btn btn-block" id="show-next">Show next word</button>
+            <div data-ng-show="state_ready()">
+              <button class="btn btn-block" data-ng-click="nextCard()">Show next word</button>
             </div>
-            <div id="show-answer-pane">
-              <button class="btn btn-block" id="show-answer">Show answer</button>
+            <div data-ng-show="state_question()">
+              <button class="btn btn-block" data-ng-click="showAnswer()">Show answer</button>
             </div>
           </div>
         </div>
         <div class="col-xs-12 col-sm-7 example-data" id="example-pane">
+          <div data-ng-show="contentVisible()">
+            <div data-ng-show="card.exs.length == 0">
+              No examples for this word.
+            </div>
+            <div data-ng-repeat="ex in card.exs track by ex.id" class="review-example">
+              <div class="japanese" data-ng-bind="ex.sentence"></div>
+              <div data-ng-bind="ex.translation"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

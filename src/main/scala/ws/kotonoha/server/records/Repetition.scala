@@ -21,7 +21,7 @@ import net.liftweb.mongodb.record.field.{ObjectIdPk, ObjectIdRefField}
 import net.liftweb.mongodb.record.{BsonMetaRecord, BsonRecord, MongoMetaRecord, MongoRecord}
 import net.liftweb.record.field.{DoubleField, IntField}
 import org.bson.types.ObjectId
-import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaBsonMeta}
+import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaBsonMeta, KotonohaMongoRecord}
 
 /**
  * @author eiennohito
@@ -51,17 +51,16 @@ class OFMatrixRecord private() extends MongoRecord[OFMatrixRecord] with ObjectId
   object user extends ObjectIdRefField(this, UserRecord)
 }
 
-object OFMatrixRecord extends OFMatrixRecord with MongoMetaRecord[OFMatrixRecord] with NamedDatabase {
+object OFMatrixRecord extends OFMatrixRecord with KotonohaMongoRecord[OFMatrixRecord] with NamedDatabase {
   def forUser(userId: ObjectId) =  {
     val m = OFMatrixRecord where (_.user eqs userId) get()
     m match {
       case Some(mat) => mat
-      case None => {
+      case None =>
         val mat = OFMatrixRecord.createRecord
         mat.user(userId)
         mat.save()
         mat
-      }        
     }
   }
 }
@@ -76,5 +75,4 @@ class OFElementRecord private() extends MongoRecord[OFElementRecord] with Object
   object matrix extends ObjectIdRefField(this, OFMatrixRecord)
 }
 
-object OFElementRecord extends OFElementRecord with MongoMetaRecord[OFElementRecord] with NamedDatabase {  
-}
+object OFElementRecord extends OFElementRecord with KotonohaMongoRecord[OFElementRecord] with NamedDatabase

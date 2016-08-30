@@ -208,7 +208,7 @@ class UpdateResourcesActor @Inject() (
 
   def message(msg: String) = {
     logger.info(msg)
-    ngMessage(
+    ngMessageRaw(
       ("cmd" -> "message") ~
       ("data" ->  ("date" -> now) ~ ("message" -> msg)  )
     )

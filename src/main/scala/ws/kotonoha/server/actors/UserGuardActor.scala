@@ -24,7 +24,6 @@ import ws.kotonoha.server.actors.model.{CardActor, CardMessage, WordActor, WordM
 import ws.kotonoha.server.actors.recommend.{RecommendActor, RecommenderMessage}
 import ws.kotonoha.server.actors.tags.{TagActor, TagMessage}
 import ws.kotonoha.server.ioc.UserContext
-import ws.kotonoha.server.learning.{EventMessage, EventProcessor}
 
 /**
  * @author eiennohito
