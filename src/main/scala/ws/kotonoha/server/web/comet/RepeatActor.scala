@@ -66,8 +66,8 @@ object RepeatActor {
   implicit val wmFormat = JLCaseClass.format[WebMsg]
   implicit val rcFormat = JLCaseClass.write[RepCount]
 
-  implicit val wmread = JLCaseClass.read[WebMark]
-  implicit val maread = JLCaseClass.read[MarkAddition]
+  implicit val webMarkRd = JLCaseClass.read[WebMark]
+  implicit val markAddRead = JLCaseClass.read[MarkAddition]
 }
 
 class RepeatActor @Inject()(
@@ -99,12 +99,12 @@ class RepeatActor @Inject()(
   override def receiveJson = {
     case obj => obj \ "cmd" match {
       case JString("mark") =>
-        wmread.read(obj) match {
+        webMarkRd.read(obj) match {
           case Full(m) => backend ! m
           case x => logger.error(s"could not read mark from json $obj: $x")
         }
       case JString("nextTime") =>
-        maread.read(obj) match {
+        markAddRead.read(obj) match {
           case Full(m) => backend ! m
           case x => logger.error(s"could not read mark addition from json $obj: $x")
         }
