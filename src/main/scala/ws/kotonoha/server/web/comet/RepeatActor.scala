@@ -67,6 +67,7 @@ object RepeatActor {
   implicit val rcFormat = JLCaseClass.write[RepCount]
 
   implicit val wmread = JLCaseClass.read[WebMark]
+  implicit val maread = JLCaseClass.read[MarkAddition]
 }
 
 class RepeatActor @Inject()(
@@ -102,7 +103,11 @@ class RepeatActor @Inject()(
           case Full(m) => backend ! m
           case x => logger.error(s"could not read mark from json $obj: $x")
         }
-      case JString("nextTime") => logger.debug("next time here")
+      case JString("nextTime") =>
+        maread.read(obj) match {
+          case Full(m) => backend ! m
+          case x => logger.error(s"could not read mark addition from json $obj: $x")
+        }
       case _ => logger.warn(s"unknown json input $obj")
     }
     JsCmds.Noop

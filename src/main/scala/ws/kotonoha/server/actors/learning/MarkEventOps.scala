@@ -16,9 +16,12 @@
 
 package ws.kotonoha.server.actors.learning
 
+import akka.NotUsed
 import com.google.inject.{Inject, Singleton}
 import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.Full
+import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import ws.kotonoha.model.sm6.{ItemCoordinate, MatrixMark}
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.ops.FlashcardOps
@@ -41,6 +44,7 @@ class MarkEventOps @Inject() (
 )(implicit ec: ExecutionContext) extends StrictLogging {
   import MarkEventOps._
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
+  import ws.kotonoha.server.ops.OpsExtensions._
 
   @volatile private[this] var callbacks: List[MarkEventHandler] = Nil
 
@@ -98,6 +102,11 @@ class MarkEventOps @Inject() (
       m <- processImpl(mark, card, history)
     } yield m
     x
+  }
+
+  def setReadyTime(mid: ObjectId, time: Double): Future[NotUsed] = {
+    val q = MarkEventRecord.where(_.id eqs mid).modify(_.readyDur.setTo(time))
+    rm.update(q).mod(1)
   }
 }
 

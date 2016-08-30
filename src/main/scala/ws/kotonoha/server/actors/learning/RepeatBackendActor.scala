@@ -21,11 +21,12 @@ import com.google.inject.Inject
 import net.liftweb.http.CometActor
 import org.apache.lucene.search.BooleanClause.Occur
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import ws.kotonoha.akane.dic.jmdict.JmdictTag
 import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
 import ws.kotonoha.model.CardMode
-import ws.kotonoha.server.actors.learning.RepeatBackend.{RepCount, WebMark}
-import ws.kotonoha.server.actors.learning.RepeatBackendActor.UpdateOne
+import ws.kotonoha.server.actors.learning.RepeatBackend.{MarkAddition, RepCount, WebMark}
+import ws.kotonoha.server.actors.learning.RepeatBackendActor.{MarkInProcessing, UpdateOne}
 import ws.kotonoha.server.actors.schedulers.RepetitionStateResolver
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.japanese.ConjObj
@@ -35,6 +36,7 @@ import ws.kotonoha.server.util.DateTimeUtils
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.Future
 import scala.util.{Failure, Random, Success}
 
 
@@ -45,7 +47,8 @@ object RepeatBackend {
   case class RepCard(id: String, word: String, mode: CardMode, writings: String, readings: String,
     question: Seq[RepQuestionPart], exs: Seq[ReviewExample], meaning: String, addinfo: Seq[RepAdditional], rexIdx: Int)
 
-  case class WebMark(card: String, mark: Int, remaining: Int, timestamp: Long, questionTime: Long, answerTime: Long, source: String)
+  case class WebMark(card: String, mark: Int, remaining: Int, timestamp: Long, questionTime: Long, answerTime: Long, source: String, exId: Int)
+  case class MarkAddition(card: String, readyTime: Long)
 
   case class RepCount(curSession: Int, today: Int)
 }
@@ -126,7 +129,7 @@ class RepeatBackendActor @Inject() (
   private var inSession = 0
   private lazy val today = new RepetitionStateResolver(uc.uid).today.toInt
 
-  private val marksForCard = new mutable.HashMap[ObjectId, MarkEventRecord]()
+  private val marksForCard = new mutable.HashMap[ObjectId, MarkInProcessing]()
 
   private def handleMark(mark: WebMark): Unit = {
     import DateTimeUtils._
@@ -145,11 +148,13 @@ class RepeatBackendActor @Inject() (
     me.card(cid).mark(mark.mark).datetime(markTime).time(timeSecs)
     me.client(s"web-repeat-${mark.source}")
     me.user(uc.uid)
-    me.datetime(now)
+    me.answerDur(answerDur.getMillis / 1000.0)
+    me.questionDur(questionDur.getMillis / 1000.0)
 
-    marksForCard.put(cid, me)
+    val f = meo.process(me)
+    marksForCard.put(cid, MarkInProcessing(f, now))
 
-    meo.process(me).onComplete {
+    f.onComplete {
       case Success(_) =>
         if (mark.remaining < 5) {
           self ! LoadWords(15, mark.remaining)
@@ -158,6 +163,19 @@ class RepeatBackendActor @Inject() (
       case Failure(t) =>
         log.error(t, "could not process mark: {}", mark)
     }(context.dispatcher)
+  }
+
+  def handleAddition(m: MarkAddition): Unit = {
+    val cid = new ObjectId(m.card)
+    marksForCard.remove(cid) match {
+      case None => //do nothing
+      case Some(mp) =>
+        mp.result.foreach { mark =>
+          val time = DateTimeUtils.atMillis(m.readyTime)
+          val dur = DateTimeUtils.duration(mark.datetime.get, time)
+          meo.setReadyTime(mark.id.get, dur.getMillis / 1000.0)
+        }(context.dispatcher)
+    }
   }
 
   private var loadingWords = false
@@ -181,6 +199,7 @@ class RepeatBackendActor @Inject() (
       }
       loadingWords = false
     case m: WebMark => handleMark(m)
+    case m: MarkAddition => handleAddition(m)
     case UpdateOne =>
       inSession += 1
       signalNumber()
@@ -192,6 +211,7 @@ class RepeatBackendActor @Inject() (
 }
 
 object RepeatBackendActor {
+  case class MarkInProcessing(result: Future[MarkEventRecord], date: DateTime)
   case class MarkProcessed(mer: MarkEventRecord, web: WebMark)
   case object UpdateOne
 }

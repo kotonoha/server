@@ -43,6 +43,11 @@
             </div>
           </div>
           <div class="button-pane">
+            <div style="height: 2rem">
+              <div data-ng-show="state_answer()" class="centered">
+                Rate your confidence in this word
+              </div>
+            </div>
             <div class="hor-center mark-btns" data-ng-show="state_answer()">
               <button class="btn" data-ng-click="mark(1, 'btn')">1</button>
               <button class="btn" data-ng-click="mark(2, 'btn')">2</button>

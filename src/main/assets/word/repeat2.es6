@@ -46,7 +46,7 @@ mod.controller('RepeatController', ['$scope', '$http', 'RepeatBackend', function
       let msg = {
         cmd: "nextTime",
         card: card.id,
-        nextTime: new Date().getTime()
+        readyTime: new Date().getTime()
       };
       backend.toActor(msg);
     }
@@ -77,7 +77,8 @@ mod.controller('RepeatController', ['$scope', '$http', 'RepeatBackend', function
       timestamp: markAssigned.getTime(),
       questionTime: questionShown.getTime(),
       answerTime: answerShown.getTime(),
-      source: src
+      source: src,
+      exId: card.rexIdx
     };
     backend.toActor(mark);
     scope.state = STATE_READY;
