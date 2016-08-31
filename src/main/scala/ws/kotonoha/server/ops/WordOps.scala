@@ -16,14 +16,14 @@
 
 package ws.kotonoha.server.ops
 
+import akka.NotUsed
 import akka.stream.scaladsl.Source
-import akka.{Done, NotUsed}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
 import reactivemongo.api.commands.GetLastError
 import ws.kotonoha.akane.unicode.KanaUtil
-import ws.kotonoha.examples.api.ExamplePack
+import ws.kotonoha.examples.api.{ExamplePack, PackStatus}
 import ws.kotonoha.model.{CardMode, RepExampleStatus, WordStatus}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.mongodb.RMData
@@ -88,10 +88,13 @@ class WordOps @Inject() (
     rm.update(q).mod(1)
   }
 
-  def setRepExamples(wid: ObjectId, pack: ExamplePack): Future[Done] = {
+  def setRepExamples(wid: ObjectId, pack: ExamplePack): Future[PackStatus] = {
+    val status = if (pack.sentences.isEmpty) {
+      RepExampleStatus.EmptyResponse
+    } else WordOps.statusFor(pack.status)
     val upd = qbyId(wid).modify(_.repExamples.setTo(pack)).modify(_.repExSeen.setTo(0))
-      .modify(_.repExStatus.setTo(RepExampleStatus.Present)).modify(_.repExDate.setTo(DateTimeUtils.now))
-    rm.update(upd).mod(1, Done)
+      .modify(_.repExStatus.setTo(status)).modify(_.repExDate.setTo(DateTimeUtils.now))
+    rm.update(upd).mod(1, pack.status)
   }
 
   def updateLink(wid: ObjectId, jmd: Long): Future[NotUsed] = {
@@ -106,6 +109,13 @@ class WordOps @Inject() (
 }
 
 object WordOps {
+  def statusFor(ps: PackStatus): RepExampleStatus = {
+    ps match {
+      case PackStatus.Ok => RepExampleStatus.Present
+      case _ => RepExampleStatus.Failure
+    }
+  }
+
   def needsReadingCard(word: WordRecord): Boolean = {
     val read = word.reading.stris
     val writ = word.writing.stris

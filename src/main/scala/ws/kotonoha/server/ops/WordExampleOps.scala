@@ -25,7 +25,7 @@ import org.bson.types.ObjectId
 import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry, JmdictTag}
 import ws.kotonoha.akane.utils.timers.{Millis, Millitimer}
 import ws.kotonoha.dict.jmdict.LuceneJmdict
-import ws.kotonoha.examples.api.{ExamplePack, ExamplePackRequest, ExampleQuery, ExampleTag}
+import ws.kotonoha.examples.api._
 import ws.kotonoha.model.RepExampleStatus
 import ws.kotonoha.server.actors.examples.ExampleAssignmentStatus
 import ws.kotonoha.server.actors.schedulers.SchedulingOps

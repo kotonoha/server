@@ -17,8 +17,8 @@
 package ws.kotonoha.server.examples
 
 import com.google.protobuf.ByteString
-import reactivemongo.bson.{BSONBinary, BSONHandler, Macros, Subtype}
-import ws.kotonoha.examples.api.{ExamplePack, ExampleSentence, SentenceUnit}
+import reactivemongo.bson.{BSONBinary, BSONHandler, BSONInteger, Macros, Subtype}
+import ws.kotonoha.examples.api.{ExamplePack, ExampleSentence, PackStatus, SentenceUnit}
 
 /**
   * @author eiennohito
@@ -32,6 +32,11 @@ object ExamplesToBson {
       val arr = bson.value.readArray(bson.value.size)
       ByteString.copyFrom(arr)
     }
+  }
+
+  implicit object asdf extends BSONHandler[BSONInteger, PackStatus] {
+    override def read(bson: BSONInteger) = PackStatus.fromValue(bson.value)
+    override def write(t: PackStatus) = BSONInteger(t.value)
   }
 
   implicit val unitHandler = Macros.handler[SentenceUnit]
