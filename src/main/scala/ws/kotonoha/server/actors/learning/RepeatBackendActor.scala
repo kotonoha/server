@@ -150,6 +150,7 @@ class RepeatBackendActor @Inject() (
     me.user(uc.uid)
     me.answerDur(answerDur.getMillis / 1000.0)
     me.questionDur(questionDur.getMillis / 1000.0)
+    me.wordExIdx(mark.exId)
 
     val f = meo.process(me)
     marksForCard.put(cid, MarkInProcessing(f, now))

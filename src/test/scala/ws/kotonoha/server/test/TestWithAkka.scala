@@ -21,6 +21,7 @@ import akka.util.Timeout
 import com.mongodb.casbah.WriteConcern
 import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.mongodb.record.MongoRecord
+import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import ws.kotonoha.server.ioc.Res
 import ws.kotonoha.server.mongodb.MongoAwareTest
@@ -43,7 +44,7 @@ abstract class TestWithAkka(protected val kta: KotonohaTestAkka = new KotonohaTe
     rec.delete_!
   }
 
-  def createUser() = {
+  def createUser(): ObjectId = {
     val user = UserRecord.createRecord
     user.username("test" + new DateTime() + Random.nextLong().toHexString)
     user.save(WriteConcern.Acknowledged)

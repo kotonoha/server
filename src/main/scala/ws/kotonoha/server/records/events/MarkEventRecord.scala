@@ -18,7 +18,7 @@ package ws.kotonoha.server.records.events
 
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.mongodb.record.field.{ObjectIdField, ObjectIdPk, ObjectIdRefField}
-import net.liftweb.record.field.{DoubleField, IntField, LongField, StringField}
+import net.liftweb.record.field._
 import ws.kotonoha.model.{CardMode, EventTypes}
 import ws.kotonoha.server.mongodb.NamedDatabase
 import ws.kotonoha.server.records.WordCardRecord
@@ -37,6 +37,8 @@ class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with Object
   object card extends ObjectIdRefField(this, WordCardRecord)
   object mode extends PbEnumField(this, CardMode)
   object mark extends DoubleField(this)
+  object wordExIdx extends IntField(this)
+  object wordExId extends BinaryField(this)
 
   object time extends DoubleField(this)
   object questionDur extends DoubleField(this)

@@ -10,6 +10,10 @@ textarea.nihongo, div.nihongo, input.nihongo, .nihongo {
   font-family: Meiryo, MS Gothic, sans-serif !important;
 }
 
+.tag .nihongo {
+  font-weight: normal !important;
+}
+
 .compact {
   font-size: 14px;
   line-height: 1.2;
@@ -127,8 +131,18 @@ div.selections {
   }
 
   span.target {
-    border-bottom: 1mm lightgreen solid;
+    border-bottom: 1mm #872F00 solid;
   }
+}
+
+.addinfo {
+  border: 0.5mm lightgray dotted;
+  padding: 0.25em;
+  border-radius: 0.25em;
+  margin-right: 1mm;
+  margin-top: 0.25em;
+  display: inline-block;
+  font-size: small;
 }
 
 a.btn-x {

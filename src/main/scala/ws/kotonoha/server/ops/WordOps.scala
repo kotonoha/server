@@ -16,8 +16,8 @@
 
 package ws.kotonoha.server.ops
 
-import akka.{Done, NotUsed}
 import akka.stream.scaladsl.Source
+import akka.{Done, NotUsed}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
@@ -44,7 +44,6 @@ class WordOps @Inject() (
 )(implicit ec: ExecutionContext) extends StrictLogging {
   import OpsExtensions._
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
-  import ws.kotonoha.server.util.DateTimeUtils._
 
   private def qbyId(wid: ObjectId) = {
     WordRecord.where(_.id eqs wid).and(_.user eqs uc.uid)
@@ -97,6 +96,11 @@ class WordOps @Inject() (
 
   def updateLink(wid: ObjectId, jmd: Long): Future[NotUsed] = {
     val q = qbyId(wid).modify(_.jmdictLink.setTo(jmd))
+    rm.update(q).mod(1)
+  }
+
+  def markUsedExample(wid: ObjectId, idx: Int): Future[NotUsed] = {
+    val q = WordRecord.where(_.user eqs uc.uid).and(_.id eqs wid).modify(_.repExSeen.bitOr(1 << idx))
     rm.update(q).mod(1)
   }
 }

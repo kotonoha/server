@@ -21,28 +21,33 @@
   <script class="lift:cpres.js?src=word/repeat2&nomin=true"></script>
   <div class="lift:RepeatActorSnippet" data-ng-controller="RepeatController">
     <div class="word-display ng-cloak">
-      <h4 class="ng-cloak" data-ng-show="curSession >= 0">Review: Session - {{curSession}}, {{today}} - today</h4>
+      <h6 class="ng-cloak" data-ng-show="curSession >= 0">Reviewing: session - {{curSession}}, today - {{today}}</h6>
       <div class="row">
         <div class="col-xs-12 col-sm-5 card-data">
           <div style="min-height: 20em;">
-            <div data-ng-show="state_question() || (contentVisible() && card.question.length > 1)" class="card-question japanese">
-              <span data-ng-repeat="p in card.question" data-ng-bind="p.content" data-ng-class="{target: p.target}"></span>
-            </div>
-            <div class="pull-right" ng-show="card != null && contentVisible()">
+            <div class="pull-right card-btns" ng-show="card != null && contentVisible()">
               <a ng-href="../words/detail?w={{card.word}}"
-                 class="btn btn-outline-secondary btn-sm"
+                 class="btn btn-outline-info btn-sm"
                  target="_blank"
                  title="Edit"><i class="fa fa-pencil"></i> Edit</a>
-              <a class="btn btn-outline-secondary btn-sm"><i class="fa fa-minus-circle"></i> Disable</a>
+              <a class="btn btn-outline-info btn-sm" href="#" data-ng-click=""><i class="fa fa-minus-circle"></i> Disable</a>
             </div>
             <div data-ng-show="contentVisible()">
               <div class="nihongo word-writing" data-ng-bind="card.writings"></div>
               <div class="nihongo word-reading" data-ng-bind="card.readings"></div>
               <div class="word-meaning" data-ng-bind="card.meaning"></div>
-              <div class="word-additional"></div>
+              <div class="word-additional">
+                <span data-ng-repeat="a in card.addinfo" class="addinfo">
+                  <span data-ng-bind="a.title"></span>:
+                  <span class="nihongo" data-ng-bind="a.value"></span>
+                </span>
+              </div>
+            </div>
+            <div data-ng-show="state_question() || (contentVisible() && card.question.length > 1)" class="card-question japanese">
+              <span data-ng-repeat="p in card.question" data-ng-bind="p.content" data-ng-class="{target: p.target}"></span>
             </div>
           </div>
-          <div class="button-pane">
+          <div class="button-pane" style="height: 5em">
             <div style="height: 2rem">
               <div data-ng-show="state_answer()" class="centered">
                 Rate your confidence in this word
@@ -68,7 +73,7 @@
             <div data-ng-show="card.exs.length == 0">
               No examples for this word.
             </div>
-            <div data-ng-repeat="ex in card.exs track by ex.id" class="review-example">
+            <div data-ng-repeat="ex in card.exs" class="review-example">
               <div class="japanese" data-ng-bind="ex.sentence"></div>
               <div data-ng-bind="ex.translation"></div>
             </div>

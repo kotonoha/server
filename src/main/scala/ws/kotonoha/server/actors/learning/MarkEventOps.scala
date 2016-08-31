@@ -22,10 +22,11 @@ import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.Full
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
+import ws.kotonoha.examples.api.ExampleSentence
 import ws.kotonoha.model.sm6.{ItemCoordinate, MatrixMark}
 import ws.kotonoha.server.mongodb.RMData
-import ws.kotonoha.server.ops.FlashcardOps
-import ws.kotonoha.server.records.WordCardRecord
+import ws.kotonoha.server.ops.{FlashcardOps, WordOps}
+import ws.kotonoha.server.records.{ExampleRecord, WordCardRecord}
 import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.supermemo.SuperMemoOps
 import ws.kotonoha.server.util.DateTimeUtils._
@@ -40,6 +41,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class MarkEventOps @Inject() (
   sm: SuperMemoOps,
   fo: FlashcardOps,
+  wo: WordOps,
   rm: RMData
 )(implicit ec: ExecutionContext) extends StrictLogging {
   import MarkEventOps._
@@ -64,7 +66,7 @@ class MarkEventOps @Inject() (
     data
   }
 
-  private def processImpl(mark: MarkEventRecord, card: Option[WordCardRecord], history: List[MarkEventRecord]) = {
+  private def processImpl(mark: MarkEventRecord, card: Option[WordCardRecord], history: List[MarkEventRecord], ex: Option[ExampleSentence]) = {
     card match {
       case Some(c) =>
         fillMark(mark, c)
@@ -76,16 +78,25 @@ class MarkEventOps @Inject() (
           history = history.map(coord)
         )
 
+        val f4 = ex match {
+          case None => Future.successful(NotUsed)
+          case Some(e) =>
+            mark.wordExId(e.id.toByteArray)
+            wo.markUsedExample(card.get.word.get, mark.wordExIdx.get)
+        }
+
         val f1 = sm.processMark(mobj).flatMap(crd => fo.updateLearning(c, mark.datetime.get, crd))
         val f2 = fo.schedulePaired(c.word.get, c.cardMode.get)
         val f3 = processHandlers(mark, callbacks).flatMap { mer =>
           rm.save(Seq(mer))
         }
 
+
         for {
           _ <- f1
           _ <- f2
           _ <- f3
+          _ <- f4
         } yield mark
       case None =>
         throw new Exception(s"there was no card id=${mark.id.value}")
@@ -95,13 +106,29 @@ class MarkEventOps @Inject() (
   def process(mark: MarkEventRecord): Future[MarkEventRecord] = {
     val cardF = fo.byId(mark.card.get)
     val historyF = historyFor(mark)
-
+    val repExF = repSentence(mark, cardF)
     val x = for {
       card <- cardF
       history <- historyF
-      m <- processImpl(mark, card, history)
+      ex <- repExF
+      m <- processImpl(mark, card, history, ex)
     } yield m
     x
+  }
+
+  private def repSentence(mark: MarkEventRecord, cardF: Future[Option[WordCardRecord]]) = {
+    if (mark.wordExIdx.get == -1) Future.successful(None)
+    else cardF.flatMap {
+      case None => Future.successful(None)
+      case Some(s) => wo.byId(s.word.get).map(_.flatMap(w => w.repExamples.valueBox match {
+        case Full(re) =>
+          val idx = mark.wordExIdx.get
+          if (idx >= 0 && idx < re.sentences.length) {
+            Some(re.sentences(idx))
+          } else None
+        case _ => None
+      }))
+    }
   }
 
   def setReadyTime(mid: ObjectId, time: Double): Future[NotUsed] = {
