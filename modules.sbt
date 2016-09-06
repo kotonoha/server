@@ -9,7 +9,7 @@ lazy val kotonoha = (project in file("."))
     pipelineStages in Assets += postcss,
     includeFilter in SassKeys.sassify := "main.scss"
   )
-  .dependsOn(`akane-legacy`, knockoff, eapi, `grpc-streaming`, jmdict, model, `lift-tcjson`, `akane-akka`, `lift-macros` % Provided)
+  .dependsOn(`akane-legacy`, knockoff, eapi, `grpc-streaming`, `akane-kytea`, jmdict, model, `lift-tcjson`, `akane-akka`, `lift-macros` % Provided)
   .enablePlugins(BuildInfoPlugin, JettyPlugin)
   .aggregate(jmdict)
 
@@ -27,6 +27,9 @@ lazy val `akane-akka` = (project in file("akane/akka"))
   .settings(Common.buildSettings)
 
 lazy val `akane-legacy` = (project in file("akane/legacy"))
+  .settings(Common.buildSettings)
+
+lazy val `akane-kytea` = (project in file("akane/kytea"))
   .settings(Common.buildSettings)
 
 lazy val knockoff = (project in file("knockoff"))
