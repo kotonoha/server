@@ -23,8 +23,9 @@ import ws.kotonoha.server.actors.interop.ParseSentence
 import akka.util.Timeout
 import com.google.inject.{Inject, Provider}
 import org.joda.time.DateTime
+import ws.kotonoha.akane.dic.lucene.jmdict.{IdQueryPart, JmdictIdQuery, LuceneJmdict}
 import ws.kotonoha.akane.pipe.juman.{JumanEntry, ParsedQuery}
-import ws.kotonoha.dict.jmdict.{IdQueryPart, JmdictIdQuery, LuceneJmdict}
+import ws.kotonoha.akane.dic.lucene.jmdict.{IdQueryPart, LuceneJmdict}
 import ws.kotonoha.server.records.events.AddWordRecord
 import ws.kotonoha.server.records.{RecommendationIgnore, WordRecord}
 

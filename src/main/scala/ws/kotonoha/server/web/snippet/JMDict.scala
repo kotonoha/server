@@ -23,7 +23,8 @@ import net.liftweb.util.Props
 import net.liftweb.util.Props.RunModes
 import org.apache.lucene.search.Explanation
 import ws.kotonoha.akane.dic.jmdict._
-import ws.kotonoha.dict.jmdict.{JmdictQuery, LuceneJmdict}
+import ws.kotonoha.akane.dic.lucene.jmdict.LuceneJmdict
+import ws.kotonoha.akane.dic.lucene.jmdict.JmdictQuery
 import ws.kotonoha.server.util.LangUtil
 
 import scala.xml.{NodeSeq, Text}

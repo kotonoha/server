@@ -23,7 +23,7 @@ import net.liftweb.json.JsonAST.{JField, JObject, JString, JValue}
 import net.liftweb.json.{DefaultFormats, Extraction}
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.dic.jmdict.JmdictEntry
-import ws.kotonoha.dict.jmdict.LuceneJmdict
+import ws.kotonoha.akane.dic.lucene.jmdict.LuceneJmdict
 import ws.kotonoha.server.actors.ForUser
 import ws.kotonoha.server.actors.ioc.ReleaseAkka
 import ws.kotonoha.server.actors.learning.ProcessMarkEvents

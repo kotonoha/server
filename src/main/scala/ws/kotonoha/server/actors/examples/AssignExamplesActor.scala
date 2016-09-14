@@ -54,9 +54,10 @@ class AssignExamplesActor @Inject() (
   import scala.concurrent.duration._
   override def preStart(): Unit = {
     if (aec.enabled && cfg.hasPath("examples.uri")) {
+      log.info("automatic example assignment is ENABLED")
       cancellable = context.system.scheduler.scheduleOnce(5.seconds, self, DoAssign)
     } else {
-      log.info("automatic example assignment is disabled")
+      log.info("automatic example assignment is DISABLED")
       context.stop(self)
     }
   }

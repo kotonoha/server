@@ -19,7 +19,7 @@ package ws.kotonoha.server.actors.model
 import org.apache.lucene.search.BooleanClause.Occur
 import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry}
 import ws.kotonoha.akane.unicode.UnicodeUtil
-import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart}
+import ws.kotonoha.akane.dic.lucene.jmdict.{JmdictQuery, JmdictQueryPart}
 import ws.kotonoha.lift.json.JLCaseClass
 import ws.kotonoha.server.util.Strings
 import ws.kotonoha.server.web.comet.InvalidStringException

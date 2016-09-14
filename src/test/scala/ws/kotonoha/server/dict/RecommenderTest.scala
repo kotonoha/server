@@ -17,8 +17,9 @@
 package ws.kotonoha.server.dict
 
 import org.bson.types.ObjectId
+import ws.kotonoha.akane.dic.lucene.jmdict.LuceneJmdict
 import ws.kotonoha.akane.juman.JumanPipeExecutor
-import ws.kotonoha.dict.jmdict._
+import ws.kotonoha.akane.dic.lucene.jmdict._
 import ws.kotonoha.server.actors.recommend.RecommendRequest
 import ws.kotonoha.server.test.AkkaFree
 

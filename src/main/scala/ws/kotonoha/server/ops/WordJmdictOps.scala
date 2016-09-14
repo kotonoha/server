@@ -23,7 +23,8 @@ import com.google.inject.{Inject, Provider, Provides, Singleton}
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
 import ws.kotonoha.akane.dic.jmdict.JmdictEntry
-import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, JmdictSearchResults, LuceneJmdict}
+import ws.kotonoha.akane.dic.lucene.jmdict.{JmdictSearchResults, LuceneJmdict}
+import ws.kotonoha.akane.dic.lucene.jmdict.{JmdictQuery, JmdictQueryPart, JmdictSearchResults}
 import ws.kotonoha.examples.ExampleClient
 import ws.kotonoha.examples.api.{ExamplePack, ExamplePackRequest}
 import ws.kotonoha.server.grpc.GrpcClients

@@ -23,7 +23,8 @@ import org.apache.lucene.search.BooleanClause.Occur
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import ws.kotonoha.akane.dic.jmdict.JmdictTag
-import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
+import ws.kotonoha.akane.dic.lucene.jmdict.LuceneJmdict
+import ws.kotonoha.akane.dic.lucene.jmdict.{JmdictQuery, JmdictQueryPart}
 import ws.kotonoha.model.CardMode
 import ws.kotonoha.server.actors.learning.RepeatBackend.{MarkAddition, RepCount, WebMark}
 import ws.kotonoha.server.actors.learning.RepeatBackendActor.{MarkInProcessing, UpdateOne}

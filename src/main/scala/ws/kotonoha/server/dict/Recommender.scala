@@ -19,9 +19,9 @@ package ws.kotonoha.server.dict
 import java.util.{ArrayList => JList}
 
 import org.bson.types.ObjectId
+import ws.kotonoha.akane.dic.lucene.jmdict.LuceneJmdict
 import ws.kotonoha.akane.pipe.juman.JumanEntry
 import ws.kotonoha.akane.unicode.UnicodeUtil
-import ws.kotonoha.dict.jmdict.LuceneJmdict
 import ws.kotonoha.server.actors.recommend.RecommendRequest
 import ws.kotonoha.server.dict.kanjidic.Kanjidic
 import ws.kotonoha.server.records.dictionary.KanjidicRecord

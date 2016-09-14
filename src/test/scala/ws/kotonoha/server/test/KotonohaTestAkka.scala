@@ -27,7 +27,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import net.codingwell.scalaguice.ScalaModule
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.config.Configuration
-import ws.kotonoha.dict.jmdict.LuceneJmdict
+import ws.kotonoha.akane.dic.lucene.jmdict.LuceneJmdict
 import ws.kotonoha.server.KotonohaConfig
 import ws.kotonoha.server.actors._
 import ws.kotonoha.server.actors.examples.AssignExamplesModule

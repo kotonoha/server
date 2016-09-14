@@ -19,8 +19,9 @@ package ws.kotonoha.server.dict
 import org.apache.lucene.search.BooleanClause.Occur
 import ws.kotonoha.akane.conjuation.{AdjI, Verb}
 import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictEntry, JmdictTagMap}
+import ws.kotonoha.akane.dic.lucene.jmdict.LuceneJmdict
 import ws.kotonoha.akane.unicode.KanaUtil
-import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
+import ws.kotonoha.akane.dic.lucene.jmdict.{JmdictQuery, JmdictQueryPart}
 import ws.kotonoha.server.actors.model.Candidate
 
 /**

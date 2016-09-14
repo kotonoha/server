@@ -30,8 +30,9 @@ import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.store._
 import org.joda.time.{DateTime, LocalDate}
 import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictParser}
+import ws.kotonoha.akane.dic.lucene.jmdict._
 import ws.kotonoha.akane.resources.FSPaths
-import ws.kotonoha.dict.jmdict._
+import ws.kotonoha.akane.dic.lucene.jmdict._
 import ws.kotonoha.server.ioc.Res
 import ws.kotonoha.server.util.Downloads
 

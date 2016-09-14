@@ -20,7 +20,7 @@ import akka.actor.{Actor, Props}
 import com.google.inject.Inject
 import org.apache.lucene.search.BooleanClause.Occur
 import ws.kotonoha.akane.dic.jmdict.JmdictTagMap
-import ws.kotonoha.dict.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
+import ws.kotonoha.akane.dic.lucene.jmdict.{JmdictQuery, JmdictQueryPart, LuceneJmdict}
 import ws.kotonoha.server.actors.DictionaryMessage
 import ws.kotonoha.server.dict.WarodaiBodyParser
 import ws.kotonoha.server.ioc.IocActors

@@ -18,7 +18,7 @@ package ws.kotonoha.server.ioc
 
 import com.google.inject.{Provides, Scopes}
 import net.codingwell.scalaguice.ScalaModule
-import ws.kotonoha.dict.jmdict.LuceneJmdict
+import ws.kotonoha.akane.dic.lucene.jmdict.LuceneJmdict
 import ws.kotonoha.server.dict.{JmdictService, JmdictServiceImpl}
 
 /**
