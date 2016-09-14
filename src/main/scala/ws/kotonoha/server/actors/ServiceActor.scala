@@ -18,11 +18,12 @@ package ws.kotonoha.server.actors
 
 import javax.inject.Inject
 
-import akka.actor.{Actor, ActorLogging, OneForOneStrategy}
+import akka.actor.{Actor, ActorInitializationException, ActorLogging, OneForOneStrategy}
 import auth.ClientRegistry
 import interop.{JumanMessage, JumanRouter}
 import lift.{LiftActorService, LiftMessage}
-import akka.actor.SupervisorStrategy.Restart
+import akka.actor.SupervisorStrategy.{Escalate, Restart}
+import com.google.inject.ConfigurationException
 import tags.{TagMessage, TagService}
 import ws.kotonoha.server.actors.dict.{ExampleActor, ExampleMessage}
 import ws.kotonoha.server.actors.examples.AssignExamplesActor
@@ -65,7 +66,8 @@ class ServiceActor @Inject() (
     case msg => log.warning("invalid message came to service actor root {}", msg)
   }
 
-  override def supervisorStrategy() = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 hour) {
+  override def supervisorStrategy() = OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 1 hour) {
+    case e: ActorInitializationException if e.getCause.isInstanceOf[ConfigurationException] => Escalate
     case e => log.error(e, "Error in root service actor"); Restart
   }
 }

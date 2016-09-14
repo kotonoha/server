@@ -177,13 +177,14 @@ object Kotonoha {
 
   val liftPackage = "net.liftweb"
   val liftVersion = "3.0-RC3"
-  val akkaVer = "2.4.9"
+  val akkaVer = "2.4.10"
   val rogueVer = "2.5.0"
-  val luceneVersion = "6.1.0"
+  val luceneVersion = "6.2.0"
 
   val luceneDeps = Seq(
     "org.apache.lucene" % "lucene-core" % luceneVersion,
-    "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion
+    "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion,
+    "org.apache.lucene" % "lucene-codecs" % luceneVersion
   )
 
   val liftDeps = Seq(
@@ -226,7 +227,7 @@ object Kotonoha {
     "org.mongodb" %% "casbah" % "2.8.2" exclude("org.specs2", "*"),
     "org.reactivemongo" %% "reactivemongo" % "0.11.14",
 
-    "net.java.sen" % "lucene-gosen" % "6.0",
+    "net.java.sen" % "lucene-gosen" % "6.2.0",
 
     "com.google.zxing" % "javase" % "3.2.1",
     "org.bouncycastle" % "bcprov-jdk15on" % "1.54",

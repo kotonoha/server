@@ -4,14 +4,15 @@ lazy val kotonoha = (project in file("."))
   .enablePlugins(BuildInfoPlugin, JettyPlugin, SbtWeb)
   .settings(Common.buildSettings)
   .settings(Kotonoha.kotonohaSettings, Pbuf.pbScala(), Pbuf.protoIncludes(eapi, `akane-knp`, `akane-dic`, model))
-  .settings(jrebelSettings)
+  .settings(jrebelSettings, libraryDependencies ++= Kotonoha.luceneDeps)
   .settings(
     pipelineStages in Assets += postcss,
     includeFilter in SassKeys.sassify := "main.scss"
   )
-  .dependsOn(`akane-legacy`, knockoff, eapi, `grpc-streaming`, `akane-kytea`, jmdict, model, `lift-tcjson`, `akane-akka`, `lift-macros` % Provided)
+  .dependsOn(
+    `akane-legacy`, knockoff, eapi, `grpc-streaming`, `akane-kytea`, `akane-jmdict-lucene`,
+    model, `lift-tcjson`, `akane-akka`, `lift-macros` % Provided)
   .enablePlugins(BuildInfoPlugin, JettyPlugin)
-  .aggregate(jmdict)
 
 lazy val akane = (project in file("akane"))
   .settings(Common.buildSettings)
@@ -32,6 +33,10 @@ lazy val `akane-legacy` = (project in file("akane/legacy"))
 lazy val `akane-kytea` = (project in file("akane/kytea"))
   .settings(Common.buildSettings)
 
+lazy val `akane-jmdict-lucene` = (project in file("akane/dic/jmdict-lucene"))
+  .settings(Common.buildSettings)
+  .dependsOn(`akane-dic`)
+
 lazy val knockoff = (project in file("knockoff"))
   .settings(Common.buildSettings)
 
@@ -42,16 +47,6 @@ lazy val eapi = (project in file("examples-api"))
 
 lazy val `grpc-streaming` = (project in file("grpc-akka-stream"))
   .settings(Common.buildSettings)
-
-lazy val jmdict = (project in file("jmdict"))
-    .settings(Common.buildSettings, Kotonoha.scalatest)
-    .settings(
-      libraryDependencies ++= Kotonoha.luceneDeps,
-      libraryDependencies ++= Seq(
-        "com.github.ben-manes.caffeine" % "caffeine" % "2.3.1",
-        "joda-time" % "joda-time" % "2.9.4"
-      )
-    ).dependsOn(`akane-dic`)
 
 lazy val model = (project in file("model"))
     .settings(Common.buildSettings, Pbuf.pbScala())

@@ -18,10 +18,10 @@ package ws.kotonoha.server.actors
 
 import javax.inject.Inject
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, OneForOneStrategy, Props}
+import akka.actor.{Actor, ActorInitializationException, ActorLogging, ActorRef, ActorSystem, OneForOneStrategy, Props}
 
 import concurrent.duration._
-import akka.actor.SupervisorStrategy.Restart
+import akka.actor.SupervisorStrategy.{Escalate, Restart}
 import akka.util.Timeout
 import com.google.inject.{Provides, Singleton}
 import net.codingwell.scalaguice.ScalaModule
@@ -36,7 +36,8 @@ import scala.reflect.ClassTag
  */
 
 class GlobalActor @Inject()(ioc: IocActors) extends Actor with ActorLogging {
-  override def supervisorStrategy() = OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 hour, loggingEnabled = true) {
+  override def supervisorStrategy() = OneForOneStrategy(maxNrOfRetries = 3, withinTimeRange = 1 hour, loggingEnabled = true) {
+    case e: ActorInitializationException => Escalate
     case e => log.error(e, "Error in global actor"); Restart
   }
 

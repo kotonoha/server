@@ -20,6 +20,7 @@ import com.google.inject._
 import org.bson.types.ObjectId
 import org.scalatest.{FreeSpec, Matchers}
 import ws.kotonoha.server.actors.GlobalActorsModule
+import ws.kotonoha.server.actors.examples.AssignExamplesModule
 import ws.kotonoha.server.test.{KotonohaTestAkka, TestModule}
 
 /**
@@ -31,7 +32,8 @@ class UserContextSpec extends FreeSpec with Matchers {
     new TestModule(KotonohaTestAkka.cfg),
     new AkkaModule("ucs"),
     new GlobalActorsModule,
-    new UserContextModule
+    new UserContextModule,
+    new AssignExamplesModule
   )
 
   val inj = Guice.createInjector(modules: _*)
