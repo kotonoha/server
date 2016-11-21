@@ -29,6 +29,7 @@
   </logger>
 
   <logger name="reactivemongo" level="INFO" />
+  <logger name="comet_trace" level="WARN" />
 
   <root level="DEBUG">
     <appender-ref ref="console"/>

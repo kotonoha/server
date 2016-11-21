@@ -21,13 +21,15 @@ import com.typesafe.scalalogging.{StrictLogging => Logging}
 import net.liftweb.common.{Full, _}
 import net.liftweb.http._
 import net.liftweb.http.rest.RestContinuation
+import net.liftweb.util.CanResolveAsync
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.ioc.Akka
 import ws.kotonoha.server.records.UserRecord
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
+import scala.util.Success
 
 class EmptyUserException extends Exception("No user present")
 
@@ -54,7 +56,19 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
     }.mapTo[T]
   }
 
-  def async[Obj, Res](param: Future[Obj])(f: (Obj => Future[Box[Res]]))(implicit rtf: Res => LiftResponse) = {
+  @inline
+  final def async[T](body: => Future[T])(implicit cv: T => LiftResponse, ec: ExecutionContext, place: sourcecode.FullName, file: sourcecode.File, line: sourcecode.Line): Nothing = {
+    RestContinuation.async { callback =>
+      body.onComplete {
+        case scala.util.Success(s) => callback(cv(s))
+        case scala.util.Failure(ex) =>
+          logger.error(s"error when executing async (${place.value}, ${file.value}:${line.value})", ex)
+          callback(PlainTextResponse("Internal Error", 500))
+      } (ec)
+    }
+  }
+
+  def async[Obj, Res](param: Future[Obj])(f: (Obj => Future[Box[Res]]))(implicit rtf: Res => LiftResponse): Nothing = {
     RestContinuation.async({
       resp =>
         param onComplete {
@@ -75,7 +89,7 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
     })
   }
 
-  def async[Obj, Res](param: Box[Obj])(f: (Obj => Future[Box[Res]]))(implicit rtf: Res => LiftResponse) = {
+  def async[Obj, Res](param: Box[Obj])(f: (Obj => Future[Box[Res]]))(implicit rtf: Res => LiftResponse): Nothing = {
     RestContinuation.async({
       resp =>
         param match {
@@ -116,4 +130,13 @@ trait KotonohaRest extends OauthRestHelper with Logging with Akka {
   }
 
   implicit def option2WrappedBox[T](in: Option[T]): WrappedBox[T] = new WrappedBox[T](in)
+
+  implicit def scalaFutureCanResolveAsync[T](implicit ec: ExecutionContext): CanResolveAsync[Future[T], Box[T]] = new CanResolveAsync[Future[T], Box[T]] {
+    override def resolveAsync(resolvable: Future[T], onResolved: (Box[T]) => Unit): Unit = {
+      resolvable.onComplete {
+        case Success(v) => onResolved(Full(v))
+        case scala.util.Failure(f) => Failure("error in future", Full(f), Empty)
+      }(ec)
+    }
+  }
 }

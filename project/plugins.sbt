@@ -1,4 +1,4 @@
-addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "2.1.0")
+addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "2.2.0")
 
 libraryDependencies ++= Seq(
   "org.eclipse.jgit" % "org.eclipse.jgit" % "4.4.0.201606070830-r",

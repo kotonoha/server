@@ -16,6 +16,7 @@
 
 package ws.kotonoha.server.mongodb
 
+import com.foursquare.rogue.{InitialState, Query}
 import net.liftweb.mongodb.MongoMeta
 import net.liftweb.mongodb.record.MongoRecord
 import net.liftweb.mongodb.record.field.ObjectIdPk
@@ -24,6 +25,7 @@ import reactivemongo.api.DefaultDB
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.commands._
 import reactivemongo.bson.{BSONDocument, BSONDocumentReader, BSONObjectID}
+import ws.kotonoha.server.records.WordRecord
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -70,4 +72,5 @@ trait ReactiveCoreOps extends ReactiveOpsAccess {
   }
 }
 
-trait RMData extends ReactiveOps with ReactiveCoreOps with ReactiveRogue
+trait RMData extends ReactiveOps with ReactiveCoreOps with ReactiveRogue {
+}

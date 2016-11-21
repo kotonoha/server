@@ -65,7 +65,7 @@ class Words(ioc: IocActors) extends KotonohaRest with ReleaseAkka {
   serve("api" / "model" / "words" prefix {
     case XOid(id) :: Nil JsonGet _ =>
       val w2 = ioc.inst[Words2]
-      w2.getWord(id)
+      async { w2.getWord(id) }
     case XOid(wid) :: Nil JsonPost reqV => {
       val (obj, req) = reqV
       val uid = UserRecord.currentId
