@@ -106,37 +106,36 @@ object GitData {
 
 object Pbuf {
 
-  import com.trueaccord.scalapb.{ScalaPbPlugin => PB}
+  lazy val scalaPbVersion = "0.5.43"
+  lazy val grpcVersion = "1.0.1"
 
-  lazy val scalaPbVersion = "0.5.32"
-  lazy val grpcVersion = "0.14.1"
+  val PbGrpcRuntime = {
+    libraryDependencies ++= Seq(
+      "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % scalaPbVersion,
+      "io.grpc" % "grpc-stub" % grpcVersion,
+      "io.grpc" % "grpc-core" % grpcVersion
+    )
+  }
+
+  import sbtprotoc.ProtocPlugin.autoImport.PB
 
   def pbScala(): Seq[Setting[_]] = {
-    val config = PB.protobufSettings ++ Seq(
-      PB.flatPackage in PB.protobufConfig := true,
-      PB.javaConversions in PB.protobufConfig := true,
-      PB.scalapbVersion := scalaPbVersion,
-      PB.runProtoc in PB.protobufConfig := (args =>
-        com.github.os72.protocjar.Protoc.runProtoc("-v300" +: args.toArray))
-    )
-
-    val runtimeDep =
+    Def.settings(
+      PB.targets in Compile := Seq(
+        scalapb.gen(flatPackage = true, javaConversions = true, grpc = true) -> (sourceManaged in Compile).value,
+        PB.gens.java -> (sourceManaged in Compile).value
+      ),
       libraryDependencies ++= Seq(
-        "com.trueaccord.scalapb" %% "scalapb-runtime" % scalaPbVersion % PB.protobufConfig,
-        "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % scalaPbVersion,
-        "io.grpc" % "grpc-stub" % grpcVersion,
-        "io.grpc" % "grpc-core" % grpcVersion,
-        "io.grpc" % "grpc-netty" % grpcVersion
-      )
-
-    config ++ Seq(
-      runtimeDep
+        "com.trueaccord.scalapb" %% "scalapb-runtime" % scalaPbVersion % "protobuf",
+        "org.slf4j" % "jul-to-slf4j" % "1.7.21"
+      ),
+      PbGrpcRuntime
     )
   }
 
   def protoIncludes(files: Project*) = {
     val paths = files.map(f => f.base / "src" / "main" / "protobuf")
-    Seq(PB.includePaths in PB.protobufConfig ++= paths)
+    Seq(PB.includePaths in Compile ++= paths)
   }
 }
 
@@ -249,25 +248,27 @@ object Kotonoha {
 
       jsDir := file("jslib"),
       scriptOutputDir := (target in com.earldouglas.xwp.WebappPlugin.autoImport.webappPrepare).value / "static",
-      (sourceDirectory in compileJs) <<= sourceDirectory in Compile,
-      postsMdFiles <<= baseDirectory { (base) =>
+      (sourceDirectory in compileJs) := (sourceDirectory in Compile).value,
+      postsMdFiles := {
+        val base = baseDirectory.value
         val start = base / "doc" / "news"
         (start ** GlobFilter("*.md")).get.map { s =>
           s.relativeTo(start).get.toString
         }
       },
       (unmanagedResourceDirectories in Compile) += baseDirectory.value / "doc",
-      unzipJars <<= (jsDir, scriptOutputDir) map {
-        (jsd, so) =>
-          (jsd * GlobFilter("*.jar")) flatMap { f => IO.unzip(f, so) } get
+      unzipJars := {
+        val jsd = jsDir.value
+        val so = scriptOutputDir.value
+        (jsd * GlobFilter("*.jar")) flatMap { f => IO.unzip(f, so) } get
       },
       compile in compileJs := Analysis.Empty,
       resourceGenerators in compileJs := Nil,
-      copyResources in Compile <<= (copyResources in Compile).dependsOn(unzipJars),
+      copyResources in Compile := (copyResources in Compile).dependsOn(unzipJars).value,
       WebKeys.stagingDirectory := (target in wapp.webappPrepare).value / "static",
       SassKeys.cssStyle := Maxified,
       SassKeys.generateSourceMaps := false,
-      (products in Compile) <<= (products in Compile).dependsOn(WebKeys.stage in Compile),
+      (products in Compile) := (products in Compile).dependsOn(WebKeys.stage in Compile).value,
       JsEngineKeys.engineType := JsEngineKeys.EngineType.Node,
       resolvers += "eiennohito's repo" at "http://eiennohito.github.com/maven/",
       libraryDependencies ++= (liftDeps ++ akkaDeps ++ rogueDeps ++ luceneDeps ++ kotonohaRestDeps)

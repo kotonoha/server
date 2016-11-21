@@ -18,6 +18,7 @@ package ws.kotonoha.server.ops
 
 import java.util.function.Function
 
+import akka.stream.ActorMaterializer
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.inject.{Inject, Provider, Provides, Singleton}
 import com.typesafe.config.Config
@@ -90,7 +91,7 @@ class WordJmdictOps @Inject() (
 class ExampleCacher @Inject() (
   ecl: Provider[ExampleClient],
   ece: ExecutionContextExecutor
-) {
+)(implicit amat: ActorMaterializer) {
   private[this] val cache = {
     Caffeine.newBuilder()
         .maximumSize(10000)

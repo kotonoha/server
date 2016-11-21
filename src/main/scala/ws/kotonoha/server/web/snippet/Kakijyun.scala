@@ -35,7 +35,7 @@ object Kakijyun {
       filter{ k => isKanji(k) || isHiragana(k) || isKatakana(k) }.
       map {c => (Character.toChars(c), StrokesUtil.strokeUri(c, StrokeType.Png150))}
     strokes.flatMap { case (c, uri) =>
-        <img src={uri} alt={new String(c)}></img> }
+        <img src={uri} alt={new String(c)}></img> }.toList
   }
 
   def sod500(s: String): NodeSeq = {
@@ -43,7 +43,7 @@ object Kakijyun {
       filter{ k => isKanji(k) || isHiragana(k) || isKatakana(k) }.
       map {c => (Character.toChars(c), StrokesUtil.strokeUri(c, StrokeType.Png500))}
     strokes.flatMap { case (c, uri) =>
-        <img src={uri} alt={new String(c)}></img> }
+        <img src={uri} alt={new String(c)}></img> }.toList
   }
 
   def japSod(s: String, tp: StrokeType.StrokeType = StrokeType.Png150): NodeSeq = {
@@ -51,7 +51,7 @@ object Kakijyun {
       filter{ k => isKanji(k) || isHiragana(k) || isKatakana(k) }.
       map {c => (Character.toChars(c), StrokesUtil.strokeUri(c, tp))}
     strokes.flatMap { case (c, uri) =>
-        <img src={uri} alt={new String(c)}></img> }
+        <img src={uri} alt={new String(c)}></img> }.toList
   }
 
   def kanjiSod(s: String, tp: StrokeType.StrokeType = StrokeType.Png150): NodeSeq = {
@@ -59,13 +59,13 @@ object Kakijyun {
       filter{ k => isKanji(k) }.
       map {c => (Character.toChars(c), StrokesUtil.strokeUri(c, tp))}
     strokes.flatMap { case (c, uri) =>
-        <img src={uri} alt={new String(c)}></img> }
+        <img src={uri} alt={new String(c)}></img> }.toList
   }
 
   def sods(s: String): NodeSeq = {
     val strokes = stream(s).
-      filter(UnicodeUtil.isKanji(_)).map(StrokesUtil.strokeUri(_))
-    strokes.flatMap { uri => <object data={uri} type={"image/svg+xml"} /> }
+      filter(UnicodeUtil.isKanji).map(StrokesUtil.strokeUri(_))
+    strokes.flatMap { uri => <object data={uri} type={"image/svg+xml"} /> }.toList
   }
 
   def render(in: NodeSeq): NodeSeq = {
