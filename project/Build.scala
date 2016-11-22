@@ -113,7 +113,7 @@ object Pbuf {
     libraryDependencies ++= Seq(
       "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % scalaPbVersion,
       "io.grpc" % "grpc-stub" % grpcVersion,
-      "io.grpc" % "grpc-core" % grpcVersion
+      "io.grpc" % "grpc-netty" % grpcVersion
     )
   }
 

@@ -106,9 +106,9 @@ class Words(ioc: IocActors) extends KotonohaRest with ReleaseAkka {
     }
     case XOid(wid) :: "similarjm" :: Nil Get req =>
       val w2 = ioc.inst[Words2]
-      w2.similarJm(wid)
+      async { w2.similarJm(wid) }
     case XOid(wid) :: "updateAutoExamples" :: Nil Post req if Props.devMode =>
       val w2 = ioc.inst[Words2]
-      w2.autoexamples(wid)
+      async { w2.autoexamples(wid) }
   })
 }
