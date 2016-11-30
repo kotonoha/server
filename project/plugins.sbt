@@ -2,7 +2,7 @@ addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "2.2.0")
 
 libraryDependencies ++= Seq(
   "org.eclipse.jgit" % "org.eclipse.jgit" % "4.4.0.201606070830-r",
-  "com.github.os72" % "protoc-jar" % "3.0.0-b3"
+  "com.github.os72" % "protoc-jar" % "3.1.0.1"
 )
 
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")

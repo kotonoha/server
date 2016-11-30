@@ -12,7 +12,6 @@ lazy val kotonoha = (project in file("."))
   .dependsOn(
     `akane-legacy`, knockoff, eapi, `grpc-streaming`, `akane-kytea`, `akane-jmdict-lucene`,
     model, `lift-tcjson`, `akane-akka`, `lift-macros` % Provided)
-  .enablePlugins(BuildInfoPlugin, JettyPlugin)
 
 lazy val akane = (project in file("akane"))
   .settings(Common.buildSettings)
