@@ -44,11 +44,11 @@ object CardRepetitionQuestion extends StrictLogging {
   def formatSentenceQuestion(w: WordRecord, ex: ExampleSentence, mode: CardMode): Seq[RepQuestionPart] = {
     ex.units.map { u =>
       u.target match {
-        case false => RepQuestionPart(u.content, None, false)
-        case true =>
+        case 0 => RepQuestionPart(u.content, None, false)
+        case _ =>
           mode match {
             case CardMode.Writing => RepQuestionPart(u.content, None, true)
-            case CardMode.Reading => RepQuestionPart(u.content, None, true)
+            case CardMode.Reading => RepQuestionPart(u.reading.getOrElse(u.content), None, true)
             case _ => RepQuestionPart(u.content, None, true)
           }
       }
@@ -70,12 +70,16 @@ object CardRepetitionQuestion extends StrictLogging {
             val kanji = UnicodeUtil.stream(w.writing.stris).filter(UnicodeUtil.isKanji).toSet
             sents.zipWithIndex.find { case (s, i) =>
               !seen.contains(i) &&
-                s.units.filter(_.target).exists(u => UnicodeUtil.stream(u.content).exists(cp => kanji.contains(cp)))
+                s.units.filter(_.target != 0).exists(u => UnicodeUtil.stream(u.content).exists(cp => kanji.contains(cp)))
             }
           case CardMode.Reading =>
             sents.zipWithIndex.find { case (s, i) =>
               !seen.contains(i) &&
-                s.units.exists(u => u.target && UnicodeUtil.isKana(u.content))
+                s.units.exists { u =>
+                  u.target != 0 &&
+                    (UnicodeUtil.isKana(u.content) ||
+                    u.reading.isDefined)
+                }
             }
           case _ => None
         }
