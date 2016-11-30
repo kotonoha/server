@@ -30,9 +30,14 @@ class SuperMemo6Spec extends FreeSpec with Matchers with LoneElement {
       val mark = MatrixMark(
         coord = ItemCoordinate(
           difficulty = 2.5f,
-          inertia = 1f
+          inertia = 1f,
+          repetition = 0,
+          lapse = 0,
+          interval = 1.0
         ),
-        mark = 4)
+        mark = 4,
+        actualInterval = 1.1
+      )
       val res = sm.process(mark)
       res.updates shouldBe 'empty
       res.coord.repetition shouldBe 1
@@ -51,7 +56,7 @@ class SuperMemo6Spec extends FreeSpec with Matchers with LoneElement {
         mark = 5,
         actualInterval = 2.5f,
         history = Seq(
-          ItemCoordinate(difficulty = 2.5f, repetition = 1, lapse = 1)
+          ItemCoordinate(difficulty = 2.5f, repetition = 1, lapse = 1, interval = 1.0, inertia = 1.0)
         ))
       val res = sm.process(mark)
       val item = res.updates.loneElement
@@ -74,7 +79,7 @@ class SuperMemo6Spec extends FreeSpec with Matchers with LoneElement {
         mark = 1,
         actualInterval = 2.5,
         history = Seq(
-          ItemCoordinate(difficulty = 2.5, repetition = 1, lapse = 1)
+          ItemCoordinate(difficulty = 2.5f, repetition = 1, lapse = 1, interval = 1.0, inertia = 1.0)
         ))
       val res = sm.process(mark)
       val item = res.updates.loneElement

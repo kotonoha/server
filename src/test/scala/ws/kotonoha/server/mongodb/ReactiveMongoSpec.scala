@@ -27,7 +27,7 @@ import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.scalatest.Matchers
 import org.scalatest.matchers.{MatchResult, Matcher}
-import ws.kotonoha.examples.api.{ExamplePack, ExampleSentence, SentenceUnit}
+import ws.kotonoha.examples.api.{ExamplePack, ExampleSentence, PackStatus, SentenceUnit}
 import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.records._
 import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
@@ -94,15 +94,18 @@ class ReactiveMongoSpec extends AkkaFree with Matchers with RecordMatchers {
           example("asdf").translation("dsfas")
         r.user(ObjectId.get()).tags(List("as", "das")).writing("sdas,dsa").examples(List(ex, ex)).status(WordStatus.Deleting)
 
-        val su1 = SentenceUnit("test", false)
-        val su2 = SentenceUnit("me", true)
+        val su1 = SentenceUnit("test", reading = None, target = 0, morph = true)
+        val su2 = SentenceUnit("me", reading = None, target = 1, morph = true)
 
         val s1 = ExampleSentence(
           id = ByteString.copyFromUtf8("jdlksajfasafsad"),
           Seq(su1, su2)
         )
         val x = ExamplePack(
-          Seq(s1, s1)
+          sentences = Seq(s1, s1),
+          initialNum = 100,
+          status = PackStatus.Ok,
+          query = ""
         )
 
         r.repExamples(x).jmdictLink(123L)
