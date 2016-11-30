@@ -121,17 +121,20 @@ mod.controller('RepeatController', ['$scope', '$http', 'RepeatBackend', function
       case STATE_QUESTION:
         if (e.which == 32) { //handle space
           scope.$apply(() => scope.showAnswer());
+          return false;
         }
         break;
       case STATE_ANSWER:
         let mark = keybindings[e.which];
         if (mark !== undefined) {
           scope.$apply(() => scope.mark(mark, 'kbd'));
+          return false;
         }
         break;
       case STATE_READY:
         if (e.which == 32) {
           scope.$apply(() => scope.nextCard());
+          return false;
         }
         break;
       default:
