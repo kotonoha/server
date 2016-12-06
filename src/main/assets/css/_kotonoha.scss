@@ -4,6 +4,11 @@
 @import "nav";
 @import "grid";
 @import "dict";
+@import "fa";
+
+
+$compact-font-size: 12px;
+$compact-line-height: 1.2;
 
 textarea.nihongo, div.nihongo, input.nihongo, .nihongo {
   font-size: larger !important;
@@ -15,12 +20,12 @@ textarea.nihongo, div.nihongo, input.nihongo, .nihongo {
 }
 
 .compact {
-  font-size: 14px;
-  line-height: 1.2;
+  font-size: $compact-font-size;
+  line-height: $compact-line-height;
 }
 
 .terse {
-  line-height: 1.2;
+  line-height: $compact-line-height;
 }
 
 .ng-cloak {
@@ -165,7 +170,7 @@ a.btn-x {
   position: relative;
   margin: 1mm;
   padding: 1mm;
-  font-size: 14px;
+  font-size: $compact-font-size;
 
   & .trim {
     text-overflow: ellipsis;

@@ -183,7 +183,8 @@ object Kotonoha {
   val luceneDeps = Seq(
     "org.apache.lucene" % "lucene-core" % luceneVersion,
     "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion,
-    "org.apache.lucene" % "lucene-codecs" % luceneVersion
+    "org.apache.lucene" % "lucene-codecs" % luceneVersion,
+    "org.apache.lucene" % "lucene-backward-codecs" % luceneVersion
   )
 
   val liftDeps = Seq(
