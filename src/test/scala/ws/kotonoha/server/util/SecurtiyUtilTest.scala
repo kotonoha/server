@@ -16,20 +16,23 @@
 
 package ws.kotonoha.server.util
 
-import org.scalatest.FreeSpec
+import org.scalatest.{FreeSpec, Matchers}
 import org.scalatest.matchers.ShouldMatchers
 import javax.crypto.Cipher
+
 import org.apache.commons.codec.binary.{Base64, Hex}
 import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
+
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher
 import org.bouncycastle.crypto.modes.CFBBlockCipher
 import org.bouncycastle.crypto.engines.AESFastEngine
 import org.bouncycastle.crypto.params.KeyParameter
+import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
 
-class SecurtiyUtilTest extends FreeSpec  with ShouldMatchers {
+class SecurtiyUtilTest extends FreeSpec with Matchers with GeneratorDrivenPropertyChecks {
   "SecurityUtil" - {
-    "encodes url like in java with aes" - {
+    "encodes url like in java with aes" in {
       val key = "82e52a2bc0d78d206388788e897f7383"
       val msg = "My greatest message!"
 
@@ -45,6 +48,16 @@ class SecurtiyUtilTest extends FreeSpec  with ShouldMatchers {
       val l1 = aes.doFinal(decr, len)
       val resStr = new String(decr, 0, len + l1, "utf-8")
       resStr should equal (msg)
+    }
+
+
+    "encodes and decodes text with AES" in {
+      forAll { plaintext: String =>
+        val key = SecurityUtil.randomBytes(16)
+        val cyphertext = SecurityUtil.encryptAes(plaintext, key)
+        val decrypted = SecurityUtil.decryptAes(cyphertext, key)
+        decrypted shouldBe plaintext
+      }
     }
   }
 }
