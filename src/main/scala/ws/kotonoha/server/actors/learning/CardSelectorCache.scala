@@ -22,6 +22,7 @@ import akka.util.Timeout
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
+import reactivemongo.api.commands.WriteResult
 import ws.kotonoha.server.actors.UserScopedActor
 import ws.kotonoha.server.actors.schedulers.{CoreScheduler, ReviewCard}
 import ws.kotonoha.server.ioc.UserContext
@@ -51,13 +52,13 @@ class CardSelectorCache @Inject() (
 
   implicit val timeout: Timeout = 5 seconds
 
-  var trim: Set[ObjectId] = Set.empty
+  private var trim: Set[ObjectId] = Set.empty
 
-  var cache: Vector[ReviewCard] = Vector.empty
+  private var cache: Vector[ReviewCard] = Vector.empty
 
-  val impl = context.actorOf(uc.props[CoreScheduler])
+  private val impl = context.actorOf(uc.props[CoreScheduler])
 
-  def invalidate() = {
+  private def invalidate() = {
     val cnt = cache.length
     cache = cache.filter(c => !trim.contains(c.cid)) //invalidate cache
     val diff = cache.size - cnt
@@ -66,7 +67,7 @@ class CardSelectorCache @Inject() (
     trim = Set.empty
   }
 
-  def load(cids: Traversable[ObjectId]) = {
+  private def load(cids: Traversable[ObjectId]) = {
     import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
     WordCardRecord where (_.id in cids) fetch()
   }
@@ -128,12 +129,12 @@ class SelectionPackOps @Inject() (
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.ops.OpsExtensions._
 
-  def schedulesForCard(cid: ObjectId) = {
+  def schedulesForCard(cid: ObjectId): Future[List[CardSchedule]] = {
     val q = CardSchedule.where(_.user eqs uc.uid).and(_.card eqs cid).orderDesc(_.date)
     rm.fetch(q)
   }
 
-  def deleteSchedules(cid: ObjectId) = {
+  def deleteSchedules(cid: ObjectId): Future[WriteResult] = {
     val q = CardSchedule.where(_.user eqs uc.uid).and(_.card eqs cid)
     rm.remove(q)
   }
