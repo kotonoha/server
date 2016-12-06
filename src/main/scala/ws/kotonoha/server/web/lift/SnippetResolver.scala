@@ -25,7 +25,9 @@ import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http._
 import net.liftweb.util._
+import org.bson.types.ObjectId
 import ws.kotonoha.server.ioc.{IocActors, IocSupport}
+import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.web.lift.Binders.NodeSeqFn
 
 import scala.concurrent.ExecutionContextExecutor
@@ -76,6 +78,8 @@ class ShortcutResolver(full: Map[String, String], classes: Map[String, Class[_]]
   }
 }
 
+case class SnippetCacheKey(path: List[String], uid: Box[ObjectId])
+
 class SnippetResolver(ioc: IocActors, cfg: SnippetResolverConfig) extends LiftRules.SnippetPF with StrictLogging {
   private val sres = cfg.build()
 
@@ -87,7 +91,7 @@ class SnippetResolver(ioc: IocActors, cfg: SnippetResolverConfig) extends LiftRu
     } else {
       bldr.maximumSize(10000L)
     }
-    bldr.build[List[String], Box[NodeSeqFn]]()
+    bldr.build[SnippetCacheKey, Box[NodeSeqFn]]()
   }
 
   private val statefulSnippet = classOf[StatefulSnippet]
@@ -207,13 +211,14 @@ class SnippetResolver(ioc: IocActors, cfg: SnippetResolverConfig) extends LiftRu
     }
   }
 
-  def resolve(x: List[String]): Boolean = {
+  private def resolve(key: SnippetCacheKey): Boolean = {
+    val x = key.path
 
     val (prefix, method) = x match {
       case List(one) => (one, "render")
       case List(one, two) => (one, two)
       case _ =>
-        cache.put(x, Empty)
+        cache.put(key, Empty)
         return false
     }
 
@@ -223,26 +228,28 @@ class SnippetResolver(ioc: IocActors, cfg: SnippetResolverConfig) extends LiftRu
       case Full(c) =>
         val snip = makeSnippet(x, c, prefix, method)
         logger.trace(s"resolved ${x.mkString("(", ",", ")")} to $snip")
-        cache.put(x, snip)
+        cache.put(key, snip)
         snip.isDefined
       case _ =>
         logger.trace(s"could not find class for ${x.mkString("(", ",", ")")}")
-        cache.put(x, Empty)
+        cache.put(key, Empty)
         false
     }
   }
 
   override def isDefinedAt(x: List[String]): Boolean = {
-    val item = cache.getIfPresent(x)
+    val key = SnippetCacheKey(x, UserRecord.currentId)
+    val item = cache.getIfPresent(key)
     if (item == null) {
-      return resolve(x)
+      return resolve(key)
     }
 
     item.isDefined
   }
 
-  override def apply(v1: List[String]) = {
-    val present = cache.getIfPresent(v1)
+  override def apply(v1: List[String]): NodeSeqFn = {
+    val key = SnippetCacheKey(v1, UserRecord.currentId)
+    val present = cache.getIfPresent(key)
     if (present == null) {
       throw new Exception(s"$v1 was null!")
     } else present.openOrThrowException("should be present")

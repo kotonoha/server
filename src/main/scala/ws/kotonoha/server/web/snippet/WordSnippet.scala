@@ -146,8 +146,6 @@ class WordPaginator @Inject() (
 
   lazy val count = WordRecord.count(query)
 
-  private def uid = uc.uid
-
   override def itemsPerPage = 50
 
   private val searchQuery = S.param("q") openOr ""
@@ -202,7 +200,7 @@ class WordPaginator @Inject() (
   }
 
   def query: JObject = {
-    val init = "user" -> uid
+    val init = "user" -> uc.uid
     searchQuery match {
       case "" => init
       case q => {
