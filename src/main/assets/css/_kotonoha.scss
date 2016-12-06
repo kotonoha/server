@@ -225,8 +225,8 @@ a.btn-x {
 }
 
 @mixin paddings {
-  padding-left: $grid-gutter-width / 2;
-  padding-right: $grid-gutter-width / 2;
+  padding-left: $grid-gutter-width-base / 2;
+  padding-right: $grid-gutter-width-base / 2;
 }
 
 $menu-width: 240px;

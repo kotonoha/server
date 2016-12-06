@@ -1,5 +1,5 @@
 @import "../bootstrap/scss/grid";
 
 .col-ng {
-  @include make-col(1, 1, 0);
+  @include make-col(1, 1);
 }
