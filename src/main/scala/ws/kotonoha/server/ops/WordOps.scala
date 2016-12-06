@@ -21,6 +21,7 @@ import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import reactivemongo.api.commands.GetLastError
 import ws.kotonoha.akane.unicode.KanaUtil
 import ws.kotonoha.examples.api.{ExamplePack, PackStatus}
@@ -105,6 +106,30 @@ class WordOps @Inject() (
   def markUsedExample(wid: ObjectId, idx: Int): Future[NotUsed] = {
     val q = WordRecord.where(_.user eqs uc.uid).and(_.id eqs wid).modify(_.repExSeen.bitOr(1 << idx))
     rm.update(q).mod(1)
+  }
+
+  def changeStatus(ids: Seq[ObjectId], status: WordStatus): Future[NotUsed] = {
+    val q = WordRecord.where(_.user eqs uc.uid).and(_.id in ids).modify(_.status.setTo(status))
+    val enabledStatus = status == WordStatus.Approved
+    val f1 = cops.enableFor(ids, enabledStatus)
+    val f2 = rm.update(q, multiple = true).maxMod(ids.length)
+    for {
+      _ <- f1
+      _ <- f2
+    } yield NotUsed
+  }
+
+  def markForDeletion(ids: Seq[ObjectId], deleteOn: DateTime): Future[NotUsed] = {
+    val q = WordRecord.where(_.user.eqs(uc.uid)).and(_.id in ids)
+        .modify(_.status.setTo(WordStatus.Deleting))
+        .modify(_.deleteOn.setTo(deleteOn))
+
+    val f1 = rm.update(q, multiple = true).maxMod(ids.length)
+    val f2 = cops.enableFor(ids, false)
+    for {
+      _ <- f1
+      _ <- f2
+    } yield NotUsed
   }
 }
 

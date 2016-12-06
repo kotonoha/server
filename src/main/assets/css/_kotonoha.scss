@@ -7,7 +7,7 @@
 @import "fa";
 
 
-$compact-font-size: 12px;
+$compact-font-size: 14px;
 $compact-line-height: 1.2;
 
 textarea.nihongo, div.nihongo, input.nihongo, .nihongo {
@@ -108,6 +108,27 @@ div.selections {
     padding: 1mm;
     margin-bottom: 1mm;
   }
+}
+
+//word list
+
+.word-list-table {
+  td {
+    padding: 5px;
+  }
+
+  .autoex-ok {
+    color: lightgreen;
+  }
+
+  .autoex-fail {
+    color: orange;
+  }
+
+  .autoex-empty {
+    color: lightgray;
+  }
+
 }
 
 //repeat form
@@ -262,7 +283,7 @@ $menu-width: 240px;
 $btn-paddings-y-mini: 0.15rem !default;
 $btn-paddings-x-mini: 0.35rem !default;
 
-.btn-mini {
+.btn-mini,.btn-tiny {
   @include button-size($btn-paddings-y-mini, $btn-paddings-x-mini, $font-size-sm, $btn-border-radius-sm);
 }
 

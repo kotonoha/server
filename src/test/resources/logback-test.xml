@@ -30,6 +30,7 @@
 
   <logger name="ws.kotonoha.server.ops.WordExampleOps" level="TRACE" />
   <logger name="ws.kotonoha.server.util.GlobalRateLimiting$" level="TRACE" />
+  <!--<logger name="ws.kotonoha.server.web.lift.SnippetResolver" level="TRACE" />-->
 
   <logger name="comet_trace" level="WARN" />
 

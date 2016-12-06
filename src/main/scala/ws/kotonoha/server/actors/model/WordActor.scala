@@ -60,9 +60,7 @@ class WordActor @Inject() (
     case ChangeWordStatus(word, stat) => changeWordStatus(word, stat)
     case MarkAllWordCards(word, mark) => markAllCards(word, mark)
     case DeleteReadyWords => deleteReadyWords()
-    case MarkForDeletion(word) =>
-      WordRecord where (_.id eqs word) modify (_.deleteOn setTo (now.plusDays(1))) updateOne()
-      self ! ChangeWordStatus(word, WordStatus.Deleting)
+    case MarkForDeletion(word) => wops.markForDeletion(Seq(word), now.plusDays(1))
     case SimilarWordsRequest(c) => swops.similarRegistered(c).pipeTo(sender())
   }
 
@@ -73,7 +71,6 @@ class WordActor @Inject() (
   lazy val tags = scoped("tags")
 
   def markAllCards(word: ObjectId, mark: Int) {
-
     val cards = WordCardRecord where (_.word eqs word) fetch()
     val data = cards map {
       c => {
@@ -97,20 +94,8 @@ class WordActor @Inject() (
 
   }
 
-  def changeWordStatus(word: ObjectId, stat: WordStatus) {
-
-    import ws.kotonoha.server.util.KBsonDSL._
-    val sq: JObject = "_id" -> word
-    val uq: JObject = "$set" -> ("status" -> stat.value)
-    WordRecord.update(sq, uq)
-    val f = stat match {
-      case WordStatus.Approved => card ? ChangeCardEnabled(word, true)
-      case _ => card ? ChangeCardEnabled(word, false)
-    }
-    f map {
-      x => 1
-    } pipeTo sender
-
+  def changeWordStatus(word: ObjectId, stat: WordStatus): Unit = {
+    wops.changeStatus(Seq(word), stat).map(_ => 1).pipeTo(sender())
   }
 
   def deleteReadyWords(): Unit = {

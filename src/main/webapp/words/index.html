@@ -73,11 +73,15 @@
 
       function update_data(ids, status) {
         $(ids).each(function (o) {
-          $('#row-' + this + ' .status').text(status);
+          $('#row-' + this + ' .word-status').html(status);
         })
       }
     </script>
   </head_merge>
+  <div class="pull-right">
+    Statuses:
+    New: <i class="fa fa-leaf"></i>
+  </div>
   <div id="search-box">
     <form method="get" action="." class="lift:WordPaginator.params">
       <div class="row distance">
@@ -90,14 +94,14 @@
   <div>
     <span class="selections">
       Select:
-      <a onclick="select_all(); return false;">All</a>
-      <a onclick="select_none(); return false;">None</a>
-      <a onclick="select_inverse(); return false">Inverse</a>
+      <a onclick="select_all(); return false;" class="btn btn-outline-secondary btn-sm">All</a>
+      <a onclick="select_none(); return false;" class="btn btn-outline-secondary btn-sm">None</a>
+      <a onclick="select_inverse(); return false" class="btn btn-outline-secondary btn-sm">Inverse</a>
     </span>
+    Modify status:
     <span class="lift:WordPaginator.ajaxReq"></span>
   </div>
-
-  <table class="table table-hover">
+  <table class="table table-hover word-list-table compact">
     <thead>
     <tr class="search-header lift:WordPaginator.paginate">
       <td></td>
@@ -127,7 +131,7 @@
     </tr>
     </tbody>
   </table>
-  <div><span class="lift:WordPaginator.paginate" xmlns:nav="navigation">
+  <div><span class="lift:WordPaginator.paginate">
     <span class="first"></span>
     <span> | </span>
     <span class="prev"></span>

@@ -119,7 +119,6 @@ class SnippetResolver(ioc: IocActors, cfg: SnippetResolverConfig) extends LiftRu
   private val nodeSeq: Class[_] = classOf[NodeSeq]
   private val nodeSeqFn: Class[_] = classOf[NodeSeqFn]
   private val simpleMethod = MethodType.methodType(nodeSeq, nodeSeq)
-  private val accessorTp = MethodType.methodType(nodeSeqFn)
 
   private val lookup = MethodHandles.publicLookup()
 
@@ -127,20 +126,31 @@ class SnippetResolver(ioc: IocActors, cfg: SnippetResolverConfig) extends LiftRu
     var nsf: Box[NodeSeqFn] = Empty
 
     try {
-      val mh = lookup.findVirtual(clz, method, simpleMethod)
-      nsf = Full(new ReflectedMethodDispatchInstance(instance, mh))
+      val meth = clz.getMethod(method, nodeSeq)
+      if (nodeSeq.isAssignableFrom(meth.getReturnType)) {
+        val mh = lookup.findVirtual(clz, method, simpleMethod)
+        nsf = Full(new ReflectedMethodDispatchInstance(instance, mh))
+      }
     } catch {
       case _: NoSuchMethodException =>
     }
 
     if (nsf.isEmpty) {
       try {
-        val mh = lookup.findVirtual(clz, method, accessorTp)
-        nsf = Full(new ReflectedAccessorDispatchInstance(instance, mh))
+        val meth = clz.getMethod(method)
+        if (nodeSeqFn.isAssignableFrom(meth.getReturnType)) {
+          val mh = lookup.unreflect(meth)
+          nsf = Full(new ReflectedAccessorDispatchInstance(instance, mh))
+        }
       } catch {
         case _: NoSuchMethodException =>
       }
     }
+
+    if (nsf.isEmpty) {
+      logger.trace(s"for $clz#$method accessor was not found")
+    }
+
 
     nsf
   }

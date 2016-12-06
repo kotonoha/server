@@ -101,14 +101,19 @@ class FlashcardOps @Inject() (
     scheduleAfter(cid, FiniteDuration(-5, TimeUnit.SECONDS))
   }
 
-  def enableFor(wid: ObjectId, to: Boolean) = {
-    val q = forWord(wid).modify(_.enabled.setTo(to))
-    rm.update(q, multiple = true).minMod(1)
+  def enableFor(wid: ObjectId, to: Boolean): Future[NotUsed] = {
+    enableFor(Seq(wid), to)
+  }
+
+  def enableFor(wids: Seq[ObjectId], to: Boolean): Future[NotUsed] = {
+    val base = WordCardRecord.where(_.user eqs uc.uid).and(_.word in wids)
+    val q = base.modify(_.enabled.setTo(to))
+    rm.update(q, multiple = true).maxMod(wids.length * 2)
   }
 
   def tagCards(wid: ObjectId, tags: List[String], prio: Int): Future[NotUsed] = {
     val q = forWord(wid).modify(_.tags.setTo(tags)).and(_.priority.setTo(prio))
-    rm.update(q, multiple = true).minMod(1)
+    rm.update(q, multiple = true).maxMod(2)
   }
 
   def deleteFor(wid: ObjectId): Future[NotUsed] = {
