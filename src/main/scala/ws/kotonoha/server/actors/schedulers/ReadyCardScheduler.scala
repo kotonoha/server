@@ -17,8 +17,8 @@
 package ws.kotonoha.server.actors.schedulers
 
 import ws.kotonoha.server.actors.UserScopedActor
-import org.bson.types.ObjectId
-import util.Random
+
+import scala.util.Random
 
 /**
  * @author eiennohito
@@ -29,19 +29,19 @@ class ReadyCardScheduler extends UserScopedActor {
 
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
-  def queryNearNow(cnt: Int) = {
+  private def queryNearNow(cnt: Int) = {
     val q = Queries.scheduled(uid) and (_.learning.subfield(_.intervalLength) lt 7.0) orderDesc
-      (_.learning.subfield(_.intervalEnd)) select (_.id)
+      (_.learning.subfield(_.intervalEnd)) select (_.id, _.word)
     q.fetch(cnt)
   }
 
-  def queryNormal(cnt: Int) = {
-    val q = Queries.scheduled(uid) orderAsc (_.learning.subfield(_.intervalEnd)) select (_.id)
+  private def queryNormal(cnt: Int) = {
+    val q = Queries.scheduled(uid) orderAsc (_.learning.subfield(_.intervalEnd)) select (_.id, _.word)
     q.fetch(cnt)
   }
 
-  def interleave(left: List[ObjectId], right: List[ObjectId]) = {
-    def rec(l: List[ObjectId], r: List[ObjectId]): List[ObjectId] = {
+  private def interleave[T](left: List[T], right: List[T]): List[T] = {
+    def rec(l: List[T], r: List[T]): List[T] = {
       l match {
         case x :: xs => x :: (if (Random.nextBoolean()) rec(xs, r) else rec(r, xs))
         case Nil => r
@@ -63,7 +63,7 @@ class ReadyCardScheduler extends UserScopedActor {
           queryNormal(cnt)
       }
       sender ! PossibleCards(data.map {
-        cid => ReviewCard(cid, "Ready")
+        case (cid, wid) => ReviewCard(cid, wid, "Ready")
       })
     case _: CardsSelected =>
   }

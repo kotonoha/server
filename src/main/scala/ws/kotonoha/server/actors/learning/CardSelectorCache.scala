@@ -24,20 +24,48 @@ import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
 import reactivemongo.api.commands.WriteResult
 import ws.kotonoha.server.actors.UserScopedActor
-import ws.kotonoha.server.actors.schedulers.{CoreScheduler, ReviewCard}
+import ws.kotonoha.server.actors.schedulers.{CoreScheduler, LoadCardsCore, ReviewCard}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.WordCardRecord
 import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.records.misc.CardSchedule
 
+import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
+
+class AlreadyProcessedWordFilter {
+  private val data = new Array[ObjectId](256)
+  private val set = new mutable.HashSet[ObjectId]()
+  private var idx = -1
+
+
+  def contains(oid: ObjectId): Boolean = set.contains(oid)
+
+  def isFresh(oid: ObjectId): Boolean = !contains(oid)
+
+
+  def add(oid: ObjectId): Unit = {
+    if (!contains(oid)) {
+      idx = (idx + 1) & 0xff
+      val prev = data(idx)
+      if (prev != null) {
+        set -= prev
+      }
+
+      data(idx) = oid
+      set += oid
+    }
+  }
+
+  def wids: Seq[ObjectId] = set.toSeq
+}
+
 
 /**
  * @author eiennohito
  * @since 01.03.13 
  */
-
 class CardSelectorCache @Inject() (
   uc: UserContext,
   meo: MarkEventOps,
@@ -52,19 +80,18 @@ class CardSelectorCache @Inject() (
 
   implicit val timeout: Timeout = 5 seconds
 
-  private var trim: Set[ObjectId] = Set.empty
+  private val filter = new AlreadyProcessedWordFilter
 
+
+  private val processed = new mutable.HashSet[ObjectId]()
   private var cache: Vector[ReviewCard] = Vector.empty
 
   private val impl = context.actorOf(uc.props[CoreScheduler])
 
-  private def invalidate() = {
-    val cnt = cache.length
-    cache = cache.filter(c => !trim.contains(c.cid)) //invalidate cache
-    val diff = cache.size - cnt
-    if (diff != 0)
-      log.debug("invalidated cache: reduced size from {} to {} by {}, trim.size {}", cnt, cache.size, diff, trim.size)
-    trim = Set.empty
+
+  private def cleanProcessed(): Unit = {
+    cache = cache.filter(c => !processed.contains(c.cid))
+    processed.clear()
   }
 
   private def load(cids: Traversable[ObjectId]) = {
@@ -73,13 +100,13 @@ class CardSelectorCache @Inject() (
   }
 
   def processLoad(cnt: Int, skip: Int): Unit = {
-    invalidate()
+    cleanProcessed()
     if (cache.length < cnt) {
-      val s = sender
-      val wnc = (impl ? LoadCards((cnt + skip) * 6 / 5 + 5, 0)).mapTo[WordsAndCards]
+      val s = sender()
+      val wnc = (impl ? LoadCardsCore((cnt + skip) * 6 / 5 + 5, filter.wids)).mapTo[WordsAndCards]
       wnc.map(w => ProcessAnswer(s, w, cnt, skip)) pipeTo self
     } else {
-      answer(cnt, skip, sender)
+      answer(cnt, skip, sender())
     }
   }
 
@@ -92,17 +119,17 @@ class CardSelectorCache @Inject() (
   }
 
   def processReply(to: ActorRef, wnc: WordsAndCards, cnt: Int, skip: Int): Unit = {
-    val data = wnc.sequence
+    val data = wnc.sequence.filter(c => filter.isFresh(c.wid))
+    data.foreach { c => filter.add(c.wid) }
     val last = cache.length
     cache = (cache ++ data).distinct
-    invalidate()
     answer(cnt, skip, to)
     log.debug("updated global card cache from {} to {} req {}", last, cache.length, cnt)
   }
 
   def receive = {
     case CardProcessed(cid) =>
-      trim += cid
+      processed += cid
       sender() ! Done
     case LoadCards(cnt, skip) => processLoad(cnt, skip)
     case ProcessAnswer(to, fresh, cnt, skip) => processReply(to, fresh, cnt, skip)
@@ -141,9 +168,6 @@ class SelectionPackOps @Inject() (
 
   def updateMarkEvent(mr: MarkEventRecord): Future[MarkEventRecord] = {
     schedulesForCard(mr.card.get).map { scheds =>
-      if (scheds.length > 1) {
-        logger.warn("multiple schedules: {}", scheds)
-      }
 
       if (scheds.nonEmpty) {
         val head = scheds.head

@@ -16,17 +16,17 @@
 
 package ws.kotonoha.server.actors.schedulers
 
-import org.scalatest.FreeSpec
-import org.scalatest.matchers.ShouldMatchers
-import concurrent.{Await, Future, ExecutionContext}
 import org.bson.types.ObjectId
+import org.scalatest.{FreeSpec, Matchers}
+
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
  * @author eiennohito
  * @since 28.02.13 
  */
 
-class WarodaiCardMixerTest extends FreeSpec with ShouldMatchers {
+class WarodaiCardMixerTest extends FreeSpec with Matchers {
   implicit val ec = ExecutionContext.global
 
   import concurrent.duration._
@@ -36,7 +36,7 @@ class WarodaiCardMixerTest extends FreeSpec with ShouldMatchers {
       val cards = 1 to num map {
         _ => new ObjectId()
       }
-      Future.successful(cards.map(c => ReviewCard(c, "None")).toList)
+      Future.successful(cards.map(c => ReviewCard(c, c, "None")).toList)
     }
 
     def selected(count: Int) {}

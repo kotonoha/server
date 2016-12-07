@@ -36,14 +36,14 @@ class OldBalancingScheduler extends UserScopedActor {
     val date = now.plusDays(7)
     val q = WordCardRecord.enabledFor(uid) and (_.notBefore lt now) and
       (_.learning.subfield(_.intervalLength) gt 30.0) and
-      (_.learning.subfield(_.intervalEnd) between(now, date)) select (_.id)
+      (_.learning.subfield(_.intervalEnd) between(now, date)) select (_.id, _.word)
     q.fetch(cnt)
   }
 
   def receive = {
     case c: CardRequest =>
       sender ! PossibleCards(query(c.reqLength).map {
-        cid => ReviewCard(cid, "OldBalancing")
+        case (cid, wid) => ReviewCard(cid, wid, "OldBalancing")
       })
     case _: CardsSelected => //
   }

@@ -54,7 +54,7 @@ class LowRepBigIntScheduler @Inject() (
 
     val q = WordCardRecord.enabledFor(uid) where (_.notBefore lt now) and
       (_.learning.subfield(_.intervalStart) lt borderline) and
-      (_.learning.subfield(_.intervalLength) between(lower, upper)) select (_.id)
+      (_.learning.subfield(_.intervalLength) between(lower, upper)) select (_.id, _.word)
     rm.fetch(q)
   }
 
@@ -63,7 +63,9 @@ class LowRepBigIntScheduler @Inject() (
       of = s
     case c: CardRequest =>
       query(c.reqLength).map{ objs =>
-        PossibleCards(objs.map(cid => ReviewCard(cid, "LowRepBigInt")))
+        PossibleCards(objs.map { case (cid, wid) =>
+          ReviewCard(cid, wid, "LowRepBigInt")
+        })
       }(context.dispatcher).pipeTo(sender())
     case _: CardsSelected =>
   }

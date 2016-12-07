@@ -20,8 +20,9 @@ import akka.actor.ActorLogging
 import akka.pattern.pipe
 import akka.util.Timeout
 import com.google.inject.Inject
+import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.UserScopedActor
-import ws.kotonoha.server.actors.learning.{LoadCards, WordsAndCards}
+import ws.kotonoha.server.actors.learning.WordsAndCards
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.records.misc.{CardSchedule, ScheduleRecord}
 
@@ -44,6 +45,8 @@ object SelectMutators {
     else 0
   }
 }
+
+case class LoadCardsCore(count: Int, ignoreWords: Seq[ObjectId])
 
 
 class CoreScheduler @Inject() (
@@ -128,11 +131,11 @@ class CoreScheduler @Inject() (
   }
 
   def receive = {
-    case LoadCards(cnt, _) => loadCards(cnt)
+    case LoadCardsCore(cnt, ignore) => loadCards(cnt, ignore)
     case DumpSelection(req, cards) => dump(req, cards)
   }
 
-  def loadCards(cnt: Int) {
+  def loadCards(cnt: Int, ignore: Seq[ObjectId]) {
     val state = resolver.resolveState()
     val req = CardRequest(
       state = state,
@@ -145,7 +148,8 @@ class CoreScheduler @Inject() (
       reqLength = cnt,
       limits = Limits(0, 0),
       base = resolver.lastAvg.toInt,
-      next = resolver.nextTotal
+      next = resolver.nextTotal,
+      ignoreWords = ignore
     )
     val mixer = mixers(state)
     log.debug("For user {} scheduler state = {}", uid, state)

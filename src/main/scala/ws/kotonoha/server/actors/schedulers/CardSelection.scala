@@ -40,17 +40,17 @@ object CardSource {
 }
 
 class StaticCardSource(val provider: CardProvider, w: Double) extends CardSource {
-  def weight(req: CardRequest) = w
+  def weight(req: CardRequest): Double = w
 }
 
 class DynamicSoruce(val provider: CardProvider, base: Double, tf: (CardRequest, Double) => Double) extends CardSource {
-  def weight(req: CardRequest) = tf(req, base)
+  def weight(req: CardRequest): Double = tf(req, base)
 }
 
 class ReqInfo(val weights: Array[Double]) {
-  lazy val maxw = weights.sum
+  lazy val maxw: Double = weights.sum
 
-  def cumulative = weights.scan(0.0)(_+_)
+  def cumulative: Array[Double] = weights.scan(0.0)(_+_)
 }
 
 class CardMixer(input: List[CardSource]) extends Logging {
@@ -113,7 +113,7 @@ object CardMixer {
   def apply(srcs: CardSource*) = new CardMixer(srcs.toList)
 }
 
-case class ReviewCard(cid: ObjectId, source: String, seq: Long) {
+case class ReviewCard(cid: ObjectId, wid: ObjectId, source: String, seq: Long) {
   override def equals(obj: Any): Boolean = {
     obj match {
       case o: ReviewCard => o.cid.equals(cid)
@@ -121,18 +121,21 @@ case class ReviewCard(cid: ObjectId, source: String, seq: Long) {
     }
   }
 
-  override def hashCode() = cid.hashCode()
+  override def hashCode(): Int = cid.hashCode()
 }
 
 object ReviewCard {
-  def apply(cid: ObjectId, source: String) = new ReviewCard(cid, source, 0)
+  def apply(cid: ObjectId, wid: ObjectId, source: String) = new ReviewCard(cid, wid, source, 0)
 }
 
 case class Limits(total: Int, fresh: Int)
 
-case class CardRequest(state: State.State, normalLvl: Int, curSession: Int,
-                       today: Int, ready: Int, border: Int, bad: Int,
-                       reqLength: Int, limits: Limits, base: Int, next: Seq[Int])
+case class CardRequest(
+  state: State.State, normalLvl: Int, curSession: Int,
+  today: Int, ready: Int, border: Int, bad: Int,
+  reqLength: Int, limits: Limits, base: Int, next: Seq[Int],
+  ignoreWords: Seq[ObjectId] = Nil
+)
 
 case class PossibleCards(cards: List[ReviewCard])
 
@@ -140,7 +143,6 @@ case class CardsSelected(count: Int)
 
 trait CardProvider {
   def request(req: CardRequest): Future[List[ReviewCard]]
-
   def selected(count: Int): Unit
 }
 
@@ -150,9 +152,9 @@ object ActorSupport {
   import akka.pattern.ask
 
   implicit def actor2CardProvider(actor: => ActorRef)
-                                 (implicit ec: ExecutionContext, timeout: Timeout) = {
+                                 (implicit ec: ExecutionContext, timeout: Timeout): CardProvider = {
     new CardProvider {
-      def request(req: CardRequest) = {
+      def request(req: CardRequest): Future[List[ReviewCard]] = {
         (actor ? req).mapTo[PossibleCards].map(_.cards)
       }
 

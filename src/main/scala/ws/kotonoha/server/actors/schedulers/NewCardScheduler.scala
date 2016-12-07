@@ -41,7 +41,7 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
 
   case class CacheItem(cid: ObjectId, tags: List[String], mode: CardMode, word: ObjectId)
 
-  def limits() = {
+  private[schedulers] def limits() = {
     val list = UserTagInfo where (_.user eqs uid) and
       (_.limit exists true) and
       (_.limit neqs 0) select(_.tag, _.limit) fetch()
@@ -50,31 +50,31 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
     } toMap
   }
 
-  def usage() = {
+  private def tagUsage() = {
     val q = NewCardSchedule where (_.user eqs uid) and
       (_.date gt (now.minusDays(1))) select (_.tag)
     val usage = q.iterate(Map[String, Int]()) {
       case (m, Iter.Item(tag)) =>
-        Iter.Continue(m.updated(tag, m.get(tag).getOrElse(0) + 1))
+        Iter.Continue(m.updated(tag, m.getOrElse(tag, 0) + 1))
       case (m, _) => Iter.Return(m)
     }
     usage
   }
 
-  def bannedTags(lims: Map[String, Int], usg: Map[String, Int] = usage()): List[String] = {
+  private[schedulers] def bannedTags(lims: Map[String, Int], usg: Map[String, Int] = tagUsage()): List[String] = {
     val ks = usg filter {
       case (tag, cnt) => cnt >= lims(tag)
     }
     ks.keys.toList
   }
 
-  def query(cnt: Int, ignore: Vector[ObjectId], banned: List[String]) = {
+  private def query(cnt: Int, ignore: Vector[ObjectId], banned: List[String]) = {
     log.debug("new query: ignored words: {}, banned tags: [{}]", ignore.length, banned.mkString(", "))
     Queries.newCards(uid) and (_.word nin ignore) and (_.tags nin banned) orderDesc
       (_.priority) select(_.id, _.tags, _.cardMode, _.word) fetch (cnt)
   }
 
-  def processUsage(data: Vector[CacheItem]) = {
+  private def processUsage(data: Vector[CacheItem]) = {
     val lims = limits()
     data foreach {
       case CacheItem(cid, tags, _, _) => tags foreach {
@@ -88,28 +88,28 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
     }
   }
 
-  def checkState(item: CacheItem, cur: TraversableOnce[CacheItem]): Boolean = {
+  private def checkState(item: CacheItem, cur: TraversableOnce[CacheItem]): Boolean = {
     def has(x: TraversableOnce[CacheItem]) = x.exists(ci => ci.word == item.word && ci.mode != item.mode)
 
     !(has(cur) || has(cached))
   }
 
-  def cutWords(vector: Vector[CacheItem]) = {
+  private def cutWords(vector: Vector[CacheItem]) = {
     val buf = new ListBuffer[CacheItem]()
     for (i <- vector) {
       if (checkState(i, buf)) {
         buf += i
       }
-    }: Unit
+    }
     buf.toVector
   }
 
-  def fetchUpdate(cnt: Int) = {
+  private def fetchUpdate(cnt: Int, qIgnore: Seq[ObjectId]) = {
     val lims = limits().withDefaultValue(Int.MaxValue)
 
     @tailrec
     def rec(rem: Int, usg: Map[String, Int], banned: List[String], prev: Vector[CacheItem]): Vector[CacheItem] = {
-      val ignore = (cached ++ prev).map(_.word)
+      val ignore = (cached ++ prev).map(_.word) ++ qIgnore
       val objs = query(cnt, ignore, banned) map CacheItem.tupled
       val bldr = new VectorBuilder[CacheItem]()
 
@@ -135,7 +135,7 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
       }
     }
 
-    rec(cnt, usage(), bannedTags(lims), Vector.empty)
+    rec(cnt, tagUsage(), bannedTags(lims), Vector.empty)
   }
 
 
@@ -152,15 +152,15 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
 
   var cached = Vector[CacheItem]()
 
-  private def select(cnt: Int): List[ObjectId] = {
+  private def select(cnt: Int, qIgnore: Seq[ObjectId]): List[CacheItem] = {
     if (cached.length < cnt) {
       val oldlen = cached.length
-      val got = Random.shuffle(fetchUpdate(cnt * 2))
+      val got = Random.shuffle(fetchUpdate(cnt * 2, qIgnore))
       val dwords = cutWords(got)
       cached = (cached ++ dwords).distinct
       log.debug("updated cache: {} -> {}", oldlen, cached.length)
     }
-    cached.take(cnt).toList.map(_.cid)
+    cached.take(cnt).toList
   }
 
   private def commit(cnt: Int): Unit = {
@@ -183,9 +183,9 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
 
   def receive = {
     case c: CardRequest =>
-      val entries = select(c.reqLength)
+      val entries = select(c.reqLength, c.ignoreWords)
       sender ! PossibleCards(entries.map {
-        cid => ReviewCard(cid, "New")
+        c => ReviewCard(c.cid, c.word, "New")
       })
     case CardsSelected(cnt) => commit(cnt)
     case LoadUnscheduled => preloadToday()

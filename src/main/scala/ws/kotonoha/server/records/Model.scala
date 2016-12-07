@@ -16,6 +16,7 @@
 
 package ws.kotonoha.server.records
 
+import com.foursquare.rogue.{InitialState, Query}
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.S
 import net.liftweb.http.S.SFuncHolder
