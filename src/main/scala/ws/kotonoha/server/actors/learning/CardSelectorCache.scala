@@ -16,15 +16,12 @@
 
 package ws.kotonoha.server.actors.learning
 
-import java.util
-
 import akka.Done
 import akka.actor.{ActorLogging, ActorRef}
 import akka.util.Timeout
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
-import org.joda.time.Duration
 import reactivemongo.api.commands.WriteResult
 import ws.kotonoha.server.actors.UserScopedActor
 import ws.kotonoha.server.actors.schedulers.{CoreScheduler, LoadCardsCore, ReviewCard}
@@ -38,12 +35,10 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 class AlreadyProcessedWordFilter {
-  import ws.kotonoha.server.util.DateTimeUtils.now
 
   private val data = new Array[ObjectId](256)
   private val set = new mutable.HashSet[ObjectId]()
   private var idx = -1
-  private var lastDate = now
 
 
   def contains(oid: ObjectId): Boolean = set.contains(oid)
@@ -65,12 +60,6 @@ class AlreadyProcessedWordFilter {
   }
 
   def wids: Seq[ObjectId] = {
-    if (new Duration(lastDate, now).getStandardHours > 1) {
-      idx = -1
-      set.clear()
-      util.Arrays.fill(data.asInstanceOf[Array[Object]], null)
-    }
-    lastDate = now
     set.toSeq
   }
 }
