@@ -17,6 +17,7 @@
 package ws.kotonoha.server.actors.schedulers
 
 import com.google.inject.Inject
+import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.UserScopedActor
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.WordCardRecord
@@ -47,12 +48,13 @@ class LowRepBigIntScheduler @Inject() (
     sm.values() pipeTo self
   }
 
-  def query(cnt: Int) = {
+  def query(cnt: Int, ignoreWords: Seq[ObjectId]) = {
     val lower = of(1, 2.1) * of(2, 2.1)
     val upper = of(1, 2.5) * of(2, 2.6)
     val borderline = now.minusDays(14)
 
     val q = WordCardRecord.enabledFor(uid) where (_.notBefore lt now) and
+      (_.word.nin(ignoreWords)) and
       (_.learning.subfield(_.intervalStart) lt borderline) and
       (_.learning.subfield(_.intervalLength) between(lower, upper)) select (_.id, _.word)
     rm.fetch(q)
@@ -62,7 +64,7 @@ class LowRepBigIntScheduler @Inject() (
     case s: OfMatrixSnapshot =>
       of = s
     case c: CardRequest =>
-      query(c.reqLength).map{ objs =>
+      query(c.reqLength, c.ignoreWords).map{ objs =>
         PossibleCards(objs.map { case (cid, wid) =>
           ReviewCard(cid, wid, "LowRepBigInt")
         })

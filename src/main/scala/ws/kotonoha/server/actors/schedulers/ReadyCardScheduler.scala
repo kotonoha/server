@@ -16,6 +16,7 @@
 
 package ws.kotonoha.server.actors.schedulers
 
+import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.UserScopedActor
 
 import scala.util.Random
@@ -29,14 +30,18 @@ class ReadyCardScheduler extends UserScopedActor {
 
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
 
-  private def queryNearNow(cnt: Int) = {
-    val q = Queries.scheduled(uid) and (_.learning.subfield(_.intervalLength) lt 7.0) orderDesc
-      (_.learning.subfield(_.intervalEnd)) select (_.id, _.word)
+  private def queryNearNow(cnt: Int, ignoredWords: Seq[ObjectId]) = {
+    val q = Queries.scheduled(uid).and(_.learning.subfield(_.intervalLength) lt 7.0)
+        .and(_.word nin ignoredWords)
+        .orderDesc(_.learning.subfield(_.intervalEnd)).select(_.id, _.word)
     q.fetch(cnt)
   }
 
-  private def queryNormal(cnt: Int) = {
-    val q = Queries.scheduled(uid) orderAsc (_.learning.subfield(_.intervalEnd)) select (_.id, _.word)
+  private def queryNormal(cnt: Int, ignoredWords: Seq[ObjectId]) = {
+    val q = Queries.scheduled(uid)
+      .and(_.word nin ignoredWords)
+      .orderAsc(_.learning.subfield(_.intervalEnd))
+      .select(_.id, _.word)
     q.fetch(cnt)
   }
 
@@ -56,11 +61,11 @@ class ReadyCardScheduler extends UserScopedActor {
       val state = c.state
       val data = state match {
         case State.AfterRest =>
-          val nearnow = queryNearNow(cnt / 2)
+          val nearnow = queryNearNow(cnt / 2, c.ignoreWords)
           val rest = cnt - nearnow.length
-          interleave(nearnow, queryNormal(rest))
+          interleave(nearnow, queryNormal(rest, c.ignoreWords))
         case _ =>
-          queryNormal(cnt)
+          queryNormal(cnt, c.ignoreWords)
       }
       sender ! PossibleCards(data.map {
         case (cid, wid) => ReviewCard(cid, wid, "Ready")

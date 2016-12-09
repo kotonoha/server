@@ -27,7 +27,7 @@ import org.bson.types.ObjectId
 import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors._
 import ws.kotonoha.server.actors.learning.ProcessMarkEvents
-import ws.kotonoha.server.ops.{SimilarWordOps, WordOps}
+import ws.kotonoha.server.ops.{FlashcardOps, SimilarWordOps, WordOps}
 import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.records.{WordCardRecord, WordRecord}
 
@@ -42,7 +42,8 @@ case class SimilarWordsRequest(cand: Candidate) extends WordMessage
 
 class WordActor @Inject() (
   wops: WordOps,
-  swops: SimilarWordOps
+  swops: SimilarWordOps,
+  cops: FlashcardOps
 ) extends UserScopedActor with ActorLogging {
 
   import akka.pattern.{ask, pipe}
@@ -86,12 +87,8 @@ class WordActor @Inject() (
     }
 
     (userActor ? ProcessMarkEvents(data)) andThen {
-      case _ =>
-        data map {
-          d => card ! ClearNotBefore(d.card.get)
-        }
+      case _ => cops.clearNotBefore(data.map(_.card.get).distinct)
     }
-
   }
 
   def changeWordStatus(word: ObjectId, stat: WordStatus): Unit = {

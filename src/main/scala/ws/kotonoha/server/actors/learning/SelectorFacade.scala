@@ -55,7 +55,7 @@ class SelectorFacade @Inject() (
     sender ! WordsAndCards(ordered, Nil, Nil)
   }
 
-  val cards = context.actorOf(ioc.props[CardSelectorFacade], "cards")
+  private val cards = context.actorOf(ioc.props[CardSelectorFacade], "cards")
 
   def receive = {
     case LoadReviewList(max) => loadReviewList(max)
@@ -86,7 +86,7 @@ class CardSelectorFacade @Inject() (
     }
   }
 
-  val scheduler = context.actorOf(uc.props[CardSelectorCache], "scheduler")
+  private val scheduler = context.actorOf(uc.props[CardSelectorCache], "scheduler")
 
   def receive = {
     case LoadWords(max, skip) =>

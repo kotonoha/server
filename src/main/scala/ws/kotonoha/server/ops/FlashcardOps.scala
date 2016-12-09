@@ -16,8 +16,6 @@
 
 package ws.kotonoha.server.ops
 
-import java.util.concurrent.TimeUnit
-
 import akka.NotUsed
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
@@ -25,8 +23,8 @@ import net.liftweb.common.Full
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import reactivemongo.api.commands.GetLastError
+import ws.kotonoha.model.CardMode
 import ws.kotonoha.model.sm6.ItemCoordinate
-import ws.kotonoha.model.{CardMode, WordStatus}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.math.MathUtil
 import ws.kotonoha.server.mongodb.{KotonohaLiftRogue, RMData}
@@ -45,6 +43,7 @@ class FlashcardOps @Inject() (
   uc: UserContext,
   rm: RMData
 )(implicit ec: ExecutionContext) extends StrictLogging {
+
   import DateTimeUtils._
   import KotonohaLiftRogue._
   import OpsExtensions._
@@ -59,6 +58,11 @@ class FlashcardOps @Inject() (
 
   def byId(cid: ObjectId): Future[Option[WordCardRecord]] = {
     rm.fetch(forId(cid).limit(1)).map { _.headOption }
+  }
+
+  def forIds(ids: Seq[ObjectId]): Future[List[WordCardRecord]] = {
+    val q = WordCardRecord.where(_.user eqs uc.uid).and(_.id in ids)
+    rm.fetch(q)
   }
 
   def register(wid: ObjectId, mode: CardMode, priority: Int, enabled: Boolean): Future[ObjectId] = {
@@ -78,7 +82,7 @@ class FlashcardOps @Inject() (
 
   def otherCardsAfter(wid: ObjectId, myMode: CardMode, nextDate: DateTime): Future[NotUsed] = {
     val query = forWord(wid).and(_.cardMode.neqs(myMode)).modify(_.notBefore setTo nextDate)
-    rm.update(query, multiple = true).minMod(1)
+    rm.update(query, multiple = true).minMod(0)
   }
 
   def schedulePaired(wid: ObjectId, ignoreMode: CardMode): Future[NotUsed] = {
@@ -96,9 +100,11 @@ class FlashcardOps @Inject() (
     WordCardRecord.where(_.id.eqs(cid)).and(_.user.eqs(uid))
   }
 
-  def clearNotBefore(cid: ObjectId): Future[NotUsed] = {
-    logger.debug("Clearning not before for card id {}", cid)
-    scheduleAfter(cid, FiniteDuration(-5, TimeUnit.SECONDS))
+  def clearNotBefore(cids: Seq[ObjectId]): Future[NotUsed] = {
+    logger.debug("Clearning not before for card ids {}", cids)
+    val toSet = now.minusSeconds(5)
+    val q = WordCardRecord.where(_.user eqs uc.uid).and(_.id in cids).modify(_.notBefore.setTo(toSet))
+    rm.update(q, multiple = true).minMod(1)
   }
 
   def enableFor(wid: ObjectId, to: Boolean): Future[NotUsed] = {

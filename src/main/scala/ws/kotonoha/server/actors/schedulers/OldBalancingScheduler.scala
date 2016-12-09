@@ -16,6 +16,7 @@
 
 package ws.kotonoha.server.actors.schedulers
 
+import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.UserScopedActor
 import ws.kotonoha.server.records.WordCardRecord
 
@@ -32,9 +33,10 @@ class OldBalancingScheduler extends UserScopedActor {
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
-  def query(cnt: Int) = {
+  def query(cnt: Int, ignoredWords: Seq[ObjectId]) = {
     val date = now.plusDays(7)
     val q = WordCardRecord.enabledFor(uid) and (_.notBefore lt now) and
+      (_.word nin ignoredWords) and
       (_.learning.subfield(_.intervalLength) gt 30.0) and
       (_.learning.subfield(_.intervalEnd) between(now, date)) select (_.id, _.word)
     q.fetch(cnt)
@@ -42,7 +44,7 @@ class OldBalancingScheduler extends UserScopedActor {
 
   def receive = {
     case c: CardRequest =>
-      sender ! PossibleCards(query(c.reqLength).map {
+      sender ! PossibleCards(query(c.reqLength, c.ignoreWords).map {
         case (cid, wid) => ReviewCard(cid, wid, "OldBalancing")
       })
     case _: CardsSelected => //

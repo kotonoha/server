@@ -149,12 +149,14 @@ class RepetitionStateResolver(uid: ObjectId) {
   def resolveState(): State.State = {
     import State._
 
-    if (scheduledCnt > 3 * lastAvg / 2)
+    val currentlySched = scheduledCnt
+
+    if (lastStat.mean > 20 && currentlySched > (3 * lastAvg / 2))
       return AfterRest
 
     val bline = borderline
 
-    val noold = scheduledCnt < bline
+    val noold = currentlySched < bline
     val nonew = newAvailable < bline
     (noold, nonew) match {
       case (true, true) => return TotalStarvation
@@ -174,6 +176,6 @@ case class ScheduledCardCounts(
                                 badNa: List[Int]
                                 ) {
   def total = {
-    List(ready, bad, readyNa, badNa).transpose.map(lst => lst.reduceLeft(_ + _))
+    List(ready, bad, readyNa, badNa).transpose.map(lst => lst.sum)
   }
 }

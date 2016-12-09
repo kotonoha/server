@@ -18,6 +18,7 @@ package ws.kotonoha.server.actors.schedulers
 
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors.UserScopedActor
+import ws.kotonoha.server.util.DateTimeUtils
 
 /**
  *
@@ -33,14 +34,14 @@ class BadCardScheduler extends UserScopedActor {
   import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
   import ws.kotonoha.server.util.DateTimeUtils._
 
-  def loadBadCards(cnt: Int): List[(ObjectId, ObjectId)] = {
-    val q = Queries.badCards(uid) select (_.id, _.word)
+  def loadBadCards(cnt: Int, ignoreWords: Seq[ObjectId]): List[(ObjectId, ObjectId)] = {
+    val q = Queries.badCards(uid).and(_.notBefore lt DateTimeUtils.now).and(_.word nin ignoreWords).select (_.id, _.word)
     q.fetch(cnt)
   }
 
   def receive = {
     case c: CardRequest =>
-      sender ! PossibleCards(loadBadCards(c.reqLength).map {
+      sender ! PossibleCards(loadBadCards(c.reqLength, c.ignoreWords).map {
         case (cid, wid) => ReviewCard(cid, wid, "Bad")
       })
     case _: CardsSelected =>

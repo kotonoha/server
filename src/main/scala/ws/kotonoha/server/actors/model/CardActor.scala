@@ -34,8 +34,6 @@ case class SchedulePaired(wordId: ObjectId, cardType: CardMode) extends CardMess
 
 case class ChangeCardEnabled(wordId: ObjectId, status: Boolean) extends CardMessage
 
-case class ClearNotBefore(card: ObjectId) extends CardMessage
-
 case class ScheduleLater(card: ObjectId, duration: ReadableDuration) extends CardMessage
 
 case class DeleteCardsForWord(word: ObjectId) extends CardMessage
@@ -86,7 +84,6 @@ class CardActor @Inject() (
   override def receive = {
     case SchedulePaired(wid, cardMode) => cops.schedulePaired(wid, cardMode).map(_ => true).pipeTo(sender())
     case ChangeCardEnabled(wid, status) => cops.enableFor(wid, status).map(_ => true).pipeTo(sender())
-    case ClearNotBefore(card) => cops.clearNotBefore(card).logFailure
     case ScheduleLater(card, interval) =>
       cops.scheduleAfter(card, FiniteDuration(interval.getMillis, MILLISECONDS)).logFailure
     case DeleteCardsForWord(wid) => cops.deleteFor(wid).logFailure

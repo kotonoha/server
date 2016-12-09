@@ -171,7 +171,7 @@ class NewCardScheduler extends UserScopedActor with ActorLogging {
 
   def preloadToday(): Unit = {
     val today = NewCardSchedule where (_.user eqs uid) and (_.date gt now.minusDays(1)) select(_.card) fetch()
-    val data = WordCardRecord where (_.id in today) and (_.learning exists(false)) select(_.id, _.tags, _.cardMode, _.word) fetch()
+    val data = WordCardRecord where (_.id in today) and (_.learning.exists(false)) select(_.id, _.tags, _.cardMode, _.word) fetch()
     cached = data.map(CacheItem.tupled).toVector
   }
 

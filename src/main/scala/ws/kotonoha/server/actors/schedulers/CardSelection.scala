@@ -50,7 +50,11 @@ class DynamicSoruce(val provider: CardProvider, base: Double, tf: (CardRequest, 
 class ReqInfo(val weights: Array[Double]) {
   lazy val maxw: Double = weights.sum
 
-  def cumulative: Array[Double] = weights.scan(0.0)(_+_)
+  def cumulative(mask: Array[Boolean]): Array[Double] = {
+    weights.zipWithIndex.map{
+      case (a, i) => if (mask(i)) a else 0.0
+    }.scan(0.0)(_+_)
+  }
 }
 
 class CardMixer(input: List[CardSource]) extends Logging {
@@ -62,14 +66,15 @@ class CardMixer(input: List[CardSource]) extends Logging {
   private def combine(in: Array[List[ReviewCard]], limit: Int, ri: ReqInfo): (List[Int], List[ReviewCard]) = {
     val selected = new Array[Int](count)
 
-    val cumulative = ri.cumulative
+    val cumulative = ri.cumulative(in.map(_.nonEmpty))
+    val maxvalue = cumulative.last
 
     def stream(trials: Int): Stream[ReviewCard] = {
       if (trials > count * 2) {
         return Stream.Empty
       }
 
-      val v = rng.nextDouble() * ri.maxw
+      val v = rng.nextDouble() * maxvalue
       val crd = binarySearch(cumulative, v)
       val pos = if (crd > 0) (crd max count - 1) else -(crd + 2)
       in(pos) match {
@@ -81,8 +86,14 @@ class CardMixer(input: List[CardSource]) extends Logging {
       }
     }
 
-    val data = stream(0).distinct.take(limit).toList
-    (selected.toList, data)
+    try {
+      val data = stream(0).distinct.take(limit).toList
+      (selected.toList, data)
+    } catch {
+      case e: Throwable =>
+        logger.error("error when selecting words", e)
+        throw e
+    }
   }
 
   def calcReqInfo(request: CardRequest): ReqInfo = {

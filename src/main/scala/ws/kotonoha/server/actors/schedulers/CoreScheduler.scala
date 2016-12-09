@@ -106,9 +106,9 @@ class CoreScheduler @Inject() (
     )
   )
 
-  var current = 0
+  private var current = 0
 
-  val tid = (hashCode() & 0xf) << 16
+  private val tid = (hashCode() & 0xf) << 16
 
   def seqnum() = {
     val timepart = System.currentTimeMillis() / 1000

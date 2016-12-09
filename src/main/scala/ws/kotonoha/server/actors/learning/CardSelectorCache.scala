@@ -16,18 +16,21 @@
 
 package ws.kotonoha.server.actors.learning
 
+import java.util
+
 import akka.Done
 import akka.actor.{ActorLogging, ActorRef}
 import akka.util.Timeout
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.bson.types.ObjectId
+import org.joda.time.Duration
 import reactivemongo.api.commands.WriteResult
 import ws.kotonoha.server.actors.UserScopedActor
 import ws.kotonoha.server.actors.schedulers.{CoreScheduler, LoadCardsCore, ReviewCard}
 import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.mongodb.RMData
-import ws.kotonoha.server.records.WordCardRecord
+import ws.kotonoha.server.ops.FlashcardOps
 import ws.kotonoha.server.records.events.MarkEventRecord
 import ws.kotonoha.server.records.misc.CardSchedule
 
@@ -35,9 +38,12 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 class AlreadyProcessedWordFilter {
+  import ws.kotonoha.server.util.DateTimeUtils.now
+
   private val data = new Array[ObjectId](256)
   private val set = new mutable.HashSet[ObjectId]()
   private var idx = -1
+  private var lastDate = now
 
 
   def contains(oid: ObjectId): Boolean = set.contains(oid)
@@ -58,7 +64,15 @@ class AlreadyProcessedWordFilter {
     }
   }
 
-  def wids: Seq[ObjectId] = set.toSeq
+  def wids: Seq[ObjectId] = {
+    if (new Duration(lastDate, now).getStandardHours > 1) {
+      idx = -1
+      set.clear()
+      util.Arrays.fill(data.asInstanceOf[Array[Object]], null)
+    }
+    lastDate = now
+    set.toSeq
+  }
 }
 
 
@@ -69,7 +83,8 @@ class AlreadyProcessedWordFilter {
 class CardSelectorCache @Inject() (
   uc: UserContext,
   meo: MarkEventOps,
-  spo: SelectionPackOps
+  spo: SelectionPackOps,
+  cops: FlashcardOps
 ) extends UserScopedActor with ActorLogging {
 
   import akka.pattern.{ask, pipe}
@@ -94,16 +109,11 @@ class CardSelectorCache @Inject() (
     processed.clear()
   }
 
-  private def load(cids: Traversable[ObjectId]) = {
-    import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
-    WordCardRecord where (_.id in cids) fetch()
-  }
-
   def processLoad(cnt: Int, skip: Int): Unit = {
     cleanProcessed()
     if (cache.length < cnt) {
       val s = sender()
-      val wnc = (impl ? LoadCardsCore((cnt + skip) * 6 / 5 + 5, filter.wids)).mapTo[WordsAndCards]
+      val wnc = (impl ? LoadCardsCore((cnt + skip) * 8 / 5 + 5, filter.wids)).mapTo[WordsAndCards]
       wnc.map(w => ProcessAnswer(s, w, cnt, skip)) pipeTo self
     } else {
       answer(cnt, skip, sender())
@@ -113,9 +123,8 @@ class CardSelectorCache @Inject() (
 
   def answer(cnt: Int, skip: Int, to: ActorRef) {
     val ans = cache.slice(skip, skip + cnt)
-    log.debug("selected {}", ans)
-    val cards = load(ans.map(_.cid))
-    to ! WordsAndCards(Nil, cards, ans.toList)
+    log.debug("cache: {} select [{}:{}] {}", cache.length, cnt, skip, ans)
+    cops.forIds(ans.map(_.cid)).map { cds => WordsAndCards(Nil, cds, ans.toList) }.pipeTo(to)
   }
 
   def processReply(to: ActorRef, wnc: WordsAndCards, cnt: Int, skip: Int): Unit = {
@@ -123,8 +132,9 @@ class CardSelectorCache @Inject() (
     data.foreach { c => filter.add(c.wid) }
     val last = cache.length
     cache = (cache ++ data).distinct
-    answer(cnt, skip, to)
     log.debug("updated global card cache from {} to {} req {}", last, cache.length, cnt)
+
+    answer(cnt, skip, to)
   }
 
   def receive = {
