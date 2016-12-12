@@ -41,7 +41,7 @@ class AssignExamplesActor @Inject() (
 )(implicit ec: ExecutionContext, amat: ActorMaterializer) extends Actor with ActorLogging {
   import AssignExamplesActor._
 
-  var cancellable: Cancellable = null
+  private var cancellable: Cancellable = null
 
   override def postStop(): Unit = {
     super.postStop()
@@ -62,9 +62,9 @@ class AssignExamplesActor @Inject() (
     }
   }
 
-  var running = false
-  var start = DateTime.now()
-  var cnt = 0
+  private var running = false
+  private var start = DateTime.now()
+  private var cnt = 0
 
   override def receive = {
     case DoAssign =>

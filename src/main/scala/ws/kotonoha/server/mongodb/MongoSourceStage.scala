@@ -44,17 +44,24 @@ class MongoSourceStage(cur: Cursor[BSONDocument], limit: Int) extends GraphStage
     private var finished = false
 
     override def preStart(): Unit = {
-      val callback = getAsyncCallback { (r: Iterator[BSONDocument]) =>
-        docs ++= r
-        inRequest = false
-        if (isAvailable(out)) {
-          onPull()
-        }
+      val callback = getAsyncCallback[(Iterator[BSONDocument], Promise[Cursor.State[NotUsed]])] {
+        case (r: Iterator[BSONDocument], p: Promise[Cursor.State[NotUsed]]) =>
+          val curlen = docs.length
+          docs ++= r
+          val diff = docs.length - curlen
+          logger.trace(s"pack of docs from mongo: $curlen -> ${curlen + diff}")
+          inRequest = false
+          getNext = p
+          if (isAvailable(out)) {
+            onPull()
+          }
       }
 
-      val finishCallbach = getAsyncCallback { (c: Try[NotUsed]) =>
+      val finishCallback = getAsyncCallback { (c: Try[NotUsed]) =>
         c match {
-          case Success(_) => completeStage()
+          case Success(_) =>
+            finished = true
+            if (isAvailable(out)) { onPull() }
           case Failure(e) => failStage(e)
         }
       }
@@ -62,32 +69,30 @@ class MongoSourceStage(cur: Cursor[BSONDocument], limit: Int) extends GraphStage
       implicit val ec: ExecutionContext = materializer.executionContext
 
       cur.foldBulksM[NotUsed](NotUsed, limit) { (_, docs) =>
-        val f: Future[Cursor.State[NotUsed]] = if (!finished) {
-          getNext = Promise[Cursor.State[NotUsed]]
-          getNext.future
-        } else {
-          Future.successful(Cursor.Done(NotUsed))
-        }
-        callback.invoke(docs)
-        f
-      }.onComplete(finishCallbach.invoke)
+        val p = Promise[Cursor.State[NotUsed]]
+        callback.invoke((docs, p))
+        p.future
+      }.onComplete(finishCallback.invoke)
     }
 
     override def onDownstreamFinish(): Unit = {
       finished = true
+      logger.trace(s"downstream finished, still have ${docs.length} objs")
       if (!inRequest) {
         getNext.success(Cursor.Done(NotUsed))
       }
     }
 
-    def nextRequest() = {
+    private def nextRequest() = {
       inRequest = true
       getNext.success(Cursor.Cont(NotUsed))
     }
 
-    override def onPull() = {
+    override def onPull(): Unit = {
       if (docs.nonEmpty) {
         push(out, docs.dequeue())
+      } else if (finished) {
+        completeStage()
       }
 
       if (!inRequest && docs.size < 30) {

@@ -79,7 +79,7 @@ class WordExampleOps @Inject() (
 
       val p2 = b.add {
         Flow[Seq[ObjectId]].flatMapConcat { ids =>
-          logger.trace("ignoring {} words", ids.size)
+          logger.trace("ignoring {} words that come from scheduler", ids.size)
           val q = WordRecord.where(_.user eqs uid).and(_.repExStatus.neqs(RepExampleStatus.Present)).and(_.id nin ids)
           rd.stream(q)
         }.map(x => { logger.trace("rest: id={} {}", x.id, x.writing.stris); x })

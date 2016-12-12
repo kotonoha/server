@@ -17,7 +17,7 @@
 package ws.kotonoha.server.actors.examples
 
 import akka.actor.{ActorRef, ActorSystem, Scheduler}
-import akka.stream.scaladsl.{Flow, Source}
+import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.{Done, NotUsed}
 import com.google.inject.{Inject, Provides, Singleton}
 import com.google.inject.name.Named
@@ -62,10 +62,12 @@ class ExampleAssignment @Inject() (
   def input: Source[AssignExamplesRequest, NotUsed] = {
     import ws.kotonoha.server.mongodb.KotonohaLiftRogue._
     val q = UserRecord.where(_.status eqs UserStatus.Active).orderAsc(_.id).select(_.id)
-    rd.stream(q).map(id => AssignExamplesRequest(id))
+    logger.trace(s"user query=$q")
+    rd.stream(q, batchSize = 100).map(id => AssignExamplesRequest(id))
   }
 
   def wordsWithoutExamples(req: AssignExamplesRequest): Source[WordRecord, NotUsed] = {
+    logger.trace(s"assigning examples for user id=${req.uid}")
     wex.wordsForAssign(req.uid)
   }
 
