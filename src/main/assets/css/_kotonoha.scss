@@ -138,9 +138,23 @@ div.selections {
   }
 }
 
+.displayed-flashcard {
+
+  .flashcard-content {
+    min-height: 20em;
+
+    @media (max-width: map-get($grid-breakpoints, sm)) {
+      min-height: 0.8vh;
+    }
+  }
+
+  .word-additional {
+    margin-bottom: 1em;
+  }
+}
+
 .mark-btns button {
   width: calc(20% - 1mm);
-  border: 0;
   margin: 0;
   padding-left: 0;
   padding-right: 0;
@@ -159,11 +173,16 @@ div.selections {
   span.target {
     border-bottom: 1mm #872F00 solid;
   }
+
+  &.japanese {
+    font-size: larger;
+  }
 }
 
 .addinfo {
   border: 0.5mm lightgray dotted;
-  padding: 0.25em;
+  padding-right: 0.25em;
+  padding-left: 0.25em;
   border-radius: 0.25em;
   margin-right: 1mm;
   margin-top: 0.25em;

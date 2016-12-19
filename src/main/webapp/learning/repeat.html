@@ -23,10 +23,10 @@
     <div class="word-display ng-cloak">
       <h6 class="ng-cloak" data-ng-show="curSession >= 0">Reviewing: session - {{curSession}}, today - {{today}}</h6>
       <div class="row">
-        <div class="col-xs-12 col-sm-5 card-data">
-          <div style="min-height: 20em;">
+        <div class="col-xs-12 col-sm-5 displayed-flashcard">
+          <div class="flashcard-content">
             <div class="pull-right card-btns" ng-show="card != null && contentVisible()">
-              <a ng-href="../words/detail?w={{card.word}}"
+              <a data-ng-href="../words/detail?w={{card.word}}"
                  class="btn btn-outline-info btn-sm"
                  target="_blank"
                  title="Edit"><i class="fa fa-pencil"></i> Edit</a>
@@ -43,8 +43,17 @@
                 </span>
               </div>
             </div>
-            <div data-ng-show="state_question() || (contentVisible() && card.question.length > 1)" class="card-question japanese">
-              <span data-ng-repeat="p in card.question" data-ng-bind="p.content" data-ng-class="{target: p.target}"></span>
+            <div
+              class="card-question japanese"
+              data-ng-show="state_question() || (contentVisible() && card.question.length > 1)">
+              <span
+                data-ng-repeat="p in card.question"
+                data-ng-class="{target: p.target}"
+                data-ng-switch="p.ruby !== undefined"><!--
+              --><ruby data-ng-switch-when="true"><rb data-ng-bind="p.content"></rb><rt data-ng-bind="p.ruby"></rt></ruby><!--
+              --><span data-ng-switch-default data-ng-bind="p.content"><!--
+            --></span><!--
+            --></span>
             </div>
           </div>
           <div class="button-pane" style="height: 5em">
@@ -54,17 +63,17 @@
               </div>
             </div>
             <div class="hor-center mark-btns" data-ng-show="state_answer()">
-              <button class="btn" data-ng-click="mark(1, 'btn')">1</button>
-              <button class="btn" data-ng-click="mark(2, 'btn')">2</button>
-              <button class="btn" data-ng-click="mark(3, 'btn')">3</button>
-              <button class="btn" data-ng-click="mark(4, 'btn')">4</button>
-              <button class="btn" data-ng-click="mark(5, 'btn')">5</button>
+              <button class="btn btn-outline-primary" data-ng-click="mark(1, 'btn')">1</button>
+              <button class="btn btn-outline-primary" data-ng-click="mark(2, 'btn')">2</button>
+              <button class="btn btn-outline-primary" data-ng-click="mark(3, 'btn')">3</button>
+              <button class="btn btn-outline-primary" data-ng-click="mark(4, 'btn')">4</button>
+              <button class="btn btn-outline-primary" data-ng-click="mark(5, 'btn')">5</button>
             </div>
             <div data-ng-show="state_ready()">
-              <button class="btn btn-block" data-ng-click="nextCard()">Show next word</button>
+              <button class="btn btn-outline-primary btn-block" data-ng-click="nextCard()">Show next word</button>
             </div>
             <div data-ng-show="state_question()">
-              <button class="btn btn-block" data-ng-click="showAnswer()">Show answer</button>
+              <button class="btn btn-outline-primary btn-block" data-ng-click="showAnswer()">Show answer</button>
             </div>
           </div>
         </div>
