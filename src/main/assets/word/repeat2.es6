@@ -1,4 +1,4 @@
-let mod = angular.module('kotonoha');
+let mod = angular.module('kotonoha', ['ui.popover4']);
 
 const STATE_INIT = 0;
 const STATE_QUESTION = 1;
@@ -7,6 +7,8 @@ const STATE_NOCARDS = 3;
 const STATE_MARK = 4;
 const STATE_TIMEOUT = 5;
 const STATE_READY = 6;
+
+const EX_STATUS_INITIAL = -1000;
 
 const keybindings = {
   49: 1, 122: 1, // 1 and z
@@ -28,6 +30,14 @@ mod.controller('RepeatController', ['$scope', '$http', 'RepeatBackend', function
     return state == STATE_ANSWER || state == STATE_MARK || state == STATE_READY;
   };
   scope.card = null;
+
+  scope.badExReasons = [
+    {code: 1, text: "Invalid word"},
+    {code: 2, text: "Invalid reading"},
+    {code: 3, text: "Invalid markup"},
+    {code: 4, text: "Bad example"},
+    {code: 0, text: "Other"}
+  ];
 
   let cardCache = [];
   let processed = [];
@@ -59,6 +69,7 @@ mod.controller('RepeatController', ['$scope', '$http', 'RepeatBackend', function
     scope.card = c;
     questionShown = new Date();
     scope.state = STATE_QUESTION;
+    scope.exState = EX_STATUS_INITIAL; //initial state
   };
 
   scope.showAnswer = function () {
@@ -82,6 +93,33 @@ mod.controller('RepeatController', ['$scope', '$http', 'RepeatBackend', function
     };
     backend.toActor(mark);
     scope.state = STATE_READY;
+  };
+
+  function doReport(cardId, exId, status) {
+    let msg = {
+      cmd: "report-ex",
+      card: cardId,
+      exId: exId,
+      status: status
+    };
+    backend.toActor(msg);
+    scope.exState = status;
+  }
+  
+  scope.reportGood = function (cardId, exId) {
+    doReport(cardId, exId, scope.exState == -1 ? EX_STATUS_INITIAL : -1);
+  };
+  
+  scope.reportBad = function (cardId, exId, reason) {
+    doReport(cardId, exId, reason); //-1 is good
+  };
+
+  scope.handleBadBtn = function (po, cardId, exId) {
+    if (scope.exState < 0) {
+      po.toggle();
+    } else if (scope.exState >= 0) {
+      doReport(cardId, exId, EX_STATUS_INITIAL);
+    }
   };
 
   function processCards(cards) {

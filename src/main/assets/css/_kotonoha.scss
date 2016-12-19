@@ -151,6 +151,20 @@ div.selections {
   .word-additional {
     margin-bottom: 1em;
   }
+
+  .exsent-feedback-btns .btn {
+    padding: 0.5mm 1mm;
+    margin: 0;
+    border: dotted #585858 0.5mm;
+
+    &:hover {
+      background: hsla(21, 100%, 26%, 0.2);
+    }
+
+    &.reported {
+      border: solid 0.5mm #872F00;
+    }
+  }
 }
 
 .mark-btns button {

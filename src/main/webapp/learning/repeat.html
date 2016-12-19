@@ -19,6 +19,7 @@
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
   <script class="lift:cpres.js?src=word/repeat2&nomin=true"></script>
+  <script class="lift:cpres.js?src=ng/popover4&nomin=true"></script>
   <div class="lift:RepeatActorSnippet" data-ng-controller="RepeatController">
     <div class="word-display ng-cloak">
       <h6 class="ng-cloak" data-ng-show="curSession >= 0">Reviewing: session - {{curSession}}, today - {{today}}</h6>
@@ -54,6 +55,28 @@
               --><span data-ng-switch-default data-ng-bind="p.content"><!--
             --></span><!--
             --></span>
+              <span class="exsent-feedback-btns">
+                <a class="btn"
+                   data-ng-click="reportGood(card.id, card.rexIdx)"
+                   aria-hidden="true"
+                   data-ng-class="{reported: exState == -1}">
+                  <i class="fa fa-thumbs-o-up"></i>
+                </a>
+                <a class="btn"
+                   aria-hidden="true"
+                   data-ng-click="handleBadBtn(po, card.id, card.rexIdx)"
+                   data-ng-class="{reported: exState >= 0}">
+                  <i class="fa fa-thumbs-o-down"></i>
+                  <div popover4="po" popover4-manual="true">
+                    <button
+                      class="btn btn-small btn-block btn-outline-info"
+                      data-ng-repeat="r in badExReasons"
+                      data-ng-bind="r.text"
+                      data-ng-click="po.toggle(); reportBad(card.id, card.rexIdx, r.code);"
+                    ></button>
+                  </div>
+                </a>
+              </span>
             </div>
           </div>
           <div class="button-pane" style="height: 5em">

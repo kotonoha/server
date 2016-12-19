@@ -12,7 +12,8 @@ popover4.directive('popover4', [() => {
       controller: () => {
         return {
           pobj: null,
-          $onDestroy: function() { if (this.pobj != null) this.pobj.popover('dispose'); }
+          $onDestroy: function() { if (this.pobj != null) this.pobj.popover('dispose'); },
+          toggle: function () { if (this.pobj !== null) this.pobj.popover('toggle') }
         };
       },
       transclude: true,
@@ -21,6 +22,11 @@ popover4.directive('popover4', [() => {
           elem.remove();
           return
         }*/
+
+        if (attr['popover4'] !== undefined) {
+          let name = attr['popover4'];
+          scope[name] = ctrl;
+        }
 
         let parent = elem.parent();
         let po = parent.popover({
@@ -31,9 +37,13 @@ popover4.directive('popover4', [() => {
           placement: "bottom"
         });
 
-        po.on('click', () => {
-          po.popover('toggle');
-        });
+        if (!attr['popover4Manual']) {
+          po.on('click', () => {
+            po.popover('toggle');
+          });
+        }
+
+        elem.detach();
 
         ctrl.pobj = po;
       }
