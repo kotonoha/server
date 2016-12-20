@@ -72,6 +72,25 @@ mod.controller('RepeatController', ['$scope', '$http', 'RepeatBackend', function
     scope.exState = EX_STATUS_INITIAL; //initial state
   };
 
+  /**
+   *
+   * @param part
+   * @returns {number}
+   * 1 means display writing with ruby
+   * 2 means display ruby as a simple text
+   */
+  scope.questionDisplayMode = function (part) {
+    if (part.target && scope.state == STATE_QUESTION) {
+      if (scope.card.mode == 'reading' && part.ruby !== undefined) {
+        return 2;
+      } else return 0;
+    }
+    if (part.ruby !== undefined) {
+      return 1;
+    }
+    return 0;
+  };
+
   scope.showAnswer = function () {
     scope.state = STATE_ANSWER;
     answerShown = new Date();

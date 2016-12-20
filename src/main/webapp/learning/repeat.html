@@ -50,10 +50,10 @@
               <span
                 data-ng-repeat="p in card.question"
                 data-ng-class="{target: p.target}"
-                data-ng-switch="p.ruby !== undefined"><!--
-              --><ruby data-ng-switch-when="true"><rb data-ng-bind="p.content"></rb><rt data-ng-bind="p.ruby"></rt></ruby><!--
-              --><span data-ng-switch-default data-ng-bind="p.content"><!--
-            --></span><!--
+                data-ng-switch="questionDisplayMode(p)"><!--
+              --><ruby data-ng-switch-when="1"><rb data-ng-bind="p.content"></rb><rt data-ng-bind="p.ruby"></rt></ruby><!--
+              --><span data-ng-switch-when="2" data-ng-bind="p.ruby"></span><!--
+              --><span data-ng-switch-default data-ng-bind="p.content"></span><!--
             --></span>
               <span class="exsent-feedback-btns" data-ng-show="feedbackBtnsVisible()">
                 <a class="btn"

@@ -42,17 +42,7 @@ object CardRepetitionQuestion extends StrictLogging {
   }
 
   def formatSentenceQuestion(w: WordRecord, ex: ExampleSentence, mode: CardMode): Seq[RepQuestionPart] = {
-    ex.units.map { u =>
-      u.target match {
-        case 0 => RepQuestionPart(u.content, u.reading, false)
-        case _ =>
-          mode match {
-            case CardMode.Writing => RepQuestionPart(u.content, None, true)
-            case CardMode.Reading => RepQuestionPart(u.reading.getOrElse(u.content), None, true)
-            case _ => RepQuestionPart(u.content, None, true)
-          }
-      }
-    }
+    ex.units.map { u => RepQuestionPart(u.content, u.reading, u.target != 0) }
   }
 
   def formatQuestion(w: WordRecord, mode: CardMode): (Int, Seq[RepQuestionPart]) = {
