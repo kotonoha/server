@@ -55,9 +55,11 @@ object Common {
   }
 
   def isLoggedIn(in: NodeSeq): NodeSeq = {
-    if (UserRecord.currentId.isEmpty) {
-      NodeSeq.Empty
-    } else in
+    val empty = UserRecord.currentId.isDefined
+    val target = S.attr("value").map(_ == "true").openOr(true)
+    if (empty == target) {
+      in
+    } else NodeSeq.Empty
   }
 
   def loggedInClass(in: NodeSeq): NodeSeq = {
