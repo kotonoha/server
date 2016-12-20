@@ -13,7 +13,8 @@ popover4.directive('popover4', [() => {
         return {
           pobj: null,
           $onDestroy: function() { if (this.pobj != null) this.pobj.popover('dispose'); },
-          toggle: function () { if (this.pobj !== null) this.pobj.popover('toggle') }
+          toggle: function () { if (this.pobj !== null) this.pobj.popover('toggle'); },
+          hide: function () { if (this.pobj !== null) this.pobj.popober('hide'); }
         };
       },
       transclude: true,
@@ -28,13 +29,19 @@ popover4.directive('popover4', [() => {
           scope[name] = ctrl;
         }
 
+        let placement = "bottom";
+
+        if (attr['popover4Placement'] !== undefined) {
+          placement = attr['popover4Placement'];
+        }
+
         let parent = elem.parent();
         let po = parent.popover({
           container: "body",
           content: elem,
           html: true,
           trigger: "manual",
-          placement: "bottom"
+          placement: placement
         });
 
         if (!attr['popover4Manual']) {

@@ -95,6 +95,10 @@ mod.controller('RepeatController', ['$scope', '$http', 'RepeatBackend', function
     scope.state = STATE_READY;
   };
 
+  scope.feedbackBtnsVisible = function() {
+    return (scope.state == STATE_READY || scope.state == STATE_ANSWER) && scope.card.question.length > 1;
+  };
+
   function doReport(cardId, exId, status) {
     let msg = {
       cmd: "report-ex",

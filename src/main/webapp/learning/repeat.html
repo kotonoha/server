@@ -55,7 +55,7 @@
               --><span data-ng-switch-default data-ng-bind="p.content"><!--
             --></span><!--
             --></span>
-              <span class="exsent-feedback-btns">
+              <span class="exsent-feedback-btns" data-ng-show="feedbackBtnsVisible()">
                 <a class="btn"
                    data-ng-click="reportGood(card.id, card.rexIdx)"
                    aria-hidden="true"
@@ -65,9 +65,10 @@
                 <a class="btn"
                    aria-hidden="true"
                    data-ng-click="handleBadBtn(po, card.id, card.rexIdx)"
-                   data-ng-class="{reported: exState >= 0}">
+                   data-ng-class="{reported: exState >= 0}"
+                   data-ng-blur="po.hide()">
                   <i class="fa fa-thumbs-o-down"></i>
-                  <div popover4="po" popover4-manual="true">
+                  <div popover4="po" popover4-manual="true" popover4-direction="auto">
                     <button
                       class="btn btn-small btn-block btn-outline-info"
                       data-ng-repeat="r in badExReasons"
