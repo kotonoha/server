@@ -63,9 +63,25 @@ textarea.autoresize {
 
 .logo-img {
   display: inline-block;
-  height: 1.5cm;
-  width: 1.5cm;
-  margin: 2mm 2mm 2mm 5mm;
+
+  @media (min-width: map-get($grid-breakpoints, md)) {
+    height: 1.5cm;
+    width: 1.5cm;
+    margin: 2mm 2mm 2mm 5mm;
+  }
+
+  @media (max-width: map_get($grid-breakpoints, md)) {
+    height: 40px;
+    width: 40px;
+  }
+}
+
+.debug-label {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  color: red;
+  font-weight: bolder;
 }
 
 .brand-title {
@@ -74,6 +90,11 @@ textarea.autoresize {
   font-weight: bold;
   vertical-align: middle;
   font-family: Arial;
+
+  @media (max-width: map_get($grid-breakpoints, md)) {
+    height: inherit;
+    font-size: 1.5rem;
+  }
 }
 
 a.non-existent {
@@ -144,7 +165,7 @@ div.selections {
     min-height: 20em;
 
     @media (max-width: map-get($grid-breakpoints, sm)) {
-      min-height: 0.8vh;
+      min-height: 60vh;
     }
   }
 
@@ -295,6 +316,10 @@ $menu-width: 240px;
 
   @media (min-width: map-get($grid-breakpoints, md)) {
     width: $menu-width;
+
+    &.collapse {
+      display: block;
+    }
   }
 
   @media (max-width: map-get($grid-breakpoints, md)) {

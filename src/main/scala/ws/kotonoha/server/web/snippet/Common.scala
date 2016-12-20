@@ -16,14 +16,16 @@
 
 package ws.kotonoha.server.web.snippet
 
+import net.liftweb.common.{Box, Full}
 import net.liftweb.http.{S, SessionVar}
+import net.liftweb.util.Helpers
 import org.joda.time.DateTime
 import ws.kotonoha.server.actors.lift.pertab.InsertNamedComet
 import ws.kotonoha.server.records.UserRecord
-import ws.kotonoha.server.util.Formatting
+import ws.kotonoha.server.util.{Formatting, NodeSeqUtil}
 import ws.kotonoha.server.web.comet.ActorUser
 
-import scala.xml.{NodeSeq, Text}
+import scala.xml.{Elem, NodeSeq, Text}
 
 /**
  * @author eiennohito
@@ -50,6 +52,22 @@ object Common {
   def year(in: NodeSeq): NodeSeq = {
     val year = DateTime.now().getYear.toString
     Text(year)
+  }
+
+  def isLoggedIn(in: NodeSeq): NodeSeq = {
+    if (UserRecord.currentId.isEmpty) {
+      NodeSeq.Empty
+    } else in
+  }
+
+  def loggedInClass(in: NodeSeq): NodeSeq = {
+    val shouldAssign = UserRecord.currentId.isDefined ^ S.attr("inverse").map(_ == "true").openOr(false)
+    val cls = S.attr("cls").openOr("")
+
+    if (!shouldAssign) in else in.map {
+      case e: Elem => Helpers.addCssClass(Full(cls), e)
+      case x => x
+    }
   }
 }
 

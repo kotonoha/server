@@ -9,7 +9,7 @@ $nav-padding: 15px;
 
 .nav > .nav-item > a {
   width: 100%;
-  margin-left: -$nav-padding;
+  margin-left: -($nav-padding);
   padding: 2px $nav-padding;
 
   &:hover {
