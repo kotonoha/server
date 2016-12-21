@@ -109,12 +109,6 @@ trait ApproveWordActorT extends NamedCometActor with NgLiftActor with AkkaIntero
 
   def svcName = "AddSvc"
 
-  override def render = {
-    logger.debug("AddWordActor.render")
-    val pr = super.render.copy(xhtml = Full(defaultHtml))
-    pr
-  }
-
   var displaying: Map[String, WordData] = Map()
 
   private class WordDataCalculator extends Logging {

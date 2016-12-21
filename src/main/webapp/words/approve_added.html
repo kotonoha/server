@@ -23,7 +23,8 @@
     <script class="lift:cpres.ng?src=word/approve-add"></script>
     <script class="lift:cpres.js?src=taglist"></script>
   </head_merge>
-  <div class="lift:ApproveWordActorSnippet container" ng-controller="AddWord">
+  <div class="lift:ApproveWordActorSnippet"><!-- actor goes here --></div>
+  <div class="container" ng-controller="AddWord">
     <div id="status" class="row">
       <span ng-show="loaded && cur == total">Nothing to add now, pal</span>
       <span id="status-string" ng-show="!loaded"><b>Please wait, loading...</b></span>

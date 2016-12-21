@@ -17,7 +17,7 @@ ctor = ($q, AddSvc, $scope) ->
     $scope.total = obj.total;
 
   display_recommendation = ->
-    if (!recCacheValid)
+    if (!recCacheValid && recCache.length > 0)
       recs = [x.req for x in recCache]
       cmd =
         cmd: "recalc-recs"
@@ -145,7 +145,7 @@ ctor = ($q, AddSvc, $scope) ->
     svc.toActor(cmd)
 
 
-  svc.callback = (obj) ->
+  svc.onMessage (obj) ->
     if (!$scope.loaded) then $scope.$apply ->
       $scope.loaded = true;
     if (obj.cmd?) then switch(obj.cmd)
