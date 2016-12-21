@@ -336,6 +336,13 @@ $menu-width: 240px;
   }
 }
 
+.width-limit {
+  @media (min-width: 1400px) {
+    width: 1400px;
+    @include make-container();
+  }
+}
+
 @import "../bootstrap/scss/buttons";
 
 $btn-paddings-y-mini: 0.15rem !default;
