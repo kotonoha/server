@@ -57,9 +57,9 @@
       <div>
         <div candidate="true" class="candidate" ng-repeat="c in candidates">
           <div class="icons pull-right" ng-show="type == 'bad'">
-            <a href="javascript:void(0);" class="" title="Penaltize this word"
-               ng-click="penaltize(c)">
-              <i class="icon-circle-arrow-down"></i>
+            <a href="javascript:void(0);" class="btn p-0" title="Penaltize this word"
+               ng-click="penaltize(c); $event.stopPropagation();">
+              <i class="fa fa-arrow-circle-o-down"></i>
             </a>
           </div>
           <div class="cand-fld cand-writing nihongo"><span>{{writing}}</span></div>

@@ -126,10 +126,11 @@ ctor = ($q, AddSvc, $scope) ->
   $scope.process_recomendation = (item, ev) ->
     invalidate_rec_cache()
     $(ev.target).parents('.rec-item').hide -> $scope.$apply -> item.processed = true
-    x = {}
-    x.writing = item.writings.join(",")
-    x.reading = item.readings.join(",")
-    x.meaning = item.meanings.join("\n")
+    x = {
+      writing: item.writings.join(","),
+      reading: item.readings.join(","),
+      meaning: item.meanings.join("\n")
+    }
     cmd =
       cmd: "add-from-dic"
       entry: x

@@ -21,6 +21,7 @@ import javax.inject.Inject
 import akka.actor.ActorLogging
 import akka.pattern.ask
 import akka.util.Timeout
+import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.{Box, Empty}
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.unicode.{KanaUtil, UnicodeUtil}
@@ -51,12 +52,29 @@ case class WordData(dicts: Seq[DictData], examples: List[ExampleForSelection], w
 
 case class DictCard(writing: String, reading: String, meaning: String)
 
-object DictCard {
+object DictCard extends StrictLogging {
+
+  private val circleOne = '\u2460' // ①
+
+  private def circledNumber(onePlus: Int): Char = {
+    if (onePlus >= 0 && onePlus <= 19) {
+      (circleOne + onePlus).toChar
+    } else {
+      '※'
+    }
+  }
+
   def makeCard(writing: Seq[String], reading: Seq[String], meaning: Seq[String]) = {
+    val means = if (meaning.length == 1) {
+      meaning.head
+    } else {
+      meaning.zipWithIndex.map { case (x, i) => s"${circledNumber(i)} $x" }.mkString("\n")
+    }
+
     DictCard(
       writing.mkString(", "),
       reading.mkString(", "),
-      meaning.mkString("\n")
+      means
     )
   }
 }

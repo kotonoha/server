@@ -167,6 +167,10 @@ div.selections {
     @media (max-width: map-get($grid-breakpoints, sm)) {
       min-height: 60vh;
     }
+
+    .word-meaning {
+      white-space: pre-line;
+    }
   }
 
   .word-additional {
