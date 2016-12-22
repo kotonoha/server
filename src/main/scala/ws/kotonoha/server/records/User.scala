@@ -125,10 +125,13 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
         UserUtil.authByCookie(crypt, ua)
       }) match {
         case Full(uid) => {
+          logger.debug(s"autologging user $uid using cookie")
           updateCookie(uid)
           logUserIdIn(uid.toString)
         }
-        case _ => deleteCookie()
+        case _ =>
+          logger.debug("invalid autologin cookie, cleaning it")
+          deleteCookie()
       }
   })
 

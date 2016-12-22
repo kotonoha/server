@@ -222,6 +222,8 @@ class Boot extends Logging {
     // What is the function to test if a user is logged in?
     LiftRules.loggedInTest = Full(() => UserRecord.loggedIn_?)
 
+    LiftSession.afterSessionCreate ::= { (_, _) => UserRecord.loggedIn_? }
+
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>
       if (r.path(0) != "static") {
