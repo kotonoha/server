@@ -165,11 +165,19 @@ div.selections {
     min-height: 20em;
 
     @media (max-width: map-get($grid-breakpoints, sm)) {
-      min-height: 60vh;
+      min-height: 65vh;
     }
 
     .word-meaning {
       white-space: pre-line;
+      overflow-y: scroll;
+
+      @media (max-width: map-get($grid-breakpoints, sm)) {
+        max-height: 50vh;
+      }
+
+      max-height: calc(80vh - 5cm);
+
     }
   }
 
@@ -177,17 +185,21 @@ div.selections {
     margin-bottom: 1em;
   }
 
-  .exsent-feedback-btns .btn {
-    padding: 0.5mm 1mm;
-    margin: 0;
-    border: dotted #585858 0.5mm;
+  .exsent-feedback-btns {
+    display: inline-block;
 
-    &:hover {
-      background: hsla(21, 100%, 26%, 0.2);
-    }
+    .btn {
+      padding: 0.5mm 1mm;
+      margin: 0;
+      border: dotted #585858 0.5mm;
 
-    &.reported {
-      border: solid 0.5mm #872F00;
+      &:hover {
+        background: hsla(21, 100%, 26%, 0.2);
+      }
+
+      &.reported {
+        border: solid 0.5mm #872F00;
+      }
     }
   }
 }
