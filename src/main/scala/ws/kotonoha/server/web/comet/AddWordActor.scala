@@ -50,6 +50,8 @@ case class Possibility(writing: String, reading: String, meaning: Seq[String], i
 
 case class DisplayingEntry(item: Candidate, present: Seq[Possibility], dic: Seq[Possibility])
 
+case class PresentEntry(id: ObjectId, writing: List[String], reading: List[String], meaning: String)
+
 class AddWordActor @Inject() (
   jmd: LuceneJmdict
 ) extends NgLiftActor with AkkaInterop with NamedCometActor with Logging with ReleaseAkka {
@@ -60,10 +62,11 @@ class AddWordActor @Inject() (
 
   val self = this
 
-  val uid = UserRecord.currentId.openOrThrowException("This page shouldn't be accessible without logging in")
+  private val uid = UserRecord.currentId.openOrThrowException("This page shouldn't be accessible without logging in")
 
-  var everything: List[Candidate] = Nil
-  var good: List[Candidate] = Nil
+  private var everything: List[Candidate] = Nil
+  private var good: List[Candidate] = Nil
+  private var present: Map[String, List[PresentEntry]] = Map.empty
 
   def svcName = "AddWordActor"
 
@@ -71,7 +74,7 @@ class AddWordActor @Inject() (
     case x => self ! ProcessJson(x); _Noop
   }
 
-  def all(s: String): List[Candidate] = AddStringParser.entries(new CharSequenceReader(s)) match {
+  private def all(s: String): List[Candidate] = AddStringParser.entries(new CharSequenceReader(s)) match {
     case AddStringParser.Success(l, _) => l.distinct
     case _ => logger.warn(s"can't parse $s"); Nil
   }
@@ -95,27 +98,28 @@ class AddWordActor @Inject() (
         r.source("default")
         r.save()
     }
+    present = Map.empty
     partialUpdate(RedirectTo(s"/words/approve_added?list=$lid"))
   }
 
-  //load present words
-  def calculatePresent() = {
-    val wrs = everything.map {
-      _.writing
+  private def handleInit() = {
+    logger.debug(s"loading words for user $uid")
+    val q = WordRecord.where(_.user eqs uid).select(_.id, _.writing, _.reading, _.meaning)
+    val data = q.fetch().map(PresentEntry.tupled)
+
+    var map = Map.empty[String, List[PresentEntry]]
+    for {
+      entry <- data
+      wr <- entry.writing
+    } {
+      val content = map.getOrElse(wr, Nil)
+      map = map.updated(wr, entry :: content)
     }
-    val q = WordRecord where (_.user eqs uid) // and (_.writing in wrs)
-    val int = q.fetch() flatMap {
-        i => i.writing.get.map {
-          w => w -> i
-        }
-      }
-    int.foldLeft(Map.empty[String, List[WordRecord]].withDefaultValue(Nil)) {
-      case (m, (w, i)) =>
-        m.updated(w, i :: m(w))
-    }
+
+    present = map
   }
 
-  def dicPossibiliry(dic: JmdictEntry) = {
+  private def dicPossibiliry(dic: JmdictEntry) = {
     Possibility(
       writing = dic.writings.map(k => k.content).mkString(", "),
       reading = dic.readings.map(k => k.content).mkString(", "),
@@ -124,8 +128,12 @@ class AddWordActor @Inject() (
     )
   }
 
-  def createEntry(in: Candidate, cur: Map[String, List[WordRecord]]) = {
-    val wds = cur(in.writing).map(r => Possibility(r.writing.stris, r.reading.stris, r.meaning.get :: Nil, Some(r.id.get.toHexString)))
+  private def createEntry(in: Candidate, cur: Map[String, List[PresentEntry]]) = {
+    val wds = cur.getOrElse(in.writing, Nil).map { r =>
+      val wrs = r.writing.mkString(",")
+      val rds = r.reading.mkString(",")
+      Possibility(wrs, rds, r.meaning :: Nil, Some(r.id.toHexString))
+    }
     val dics = jmd.find(in.query(limit = 3)).data.map(dicPossibiliry)
     DisplayingEntry(in, wds, dics)
   }
@@ -136,9 +144,9 @@ class AddWordActor @Inject() (
       good = Nil
       updateHttpVariants(Nil)
     } else {
-      val alreadyPresent = calculatePresent()
+      val alreadyPresent = present
       good = everything.filter {
-        k => alreadyPresent(k.writing).isEmpty
+        k => !alreadyPresent.contains(k.writing)
       }
       val data = everything map {
         createEntry(_, alreadyPresent)
@@ -182,8 +190,9 @@ class AddWordActor @Inject() (
     akkaServ ! ForUser(uid, ProcessMarkEvents(evs))
   }
 
-  def fromPage(cmd: String, jv: JValue): Unit = {
+  private def fromPage(cmd: String, jv: JValue): Unit = {
     cmd match {
+      case "init" => handleInit()
       case "publish" => handlePublish(jv)
       case "save_all" => handleSave(everything, jv)
       case "save_good" => handleSave(good, jv)

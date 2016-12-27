@@ -52,7 +52,8 @@ ctor = ($scope, AddWordActor) ->
     fn = cmds[cmd]
     if fn? then fn(data) else console.error("can't handle", msg)
 
-  act.callback = recieve
+  act.toActor { cmd: "init", data: "" }
+  act.onMessage(recieve)
 
   executing = false
   next = null
