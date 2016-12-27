@@ -19,12 +19,13 @@ package ws.kotonoha.server.web.comet
 import akka.actor.{PoisonPill, Scheduler}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
-import net.liftweb.common.{Box, Full}
+import net.liftweb.common.{Box, Empty, Failure, Full}
 import net.liftweb.http.ShutDown
 import net.liftweb.http.js.JsCmds
 import net.liftweb.json.JsonAST._
 import net.liftweb.util.Helpers.TimeSpan
-import ws.kotonoha.lift.json.{JLCaseClass, JWrite}
+import org.bson.types.ObjectId
+import ws.kotonoha.lift.json.{JFormat, JLCaseClass, JRead, JWrite}
 import ws.kotonoha.model.CardMode
 import ws.kotonoha.server.actors.AkkaMain
 import ws.kotonoha.server.actors.learning.RepeatBackendActor
@@ -54,7 +55,6 @@ object RepeatActor {
   implicit val rqpWrite = JLCaseClass.write[RepQuestionPart]
   implicit val reWrite = JLCaseClass.write[ReviewExample]
   implicit val readdWrite = JLCaseClass.write[RepAdditional]
-  implicit val rcWrite = JLCaseClass.write[RepCard]
 
   case class PublishCards(cards: Seq[RepCard])
   case class WebMsg(cmd: String, data: JValue)
@@ -66,8 +66,29 @@ object RepeatActor {
   implicit val wmFormat = JLCaseClass.format[WebMsg]
   implicit val rcFormat = JLCaseClass.write[RepCount]
 
+  implicit object oidRead extends JFormat[ObjectId] {
+    override def read(v: JValue): Box[ObjectId] = v match {
+      case JString(s) =>
+        if (s.length == 24) try {
+          Full(new ObjectId(s))
+        } catch {
+          case e: Exception => Failure(s"could not serialize objectId from $s", Full(e), Empty)
+        } else {
+          Failure(s"length of $s was not exactly 24")
+        }
+      case x =>
+        Failure(s"when reading objectid expected JString, found $x")
+    }
+
+    override def write(o: ObjectId): JValue = {
+      JString(o.toHexString)
+    }
+  }
+
+  implicit val rcWrite = JLCaseClass.write[RepCard]
   implicit val webMarkRd = JLCaseClass.read[WebMark]
   implicit val markAddRead = JLCaseClass.read[MarkAddition]
+  implicit val exReportRd = JLCaseClass.read[RepExReport]
 }
 
 class RepeatActor @Inject()(
@@ -82,7 +103,7 @@ class RepeatActor @Inject()(
   private val backend = uc.refFactory.actorOf(uc.props[RepeatBackendActor])
   private def self = this
 
-  private val cancellable = sch.schedule(5 minutes, 1 minute) {
+  private val cancellable = sch.schedule(5.minutes, 1.minute) {
     self ! Ping
   }
 
@@ -107,6 +128,11 @@ class RepeatActor @Inject()(
         markAddRead.read(obj) match {
           case Full(m) => backend ! m
           case x => logger.error(s"could not read mark addition from json $obj: $x")
+        }
+      case JString("report-ex") =>
+        exReportRd.read(obj) match {
+          case Full(m) => backend ! m
+          case x => logger.error(s"could not read example report from json $obj: $x")
         }
       case _ => logger.warn(s"unknown json input $obj")
     }

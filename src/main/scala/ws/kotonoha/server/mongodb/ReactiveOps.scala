@@ -54,6 +54,14 @@ trait ReactiveCoreOps extends ReactiveOpsAccess {
     future
   }
 
+  def updateOne[T <: MongoRecord[T]](obj: T, writeConcern: WriteConcern = WriteConcern.Acknowledged)(implicit meta: ReactiveMongoMeta[T]): Future[UpdateWriteResult] = {
+    val coll = collection(meta)
+    val data = meta.toRMong(obj)
+    val id = data.get("_id").get
+    val query = BSONDocument("_id" -> id)
+    coll.update(query, data, writeConcern, upsert = true, multi = false)
+  }
+
   def byId[T <: MongoRecord[T] with ObjectIdPk[T]](id: ObjectId)(implicit meta: ReactiveMongoMeta[T]): Future[Option[T]] = {
     val coll = collection(meta)
     implicit val rdr: BSONDocumentReader[T] = meta.bsonHandler

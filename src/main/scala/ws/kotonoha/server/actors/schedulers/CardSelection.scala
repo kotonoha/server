@@ -124,19 +124,21 @@ object CardMixer {
   def apply(srcs: CardSource*) = new CardMixer(srcs.toList)
 }
 
-case class ReviewCard(cid: ObjectId, wid: ObjectId, source: String, seq: Long) {
+case class ReviewCard(cid: ObjectId, wid: ObjectId, source: String, repId: ObjectId) {
   override def equals(obj: Any): Boolean = {
     obj match {
-      case o: ReviewCard => o.cid.equals(cid)
+      case o: ReviewCard => o.cid.equals(cid) && o.repId.equals(repId)
       case _ => false
     }
   }
 
-  override def hashCode(): Int = cid.hashCode()
+  override def hashCode(): Int = cid.hashCode() ^ repId.hashCode()
 }
 
 object ReviewCard {
-  def apply(cid: ObjectId, wid: ObjectId, source: String) = new ReviewCard(cid, wid, source, 0)
+  private val zeroId = ObjectId.createFromLegacyFormat(0, 0, 0)
+
+  def apply(cid: ObjectId, wid: ObjectId, source: String) = new ReviewCard(cid, wid, source, zeroId)
 }
 
 case class Limits(total: Int, fresh: Int)

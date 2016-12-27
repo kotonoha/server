@@ -108,14 +108,9 @@ class CoreScheduler @Inject() (
 
   private var current = 0
 
-  private val tid = (hashCode() & 0xf) << 16
-
-  def seqnum() = {
-    val timepart = System.currentTimeMillis() / 1000
-    val res = ((timepart << 24) | current) ^ tid
+  private def seqnum() = {
     current += 1
-    if (current > (1 << 24)) current = 0
-    res
+    ObjectId.get()
   }
 
   def dump(req: CardRequest, cards: List[ReviewCard]): Unit = {
@@ -126,7 +121,7 @@ class CoreScheduler @Inject() (
 
     cards.foreach { card =>
       val rec = CardSchedule.createRecord
-      rec.card(card.cid).source(card.source).seq(card.seq).user(uid).date(date).bundle(arch.id.get).save()
+      rec.id(card.repId).card(card.cid).source(card.source).user(uid).date(date).bundle(arch.id.get).save()
     }
   }
 
@@ -156,7 +151,7 @@ class CoreScheduler @Inject() (
     mixer.process(req).map {
       seq =>
         val outsec = seq.map {
-          c => c.copy(seq = seqnum())
+          c => c.copy(repId = seqnum())
         }
         self ! DumpSelection(req, outsec)
         WordsAndCards(Nil, Nil, outsec)

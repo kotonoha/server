@@ -57,7 +57,6 @@ class MarkEventRecord private() extends MongoRecord[MarkEventRecord] with Object
 
   //service information
   object source extends StringField(this, 100)
-  object seq extends LongField(this)
   object bundle extends ObjectIdField(this)
   object scheduledOn extends JodaDateField(this)
 }

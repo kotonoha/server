@@ -57,14 +57,14 @@
             --></span>
               <span class="exsent-feedback-btns" data-ng-show="feedbackBtnsVisible()">
                 <a class="btn"
-                   data-ng-click="reportGood(card.id, card.rexIdx)"
+                   data-ng-click="reportGood()"
                    aria-hidden="true"
                    data-ng-class="{reported: exState == -1}">
                   <i class="fa fa-thumbs-o-up"></i>
                 </a>
                 <a class="btn"
                    aria-hidden="true"
-                   data-ng-click="handleBadBtn(po, card.id, card.rexIdx)"
+                   data-ng-click="handleBadBtn(po)"
                    data-ng-class="{reported: exState >= 0}"
                    data-ng-blur="po.hide()">
                   <i class="fa fa-thumbs-o-down"></i>
@@ -73,7 +73,7 @@
                       class="btn btn-small btn-block btn-outline-info"
                       data-ng-repeat="r in badExReasons"
                       data-ng-bind="r.text"
-                      data-ng-click="po.toggle(); reportBad(card.id, card.rexIdx, r.code);"
+                      data-ng-click="po.toggle(); reportBad(r.code);"
                     ></button>
                   </div>
                 </a>

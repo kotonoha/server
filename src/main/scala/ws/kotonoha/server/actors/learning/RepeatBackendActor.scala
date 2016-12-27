@@ -26,7 +26,7 @@ import ws.kotonoha.akane.dic.jmdict.JmdictTag
 import ws.kotonoha.akane.dic.lucene.jmdict.LuceneJmdict
 import ws.kotonoha.akane.dic.lucene.jmdict.{JmdictQuery, JmdictQueryPart}
 import ws.kotonoha.model.CardMode
-import ws.kotonoha.server.actors.learning.RepeatBackend.{MarkAddition, RepCount, WebMark}
+import ws.kotonoha.server.actors.learning.RepeatBackend.{MarkAddition, RepCount, RepExReport, WebMark}
 import ws.kotonoha.server.actors.learning.RepeatBackendActor.{MarkInProcessing, UpdateOne}
 import ws.kotonoha.server.actors.schedulers.RepetitionStateResolver
 import ws.kotonoha.server.ioc.UserContext
@@ -45,11 +45,14 @@ object RepeatBackend {
   case class RepQuestionPart(content: String, ruby: Option[String], target: Boolean)
   case class ReviewExample(id: Long, sentence: String, translation: String)
   case class RepAdditional(title: String, value: String)
-  case class RepCard(id: String, word: String, mode: CardMode, writings: String, readings: String,
+  case class RepCard(id: ObjectId, repId: ObjectId, word: ObjectId, mode: CardMode, writings: String, readings: String,
     question: Seq[RepQuestionPart], exs: Seq[ReviewExample], meaning: String, addinfo: Seq[RepAdditional], rexIdx: Int)
 
-  case class WebMark(card: String, mark: Int, remaining: Int, timestamp: Long, questionTime: Long, answerTime: Long, source: String, exId: Int)
-  case class MarkAddition(card: String, readyTime: Long)
+  case class RepExReport(repId: ObjectId, wordId: ObjectId, cardId: ObjectId, exId: Int, status: Int)
+
+  case class WebMark(card: ObjectId, repId: ObjectId, mark: Int, remaining: Int, timestamp: Long,
+          questionTime: Long, answerTime: Long, source: String, exId: Int)
+  case class MarkAddition(card: ObjectId, readyTime: Long)
 
   case class RepCount(curSession: Int, today: Int)
 }
@@ -68,8 +71,9 @@ class RepeatBackend @Inject() (
       val word = wm(card.word.get)
       val (sid, question) = CardRepetitionQuestion.formatQuestion(word, card.cardMode.value)
       RepCard(
-        id = cid.toHexString,
-        word = word.id.get.toHexString,
+        id = cid,
+        repId = s.repId,
+        word = word.id.get,
         mode = card.cardMode.get,
         writings = word.writing.get.mkString(", "),
         readings = word.reading.get.mkString(", "),
@@ -128,7 +132,7 @@ class RepeatBackendActor @Inject() (
 
   private var frontend: CometActor = null
   private var inSession = 0
-  private lazy val today = new RepetitionStateResolver(uc.uid).today.toInt
+  private lazy val repeatedToday = new RepetitionStateResolver(uc.uid).today.toInt
 
   private val marksForCard = new mutable.HashMap[ObjectId, MarkInProcessing]()
 
@@ -141,12 +145,12 @@ class RepeatBackendActor @Inject() (
     val questionDur = duration(repStart, answerShown)
     val answerDur = duration(answerShown, markTime)
 
-
     val me = MarkEventRecord.createRecord
-    val cid = new ObjectId(mark.card)
+    val cid = mark.card
+    val repId = mark.repId
 
     val timeSecs = (questionDur.getMillis + answerDur.getMillis) / 1000.0
-    me.card(cid).mark(mark.mark).datetime(markTime).time(timeSecs)
+    me.id(repId).card(cid).mark(mark.mark).datetime(markTime).time(timeSecs)
     me.client(s"web-repeat-${mark.source}")
     me.user(uc.uid)
     me.answerDur(answerDur.getMillis / 1000.0)
@@ -167,8 +171,14 @@ class RepeatBackendActor @Inject() (
     }(context.dispatcher)
   }
 
-  def handleAddition(m: MarkAddition): Unit = {
-    val cid = new ObjectId(m.card)
+  private def handleExReport(rep: RepExReport) = {
+    meo.reportRepSentence(rep).onFailure {
+      case e => log.error(e, s"failed to save report $rep")
+    }(context.dispatcher)
+  }
+
+  private def handleAddition(m: MarkAddition): Unit = {
+    val cid = m.card
     marksForCard.remove(cid) match {
       case None => //do nothing
       case Some(mp) =>
@@ -202,13 +212,14 @@ class RepeatBackendActor @Inject() (
       loadingWords = false
     case m: WebMark => handleMark(m)
     case m: MarkAddition => handleAddition(m)
+    case report: RepExReport => handleExReport(report)
     case UpdateOne =>
       inSession += 1
       signalNumber()
   }
 
   private def signalNumber(): Unit = {
-    frontend ! WebMsg("rep-cnt", RepCount(inSession, today + inSession))
+    frontend ! WebMsg("rep-cnt", RepCount(inSession, repeatedToday + inSession))
   }
 }
 

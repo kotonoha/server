@@ -51,7 +51,7 @@ object ScheduleRecord extends ScheduleRecord with MongoMetaRecord[ScheduleRecord
 class CardSchedule private() extends MongoRecord[CardSchedule] with ObjectIdPk[CardSchedule] {
   def meta = CardSchedule
 
-  object seq extends LongField(this)
+  object repId extends ObjectIdField(this)
   object source extends StringField(this, 100)
   object card extends ObjectIdField(this)
   object date extends JodaDateField(this)

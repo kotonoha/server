@@ -24,10 +24,12 @@ import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import ws.kotonoha.examples.api.ExampleSentence
 import ws.kotonoha.model.sm6.{ItemCoordinate, MatrixMark}
+import ws.kotonoha.server.actors.learning.RepeatBackend.RepExReport
+import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.ops.{FlashcardOps, WordOps}
 import ws.kotonoha.server.records.{ExampleRecord, WordCardRecord}
-import ws.kotonoha.server.records.events.MarkEventRecord
+import ws.kotonoha.server.records.events.{ExampleStatusReport, MarkEventRecord}
 import ws.kotonoha.server.supermemo.SuperMemoOps
 import ws.kotonoha.server.util.DateTimeUtils._
 
@@ -42,6 +44,7 @@ class MarkEventOps @Inject() (
   sm: SuperMemoOps,
   fo: FlashcardOps,
   wo: WordOps,
+  uc: UserContext,
   rm: RMData
 )(implicit ec: ExecutionContext) extends StrictLogging {
   import MarkEventOps._
@@ -135,12 +138,37 @@ class MarkEventOps @Inject() (
     val q = MarkEventRecord.where(_.id eqs mid).modify(_.readyDur.setTo(time))
     rm.update(q).mod(1)
   }
+
+  def reportRepSentence(data: RepExReport): Future[NotUsed] = {
+    val searchq = ExampleStatusReport.where(_.id eqs data.repId)
+    rm.count(searchq).flatMap {
+      case 1 =>
+        val updq = searchq.modify(_.timestamp.setTo(now)).modify(_.status.setTo(data.status))
+        rm.update(updq).mod(1)
+      case 0 =>
+        val word = wo.byId(data.wordId)
+        word.flatMap {
+          case Some(w) =>
+            val rec = ExampleStatusReport.createRecord
+            rec.id(data.repId)
+            rec.timestamp(now)
+            rec.user(uc.uid)
+            rec.wordId(w.id.get)
+            val exs = w.repExamples.get
+            rec.example(exs.sentences(data.exId))
+            rec.status(data.status)
+            rm.updateOne(rec).map(_ => NotUsed)
+          case _ => Future.successful(NotUsed)
+        }
+    }
+
+  }
 }
 
 object MarkEventOps {
   type MarkEventHandler = MarkEventRecord => Future[MarkEventRecord]
 
-  val millisInDay = 1000 * 60 * 60 * 24.0
+  val millisInDay: Double = 1000 * 60 * 60 * 24.0
 
   def toDays(millis: Long): Float = (millis / millisInDay).toFloat
 

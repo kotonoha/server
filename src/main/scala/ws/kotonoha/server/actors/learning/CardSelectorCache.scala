@@ -166,21 +166,17 @@ class SelectionPackOps @Inject() (
   }
 
   def updateMarkEvent(mr: MarkEventRecord): Future[MarkEventRecord] = {
-    schedulesForCard(mr.card.get).map { scheds =>
-
-      if (scheds.nonEmpty) {
-        val head = scheds.head
+    rm.byId[CardSchedule](mr.id.get).flatMap {
+      case Some(head) =>
         mr.source(head.source.get)
-        mr.seq(head.seq.get)
         mr.bundle(head.bundle.get)
         mr.scheduledOn(head.date.valueBox)
-
-        deleteSchedules(mr.card.get).minMod(1).onFailure {
+        val f = deleteSchedules(mr.card.get).minMod(1).map(_ => mr)
+        f.onFailure {
           case t => logger.warn("failed to remove schedules", t)
         }
-      }
-
-      mr
+        f
+      case None => Future.successful(mr)
     }
   }
 }
