@@ -27,7 +27,7 @@ import ws.kotonoha.server.mongodb.NamedDatabase
  * @since 31.03.12
  */
 
-class ConfigRecord private() extends MongoRecord[ConfigRecord] with LongPk[ConfigRecord] {
+class KotoSettings private() extends MongoRecord[KotoSettings] with LongPk[KotoSettings] {
 
   override def defaultIdValue = 0L
 
@@ -35,17 +35,18 @@ class ConfigRecord private() extends MongoRecord[ConfigRecord] with LongPk[Confi
   object baseUri extends StringField(this, 250)
   object stokeUri extends StringField(this, 250, "")
   object myKey extends OptionalBinaryField(this)
+  object demoUser extends StringField(this, 20)
 
   def hasStrokes = stokeUri.get.length == 0
 
-  def meta = ConfigRecord
+  def meta = KotoSettings
 }
 
-object ConfigRecord extends ConfigRecord with MongoMetaRecord[ConfigRecord] with NamedDatabase {
+object KotoSettings extends KotoSettings with MongoMetaRecord[KotoSettings] with NamedDatabase {
   lazy val instance = synchronized { find(0L) openOr createRecord }
 }
 
 object AppConfig {
-  def apply() = ConfigRecord.instance
+  def apply() = KotoSettings.instance
   def save() = apply().save(WriteConcern.Acknowledged)
 }

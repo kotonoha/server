@@ -25,9 +25,10 @@ import com.google.inject._
 import net.codingwell.scalaguice.ScalaModule
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors._
+import ws.kotonoha.server.records.UserSettings
 
 import scala.compat.java8.functionConverterImpls.AsJavaFunction
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContextExecutor, Future}
 import scala.reflect.ClassTag
 
 /**
@@ -57,12 +58,10 @@ class UserContext(val uid: ObjectId, gact: GlobalActors, injector: Injector) ext
     Await.result(f, timeout.duration)
   }
 
-  def canEqual(other: Any): Boolean = other.isInstanceOf[UserContext]
+  lazy val settings: UserSettings = UserSettings.forUser(uid)
 
   override def equals(other: Any): Boolean = other match {
-    case that: UserContext =>
-      (that canEqual this) &&
-        uid == that.uid
+    case that: UserContext => uid == that.uid
     case _ => false
   }
 
@@ -97,7 +96,8 @@ trait UserContextService {
 
 class UserContextServiceImpl @Inject() (
   inj: Injector,
-  mods: Seq[Module]
+  mods: Seq[Module],
+  ec: ExecutionContextExecutor
 ) extends UserContextService {
 
   private val loader = new AsJavaFunction[ObjectId, UserContext](key => {
@@ -117,10 +117,11 @@ class UserContextServiceImpl @Inject() (
     Caffeine.newBuilder()
       .expireAfterAccess(20, TimeUnit.MINUTES)
       .removalListener(removalListener)
+      .executor(ec)
       .build[ObjectId, UserContext]()
   }
 
-  override def of(uid: ObjectId) = cache.get(uid, loader)
+  override def of(uid: ObjectId): UserContext = cache.get(uid, loader)
 }
 
 class UserContextModule extends ScalaModule {
@@ -131,6 +132,7 @@ class UserContextModule extends ScalaModule {
   @Provides
   @Singleton
   def ucxsvc(
-    i: Injector
-  ): UserContextService = new UserContextServiceImpl(i, modules)
+    i: Injector,
+    ec: ExecutionContextExecutor
+  ): UserContextService = new UserContextServiceImpl(i, modules, ec)
 }

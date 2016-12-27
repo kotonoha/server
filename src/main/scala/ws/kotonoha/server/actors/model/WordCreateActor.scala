@@ -145,12 +145,12 @@ class WordCreateActor @Inject() (
         }
     }
 
-    for (
-      sr1 <- jf;
-      sr2 <- wf;
-      ex <- exs;
+    for {
+      sr1 <- jf
+      sr2 <- wf
+      ex <- exs
       t <- tags
-    ) yield {
+    } yield {
       val dicts = List(collapse(sr1, "JMDict"), collapse(sr2, "Warodai"))
       log.debug("Calculated word data")
       val onSave = Promise[WordData]()

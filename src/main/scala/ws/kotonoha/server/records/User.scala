@@ -38,7 +38,7 @@ import ws.kotonoha.server.records.meta.{JodaDateField, KotonohaMongoRecord}
 object UserStatus extends Enumeration {
   type UserStatus = Value
 
-  val Active, Banned = Value
+  val Active, Banned, Demo = Value
 }
 
 

@@ -16,12 +16,13 @@
 
 package ws.kotonoha.server.records
 
+import net.liftweb.mongodb.record.field.{MongoListField, ObjectIdPk}
 import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
-import net.liftweb.mongodb.record.field.{MongoListField, ObjectIdPk, LongPk}
-import ws.kotonoha.server.mongodb.NamedDatabase
 import net.liftweb.record.field.{BooleanField, IntField}
-import net.liftweb.http.SessionVar
 import org.bson.types.ObjectId
+import ws.kotonoha.server.ioc.UserContextService
+import ws.kotonoha.server.mongodb.NamedDatabase
+import ws.kotonoha.server.util.KotoGlobal
 
 /**
  * @author eiennohito
@@ -36,18 +37,13 @@ class UserSettings private() extends MongoRecord[UserSettings] with ObjectIdPk[U
   object lastTags extends MongoListField[UserSettings, String](this)
 
   object stalePriorities extends BooleanField(this, false)
-
 }
 
 object UserSettings extends UserSettings with MongoMetaRecord[UserSettings] with NamedDatabase {
-
-  private object cached extends SessionVar[UserSettings](
-    UserRecord.currentId map {
-      forUser(_)
-    } openOrThrowException ("Will create new thing")
-  )
-
-  def current = cached.get
+  def current: UserSettings = {
+    val users = KotoGlobal.container.inst[UserContextService]
+    users.of(UserRecord.currentId.openOrThrowException("user was not present")).settings
+  }
 
   def forUser(id: ObjectId): UserSettings = find(id).openOr(UserSettings.createRecord.id(id).save())
 }

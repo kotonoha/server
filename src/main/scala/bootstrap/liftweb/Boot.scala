@@ -34,6 +34,7 @@ import ws.kotonoha.server.actors.{InitUsers, ReleaseAkkaMain}
 import ws.kotonoha.server.ioc.KotonohaIoc
 import ws.kotonoha.server.mongodb.MongoDbInit
 import ws.kotonoha.server.records.UserRecord
+import ws.kotonoha.server.util.KotoGlobal
 import ws.kotonoha.server.web.lift.{LiftGuiceIntegration, SnippetResolverConfig}
 import ws.kotonoha.server.web.loc.{NewsLoc, WikiLoc}
 import ws.kotonoha.server.web.rest._
@@ -81,6 +82,8 @@ class Boot extends Logging {
 
     val ioc = new KotonohaIoc(config)
     val lgi = new LiftGuiceIntegration(ioc.injector)
+
+    KotoGlobal.container = lgi.iocActors
 
     configureInjection(lgi)
 
