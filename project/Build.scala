@@ -171,7 +171,7 @@ object Kotonoha {
   }
 
   lazy val binfo = Def.settings(
-    buildInfoKeys := Seq(version, scalaVersion, sbtVersion, gitId, gitDate, postsMdFiles),
+    buildInfoKeys := Seq(version, scalaVersion, sbtVersion, gitId, buildId, gitDate, postsMdFiles),
     buildInfoPackage := "ws.kotonoha.server.util",
     buildInfoObject := "BuildInfo"
   )
