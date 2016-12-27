@@ -142,6 +142,14 @@ object Pbuf {
 
 object Kotonoha {
 
+  private def buildIdValue(): String = {
+    val bldId = System.getenv("BUILD_ID")
+    if (bldId != null) return bldId
+    val bldNumber = System.getenv("BUILD_NUMBER")
+    if (bldNumber != null) return bldNumber
+    "dev"
+  }
+
   val gitId = TaskKey[String]("gitId", "Git commit id")
   val gitDate = TaskKey[Long]("gitDate", "Git commit date")
 
@@ -149,14 +157,16 @@ object Kotonoha {
   val scriptOutputDir = SettingKey[File]("sod", "dir to output js")
   val unzipJars = TaskKey[Seq[File]]("unzip-jars", "Unzip jars with js files inside")
   val compileJs = config("compilejs")
+  val buildId = TaskKey[String]("buildId", "BUILD_ID/BUILD_NUMBER from Jenkins or dev if empty")
 
   val postsMdFiles = SettingKey[Seq[String]]("news-md-files", "Files for news")
 
-  lazy val gitSettings = {
+  lazy val buildEnvSettings = {
     val (time, id) = GitData.gitVer
     Seq(
       gitId := id,
-      gitDate := time.getTime
+      gitDate := time.getTime,
+      buildId := buildIdValue()
     )
   }
 
@@ -239,7 +249,7 @@ object Kotonoha {
   import com.typesafe.sbt.web.Import._
 
   lazy val kotonohaSettings =
-    gitSettings ++
+    buildEnvSettings ++
       binfo ++
       scalatest ++ Def.settings(
       name := "server",
