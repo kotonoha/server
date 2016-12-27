@@ -84,8 +84,8 @@ function drawLast(count) {
 }
 
 angular.module('kotonoha').controller("Learning", ["$scope", "$http", ($scope, $http) => {
-  $http.get('../api/stats').success((o) => {
-    $scope.stats = o;
-    setTimeout(() => display(o), 0);
+  $http.get('../api/stats').then((o) => {
+    $scope.stats = o.data;
+    setTimeout(() => display(o.data), 0);
   });
 }]);
