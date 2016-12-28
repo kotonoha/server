@@ -6,8 +6,8 @@ ctor = ($scope, $http) ->
   $scope.status = false
   load = ->
     q = $http.get("../api/model/words/#{id}")
-    q.success (w) ->
-      $scope.word = w
+    q.then (w) ->
+      $scope.word = w.data
     q
 
   load()
@@ -16,12 +16,12 @@ ctor = ($scope, $http) ->
     $http.post("../api/model/words/#{id}",
                command: command
                content: $scope.word
-              ).success ->
-                load().success ->
+              ).then ->
+                load().then ->
                   $scope.status = true
 
   $scope.delete = ->
-    $http.delete("../api/model/words/#{id}").success ->
+    $http.delete("../api/model/words/#{id}").then ->
       load()
 
   $scope.loadAutoExamples = () ->
