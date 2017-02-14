@@ -45,7 +45,9 @@ class Userdata @Inject()(uc: UserContext) extends StrictLogging {
 
     val oldpassTransform = "@old-pass [value]" #> oldpass
 
-    val tf = if (!user.password.isMatch(oldpass)) {
+    val tf = if (oldpass == "" && newpass == "" && newpass2 == "") {
+      oldpassTransform
+    } else if (!user.password.isMatch(oldpass)) {
       newPassTransform &
       "#pwd-notices *" #> <span class="alert alert-warning">Old password is invalid.</span>
     } else if (!newpass.equals(newpass2)) {
