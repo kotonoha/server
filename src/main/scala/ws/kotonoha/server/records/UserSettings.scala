@@ -16,12 +16,13 @@
 
 package ws.kotonoha.server.records
 
+import net.liftweb.mongodb.record.MongoRecord
 import net.liftweb.mongodb.record.field.{MongoListField, ObjectIdPk}
-import net.liftweb.mongodb.record.{MongoMetaRecord, MongoRecord}
 import net.liftweb.record.field.{BooleanField, IntField}
 import org.bson.types.ObjectId
 import ws.kotonoha.server.ioc.UserContextService
 import ws.kotonoha.server.mongodb.NamedDatabase
+import ws.kotonoha.server.records.meta.KotonohaMongoRecord
 import ws.kotonoha.server.util.KotoGlobal
 
 /**
@@ -37,9 +38,11 @@ class UserSettings private() extends MongoRecord[UserSettings] with ObjectIdPk[U
   object lastTags extends MongoListField[UserSettings, String](this)
 
   object stalePriorities extends BooleanField(this, false)
+
+  object dictLangs extends MongoListField[UserSettings, String](this)
 }
 
-object UserSettings extends UserSettings with MongoMetaRecord[UserSettings] with NamedDatabase {
+object UserSettings extends UserSettings with KotonohaMongoRecord[UserSettings] with NamedDatabase {
   def current: UserSettings = {
     val users = KotoGlobal.container.inst[UserContextService]
     users.of(UserRecord.currentId.openOrThrowException("user was not present")).settings

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<html>
+<body class="lift:content_id=main">
+<div id="main" class="lift:surround?with=default;at=content">
+  <div class="container col-xs-12 col-lg-8 lift:Userdata.changePassword">
+    <div id="pwd-notices" class="row"></div>
+    <form action="./change_pass" method="POST">
+      <div class="form-group row">
+        <label for="old-password-fld" class="col-xs-4 col-form-label">Old Password</label>
+        <div class="col-xs-8">
+          <input name="old-pass" class="form-control" type="password" id="old-password-fld">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="new-password-fld" class="col-xs-4 col-form-label">New Password</label>
+        <div class="col-xs-8">
+          <input name="new-pass" class="form-control" type="password" id="new-password-fld">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="new-password2-fld" class="col-xs-4 col-form-label">Confirm New Password</label>
+        <div class="col-xs-8">
+          <input name="new-pass2" class="form-control" type="password" id="new-password2-fld">
+        </div>
+      </div>
+      <div class="row">
+        <input class="btn btn-primary" type="submit" value="Change Password">
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>
+

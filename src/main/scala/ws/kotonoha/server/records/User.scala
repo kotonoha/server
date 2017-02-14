@@ -118,20 +118,19 @@ object UserRecord extends UserRecord with MetaMegaProtoUser[UserRecord] with Nam
 
   autologinFunc = Full({
     () =>
-      S.findCookie(authCookie).
-        flatMap(_.value).
-        flatMap(crypt => {
-        val ua = S.request.flatMap(_.userAgent).openOr("none")
-        UserUtil.authByCookie(crypt, ua)
-      }) match {
-        case Full(uid) => {
-          logger.debug(s"autologging user $uid using cookie")
-          updateCookie(uid)
-          logUserIdIn(uid.toString)
+      for {
+        cookie <- S.findCookie(authCookie).flatMap(_.value)
+        ua <- S.request.flatMap(_.userAgent)
+      } {
+        UserUtil.authByCookie(cookie, ua) match {
+          case Full(uid) =>
+            logger.debug(s"autologging user $uid using cookie")
+            updateCookie(uid)
+            logUserIdIn(uid.toString)
+          case _ =>
+            logger.debug("invalid autologin cookie, cleaning it")
+            deleteCookie()
         }
-        case _ =>
-          logger.debug("invalid autologin cookie, cleaning it")
-          deleteCookie()
       }
   })
 

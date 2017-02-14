@@ -47,7 +47,7 @@ trait UserUtilT {
   def cookieAuthFor(uid: ObjectId, userAgent: String) = {
     val date = DateTimeUtils.now.plusMonths(1).getMillis
     val ua = SecurityHelpers.md5(userAgent)
-    val s = "%x|%s|%s".format(date, uid.toString, ua)
+    val s = s"$date|${uid.toString}|$ua"
     SecurityUtil.encryptAes(s, serverKey)
   }
 
