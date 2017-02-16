@@ -56,4 +56,5 @@ object Formatting {
   })
 
   def monthDay(d: DateTime) = dayMonF.get.formatDate(d)
+
 }

@@ -221,6 +221,9 @@ class Boot extends Logging {
     LiftRules.ajaxEnd =
       Full(() => LiftRules.jsArtifacts.hide("ajax-loader").cmd)
 
+    //Do not retry ajax
+    LiftRules.ajaxRetryCount = Some(0)
+
     // Force the request to be UTF-8
     LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
 

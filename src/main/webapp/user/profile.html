@@ -3,25 +3,100 @@
 <html>
 <body class="lift:content_id=main">
 <div id="main" class="lift:surround?with=default;at=content">
+  <script class="lift:cpres.ng?src=user"></script>
+  <div data-ng-controller="UserProfile">
+    <div class="lift:Userdata.userPipeline"></div>
+    <div class="row">
+      <div class="col-xs-12">
+        <h4>Basic information</h4>
+      </div>
 
-  <div class="modal fade" id="change-passwd-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Change your password</h5>
+      <div data-ng-form="basicInfo" class="col-xs-12 col-lg-8">
+        <div class="form-group row">
+          <label class="col-xs-4">Email</label>
+          <div class="col-xs-8" data-ng-bind="user.email"></div>
         </div>
-        <div class="modal-body container">
-
+        <div class="form-group row">
+          <label class="col-xs-4 col-form-label">Nickname</label>
+          <div class="col-xs-8">
+            <input type="text" class="form-control"
+                   data-ng-model="user.username" data-ng-username data-bs-valid="danger"
+                   data-ng-model-options="{debounce: {default: 500, blur: 0}}">
+          </div>
+          <p class="form-text text-muted col-xs-12">
+            Nickname will be displayed when doing wiki edits or future social interactions.
+          </p>
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary">Change</button>
-          <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <div class="form-group row">
+          <label class="col-xs-4 col-form-label">First name</label>
+          <div class="col-xs-8">
+            <input type="text" class="form-control" data-ng-model="user.firstName">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-xs-4 col-form-label">Last name</label>
+          <div class="col-xs-8">
+            <input type="text" class="form-control" data-ng-model="user.lastName">
+          </div>
+          <p class="form-text text-muted col-xs-12">
+            Your name will only be used to contact you and will not be displayed in public.
+          </p>
+        </div>
+        <div class="form-group row">
+          <label class="col-xs-4 col-form-label">Locale</label>
+          <div class="col-xs-8">
+            <select class="form-control" data-ng-model="user.locale" data-ng-change="recomputeTest()">
+              <option data-ng-repeat="l in user.locales | orderBy:'name'" data-ng-value="l.key"
+                      data-ng-bind="l.name"></option>
+            </select>
+          </div>
+          <p class="form-text text-muted col-xs-12">
+            This setting governs format of date and time.
+            For example, current time will be displayed as
+            <span data-ng-bind="user.timezoneTest.local"></span>.
+          </p>
+        </div>
+        <div class="form-group row">
+          <label class="col-xs-4 col-form-label">Timezone</label>
+          <div class="col-xs-8">
+            <select class="form-control" data-ng-model="user.timezone" data-ng-change="recomputeTest()">
+              <option data-ng-repeat="tz in user.timezones | orderBy:'name'" data-ng-bind="tz.name"
+                      data-ng-value="tz.name"></option>
+            </select>
+          </div>
+          <p class="form-text text-muted col-xs-12">
+            Select a closest city to your location.
+            Time is going to be off
+            unless this setting is correct.
+            In current settings it will be
+            <span data-ng-bind="user.timezoneTest.local"></span>,
+            UTC time is <span data-ng-bind="user.timezoneTest.utc"></span>.
+          </p>
+        </div>
+        <div class="col-xs-12">
+          <button class="btn btn-primary" data-ng-click="save()">Save information</button>
+          <span class="alert alert-{{basicMessage.style}}" data-ng-show="basicMessage != null"
+                data-ng-bind="basicMessage.content"></span>
         </div>
       </div>
     </div>
-  </div>
+    <hr>
+    <div class="row">
+      <div class="col-xs-12">
+        <h4>Dictionary Language</h4>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div class="col-xs-12">
+        <h4>Password</h4>
+      </div>
 
-  <button class="btn btn-warning" data-toggle="modal" data-target="#change-passwd-modal">Change password</button>
+      <div class="col-xs-6">
+        <a class="btn btn-warning" href="./change_pass">Change your password</a>
+      </div>
+    </div>
+  </div>
 </div>
 </body>
 </html>
