@@ -45,7 +45,7 @@ object LangUtil {
 
   val jmdictLangs = Set("eng", "ger", "rus", "hun", "ita", "spa", "dut", "fre", "swe", "slv")
 
-  def acceptableFor(settings: UserSettings): Set[String] = langsFor(settings).toSet
+  def acceptableFor(settings: UserSettings): Set[String] = langsFor(settings).toSet ++ default
 
   def langsFor(us: UserSettings): Seq[String] = {
     val stored = us.dictLangs.value
