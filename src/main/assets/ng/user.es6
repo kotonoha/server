@@ -18,7 +18,8 @@ mod.controller('UserProfile', ["$scope", "UserCallback", (scope, userCb) => {
         firstName: u.firstName,
         lastName: u.lastName,
         locale: u.locale,
-        timezone: u.timezone
+        timezone: u.timezone,
+        languages: selectedLangs()
       }
     };
 
@@ -48,6 +49,18 @@ mod.controller('UserProfile', ["$scope", "UserCallback", (scope, userCb) => {
         timezone: scope.user.timezone
       }
     }).then(data => scope.$apply(() => scope.user.timezoneTest = data))
+  };
+
+  function selectedLangs() {
+    return scope.user.languages.filter(l => l.selected).map(l => l.code);
+  }
+
+  scope.updateJmdict = () => {
+    const codes = selectedLangs();
+    userCb({
+      cmd: "update-jmdict",
+      data: codes
+    }).then(jmd => scope.$apply(() => scope.user.jmdict = jmd));
   };
 
   scope.reset = function (form) {

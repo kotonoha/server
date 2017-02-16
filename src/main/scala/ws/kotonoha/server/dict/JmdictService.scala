@@ -25,14 +25,15 @@ import akka.actor.Scheduler
 import com.github.benmanes.caffeine.cache.{Caffeine, RemovalCause, RemovalListener}
 import com.google.inject.{Inject, Provider}
 import com.typesafe.config.Config
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.lucene.analysis.core.SimpleAnalyzer
 import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.store._
 import org.joda.time.{DateTime, LocalDate}
+import ws.kotonoha.akane.dic.freq.LangFrequencyPack
 import ws.kotonoha.akane.dic.jmdict.{JMDictUtil, JmdictParser}
 import ws.kotonoha.akane.dic.lucene.jmdict._
 import ws.kotonoha.akane.resources.FSPaths
-import ws.kotonoha.akane.dic.lucene.jmdict._
 import ws.kotonoha.server.ioc.Res
 import ws.kotonoha.server.util.Downloads
 
@@ -61,7 +62,7 @@ class JmdictServiceImpl @Inject() (
   ece: ExecutionContextExecutor,
   sched: Scheduler,
   res: Res
-) extends JmdictService {
+) extends JmdictService with StrictLogging {
 
   import ws.kotonoha.akane.resources.FSPaths._
 
@@ -165,7 +166,10 @@ class JmdictServiceImpl @Inject() (
         val now = DateTime.now
         if (ld.toDateTimeAtCurrentTime.plus(14.days).isBefore(now)) {
           downloadJmdict()
-        } else p
+        } else {
+          logger.debug(s"using present jmdict built on $ld")
+          p
+        }
     }
   }
 
@@ -186,6 +190,7 @@ class JmdictServiceImpl @Inject() (
       val reader = new JmdictParser
       reader.parse(JMDictUtil.convertStream(file.extension, is)).foreach(e => importer.add(e))
       importer.commit(mkDate)
+      logger.debug(s"imported jmdict dated $mkDate")
     }
 
     tmpDir.moveTo(indices / outName)
@@ -215,7 +220,7 @@ object EmptyJmdict extends LuceneJmdict {
   override def find(q: JmdictQuery) = JmdictSearchResults.apply(
     Nil, Map.empty, 0
   )
-  override val info = JmdictInfo.apply(LocalDate.now(), DateTime.now().minusYears(5))
+  override val info = JmdictInfo.apply(LocalDate.now(), DateTime.now().minusYears(5), LangFrequencyPack.defaultInstance)
   override def ids(q: JmdictIdQuery) = Nil
   override def byId(id: Long) = None
 }

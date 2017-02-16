@@ -73,6 +73,36 @@
             UTC time is <span data-ng-bind="user.timezoneTest.utc"></span>.
           </p>
         </div>
+        <div class="form-group row">
+          <div class="col-xs-12 col-lg-6">
+            <div><h6>Dictionary Languages</h6></div>
+            <p class="form-text text-muted">
+              Select all languages you want to use for Japanese word meanings in flashcards.
+            </p>
+            <div>
+              <ul class="col-xs-12">
+                <li data-ng-repeat="lang in user.languages" class="row" style="list-style: none">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" data-ng-model="lang.selected" data-ng-click="updateJmdict()">
+                      <span data-ng-bind="lang.name"></span>
+                      (in <span data-ng-bind="lang.entries / 1000 | number:0"></span>k articles)
+                      <span data-ng-show="lang.code == 'rus'">+ Warodai</span>
+                    </label>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-xs-12 col-lg-6">
+            <h6>Example of flashcard formatting</h6>
+            <div class="text-muted">
+              <div class="nihongo larger" data-ng-bind="user.jmdict.writing"></div>
+              <div class="nihongo" data-ng-bind="user.jmdict.reading"></div>
+              <div data-ng-bind="user.jmdict.meaning"></div>
+            </div>
+          </div>
+        </div>
         <div class="col-xs-12">
           <button class="btn btn-primary" data-ng-click="save()">Save information</button>
           <span class="alert alert-{{basicMessage.style}}" data-ng-show="basicMessage != null"
@@ -80,13 +110,9 @@
         </div>
       </div>
     </div>
+
     <hr>
-    <div class="row">
-      <div class="col-xs-12">
-        <h4>Dictionary Language</h4>
-      </div>
-    </div>
-    <hr>
+
     <div class="row">
       <div class="col-xs-12">
         <h4>Password</h4>

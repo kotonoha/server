@@ -25,6 +25,7 @@ import com.typesafe.scalalogging.StrictLogging
 import net.liftweb.common.{Box, Empty}
 import org.bson.types.ObjectId
 import ws.kotonoha.akane.unicode.{KanaUtil, UnicodeUtil}
+import ws.kotonoha.lift.json.JLCaseClass
 import ws.kotonoha.model.WordStatus
 import ws.kotonoha.server.actors.dict.DictType._
 import ws.kotonoha.server.actors.dict.{DictQuery, ExampleEntry, ExampleIds, LoadExamples, SearchResult, TranslationsWithLangs, _}
@@ -56,6 +57,8 @@ object DictCard extends StrictLogging {
 
   private val circleOne = '\u2460' // ①
 
+  implicit val jformat = JLCaseClass.format[DictCard]
+
   private def circledNumber(onePlus: Int): Char = {
     if (onePlus >= 0 && onePlus <= 19) {
       (circleOne + onePlus).toChar
@@ -64,7 +67,9 @@ object DictCard extends StrictLogging {
     }
   }
 
-  def makeCard(writing: Seq[String], reading: Seq[String], meaning: Seq[String]) = {
+  def makeCard(e: DictionaryEntry): DictCard = makeCard(e.writings, e.readings, e.meanings)
+
+  def makeCard(writing: Seq[String], reading: Seq[String], meaning: Seq[String]): DictCard = {
     val means = if (meaning.length == 1) {
       meaning.head
     } else {
