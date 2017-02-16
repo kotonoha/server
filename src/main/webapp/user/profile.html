@@ -82,9 +82,10 @@
             <div>
               <ul class="col-xs-12">
                 <li data-ng-repeat="lang in user.languages" class="row" style="list-style: none">
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" data-ng-model="lang.selected" data-ng-click="updateJmdict()">
+                  <div class="form-check" data-ng-class="{disabled: isEng(lang)}">
+                    <label class="form-check-label">
+                      <input type="checkbox" data-ng-model="lang.selected" class="form-check-input"
+                             data-ng-click="updateJmdict()" data-ng-disabled="isEng(lang)">
                       <span data-ng-bind="lang.name"></span>
                       (in <span data-ng-bind="lang.entries / 1000 | number:0"></span>k articles)
                       <span data-ng-show="lang.code == 'rus'">+ Warodai</span>

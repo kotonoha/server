@@ -63,6 +63,8 @@ mod.controller('UserProfile', ["$scope", "UserCallback", (scope, userCb) => {
     }).then(jmd => scope.$apply(() => scope.user.jmdict = jmd));
   };
 
+  scope.isEng = (lang) => lang.code === "eng";
+
   scope.reset = function (form) {
     if (form) {
       form.$setPristine();
