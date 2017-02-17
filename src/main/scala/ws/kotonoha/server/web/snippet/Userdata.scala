@@ -37,6 +37,7 @@ import ws.kotonoha.server.lang.Iso6392
 import ws.kotonoha.server.mongodb.RMData
 import ws.kotonoha.server.records.UserRecord
 import ws.kotonoha.server.util.{Jobj, LangUtil}
+import ws.kotonoha.server.web.lift.Binders.NodeSeqFn
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -245,6 +246,14 @@ class Userdata @Inject()(
 
         Jobj("status" -> "ok")
     }
+  }
+}
+
+object UserObj {
+  import ws.kotonoha.server.web.lift.Binders._
+
+  def username: NodeSeqFn = {
+    "* *" #> UserRecord.currentUser.map(_.username.value).filter(_.length > 0).openOr("Profile")
   }
 }
 

@@ -76,6 +76,13 @@ textarea.autoresize {
   }
 }
 
+.navbar-right-button {
+  float: right;
+  @media (min-width: map_get($grid-breakpoints, md)) {
+    margin-top: 1rem;
+  }
+}
+
 .debug-label {
   position: absolute;
   left: 5px;

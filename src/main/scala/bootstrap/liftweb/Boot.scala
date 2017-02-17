@@ -143,17 +143,18 @@ class Boot extends Logging {
       )
 
     val emptyLink: LinkText[Unit] = LinkText(_ => Nil)
-    val loc = Loc("static", Link(List("static"), true, "/static"), emptyLink , Hidden)
+    val loc = Loc("static", Link(List("static"), matchHead_? = true, "/static"), emptyLink , Hidden)
     val static = Menu.apply(loc)
+
 
     def sitemap = {
       SiteMap(
-        Menu.i("Home") / "index" submenus(
+        Menu.i("Home") / "index" >> Hidden submenus(
           Menu.i("Mobile Login") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter,
-          Menu.i("Profile") / "user" / "profile" >> loggedin,
-          Menu.i("Password") / "user" / "change_pass" >> loggedin
+          Menu.i("Profile") / "user" / "profile" >> loggedin >> MenuCssClass("profile-menu-item"),
+          Menu.i("Password") / "user" / "change_pass" >> loggedin >> Hidden
           ),
-        Menu.i("Learning") / "learning" / "index" >> loggedin submenus(
+        Menu.i("Learning Stats") / "learning" / "index" >> loggedin submenus(
           Menu.i("Repetition") / "learning" / "repeat",
           Menu.i("OF Matrix") / "learning" / "ofmatrix",
           Menu.i("Words for review") / "learning" / "bad_cards",
@@ -180,7 +181,8 @@ class Boot extends Logging {
       ),
         Menu.i("Oauth") / "oauth" >> Hidden submenus (
           Menu.i("OAuth request") / "oauth" / "request"
-      ),
+      )
+        ,
         static,
         Menu(new WikiLoc),
         Menu(new NewsLoc)

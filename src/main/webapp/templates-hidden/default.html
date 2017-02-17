@@ -27,24 +27,49 @@
 <body class="width-limit">
 <span class="lift:mode.is?name=development debug-label">DEBUG</span>
 <div class="lift:GlobalComet"></div>
-<nav class="navbar navbar-light koto-header">
-  <a class="navbar-brand align-middle py-0" href="/">
-    <img src="/static/images/kotonoha-logo.svg" class="logo-img" alt="Kotonoha Logo">
-  </a>
-  <div class="navbar-brand lift:Common.loggedInClass?cls=hidden-md-down">
-    <span class="brand-title">Kotonoha</span>
-  </div>
-  <form class="form-inline float-xs-left">
-    <a href="/learning/repeat" class="lift:Common.isLoggedIn btn btn-outline-success hidden-md-up">
-      <i class="fa fa-graduation-cap"></i> Review cards
-    </a>
-  </form>
-  <span class="brand-title hidden-md-down">
-    <i id="ajax-loader" style="display: none" class="fa fa-spinner fa-pulse fa-fw"></i>
-  </span>
-  <button class="navbar-toggler float-xs-right hidden-md-up" data-target="#menu" data-toggle="collapse" aria-controls="menu"></button>
-</nav>
 <div class="container-fluid">
+  <div class="row">
+    <div class="col-xs-12 p-0 m-0">
+      <nav class="navbar navbar-light koto-header">
+        <a class="navbar-brand col-xs-auto" href="/">
+          <img src="/static/images/kotonoha-logo.svg" class="logo-img" alt="Kotonoha Logo">
+        </a>
+        <div class="navbar-brand lift:Common.loggedInClass?cls=hidden-sm-down">
+          <span class="brand-title">Kotonoha</span>
+        </div>
+        <div class="float-xs-left">
+          <a href="/learning/repeat" class="lift:Common.isLoggedIn btn btn-outline-success hidden-md-up">
+            <i class="fa fa-graduation-cap"></i> Review cards
+          </a>
+        </div>
+        <span class="brand-title hidden-md-down">
+          <i id="ajax-loader" style="display: none" class="fa fa-spinner fa-pulse fa-fw"></i>
+        </span>
+        <button class="navbar-toggler float-xs-right hidden-md-up" data-target="#menu" data-toggle="collapse"
+                aria-controls="menu"></button>
+        <div class="float-xs-right hidden-sm-down navbar-right-button lift:Common.isLoggedIn">
+          <div class="btn-group">
+            <a class="btn btn-secondary btn-lg" type="button" href="/user/profile">
+              <i class="fa fa-user"></i>
+              <span class="lift:UserObj.username"></span>
+            </a>
+            <a class="btn btn-secondary btn-lg dropdown-toggle" type="button" data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+            </a>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="/user/tokens">
+                <i class="fa fa-mobile"></i> Mobile Login
+              </a>
+              <a class="dropdown-item" href="/user_mgt/logout">
+                <i class="fa fa-sign-out"></i> Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </div>
   <div class="row">
     <div class="lift:MenuPostproc?eager_eval=true left-nav collapse" id="menu">
       <lift:Menu.builder xmlns:li="http://www.w3.org/2005/08/addressing"
@@ -57,7 +82,6 @@
                          linkToSelf="true"
                          ul:class="nav"
       ></lift:Menu.builder>
-      <!--<div class="lift:Menu.builder?expandAll=true&li:class=nav-item&li_item:class=active&ul:class=nav+nav-stacked+nav-pills"></div> -->
     </div>
     <div class="main-content">
       <div class="lift:Msgs?showAll=true"></div>
@@ -69,7 +93,8 @@
 <footer>
   <div class="col-xs-12 last" style="text-align: center;">
     <div class="alt xsmall">
-      Copyright © <span class="lift:Common.year"></span> Arseny Tolmachev. Kotonoha is supported by MEXT Scholarship.<br>
+      Copyright © <span class="lift:Common.year"></span>
+      Arseny Tolmachev. Kotonoha is supported by MEXT Scholarship.<br>
       <span class="lift:Common.versionInfo"></span>
     </div>
   </div>
