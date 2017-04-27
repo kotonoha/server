@@ -25,6 +25,7 @@ import org.apache.lucene.search.Explanation
 import ws.kotonoha.akane.dic.jmdict._
 import ws.kotonoha.akane.dic.lucene.jmdict.LuceneJmdict
 import ws.kotonoha.akane.dic.lucene.jmdict.JmdictQuery
+import ws.kotonoha.server.ioc.UserContext
 import ws.kotonoha.server.util.LangUtil
 
 import scala.xml.{NodeSeq, Text}
@@ -34,7 +35,7 @@ import scala.xml.{NodeSeq, Text}
  * @since 23.04.12
  */
 
-class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging {
+class JMDict @Inject() (jmd: LuceneJmdict, uc: UserContext) extends DispatchSnippet with Logging {
   import net.liftweb.util.Helpers._
   import ws.kotonoha.server.util.NodeSeqUtil._
 
@@ -131,12 +132,14 @@ class JMDict @Inject() (jmd: LuceneJmdict) extends DispatchSnippet with Logging 
     } else Nil
   }
 
+  private val availableLangs = LangUtil.acceptableFor(uc.settings)
+
   def list(in: NodeSeq): NodeSeq = {
     val results = jmd.find(qobj)
     val fn = ".dict-entry *" #> results.data.map { o =>
       ".writing *" #> renderW(o.writings, ", ") &
       ".reading *" #> renderR(o.readings, ", ") &
-      ".meanings *" #> processMeanings(o.meanings) &
+      ".meanings *" #> processMeanings(JMDictUtil.cleanMeanings(o.meanings, availableLangs)) &
       ".me-too" #> renderMeToo(o) &
       ".debug *" #> debug(o.id, results.expls)
     } &
