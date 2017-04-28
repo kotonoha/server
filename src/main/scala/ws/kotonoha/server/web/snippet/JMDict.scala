@@ -35,7 +35,7 @@ import scala.xml.{NodeSeq, Text}
  * @since 23.04.12
  */
 
-class JMDict @Inject() (jmd: LuceneJmdict, uc: UserContext) extends DispatchSnippet with Logging {
+class JMDict @Inject() (jmd: LuceneJmdict, uc: Option[UserContext]) extends DispatchSnippet with Logging {
   import net.liftweb.util.Helpers._
   import ws.kotonoha.server.util.NodeSeqUtil._
 
@@ -132,7 +132,7 @@ class JMDict @Inject() (jmd: LuceneJmdict, uc: UserContext) extends DispatchSnip
     } else Nil
   }
 
-  private val availableLangs = LangUtil.acceptableFor(uc.settings)
+  private val availableLangs = LangUtil.acceptableFor(uc.map(_.settings))
 
   def list(in: NodeSeq): NodeSeq = {
     val results = jmd.find(qobj)

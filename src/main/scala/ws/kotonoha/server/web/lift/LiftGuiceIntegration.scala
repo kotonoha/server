@@ -24,7 +24,7 @@ import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.{CometActorSetupHelper, CometCreationInfo, LiftCometActor, LiftRules}
 import net.liftweb.util.{Helpers, LoanWrapper, Vendor}
 import org.bson.types.ObjectId
-import ws.kotonoha.server.ioc.{IocActors, IocSupport, UserContextService}
+import ws.kotonoha.server.ioc._
 import ws.kotonoha.server.records.UserRecord
 
 /**
@@ -36,7 +36,11 @@ class LiftGuiceIntegration(inj: Injector) extends StrictLogging {
   import net.codingwell.scalaguice.InjectorExtensions.ScalaInjector
 
   private val iocGlobal = ThreadLocal.withInitial(new Supplier[IocActors] {
-    override def get() = inj.getInstance(classOf[IocActors])
+    override def get() = {
+      val childInjector = inj.createChildInjector(new AnonUserModule)
+      val obj = childInjector.getInstance(classOf[AnonUserActorsIoc])
+      obj
+    }
   })
 
   def wrapUser() = new LoanWrapper {

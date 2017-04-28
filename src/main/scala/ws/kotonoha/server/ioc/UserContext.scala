@@ -22,7 +22,7 @@ import akka.actor.{ActorRef, ActorRefFactory}
 import akka.util.Timeout
 import com.github.benmanes.caffeine.cache.{Caffeine, RemovalCause, RemovalListener}
 import com.google.inject._
-import net.codingwell.scalaguice.ScalaModule
+import net.codingwell.scalaguice.{ScalaModule, ScalaOptionBinder}
 import org.bson.types.ObjectId
 import ws.kotonoha.server.actors._
 import ws.kotonoha.server.records.UserSettings
@@ -84,7 +84,19 @@ class UserContextInternalModule(uid: ObjectId) extends ScalaModule {
     inj: Injector,
     gact: GlobalActors
   ): UserContext = new UserContext(uid, gact, inj)
+
+  @Provides
+  def usetCtxOption(
+    prov: Provider[UserContext]
+  ): Option[UserContext] = Some(prov.get())
 }
+
+class AnonUserContextModule extends ScalaModule {
+  override def configure() = {
+    bind[Option[UserContext]].toInstance(None)
+  }
+}
+
 
 abstract class IopProvisionException extends RuntimeException()
 

@@ -45,13 +45,22 @@ object LangUtil {
 
   val jmdictLangs = Set("eng", "ger", "rus", "hun", "ita", "spa", "dut", "fre", "swe", "slv")
 
+  def acceptableFor(optSettings: Option[UserSettings]): Set[String] = {
+    optSettings match {
+      case Some(x) => acceptableFor(x)
+      case None => langsFromRequest().toSet
+    }
+  }
+
   def acceptableFor(settings: UserSettings): Set[String] = langsFor(settings).toSet ++ default
 
   def langsFor(us: UserSettings): Seq[String] = {
     val stored = us.dictLangs.value
-    if (stored.nonEmpty) return stored
+    if (stored.nonEmpty) stored
+    else langsFromRequest()
+  }
 
-    //else try to guess from request
+  def langsFromRequest(): Seq[String] = {
     val req = S.getRequestHeader("Accept-Language")
     req.toOption match {
       case Some(s) =>
