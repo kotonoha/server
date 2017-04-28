@@ -75,7 +75,7 @@ class JMDict @Inject() (jmd: LuceneJmdict, uc: UserContext) extends DispatchSnip
       if (tmp.isEmpty) tmp
       else Text("(") ++ <span class="dict-mean-tag">{tmp}</span> ++ Text(") ")
     }
-    val bdy = m.content.filter(l => LangUtil.okayLang(l.lang)).map(l => l.str).mkString("; ")
+    val bdy = m.content.map(l => l.str).mkString("; ")
     pos ++ <span class="dict-mean">{bdy}</span>
   }
 
