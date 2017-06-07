@@ -7,7 +7,7 @@ Unlike anki, it is specialized only for japanese and has focus on quick new word
 # Dependencies
 
 * Mongodb
-* Node.JS 6.0 (7.0 are not supported until https://github.com/sbt/sbt-js-engine/issues/52)
+* Node.JS 6.0 (7.0 is not supported until https://github.com/sbt/sbt-js-engine/issues/52)
 
 # Local installation
 
@@ -20,7 +20,7 @@ $ sbt
 
 Tests should pass cleanly.
 
-After the test pass, navigate to http://localhost:8080.
+After the test passses, navigate to http://localhost:8080.
 
 When you create a server the admin account is created automatically.
 Default username/password is admin@(none) / admin,
