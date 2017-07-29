@@ -138,7 +138,8 @@ class MongoTest extends AkkaFun with MongoAwareTest with BeforeAndAfter {
     val card = cards.head
 
     val sched = ucont.userActor[CardActor]("ca", _.withDispatcher(CallingThreadDispatcher.Id))
-    sched.receive(SchedulePaired(id, card.cardMode.get))
+    sched.receive(SchedulePaired(id, card.cardMode.get), testActor)
+    receiveOne(1.second)
     val cid = cards.last.id.get
 
     val anotherCard = WordCardRecord.find(cid).openOrThrowException("okay")
@@ -158,8 +159,8 @@ class MongoTest extends AkkaFun with MongoAwareTest with BeforeAndAfter {
     val clen = WordCardRecord where (_.user eqs userId) count()
     clen should equal(10)
 
-    val sel = ask(ucont.actor, LoadCards(6, 0)).mapTo[WordsAndCards]
-    val wac = Await.result(sel, 1 second)
+    ucont.actor.tell(LoadCards(6, 0), testActor)
+    val wac = receiveOne(1.second).asInstanceOf[WordsAndCards]
     val cards = wac.cards
     cards.length should be >= (1)
     val groups = cards groupBy {
@@ -169,8 +170,8 @@ class MongoTest extends AkkaFun with MongoAwareTest with BeforeAndAfter {
       gr should have length (1)
     }
 
-    val wicF = ask(ucont.actor, LoadWords(6, 0)).mapTo[WordsAndCards]
-    val wic = Await.result(wicF, 2 seconds)
+    ucont.actor.tell(LoadWords(6, 0), testActor)
+    val wic = receiveOne(1.second).asInstanceOf[WordsAndCards]
     wic.cards.length should be >= (1)
   }
 

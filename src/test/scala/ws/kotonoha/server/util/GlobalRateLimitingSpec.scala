@@ -16,9 +16,11 @@
 
 package ws.kotonoha.server.util
 
+import java.util.concurrent.atomic.AtomicLong
+
 import akka.actor.ActorRef
+import akka.stream.ActorMaterializer
 import akka.stream.ThrottleMode.Shaping
-import akka.stream.{ActorMaterializer, ThrottleMode}
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.testkit.TestActorRef
 import ws.kotonoha.akane.akka.{MaxAtOnceActor, RateLimitCfg, RateLimitTracing}
@@ -31,16 +33,18 @@ import scala.concurrent.{Await, ExecutionContext}
   * @since 2016/08/22
   */
 class GlobalRateLimitingSpec extends AkkaFree {
-  implicit lazy val amat = ActorMaterializer.create(kta.system)
-  implicit def ec = kta.ioc.inst[ExecutionContext]
+  private implicit lazy val amat = ActorMaterializer.create(kta.system)
+
+  private implicit def ec = kta.ioc.inst[ExecutionContext]
 
   import scala.concurrent.duration._
+
   "GlobalRateLimiting" - {
     "works with one stream" - {
-      var calls = 0
+      val calls = new AtomicLong(0)
 
       val cfg = RateLimitCfg(1, 5.seconds, new RateLimitTracing {
-        override def finish(ref: ActorRef, tag: Any, start: Long) = calls += 1
+        override def finish(ref: ActorRef, tag: Any, start: Long) = calls.incrementAndGet()
       })
       val limiter = TestActorRef[MaxAtOnceActor](MaxAtOnceActor.props(cfg))(kta.system)
       val iseq = (0 until 10).toVector
@@ -48,15 +52,15 @@ class GlobalRateLimitingSpec extends AkkaFree {
       val processor = Flow[Int].map(x => x * 10)
       val limit = GlobalRateLimiting.limit(limiter, processor)
       val result = Await.result(limit.runWith(inp, Sink.fold(0)(_ + _))._2, 1000.second)
-      calls shouldBe 10
+      calls.get() shouldBe 10L
       result shouldBe 450
     }
 
     "works with two streams" - {
-      var calls = 0
+      val calls = new AtomicLong(0)
 
       val cfg = RateLimitCfg(1, 1.minute, new RateLimitTracing {
-        override def finish(ref: ActorRef, tag: Any, start: Long) = calls += 1
+        override def finish(ref: ActorRef, tag: Any, start: Long) = calls.incrementAndGet()
       })
       val limiter = TestActorRef[MaxAtOnceActor](MaxAtOnceActor.props(cfg))(kta.system)
       val iseq = (0 until 10).toVector
@@ -67,7 +71,7 @@ class GlobalRateLimitingSpec extends AkkaFree {
       val f2 = limit.runWith(inp, Sink.fold(5)(_ + _))._2
       val result1 = Await.result(f1, 1.second)
       val result2 = Await.result(f2, 1.second)
-      calls shouldBe 20
+      calls.get() shouldBe 20L
       result1 shouldBe 450
       result2 shouldBe 455
     }

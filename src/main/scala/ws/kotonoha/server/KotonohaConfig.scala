@@ -21,6 +21,7 @@ import java.nio.file.{Files, Paths}
 import net.liftweb.util.Props
 import ws.kotonoha.akane.juman.JumanPipeExecutor
 import com.typesafe.config.{ConfigException, ConfigFactory}
+import com.typesafe.scalalogging.StrictLogging
 import ws.kotonoha.akane.config.Configuration
 import ws.kotonoha.akane.pipe.knp.KnpTreePipeParser
 
@@ -31,12 +32,12 @@ import scala.concurrent.ExecutionContext
  * @since 20.08.12
  */
 
-object KotonohaConfig {
+object KotonohaConfig extends StrictLogging {
 
   lazy val config = {
     import scala.collection.JavaConversions._
     val props = Props.props
-    val base = ConfigFactory.defaultApplication().withFallback(ConfigFactory.defaultOverrides())
+    val base = ConfigFactory.defaultApplication(KotonohaConfig.getClass.getClassLoader).withFallback(ConfigFactory.defaultOverrides())
     val fromLift = ConfigFactory.parseMap(props)
     var initial = Configuration.rawConfigFor("kotonoha")
     val trial = initial.withFallback(base).resolve()
@@ -45,6 +46,7 @@ object KotonohaConfig {
       val iter = includes.iterator()
       while (iter.hasNext) {
         val path = Paths.get(iter.next())
+        logger.debug("including a config file from {}", path)
         if (Files.exists(path)) {
           val parsed = ConfigFactory.parseFileAnySyntax(path.toFile)
           initial = parsed.withFallback(initial)

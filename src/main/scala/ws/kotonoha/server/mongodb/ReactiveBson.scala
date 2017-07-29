@@ -43,11 +43,11 @@ class BsonProjector(fields: Map[String, ProjectorField], size: Int) {
   def project(v: BSONDocument): Box[List[Any]] = {
     val data = new Array[Any](size)
     var error: Box[Failure] = Empty
-    v.elements.foreach { case (nm, v) =>
-        fields.get(nm) match {
+    v.elements.foreach { e: BSONElement =>
+        fields.get(e.name) match {
           case None => //ignore
           case Some(f) =>
-            f.tf(v).or(f.default()) match {
+            f.tf(e.value).or(f.default()) match {
               case Full(o) => data(f.slot) = if (f.optional) Some(o) else o
               case f: Failure => error = Full(f.copy(chain = error))
               case Empty => if (f.optional) data(f.slot) = None
@@ -136,10 +136,10 @@ object ReactiveBson extends StrictLogging {
 
   def fillObj(o: BsonRecord[_], doc: BSONDocument): Box[_] = {
     var out: Box[Failure] = Empty
-    for ((name, v) <- doc.elements) {
-      o.fieldByName(name) match {
+    for (el <- doc.elements) {
+      o.fieldByName(el.name) match {
         case Full(f) =>
-          fillField(o, f, v) match {
+          fillField(o, f, el.value) match {
             case f: Failure => out = Full(f.copy(chain = out))
             case _ =>
           }

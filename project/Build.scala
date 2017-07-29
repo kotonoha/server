@@ -235,7 +235,7 @@ object Kotonoha {
     "javax.transaction" % "jta" % "1.0.1B" % "provided",
 
     "org.mongodb" %% "casbah" % "2.8.2" exclude("org.specs2", "*"),
-    "org.reactivemongo" %% "reactivemongo" % "0.11.14",
+    "org.reactivemongo" %% "reactivemongo" % "0.12.5",
 
     "net.java.sen" % "lucene-gosen" % "6.2.0",
 
