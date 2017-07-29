@@ -150,10 +150,12 @@ class Boot extends Logging {
     def sitemap = {
       SiteMap(
         Menu.i("Home") / "index" >> Hidden submenus(
-          Menu.i("Mobile Login") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter,
-          Menu.i("Profile") / "user" / "profile" >> loggedin >> MenuCssClass("profile-menu-item"),
+          Menu.i("Mobile Login") / "user" / "tokens" >> loggedin >> UserRecord.AddUserMenusAfter
+        ),
+        Menu.i("Profile") / "user"/ "profile" >> loggedin >> MenuCssClass("mobile-only hidden-md-up") submenus(
+          //Menu.i("Logout") / "user_mgt" / "logout",
           Menu.i("Password") / "user" / "change_pass" >> loggedin >> Hidden
-          ),
+        ),
         Menu.i("Learning Stats") / "learning" / "index" >> loggedin submenus(
           Menu.i("Repetition") / "learning" / "repeat",
           Menu.i("OF Matrix") / "learning" / "ofmatrix",
