@@ -57,10 +57,14 @@ object JMDictTransforms {
   def toEntry(j: JmdictEntry, langs: Set[String]): DictionaryEntry = {
     val wrs = j.writings.map(_.content)
     val rds = j.readings.map(_.content)
-    val mns = j.meanings.map { m =>
+    val mns = j.meanings.flatMap { m =>
       val infos = m.pos ++ m.info
       val info = if (infos.isEmpty) "" else infos.map(i => JmdictTagMap.tagInfo(i.value).repr).mkString("(", ",", ") ")
-      info + m.content.filter(c => langs.contains(c.lang)).map(_.str).mkString("; ")
+      val langVals = m.content.filter(c => langs.contains(c.lang))
+      if (langVals.isEmpty) Nil
+      else {
+        info + langVals.map(_.str).mkString("; ") :: Nil
+      }
     }
     DictionaryEntry(wrs, rds, mns)
   }
