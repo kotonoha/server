@@ -106,8 +106,8 @@ object GitData {
 
 object Pbuf {
 
-  lazy val scalaPbVersion = "0.5.43"
-  lazy val grpcVersion = "1.0.1"
+  lazy val scalaPbVersion = "0.6.1"
+  lazy val grpcVersion = "1.5.0"
 
   val PbGrpcRuntime = {
     libraryDependencies ++= Seq(

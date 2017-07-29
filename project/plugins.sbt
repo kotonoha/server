@@ -13,9 +13,9 @@ addSbtPlugin("io.teamscala.sbt" % "sbt-babel" % "1.0.5")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
 
-val scalaPbVersion = "0.5.43"
+val scalaPbVersion = "0.6.1"
 
-addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.1")
+addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.11")
 
 libraryDependencies += "com.trueaccord.scalapb" %% "compilerplugin" % scalaPbVersion
 
