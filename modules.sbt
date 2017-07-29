@@ -46,6 +46,8 @@ lazy val eapi = (project in file("examples-api"))
 
 lazy val `grpc-streaming` = (project in file("grpc-akka-stream"))
   .settings(Common.buildSettings)
+  .settings(Pbuf.pbScala(), libraryDependencies ++= Kotonoha.akkaDeps)
+  .setSbtFiles(file("../sbt-overrides/overrides.sbt"))
 
 lazy val model = (project in file("model"))
     .settings(Common.buildSettings, Pbuf.pbScala())
